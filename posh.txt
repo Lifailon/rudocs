@@ -1,16 +1,16 @@
 PowerShell Commands
 
 -
-https://img.shields.io/github/languages/top/lifailon/PS-Commands?logo=powershell
+https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell
 https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page
 https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green
 https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count
 https://img.shields.io/github/stars/Lifailon/PS-Commands
 -
 
-Большая база заметок PowerShell на русском языке.
+https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=github&logoColor=white
 
-Веб-версия (https://lifailon.github.io)
+Большая база заметок PowerShell на русском языке.
 
 Habr: PowerShell и его возможности (https://habr.com/ru/articles/782592)
 
