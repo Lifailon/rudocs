@@ -1,15 +1,20 @@
 PowerShell Commands
 
-GitHub top language:https://img.shields.io/github/languages/top/lifailon/PS-Commands
-GitHub last commit: https://img.shields.io/github/last-commit/lifailon/PS-Commands
-GitHub code size: https://img.shields.io/github/languages/code-size/lifailon/PS-Commands
-GitHub Repo stars: https://img.shields.io/github/stars/Lifailon/PS-Commands
+-
+https://img.shields.io/github/languages/top/lifailon/PS-Commands?logo=powershell
+https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page
+https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green
+https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count
+https://img.shields.io/github/stars/Lifailon/PS-Commands
+-
 
 Большая база заметок PowerShell на русском языке.
 
 Веб-версия (https://lifailon.github.io)
 
-Habr: PowerShell и его возможности (https://habr.com/ru/articles/782592/)
+Habr: PowerShell и его возможности (https://habr.com/ru/articles/782592)
+
+---
 
 # Help
 # Object
@@ -124,6 +129,8 @@ Habr: PowerShell и его возможности (https://habr.com/ru/articles/
 # Pandoc
 # FFmpeg
 # ImageMagick
+
+---
 
 # Help
 

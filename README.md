@@ -1,15 +1,20 @@
 ![Image alt](https://github.com/Lifailon/PS-Commands/blob/rsa/Logo/PowerShell-Commands.png)
 
-![GitHub top language](https://img.shields.io/github/languages/top/lifailon/PS-Commands)
-![GitHub last commit (by committer)](https://img.shields.io/github/last-commit/lifailon/PS-Commands)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/lifailon/PS-Commands)
-![GitHub Repo stars](https://img.shields.io/github/stars/Lifailon/PS-Commands)
+<p align="center">
+<a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?logo=powershell"></a>
+<a href="https://lifailon.github.io"><img title="GitHub page"src="https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page"></a>
+<a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
+<a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
+<a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
+</p>
 
 Большая база заметок PowerShell на русском языке.
 
-[➡️ Веб-версия](https://lifailon.github.io/)
+🚀 [Веб-версия](https://lifailon.github.io)
 
-📢 Habr: [PowerShell и его возможности](https://habr.com/ru/articles/782592/)
+📢 Habr: [PowerShell и его возможности](https://habr.com/ru/articles/782592)
+
+---
 
 - [Help](#help)
 - [Object](#object)
@@ -124,6 +129,8 @@
 - [Pandoc](#pandoc)
 - [FFmpeg](#ffmpeg)
 - [ImageMagick](#imagemagick)
+
+---
 
 # Help
 
