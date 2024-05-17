@@ -6,13 +6,9 @@ https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitH
 https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green
 https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count
 https://img.shields.io/github/stars/Lifailon/PS-Commands
--
-
-https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=github&logoColor=white
-
 Большая база заметок PowerShell на русском языке.
-
-Habr: PowerShell и его возможности (https://habr.com/ru/articles/782592)
+https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=github&logoColor=white
+-
 
 ---
 

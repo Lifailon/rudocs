@@ -7,12 +7,8 @@
 <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
 <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
 </p>
-
+<p align="center">Большая база заметок PowerShell на русском языке.</p>
 <p align="center"><a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=github&logoColor=white"></a></p>
-
-Большая база заметок PowerShell на русском языке.
-
-📢 Habr: [PowerShell и его возможности](https://habr.com/ru/articles/782592)
 
 ---
 
