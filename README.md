@@ -99,8 +99,8 @@
 - [PackageManagement](#packagemanagement)
 - [NuGet](#nuget)
 - [Git](#git)
-- [GitHub](#github)
-- [Actions](#actions)
+- [GitHub-api](#github-api)
+- [GitHub-Actions](#github-actions)
 - [DSC](#dsc)
 - [Ansible](#ansible)
 - [Win_Modules](#win_modules)
@@ -119,6 +119,7 @@
 - [Telegram](#telegram)
 - [Discord](#discord)
 - [oh-my-posh](#oh-my-posh)
+- [Windows-Terminal](#windows-terminal)
 - [Pester](#pester)
 - [Pandoc](#pandoc)
 - [FFmpeg](#ffmpeg)
@@ -2733,24 +2734,29 @@ $vjob = Invoke-RestMethod "https://veeam-11:9419/api/v1/jobs" -Method GET -Heade
 $vjob.data.virtualMachines.includes.inventoryObject
 ```
 ### Cookie
+
+Получить hash торрент файла на сайте Кинозал
 ```PowerShell
-$url = "https://www.epicgames.com/id/api/redirect?clientId=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&responseType=code"
-$cookies = "__cf_bm=XXX..."
-$headers = @{
-    "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    "Accept" = "application/json"
-    "Cookie" = $cookies
-}
-$response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-$response | ConvertTo-Json
-{
-  "redirectUrl": "https://localhost/launcher/authorized?code=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "authorizationCode": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "exchangeCode": null,
-  "sid": null,
-  "ssoV2Enabled": true
+function Get-KinozalTorrentHash {
+    param (
+        [Parameter(Mandatory = $True)][string]$id,
+        [Parameter(Mandatory = $True)][string]$cookies
+    )
+    $url = "https://kinozal.tv/get_srv_details.php?id=$($id)&action=2"
+    $cookies = "uid=...+"
+    $headers = @{
+        "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        "Cookie" = $cookies
+    }
+    $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
+    $result -match "Инфо хеш: (.+)</li><li>Размер" | Out-Null
+    return $Matches[1]
 }
 ```
+`$id = 1656552` \
+`$cookies = "uid=..."` получить cookie в браузере на вкладке сеть из загловка запросов после авторизации на сайте \
+`Get-KinozalTorrentHash $id $cookies`
+
 # Pode
 ```PowerShell
 Start-PodeServer {
@@ -6203,7 +6209,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 `git stash` сохраняет текущие изменения в стэш (временное хранилище) и очищает рабочую директорию \
 `git stash pop` применяет последние изменения из стэша к текущей ветке
 
-# GitHub
+# GitHub-api
 
 `$user = "Lifailon"` \
 `$repository = "ReverseProxyNET"` \
@@ -6230,7 +6236,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 `Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/stargazers?per_page=4000` получаем список пользователей, которые поставили звезды репозиторию \
 `Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/subscribers` получаем список подписчиков (watchers) репозитория
 
-# Actions
+# GitHub-Actions
 
 ### Runner (Agent)
 
@@ -7660,7 +7666,7 @@ Set-PoshTheme -Theme Pwsh-Process-Performance # -Save
 [Список шрифтов](https://www.nerdfonts.com/font-downloads) \
 Скачать и установить шрифт похожий на Cascadia Code - [CaskaydiaCove](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/CascadiaCode.zip)
 
-Установить шрифт в конфигурацию Windows Terminal:
+Установить шрифт в конфигурацию Windows Terminal для PowerShell Core:
 ```json
 "profiles": 
 {
@@ -7682,15 +7688,31 @@ Set-PoshTheme -Theme Pwsh-Process-Performance # -Save
             {
                 "face": "CaskaydiaMono Nerd Font"
             },
-			"guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+            "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
             "hidden": false,
             "name": "PowerShell Core",
             "source": "Windows.Terminal.PowershellCore"
+        },
+        // WSL (Ubuntu)
+        {
+            "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+            "hidden": false,
+            "name": "WSL",
+            "source": "Windows.Terminal.Wsl"
+        },
+        // ssh
+        {
+            "commandline": "ssh lifailon@192.168.1.100 -p 22",
+            "guid": "{a3ec86f6-2bc1-59dd-814d-2a0d935af5f8}",
+            "icon": "🐧",
+            "name": "devops-01"
         }
     ]
 }
 ```
-### Windows Terminal Custom Actions
+# Windows-Terminal 
+
+### Custom Actions
 
 Custom actions: https://learn.microsoft.com/ru-ru/windows/terminal/customize-settings/actions \
 Escape-последовательности: https://learn.microsoft.com/ru-ru/cpp/c-language/escape-sequences?view=msvc-170
