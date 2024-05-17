@@ -67,6 +67,8 @@ Habr: PowerShell и его возможности (https://habr.com/ru/articles/
 # XML
 # JSON
 # YAML
+# TOML
+# Markdown
 # HTML
 # HtmlAgilityPack
 # SQLite
@@ -98,6 +100,7 @@ Habr: PowerShell и его возможности (https://habr.com/ru/articles/
 # NuGet
 # Git
 # GitHub
+# Actions
 # DSC
 # Ansible
 # Win_Modules
@@ -120,7 +123,6 @@ Habr: PowerShell и его возможности (https://habr.com/ru/articles/
 # Pandoc
 # FFmpeg
 # ImageMagick
-# Hugo
 
 # Help
 
@@ -2730,6 +2732,25 @@ $vjob = $vjob.Content | ConvertFrom-Json
 $vjob = Invoke-RestMethod "https://veeam-11:9419/api/v1/jobs" -Method GET -Headers $Header -SkipCertificateCheck
 $vjob.data.virtualMachines.includes.inventoryObject
 
+### Cookie
+
+$url = "https://www.epicgames.com/id/api/redirect?clientId=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&responseType=code"
+$cookies = "__cf_bm=XXX..."
+$headers = @{
+    "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    "Accept" = "application/json"
+    "Cookie" = $cookies
+}
+$response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
+$response | ConvertTo-Json
+{
+  "redirectUrl": "https://localhost/launcher/authorized?code=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "authorizationCode": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "exchangeCode": null,
+  "sid": null,
+  "ssoV2Enabled": true
+}
+
 # Pode
 
 Start-PodeServer {
@@ -3787,6 +3808,120 @@ flo: !!float 10.1
 str: !!str string
 bool: !!bool # boolean
 "
+
+# TOML
+
+Install-Module -Name PSToml -Scope CurrentUser # Устанавливаем модуль для чтения toml (PSToml)
+$toml = Get-Content "$home\Documents\Git\lifailon.github.io\hugo.toml" # Читаем содержимое конфигурации Hugo в формате toml
+$json = ConvertFrom-Toml $toml | ConvertTo-Json -Depth 3 # Конвертируем TOML в JSON
+$json | Out-File "$home\Documents\Git\lifailon.github.io\hugo.json" # Сохраняем конфигурационный файл в формате JSON
+
+# Markdown
+
+### Convert Markdown to HTML
+
+function ConvertFrom-MarkdownToHtml {
+    param (
+        [Parameter(Mandatory = $true,ValueFromPipeline = $true)]$Markdown
+    )
+    $html = $(Get-Content index.md -Raw | ConvertFrom-Markdown).html
+    @"
+	<!DOCTYPE html>
+	<html>
+	<head>
+	</head>
+	<body>
+	$html
+	</body>
+	</html>
+	"@
+}
+
+Get-Content index.md -Raw | ConvertFrom-MarkdownToHtml | Out-File index.html
+
+### PSMarkdown
+
+Install-Module PSMarkdown
+
+### ConvertFrom-MarkdownV2
+
+Function ConvertFrom-MarkdownV2 {
+    [CmdletBinding()]
+    [OutputType([PSObject])]
+    Param (
+        [Parameter(
+            Mandatory = $true,
+            Position = 0,
+            ValueFromPipeline = $true
+        )]
+        $InputObject
+    )
+    Begin {
+        $items = @()
+    }
+    Process {
+        $mddata = $InputObject
+        $data = $mddata | Where-Object {$_ -notmatch "--" }
+        $items += $data
+    }
+    End {
+       $object = $items -replace ' +', '' | ConvertFrom-Csv -Delimiter '|'
+       $object 
+    }
+}
+
+# ConvertTo-Markdown
+
+Function ConvertTo-Markdown {
+    [CmdletBinding()]
+    [OutputType([string])]
+    Param (
+        [Parameter(
+            Mandatory = $true,
+            Position = 0,
+            ValueFromPipeline = $true
+        )]
+        [PSObject[]]$InputObject
+    )
+    Begin {
+        $items = @()
+        $columns = @{}
+    }
+    Process {
+        ForEach($item in $InputObject) {
+            $items += $item
+            $item.PSObject.Properties | ForEach-Object {
+                if($null -ne $_.Value) {
+                    if(-not $columns.ContainsKey($_.Name) -or $columns[$_.Name] -lt $_.Value.ToString().Length) {
+                        $columns[$_.Name] = $_.Value.ToString().Length
+                    }
+                }
+            }
+        }
+    }
+    End {
+        ForEach($key in $($columns.Keys)) {
+            $columns[$key] = [Math]::Max($columns[$key], $key.Length)
+        }
+        $header = @()
+        ForEach($key in $columns.Keys) {
+            $header += ('{0,-' + $columns[$key] + '}') -f $key
+        }
+        $header -join ' | '
+        $separator = @()
+        ForEach($key in $columns.Keys) {
+            $separator += '-' * $columns[$key]
+        }
+        $separator -join ' | '
+        ForEach($item in $items) {
+            $values = @()
+            ForEach($key in $columns.Keys) {
+                $values += ('{0,-' + $columns[$key] + '}') -f $item.($key)
+            }
+            $values -join ' | '
+        }
+    }
+}
 
 # HTML
 
@@ -5794,6 +5929,26 @@ ssh Lifailon@192.168.3.99 -p 22
 pwsh -command Get-Service
 ssh -L 3101:192.168.3.101:22 -R 3101:192.168.3.101:22 lifailon@192.168.3.101 -p 22 # SSH Tunnel lifailon@localhost:3101 -> 192.168.3.101:3101
 
+### PSRemoting over SSH
+
+Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0 # установка OpenSSH Server
+Get-WindowsCapability -Online | ? Name -like 'OpenSSH.Ser*'
+iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI" # установка PowerShell Core последней версии (требуется на клиентской стороне)
+Set-Service -Name sshd -StartupType "Automatic"
+Start-Service sshd
+Get-NetTCPConnection -State Listen|where {$_.localport -eq '22'}
+Enable-NetFirewallRule -Name *OpenSSH-Server*
+New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String –Force # изменить интерпритатор по умолчанию на pwsh
+notepad $Env:ProgramData\ssh\sshd_config
+
+PasswordAuthentication yes
+Subsystem powershell c:/progra~1/powershell/7/pwsh.exe -sshs -NoLogo # запуск интерпретатора pwsh для удаленных SSH подключений
+
+Restart-Service sshd
+
+$session = New-PSSession -HostName 192.168.3.100 -Port 2121 -UserName lifailon -SSHTransport
+Invoke-Command -Session $session -ScriptBlock {Get-Service}
+
 # WinRM
 
 Enter-PSSession -ComputerName $srv # подключиться к PowerShell сессии через PSRemoting. Подключение возможно только по FQDN-имени
@@ -6012,13 +6167,17 @@ git clone git@github.com:Lifailon/lifailon.github.io
 cd lifailon.github.io
 git grep "ping ya.ru" # поиск текста в файлах
 git fetch # загрузить изменения из удаленного хранилища для обновления всех веток локального репозитория, не затрагивая текущую рабочую ветку (загружает все коммиты, ветки и т.д. которые не присутствуют в локальном репозитории)
-git pull # загрузить изменения из удаленного хранилища для обновления локального репозитория (выполняет git fetch для синхронизации удаленного репозитория с локальным и git merge для обновления текущей рабочей ветки)
+git fetch --all # загрузить все ветки с удаленного репозитория (обновляет информацию о состоянии удаленного репозитория и загружает все изменения ваших веток без автоматического объединения)
+git pull # загрузить изменения из удаленного хранилища для обновления локального репозитория (выполняет git fetch, чтобы получить последние изменения из удаленного репозитория, а затеим объеденяем изменения с локальной копией с помощью git merge для обновления текущей рабочей ветки)
 git status # отобразить статус изменений по файлам
 git diff # отобразить историю изменений построчно
 git diff pandoc # сравнивает изменения в текущей рабочей директории с последним коммитом в указанной ветке
 git add . # добавить (проиндексировать) изменения во всех файлах текущего каталога
 git commit -m "update powershell commands" # сохранить изменения с комментарием
 git push # синхронизировать локальные изменения с репозиторием на сервере
+git push origin mkdocs-material # отправить в конкретную ветку
+git push origin --delete mkdocs # удалить ветку на удаленном сервере
+git branch -a # отобразить все ветки (в том числе удаленные remotes/origin)
 git branch hugo # создать новую ветку
 git branch -m hugo-public # переименовать текущую ветку
 git branch -d hugo-public # удалить ветку
@@ -6048,23 +6207,84 @@ git stash pop # применяет последние изменения из с
 
 $user = "Lifailon"
 $repository = "ReverseProxyNET"
-Invoke-RestMethod https://api.github.com/users/$($user)
-Invoke-RestMethod https://api.github.com/users/$($user)/repos
-Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/contents
-Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/contents/source/rpnet.cs
-Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/commits
-$sha = $(Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/commits).sha
-Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/commits/$($sha[-1])
-Invoke-RestMethod "https://api.github.com/repos/$($user)/$($repository)/releases/latest"
-$(Invoke-RestMethod "https://api.github.com/repos/$($user)/$($repository)/releases/latest").assets.name
-$issues = Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/issues
-$issue_number = $($issues | Where-Object title -match "PowerShell").number
-Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/issues/$($issue_number)/comments
-Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/pulls
-Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/languages
-Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/stargazers
-Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/forks
-Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/subscribers
+Invoke-RestMethod https://api.github.com/users/$($user) # получаем информацию о пользователе
+Invoke-RestMethod https://api.github.com/users/$($user)/repos # получаем список последних (актуальные коммиты) 30 репозиториев указанного пользователя
+Invoke-RestMethod https://api.github.com/users/$($user)/repos?per_page=100 # получаем список последних (актуальные коммиты) 100 репозиториев указанного пользователя
+Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/contents # получаем содержимое корневой директории репозитория
+Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/contents/source/rpnet.cs # получаем содержимое файла в формате Base64
+$commits = Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/commits # получаем список коммитов
+$commits[0].commit.message # читаем комментарий последнего коммита
+$commits[0].commit.committer.date # получаем дату последнего коммита
+Invoke-RestMethod https://api.github.com/repos/$($user)/$($repository)/commits/$($commits[0].sha) # получаем подробную информацию изменений о последнем коммите в репозитории
+$releases_latest = Invoke-RestMethod "https://api.github.com/repos/$($user)/$($repository)/releases/latest" # получаем информацию о последнем релизе в репозитории
+$releases_latest.assets.name # список приложенных файлов последнего релиза
+$releases_latest.assets.browser_download_url # получаем список url для загрузки файлов
+$($releases_latest.assets | Where-Object name -like "*win*x64*exe*").browser_download_url # фильтруем по ОС и разрядности
+$(Invoke-RestMethod -Uri "https://api.github.com/repos/Lifailon/epic-games-radar/commits?path=api/giveaway/index.json")[0].commit.author.date # узнать дату последнего обновления файла в репозитории
+$issues = Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/issues?per_page=500 # получаем список открытых проблем в репозитории (получаем максимум 100 последних, по умолчанию забираем последние 30 issues)
+$issue_number = $($issues | Where-Object title -match "PowerShell").number # получаем номер issue, в заголовке которого есть слово "PowerShell"
+Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/issues/$($issue_number)/comments # отобразить список комментарием указанного issues
+Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/languages # получаем список языков программирования, используемых в репозитории
+Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/pulls # получаем список всех pull requests в репозитории
+Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/forks # получаем список форков (forks)
+Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/stargazers?per_page=4000 # получаем список пользователей, которые поставили звезды репозиторию
+Invoke-RestMethod https://api.github.com/repos/LibreHardwareMonitor/LibreHardwareMonitor/subscribers # получаем список подписчиков (watchers) репозитория
+
+# Actions
+
+### Runner (Agent)
+
+mkdir actions-runner; cd actions-runner
+Invoke-WebRequest -Uri https://github.com/actions/runner/releases/download/v2.316.1/actions-runner-win-x64-2.316.1.zip -OutFile actions-runner-win-x64-2.316.1.zip # загрузить пакет с Runner последней версии
+if((Get-FileHash -Path actions-runner-win-x64-2.316.1.zip -Algorithm SHA256).Hash.ToUpper() -ne 'e41debe4f0a83f66b28993eaf84dad944c8c82e2c9da81f56a850bc27fedd76b'.ToUpper()){ throw 'Computed checksum did not match' } # проверить валидность пакета с помощью hash-суммы
+Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/actions-runner-win-x64-2.316.1.zip", "$PWD") # разархивировать
+Remove-Item *.zip # удалить архив
+./config.cmd --url https://github.com/Lifailon/egapi --token XXXXXXXXXXXXXXXXXXXXXXXXXXXXX # авторизовать и сконфигурировать сборщика с помощью скрипта (что бы на последнем пункте создать службу для управления сборщиком, нужно запустить консоль с правами администратора)
+./run.cmd # запустить процесс (если не используется служба)
+Get-Service *actions* | Start-Service # запустить службу
+Get-Process *Runner.Listener*
+./config.cmd remove --token XXXXXXXXXXXXXXXXXXXXXXXXXXXXX # удалить конфигурацию
+
+### Build (Pipeline)
+
+name: build-game-list
+
+on:
+  # Разрешить ручной запуск workflow через интерфейс GitHub
+  workflow_dispatch:
+  
+  # Запускать workflow по расписанию каждый час в 00 минут
+  schedule:
+  - cron: '00 * * * *'
+
+jobs:
+  Job_01:
+    # Указываем, что job будет выполняться на последней версии Ubuntu
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Шаги, которые будут выполнены в рамках этого job
+    - name: Checkout repository
+      # Клонирования репозиторий
+      uses: actions/checkout@v2
+    
+    - name: Get content and write to file
+      # Выполняем скрипт PowerShell, расположенный в ./scripts/Get-GameList.ps1
+      run: pwsh -File ./scripts/Get-GameList.ps1
+      # Указываем, что команда должна выполняться в оболочке bash
+      shell: bash 
+
+    - name: Commit and push changes
+      run: |
+        # Задаем имя пользователя и email для коммитов
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        # Добавляем все изменения в индекс
+        git add .
+        # Делаем коммит с комментарием
+        git commit -m "update game list"
+        # Отправляем коммит в удаленный репозиторий
+        git push
 
 # DSC
 
@@ -7440,6 +7660,103 @@ Import-Module -Name Terminal-Icons
 Список шрифтов: https://www.nerdfonts.com/font-downloads
 Скачать и установить шрифт похожий на Cascadia Code - [CaskaydiaCove](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/CascadiaCode.zip)
 
+Установить шрифт в конфигурацию Windows Terminal:
+
+"profiles": 
+{
+    "defaults": 
+    {
+        "colorScheme": "One Half Dark",
+        "experimental.retroTerminalEffect": true,
+        "font": 
+        {
+            "size": 10.0
+        },
+        "useAtlasEngine": true
+    },
+    "list": 
+    [
+        // PowerShell Core 7
+        {
+            "font": 
+            {
+                "face": "CaskaydiaMono Nerd Font"
+            },
+			"guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+            "hidden": false,
+            "name": "PowerShell Core",
+            "source": "Windows.Terminal.PowershellCore"
+        }
+    ]
+}
+
+### Windows Terminal Custom Actions
+
+Custom actions: https://learn.microsoft.com/ru-ru/windows/terminal/customize-settings/actions
+Escape-последовательности: https://learn.microsoft.com/ru-ru/cpp/c-language/escape-sequences?view=msvc-170
+
+"actions": 
+[
+    {
+        "command": 
+        {
+            "action": "copy",
+            "singleLine": false
+        },
+        "keys": "ctrl+c"
+    },
+    {
+        "command": "paste",
+        // Сохраняем классическую вставку интерпритатора, не заставляя выполнять код построчно
+        "keys": "ctrl+shift+v" // default: ctrl+v
+    },
+    {
+        "command": "find",
+        "keys": "ctrl+f" // default: ctrl+shift+f
+    },
+    {
+        "command": 
+        {
+            "action": "splitPane",
+            "split": "left", // default: auto
+            "splitMode": "duplicate"
+        },
+        "keys": "ctrl+shift+d" // default: alt+shift+d
+    },
+    // Clear Line
+    {
+        "command": {
+            "action": "sendInput",
+            "input": "\u0001\u001b[3~"
+        },
+        "keys": "ctrl+k"
+    },
+    // Clear All
+    {
+        "command": {
+            "action": "sendInput",
+            "input": "\u0001\u001b[3~clear\r"
+        },
+        "keys": "ctrl+l"
+    },
+    // Past Translate MyMemory:
+    {
+        "command": {
+            "action": "sendInput",
+            "input": "\u0001\u001b[3~Get-Translate -Alternatives -Provider MyMemory ''\u001b[D"
+        },
+        "keys": "ctrl+t"
+    },
+    // Past Translate Google:
+    {
+        "command": {
+            "action": "sendInput",
+            "input": "\u0001\u001b[3~Get-Translate -Alternatives -Provider Google ''\u001b[D"
+        },
+        "keys": "ctrl+g"
+    }
+],
+
 # Pester
 
 Source: https://github.com/pester/Pester
@@ -7509,6 +7826,9 @@ pandoc -s index.html -o README.md # конвертация из HTML в Markdown
 pandoc -s README.md -o README.docx # конвертация в Word
 pandoc -s README.md -o README.epub # конвертация в открытый формат электронных версий книг 
 pandoc -s README.md -o README.pdf # конвертация в PDF (требуется rsvg-convert)
+pandoc input.md -f markdown+hard_line_breaks -o output.md # конвертация из markdown документа, который не содержит обратный слэш в конце каждой строки для переноса (\), который их добавит
+
+### Convert Excel to Markdown
 
 Import-Module ImportExcel
 Import-Excel -Path srv.xlsx | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8 # конвертация Excel в csv
@@ -7547,151 +7867,3 @@ magick PowerShell-Commands.png -fill white -pointsize 24 -gravity center -annota
 magick PowerShell-Commands.png -brightness-contrast +20x+10 output.jpg # изменить яркость и контрастность
 magick convert -delay 100 1.png 2.png 3.png output.gif # создать gif из изображений
 magick convert image1.jpg image2.jpg -append output.jpg # вертикально объединенить изображения
-
-# Hugo
-
-Source (https://github.com/gohugoio/hugo)
-
-winget install Hugo.Hugo.Extended
-scoop install hugo-extended
-choco install hugo-extended
-
-$user = "gohugoio"
-$repository = "hugo"
-$release_latest = Invoke-RestMethod "https://api.github.com/repos/$($user)/$($repository)/releases/latest"
-$url = $($release_latest.assets | Where-Object name -match "hugo_extended_[\d.]+_windows-amd64\.zip").browser_download_url
-Invoke-RestMethod $url -OutFile $home\Downloads\hugo.zip
-Expand-Archive -Path "$home\Downloads\hugo.zip" -DestinationPath "$home\Downloads\hugo\"
-Copy-Item -Path "$home\Downloads\hugo\hugo.exe" -Destination "C:\Windows\System32\hugo.exe"
-Remove-Item "$home\Downloads\hugo*" -Force -Recurse
-
-Список тем: https://themes.gohugo.io
-Список команд: https://gohugo.io/commands
-hugo completion powershell | Out-String | Invoke-Expression # включить поддержку автозавершения параметров
-hugo version
-
-hugo new site lifailon.github.io.hugo # создать и инициализировать новый сайт
-cd lifailon.github.io.hugo
-git init # инициализируйте пустой репозиторий Git в текущем каталоге для инициализации темы каталог themes, добавив ее в свой проект как подмодуль Git (если не используется клонирование)
-git submodule add -f https://github.com/JingWangTW/dark-theme-editor.git themes/dark-theme-editor
-echo 'theme = "dark-theme-editor"' >> hugo.toml
-#git submodule add https://github.com/rhazdon/hugo-theme-hello-friend-ng.git themes/hello-friend-ng
-#echo 'theme = "hello-friend-ng"' >> hugo.toml
-mkdir "$home\Downloads\lifailon.github.io.hugo\content\powershell\"
-cp "$home\Downloads\README.md" "$home\Downloads\lifailon.github.io.hugo\content\powershell\index.md" # скопировать markdown документ в директорию контента
-hugo server #  запустить локальный веб-сервер с проектом (http://localhost:1313)
-
-Dark-Theme-Editor (https://github.com/JingWangTW/dark-theme-editor)
-
-code hugo.toml
-```toml
-baseURL = 'https://lifailon.github.io'
-languageCode = 'en-us'
-title = 'PS-Commands'
-theme = "dark-theme-editor"
-
-[taxonomies]
-autor = "Lifailon"
-tag = "Code"
-category = "PowerShell"
-
-[params]
-[params.site]
-faviconUrl = ""
-
-[params.header]
-title = "Lifailon.GitHub.io"
-subtitle = "Большая база заметок PowerShell на русском языке."
-
-[params.header.logo]
-imgUrl = ""
-logoLink = ""
-
-[params.footer]
-copyrightStr = "GitHub"
-counter = false
-language = false
-hugoVersion = true
-theme = true
-modifiedTime = true
-dateFormat = "Jan 02 2006"
-gitHash = false
-[params.footer.socialLink]
-github = "https://github.com/Lifailon"
-
-[params.globalFrontmatter]
-author = "Lifailon"
-description = "Large base of PowerShell notes in Russian language"
-keywords = "PowerShell"
-
-[params.homePage]
-siteLongDescriptionTitle = "PowerShell Commands"
-siteLongDescription = "Структура языка, синтаксис командлетов и модулей, работа с системными и внешними утилитами, платформой .NET, различными сервисами через REST API, а так же системами AD, Exchange, Hyper-V, VMWare, базами данных и т.д."
-showRecentPostsBlock = false
-numOfRecentPosts = 5
-recentPostShowUrl = false
-
-[params.page]
-includeToc = false
-showAuthor = true
-showDate = true
-dateFormat = "Jan 02 2006"
-showTimeToRead = true
-showBreadcrumb = true
-codeBlockCopible = true
-```
-code "content\powershell\index.md"
-```Markdown
----
-title: "PowerShell Commands"
-author: "Lifailon"
-date: "2024-03-14T03:00:00+03:00"
-categories: ["PowerShell"]
-tags: ["dotNET", "REST API", "Active Dirtctory", "EMShell", "PowerCLI", "Database"]
----
-```
-Hugo-Theme-Hello-Friend-ng (https://github.com/rhazdon/hugo-theme-hello-friend-ng)
-```toml
-baseURL = 'https://lifailon.github.io'
-title = "Shell Commands"
-languageCode = "en-us"
-theme = "hello-friend-ng"
-contentDir = "content"
-
-[taxonomies]
-autor = "Lifailon"
-tag = "PowerShell"
-category = "Code"
-
-[params.author]
-name = "Lifailon"
-
-[params.footer]
-trademark = "2022-2024"
-bottomText = ["GitHub ▶️ <a href=\"https://github.com/Lifailon\">Lifailon</a>"]
-
-[params.logo]
-logoMark = ">"
-logoText = "$ /home/lifailon/"
-logoHomeLink = "/"
-logoCursorColor = "#67a2c9"
-logoCursorAnimate = "2s"
-logoCursorPathname = true
-logoCursorDisabled = false
-
-#[params.portrait]
-#path = "/img/image.jpg"
-#alt = "Portrait"
-#maxWidth = "1500px"
-
-[[params.social]]
-name = "github"
-url = "https://github.com/Lifailon"
-
-[menu]
-[[menu.main]]
-identifier = "ps"
-name = "PowerShell Commands"
-url = "/powershell/"
-```
-hugo # генерация сайта (создаст папку public с готовыми файлами сайта для развертывания)
