@@ -12,6 +12,7 @@
 
 ---
 
+- [Cheat-Sheet](#cheat-sheet)
 - [Help](#help)
 - [Object](#object)
 - [npp](#npp)
@@ -127,6 +128,10 @@
 - [ImageMagick](#imagemagick)
 
 ---
+
+# Cheat-Sheet
+
+![Image alt](https://github.com/Lifailon/PS-Commands/blob/rsa/Cheat-Sheet/PowerShell-Cheat-Sheet-RU.jpg)
 
 # Help
 
@@ -479,6 +484,9 @@ $		# Конец строки
 
 ### Matches
 
+`"num: 777" -match "num: ([0-9]+)" | Out-Null` \
+`$Matches[1]` выводим только номер
+
 `$ip = "192.168.10.1"` \
 `$ip -match "(\.\d{1,3})\.\d{1,2}"` True \
 `$Matches` отобразить все подходящие переменные последнего поиска, которые входят и не входят в группы ()
@@ -519,6 +527,7 @@ foreach ($p in $gp) {
 `-eq` равно (equal) \
 `-ceq` учитывать регистр \
 `-ne` не равно (not equal) \
+`-cne` не равно учитывая регистр \
 `-gt` больше (greater) \
 `-ge` больше или равно \
 `-lt` меньше (less) \
