@@ -15,10 +15,12 @@
 - [Cheat-Sheet](#cheat-sheet)
 - [Help](#help)
 - [Object](#object)
-- [npp](#npp)
+- [Error](#error)
+- [DateTime](#datetime)
 - [Regex](#regex)
 - [DataType](#datatype)
-- [Module](#module)
+- [Function](#function)
+- [Modules](#modules)
 - [Bit](#bit)
 - [Cycle](#cycle)
 - [Files](#files)
@@ -151,7 +153,7 @@
 `Show-Command` вывести список команд в GUI \
 `Show-Command Get-Service` список параметров команды в GUI \
 `Invoke-Expression` iex принимает текст для выполнения в консоли как команды \
-`$PSVersionTable` версия PowerShell \
+`$PSVersionTable` текущая версия PowerShell \
 `Set-ExecutionPolicy Unrestricted` \
 `Get-ExecutionPolicy` \
 `$Metadata = New-Object System.Management.Automation.CommandMetaData (Get-Command Get-Service)` получить информацию о командлете \
@@ -224,59 +226,77 @@
 $array = "a","b","c","d"
 $num = 0
 foreach ($a in $array) {
-$num += 1
-$index = [array]::IndexOf($array, $a) # узнать номер индекса по зачению
-$array[$index] = $num # пересобрать исходный массив
+    $num += 1
+    $index = [array]::IndexOf($array, $a) # узнать номер индекса по зачению
+    $array[$index] = $num # пересобрать исходный массив
 }
 ```
 ### HashTable
 ```PowerShell
-$hashtable = @{"User" = "$env:username"; "Server" = "$env:computername"} # создать
-$hashtable += @{"User2" = "$env:username"; "Server2" = "$env:computername"} # добавить ключи
-$hashtable.Keys # список всех ключей
-$hashtable["User"] # получить значение (Values) по ключу
-$hashtable["User"] = "Test" # изменить
-$hashtable.Remove("User") # удалить ключ
+$hashtable = @{ # Создать (инициализировать)
+    "User" = $env:USERNAME; 
+    "Server" = $env:COMPUTERNAME
+}
+
+$hashtable += @{ # Добавить ключи
+    "Profile" = $PROFILE;
+    "PowerShell_Home_Dir" = $PSHOME
+}
 ```
-`$Tag = @{$true = 'dev'; $false = 'prod'}[([System.Net.Dns]::GetHostEntry("localhost").HostName) -match '.*.TestDomain$']`
+`$hashtable.Keys` список всех ключей \
+`$hashtable["User"]` получить значение (Values) по ключу \
+`$hashtable["User"] = "Test"` изменить \
+`$hashtable.Remove("User")` удалить ключ
 
 ### Collections/List
 ```PowerShell
 $Collections = New-Object System.Collections.Generic.List[System.Object]
-$Collections.Add([PSCustomObject]@{User = $env:username; Server = $env:computername})
+$Collections.Add([PSCustomObject]@{
+    User = $env:username;
+    Server = $env:computername
+})
 ```
 ### PSCustomObject
 ```PowerShell
-$CustomObject = [PSCustomObject][ordered]@{User = $env:username; Server = $env:computername}
-$CustomObject | Add-Member –MemberType NoteProperty –Name Arr –Value @(1,2,3) # добавить Property (свойство/стобец)
-$CustomObject.Arr = @(1,3,5) # изменить содержимое
-$CustomObject.PsObject.Properties.Remove('User') # удалить Property
+$CustomObject = [PSCustomObject][ordered]@{
+    User = $env:username;
+    Server = $env:computername
+}
 ```
-### Add-Member
+### Add and Remove Property
+
+`$CustomObject | Add-Member –MemberType NoteProperty –Name Arr –Value @(1,2,3)` добавить свойство/стобец \
+`$CustomObject.Arr = @(1,3,5)` изменить содержимое \
+`$CustomObject.PsObject.Properties.Remove('User')` удалить Property
+
+### Add Method
 ```PowerShell
 $ScriptBlock = {Get-Service}
-$CustomObject | Add-Member -Name "TestMethod" -MemberType ScriptMethod -Value $ScriptBlock # Добавить Method
+$CustomObject | Add-Member -Name "TestMethod" -MemberType ScriptMethod -Value $ScriptBlock
 $CustomObject | Get-Member
 $CustomObject.TestMethod()
 ```
 ### Class
 ```PowerShell
 Class CustomClass {
-[string]$User
-[string]$Server
-Start([bool]$Param1) {
-If ($Param1) {Write-Host "Start Function"}}
+    [string]$User
+    [string]$Server
+    Start([bool]$Param1) {
+        If ($Param1) {
+        Write-Host "Start Function"
+        }
+    }
 }
-
-$Class = New-Object -TypeName CustomClass
-$Class.User = $env:username
-$Class.Server = $env:computername
-$Class.Start(1)
 ```
+`$Class = New-Object -TypeName CustomClass` \
+`$Class.User = $env:username` \
+`$Class.Server = $env:computername` \
+`$Class.Start(1)`
+
 ### Pipeline
 
-`$obj | Add-Member -MemberType NoteProperty -Name "Type" -Value "user" -Force` добавление объкта вывода NoteProperty \
-`$obj | Add-Member -MemberType NoteProperty -Name "User" -Value "admin" -Force` изменеие содержимого для сущности объекта User \
+`$CustomObject | Add-Member -MemberType NoteProperty -Name "Type" -Value "user" -Force` добавление объкта вывода NoteProperty \
+`$CustomObject | Add-Member -MemberType NoteProperty -Name "User" -Value "admin" -Force` изменеие содержимого для сущности объекта User \
 `ping $srv | Out-Null` перенаправить результат вывода в Out-Null
 
 ### Select-Object
@@ -288,10 +308,16 @@ $Class.Start(1)
 
 ### Expression
 ```PowerShell
-ps | Sort-Object -Descending CPU | select -first 10 ProcessName, # сортировка по CPU, вывести первых 10 значений (-first)
-@{Name="ProcessorTime"; Expression={$_.TotalProcessorTime -replace "\.\d+$"}}, # затрачено процессорного времени в минутах
-@{Name="Memory"; Expression={[string]([int]($_.WS / 1024kb))+"MB"}}, # делим байты на КБ
-@{Label="RunTime"; Expression={((Get-Date) - $_.StartTime) -replace "\.\d+$"}} # вычесть из текущего времени - время запуска, и удалить milisec
+Get-Process | Sort-Object -Descending CPU | select -first 10 ProcessName, # сортировка по CPU, вывести первых 10 значений (-first)
+@{Name="ProcessorTime";
+    Expression={$_.TotalProcessorTime -replace "\.\d+$"} # затрачено процессорного времени в минутах
+},
+@{Name="Memory"; 
+    Expression={[string]([int]($_.WS / 1024kb))+"MB"} # делим байты на КБ (1mb)
+},
+@{Label="RunTime"; 
+    Expression={((Get-Date) - $_.StartTime) -replace "\.\d+$"} # вычесть из текущего времени - время запуска, и удалить milisec
+}
 ```
 ### Select-String
 
@@ -299,8 +325,9 @@ ps | Sort-Object -Descending CPU | select -first 10 ProcessName, # сортир�
 `$Current_IP = Get-Content $RDCMan_RDG_PATH | Select-String $RDCMan_Display_Name -Context 0,1` получить две строки \
 `$Current_IP = $Current_IP.Context.DisplayPostContext[0] -replace ".+<name>|<\/name>"` забрать только вторую строку и удалить тэги
 
-### Format-Table/Format-List
+### Format-List/Format-Table
 
+`Get-Process | fl ProcessName, StartTime` \
 `Get-Process | ft ProcessName, StartTime -Autosize` автоматическая группировка размера столбцов
 
 ### Measure-Object
@@ -314,7 +341,7 @@ ps | Sort-Object -Descending CPU | select -first 10 ProcessName, # сортир�
 `Compare-Object -ReferenceObject (Get-Content -Path .\file1.txt) -DifferenceObject (Get-Content -Path .\file2.txt)` сравнение двух файлов \
 `$group1 = Get-ADGroupMember -Identity "Domain Admins"` \
 `$group2 = Get-ADGroupMember -Identity "Enterprise Admins"` \
-`Compare-Object -ReferenceObject $group1 -DifferenceObject $group2 -IncludeEqual`
+`Compare-Object -ReferenceObject $group1 -DifferenceObject $group2 -IncludeEqual` сравнение друх объектов
 `==` нет изменений \
 `<=` есть изменения в $group1 \
 `=>` есть изменения в $group2
@@ -334,7 +361,9 @@ ps | Sort-Object -Descending CPU | select -first 10 ProcessName, # сортир�
 ### Sort-Object
 
 `Get-Process | Sort-Object -Descending CPU | ft` обратная (-Descending) сортировка по CPU \
-`$path[-1..-10]` обратная сборка массива без сортировки
+`Get-Process | Sort-Object -Descending cpu,ws` сортировка по двум свойствам \
+`$path[-1..-10]` обратная сборка массива без сортировки \
+`$arr = @(1..20); $arr[$($arr.Count - 1)..0]` пересобрать массив с конца
 
 ### Last/First
 
@@ -350,14 +379,6 @@ $(foreach ($Group in $Groups) {
     $Group.Group[0]
 }) | Format-Table
 ```
-### Error
-
-`$Error` выводит все ошибки текущего сеанса \
-`$Error[0].InvocationInfo` развернутый отчет об ошибке \
-`$Error.clear()` \
-`$LASTEXITCODE` результат выполнения последней команды (0 - успех) \
-`exit 1` код завершения, который возвращается $LASTEXITCODE
-
 ### Property
 
 `$srv.Count` кол-во элементов в массиве \
@@ -367,6 +388,7 @@ $(foreach ($Group in $Groups) {
 
 ### Method
 
+`$srv = "127.0.0.1"` \
 `$srv.Insert(0,"https://")` добавить значение перед первым символом \
 `$srv.Substring(4)` удалить (из всего массива) первые 4 символа \
 `$srv.Remove(3)` удалить из всего массива все после 3 символа \
@@ -379,23 +401,64 @@ $(foreach ($Group in $Groups) {
 `[string]::IsNullOrEmpty($text)` проверяет наличие строки, если строка пуста $true, если нет $false \
 `[string]::IsNullOrWhiteSpace($text2)` проверяет на наличие только символов пробел, табуляция или символ новой строки
 
-### DateTime
+# Error
 
-`Get-TimeZone` часовой пояс \
-`[DateTime]::UtcNow` время в формате UTC 0 \
-`(Get-Date).AddHours(-3)` \
-`$Date = (Get-Date -Format "dd/MM/yyyy hh:mm:ss")` \
-`$Date = Get-Date -f "dd/MM/yyyy"` получаем тип данных [string] \
-`[DateTime]$gDate = Get-Date "$Date"` преобразовать в тип [DateTime] \
-`[int32]$days=($fDate-$gDate).Days` получить разницу в днях \
-`"5/7/07" -as [DateTime]` преобразовать входные данные в тип данных [DateTime] \
-`New-TimeSpan -Start $VBRRP.CreationTimeUTC -End $VBRRP.CompletionTimeUTC` получить разницу во времени
+`$Error` выводит все ошибки текущего сеанса \
+`$Error[0].InvocationInfo` развернутый отчет об ошибке \
+`$Error.clear()` \
+`$LASTEXITCODE` результат выполнения последней команды (0 - успех) \
+`exit 1` код завершения, который возвращается $LASTEXITCODE
 
+### ExecutionStatus
+```PowerShell
+$(Get-History)[-1] | Select-Object @{
+    Name="RunTime"; Expression={$_.EndExecutionTime - $_.StartExecutionTime}
+},ExecutionStatus,CommandLine # посчитать время работы последней [-1] (или Select-Object -Last 1) выполненной команды и ее узнать статус
+```
 ### Measure-Command
 
-`(Measure-Command {ping ya.ru}).TotalSeconds` узнать только время выполнения \
-`(Get-History)[-1] | select @{Name="RunTime"; Expression={$_.EndExecutionTime - $_.StartExecutionTime}},ExecutionStatus,CommandLine` посчитать время работы последней [-1] (select -Last 1) выполненной команды и узнать ее статус
+`$(Measure-Command {ping ya.ru}).TotalSeconds` получить время выполнения в секундах
 
+# DateTime
+
+`[DateTime]::UtcNow` время в формате UTC 0 \
+`$(Get-Date).AddHours(-3)` вычесть три часа из текущего времени \
+`$Date = $(Get-Date -Format "dd/MM/yyyy HH:mm:ss")` изменить формат отображения `времени \
+`$Date = Get-Date -f "dd/MM/yyyy"` получаем тип данных [string] ($Date.GetType().Name) \
+`$Date = "19.05.2024"` \
+`[DateTime]$Date = Get-Date "$Date"` преобразовать строку подходящую под формат даты `в тип данных [DateTime] \
+`$BeforeDate = Get-Date "12.05.2024"` \
+`[int32]$days=$($Date - $BeforeDate).Days` посчитать разницу в днях \
+`"5/7/07" -as [DateTime]` преобразовать входные данные в тип данных [DateTime]
+
+# TimeSpan
+
+`New-TimeSpan -Start $(Get-Date) -End $($(Get-Date).AddMinutes(+1))` получить разницу во времени \
+`$TimeZone = (Get-TimeZone).BaseUtcOffset.TotalMinutes` получить разницу в минутах от текущего часового пояса относительно UTC 0 \
+`$UnixTime  = (New-TimeSpan -Start (Get-Date "01/01/1970") -End ((Get-Date).AddMinutes(-$tz))).TotalSeconds` вычесть минуты для получения UTC 0 \
+`$TimeStamp = ([string]$UnixTime -replace "\..+") + "000000000"` получить текущий TimeStamp
+
+### Format
+```
+HH   # Часы в 24-часовом формате (00 до 23)
+hh   # Часы в 12-часовом формате (01 до 12)
+mm   # Минуты (00 до 59)
+ss   # Секунды (00 до 59)
+tt   # Десигнатор (AM/PM)
+fff  # Миллисекунды (000 до 999)
+d    # День месяца без ведущего нуля (1-31)
+dd   # День месяца с ведущим нулём (01-31)
+ddd  # Сокращённое название дня недели (например, "Пн")
+dddd # Полное название дня недели (например, "Понедельник")
+M    # Номер месяца без ведущего нуля (1-12)
+MM   # Номер месяца с ведущим нулём (01-12)
+MMM  # Сокращённое название месяца (например, "Янв")
+MMMM # Полное название месяца (например, "Январь")
+y    # Год без века (0-99)
+yy   # Год без века с ведущим нулём (00-99)
+yyyy # Год с веком (например, 2024)
+g    # Период или эра (например, "н.э.")
+```
 ### Timer
 
 `$start_time = Get-Date` зафиксировать время до выполнения команды \
@@ -403,75 +466,59 @@ $(foreach ($Group in $Groups) {
 `$time = $end_time - $start_time` высчитать время работы скрипта \
 `$min = $time.minutes` \
 `$sec = $time.seconds` \
-`Write-Host "$min минут $sec секунд"` \
+`Write-Host "$min минут $sec секунд"`
+
 `$timer = [System.Diagnostics.Stopwatch]::StartNew()` запустить таймер \
 `$timer.IsRunning` статус работы таймера \
 `$timer.Elapsed.TotalSeconds` отобразить время с момента запуска (в секундах) \
 `$timer.Stop()` остановить таймер
 
-# npp
-
-`pwsh -NoExit -ExecutionPolicy Unrestricted -WindowStyle Maximized -File "$(FULL_CURRENT_PATH)"`
-
-`%AppData%\Notepad++` themes/shortcuts.xml \
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<NotepadPlus>
-    <InternalCommands />
-    <Macros>
-        <Macro name="`+\+&gt;" Ctrl="yes" Alt="no" Shift="no" Key="190">
-            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
-            <Action type="1" message="2170" wParam="0" lParam="0" sParam="`" />
-            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
-            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
-            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
-            <Action type="1" message="2170" wParam="0" lParam="0" sParam="\" />
-            <Action type="0" message="2300" wParam="0" lParam="0" sParam="" />
-        </Macro>
-    </Macros>
-    <UserDefinedCommands>
-        <Command name="PowerShell7" Ctrl="no" Alt="yes" Shift="no" Key="116">pwsh -NoExit -ExecutionPolicy Unrestricted -WindowStyle Maximized -File &quot;$(FULL_CURRENT_PATH)&quot;</Command>
-    </UserDefinedCommands>
-    <PluginCommands />
-    <ScintillaKeys />
-</NotepadPlus>
-```
-`Parsing text to Markdown:` \
-`Macros: FnLeft+'+FnRight+FnRight+\s\\+Down` \
-`Replace: "# ","'"`
-```
-.		# Обозначает любой символ
-\		# Экранирующий символ. Символы которые экранируются: ^, [, ., $, {, *, (, ), \, +, |, ?, <, >
-^		# Начало строки
-$		# Конец строки
-\n		# Новая строка
-\d		# Любая цифра
-\D		# Не цифра
-\w		# Любая буква латиницы, цифра, или знак подчёркивания
-\W		# Не латиница, не цифра, не подчёркивание
-\s		# Пробел, табуляция, перенос строки
-\S		# Не пробел
-\b		# Граница слова. Применяется когда нужно выделить, что искомые символы являются словом, а не частью другого слова
-\B		# Не граница слова
-\<		# Начало слова
-\>		# Конец слова
-\A		# Начало текста
-\Z		# Конец текста
-*		# Повторитель. Означает что предшествующий символ может работать 0 и более раз
-+		# Количество предшествующего не менее 1-го.
-?		# Ограничитель. Не более одного раза
-|		# Или. Соединяет несколько вариантов
-()		# В круглые скобки заключаются все комбинации с "или" и поиск начала и конца строк
-[ ]	 	# В квадратных скобках задаются символы к поиску, например [a-яА-Я], или [0-9]
-[^ ]	# Исключает из поиска символы указанные в квадратных скобках
-{ }		# В фигурных скобках указывается точное количество вхождений
-\d{2}	# Найти две цифры
-\d{2,4}	# Найти две или четыре
-{4,}	# Найти четыре и более
-
-^\s{1,}#.+` поиск вначале строки комментария и пробел после него 1 или больше и любое кол-во символов
-```
 # Regex
+```
+.       # Обозначает любой символ, кроме новой строки
+\       # Экранирует любой специальный символ (метасимвол). Используется, если нужно указать конкретный символ, вместо специального ({ } [ ] / \ + * . $ ^ | ?)
+\A (^)  # Начало строки
+\Z ($)  # Конец строки
+\n      # Новая строка
+\s      # Пробел (эквивалент " "), табуляция, перенос строки
+\S      # Не пробел
+\d      # Число от 0 до 9 (20-07-2022 эквивалент: "\d\d-\d\d-\d\d\d\d")
+\D      # Обозначает любой символ, кроме числа (цифры). Удаления всех символов, кроме цифр: [int]$("123 test" -replace "\D")
+\w      # Любая буква латиницы, цифра, или знак подчёркивания (от "a" до "z" и от "A" до "Z" или число от 0 до 9)
+\W      # Не латиница, не цифра, не подчёркивание
+\b      # Граница слова. Применяется когда нужно выделить, что искомые символы являются словом, а не частью другого слова
+\B      # Не граница слова
+\A      # Начало текста
+\Z      # Конец текста
++       # Повторяется 1 и более раз (\s+)
+|       # Или. Соединяет несколько вариантов
+()      # В круглые скобки заключаются все комбинации с "или" и поиск начала и конца строк
+[]      # поиск совпадения любой буквы, например, [A-z0-9] от A до z и цифры от 0 до 9 ("192.168.1.1" -match "192.1[6-7][0-9]")
+[^ ]    # Исключает из поиска символы указанные в квадратных скобках
+{ }     # Квантификатор в фигурных скобках, указывает количество повторений символа слева на право (от 1 до 25 раз)
+\d{2}   # Найти две цифры
+\d{2,4} # Найти две или четыре
+{4,}    # Найти четыре и более
+```
+### Якори
+
+`^` или `\A` определяет начало строки. $url -replace '^','https:'` добавить в начало; \
+`$` или `\Z` обозначают конец строки. $ip -replace "\d{1,3}$","0" \
+`(?=text)` поиск слова слева. Пишем слева на право от искомого (ищет только целые словосочетания) "Server:\s(.{1,30})\s(?=$username)" \
+`(?<=text)` поиск слова справа. $in_time -replace ".+(?<=Last)"` удалить все до слова Last \
+`(?!text)` не совпадает со словом слева \
+`(?<!text)` не совпадает со словом справа
+
+`$test = "string"` \
+`$test -replace ".{1}$"` удалить любое кол-во символов в конце строки \
+`$test -replace "^.{1}"` удалить любое кол-во символов в начале строки \
+
+### Группы захвата
+
+`$date = '12.31.2021'` \
+`$date -replace '^(\d{2}).(\d{2})','$2.$1'` поменять местами \
+`$1` содержимое первой группы в скобках \
+`$2` содержимое второй группы
 
 `-replace "1","2"` замена элементов в индексах массива (везде где присутствует 1, заменить на 2), для удаления используется только первое значение \
 `-split " "` преобразовать строку в массив, разделителем указан пробел, которой удаляется ($url.Split("/")[-1]) \
@@ -509,20 +556,34 @@ $		# Конец строки
 ```PowerShell
 $gp = Get-Process | sort cpu -Descending | select -First 10
 foreach ($p in $gp) {
-"{0} - {1:N2}" -f $p.processname, $p.cpu # округлить
+    "{0} - {1:N2}" -f $p.processname, $p.cpu # округлить
 }
 ```
 ### Условный оператор
-
-`$rh = Read-Host` \
-`if ($rh -eq 1) {ipconfig} elseif ($rh -eq 2) {getmac} else {hostname}` \
+```PowerShell
+$rh = Read-Host
+if ($rh -eq 1) {
+    ipconfig
+} elseif (
+    $rh -eq 2
+) {
+    getmac
+} else {
+    hostname
+}
+```
 Если условие if () является истенным ($True), выполнить действие в {} \
 Если условие if () является ложным ($False), выполнить действие не обязательного оператора else \
 Условие Elseif идёт после условия if для проверки дополнительных условий перед выполнение оператора else. Оператор, который первый вернет $True, отменит выполнение следующих дополнительных условий \
 Если передать переменную в условие без оператора, то будет проверяться наличие значения у переменной на $True/$False \
-`if ((tnc $srv -Port 80).TcpTestSucceeded) {"Opened port"} else {"Closed port"}`
-
-### Операторы
+```PowerShell
+if ($(Test-NetConnection $srv -Port 80).TcpTestSucceeded) {
+    "Opened port"
+} else {
+    "Closed port"
+}
+```
+### Логические операторы сравнения
 
 `-eq` равно (equal) \
 `-ceq` учитывать регистр \
@@ -536,8 +597,13 @@ foreach ($p in $gp) {
 `-NOT` логическое НЕТ !(Test-Path $path) \
 `-and` логическое И \
 `-or` логическое ИЛИ \
-`if ((($1 -eq 1) -and ($2 -eq 2)) -or ($1 -ne 3)) {"$true"} else {"$false"}` два условия: (если $1 = 1 и $2 = 2) или $1 не равно 3
-
+```PowerShell
+if ((($1 -eq 1) -and ($2 -eq 2)) -or ($1 -ne 3)) {
+    $true
+} else {
+    $false
+} # два условия: (если $1 = 1 И $2 = 2) ИЛИ $1 не равно 3 вернуть $true
+```
 ### Pipeline Operators
 
 `Write-Output "First" && Write-Output "Second"` две успешные команды выполняются \
@@ -553,40 +619,6 @@ foreach ($p in $gp) {
 
 `& $ping $addr &` запустить команду в фоне \
 `(Get-Job)[-1] | Receive-Job -Keep`
-
-### Специальные символы
-
-`\d` число от 0 до 9 (20-07-2022 эквивалент: "\d\d-\d\d-\d\d\d\d") \
-`\D` обозначает любой символ, кроме цифры. Удаления всех символов, кроме цифр: [int]$("123 test" -replace "\D") \
-`\w` буква от "a" до "z" и от "A" до "Z" или число от 0 до 9 \
-`\s` пробел, эквивалент: " " \
-`\n` новая строка \
-`\b` маска, определяет начало и конец целого словосочетания для поиска \
-`.` обозначает любой символ, кроме новой строки \
-`\` экранирует любой специальны символ (метасимвол). Используется, если нужно указать конкретный символ, вместо специального ({ } [ ] / \ + * . $ ^ | ?) \
-`+` повторяется 1 и более раз (\s+) \
-`{1,25}` квантификатор, указывает количество повторений символа слева на право (от 1 до 25 раз) \
-`[]` поиск совпадения любой буквы, например, [A-z0-9] от A до z и цифры от 0 до 9 ("192.168.1.1" -match "192.1[6-7][0-9]")
-
-### Якори
-
-`^` или `\A` определяет начало строки. $url -replace '^','https:'` добавить в начало; \
-`$` или `\Z` обозначают конец строки. $ip -replace "\d{1,3}$","0" \
-`(?=text)` поиск слова слева. Пишем слева на право от искомого (ищет только целые словосочетания) "Server:\s(.{1,30})\s(?=$username)" \
-`(?<=text)` поиск слова справа. $in_time -replace ".+(?<=Last)"` удалить все до слова Last \
-`(?!text)` не совпадает со словом слева \
-`(?<!text)` не совпадает со словом справа
-
-`$test = "string"` \
-`$test -replace ".{1}$"` удалить любое кол-во символов в конце строки \
-`$test -replace "^.{1}"` удалить любое кол-во символов в начале строки \
-
-### Группы захвата
-
-`$date = '12.31.2021'` \
-`$date -replace '^(\d{2}).(\d{2})','$2.$1'` поменять местами \
-`$1` содержимое первой группы в скобках \
-`$2` содержимое второй группы
 
 # DataType
 
@@ -617,7 +649,7 @@ foreach ($p in $gp) {
 
 ### Round
 
-`[double]::Round(87.5, 0)` 88 (нечетное), в .NET по умолчанию используется округление в средней точке ToEven, где *.5 значения округляются до ближайшего четного целого числа. \
+`[double]::Round(87.5, 0)` 88 (нечетное), в .NET по умолчанию используется округление в средней точке ToEven, где *.5 значения округляются до ближайшего четного целого числа \
 `[double]::Round(88.5, 0)` 88 (четное) \
 `[double]::Round(88.5, 0, 1)` 89 (округлять в большую сторону) \
 `[double]::Round(1234.56789, 2)` округлить до 2 символов после запятой
@@ -629,9 +661,61 @@ foreach ($p in $gp) {
 ### Char
 
 `[Char]` cимвол Юникода (16-разрядный) \
-`$char = $srv.ToCharArray()` разбить строку [string] на массив [System.Array] из букв \
+`$char = $srv.ToCharArray()` разбить строку [string] на массив [System.Array] из букв
 
-# Module
+# Function
+
+### Switch function
+```PowerShell
+$MMM = Get-Date -UFormat "%m"
+switch($MMM) {
+    "01" {$Month = 'Jan'}
+    "02" {$Month = 'Feb'}
+    "03" {$Month = 'Mar'}
+    "04" {$Month = 'Apr'}
+    "05" {$Month = 'May'}
+    "06" {$Month = 'Jun'}
+    "07" {$Month = 'Jul'}
+    "08" {$Month = 'Aug'}
+    "09" {$Month = 'Sep'}
+    "10" {$Month = 'Oct'}
+    "11" {$Month = 'Nov'}
+    "12" {$Month = 'Dec'}
+}
+```
+### Switch param
+```PowerShell
+Function fun-switch (
+    [switch]$param
+) {
+    If ($param) {"yes"} else {"no"}
+}
+```
+`fun-switch -param`
+
+### psm1
+```PowerShell
+function Get-Function {
+    <#
+    .SYNOPSIS
+    Описание
+    .DESCRIPTION
+    Описание
+    .LINK
+    https://github.com/Lifailon/PS-Commands
+    #>
+    param (
+        [Parameter(Mandatory,ValueFromPipeline)][string]$Text,
+        [ValidateSet("Test1","Test2")][string]$Provider = "Test1",
+        [ValidateRange(1,3)][int]$Number = 2
+    )
+    Write-Host Param Text: $Text
+    Write-Host Param Provider: $Provider
+    Write-Host Param Number: $Number
+}
+```
+`Get-Function -Text Text1` \
+`Get-Function -Text Text2 -Provider Test2 -Number 3`
 
 ### psd1
 ```PowerShell
@@ -653,59 +737,24 @@ foreach ($p in $gp) {
     }
 }
 ```
-### psm1
-```PowerShell
-function Get-Function {
-    <#
-    .SYNOPSIS
-    Описание
-    .DESCRIPTION
-    Описание
-    .LINK
-    https://github.com/Lifailon/PS-Commands
-    #>
-    param (
-        [Parameter(Mandatory,ValueFromPipeline)][string]$Text,
-        [ValidateSet("Test1","Test2")][string]$Provider = "Test1",
-        [ValidateRange(1,3)][int]$Number = 2,
-        [Switch]$Switch
-    )
-    Write-Host Param Text: $Text
-    Write-Host Param Provider: $Provider
-    Write-Host Param Number: $Number
-    Write-Host Param Switch: $Switch
-}
-```
-`Get-Function Test`
+# Modules
 
-### Switch
-```PowerShell
-$MMM = Get-Date -UFormat "%m"
-switch($MMM) {
-    "01" {$Month = 'Jan'}
-    "02" {$Month = 'Feb'}
-    "03" {$Month = 'Mar'}
-    "04" {$Month = 'Apr'}
-    "05" {$Month = 'May'}
-    "06" {$Month = 'Jun'}
-    "07" {$Month = 'Jul'}
-    "08" {$Month = 'Aug'}
-    "09" {$Month = 'Sep'}
-    "10" {$Month = 'Oct'}
-    "11" {$Month = 'Nov'}
-    "12" {$Month = 'Dec'}
-}
-```
-### function switch
-```PowerShell
-Function fun-switch (
-    [switch]$param
-) {
-    If ($param) {"yes"} else {"no"}
-}
+### Console-Translate
 
-fun-switch -param
-```
+`Install-Module Console-Translate -Repository NuGet` установить подуль \
+`Get-Translate "Module for text translation"` \
+`Get-Translate "Модуль для перевода текста"` \
+`Get-Translate "Привет world" -LanguageSelected` т.к. больше латинских символов (на 1), то перевод будет произведен на английский язык \
+`Get-Translate "Hello друг" -LanguageSelected` перевод на русский язык \
+`Get-Translate -Text "Модуль для перевода текста" -LanguageSource ru -LanguageTarget tr` \
+`Get-Translate -Provider MyMemory -Text "Hello World" -Alternatives` выбрать провайдер перевода и добавить альтернативные варианты вывода \
+`Get-DeepLX "Get select" ru` \
+`Start-DeepLX -Job` запустить сервер в режиме процесса \
+`Start-DeepLX -Status` \
+`Get-DeepLX -Server 192.168.3.99 -Text "Module for text translation" ru` \
+`Stop-DeepLX` \
+`Get-LanguageCode` получение кодов языков по стандарту ISO-639-1
+
 # Bit
 ```
 Двоичное    Десятичное
@@ -1530,7 +1579,7 @@ icm $_ {Get-LocalGroupMember "Administrators"}
 `Get-WindowsCapability -Name RSAT* -Online | Select-Object -Property DisplayName, State` отобразить список установленных компанентов
 
 ### Import-Module ActiveDirectory
-`$Session = New-PSSession -ComputerName $srv` -Credential $cred` \
+`$Session = New-PSSession -ComputerName $srv` -Credential $cred \
 `Export-PSsession -Session $Session -Module ActiveDirectory -OutputModule ActiveDirectory` экспортировать модуль из удаленной сесси (например, с DC) \
 `Remove-PSSession -Session $Session` \
 `Import-Module ActiveDirectory` \
