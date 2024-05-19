@@ -20,7 +20,6 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # Regex
 # DataType
 # Function
-# Modules
 # Bit
 # Cycle
 # Files
@@ -102,6 +101,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # WinRM
 # PackageManagement
 # NuGet
+# Modules
 # Git
 # GitHub-api
 # GitHub-Actions
@@ -693,7 +693,7 @@ Function fun-switch (
 
 fun-switch -param
 
-### psm1
+### psm1 (module file and parameters)
 
 function Get-Function {
     <#
@@ -717,7 +717,7 @@ function Get-Function {
 Get-Function -Text Text1
 Get-Function -Text Text2 -Provider Test2 -Number 3
 
-### psd1
+### psd1 (module description file)
 
 @{
     RootModule        = "Get-Function.psm1"
@@ -736,24 +736,6 @@ Get-Function -Text Text2 -Provider Test2 -Number 3
         }
     }
 }
-
-# Modules
-
-### Console-Translate
-
-Install-Module Console-Translate -Repository NuGet # установить подуль
-Get-Translate "Module for text translation"
-Get-Translate "Модуль для перевода текста"
-Get-Translate "Привет world" -LanguageSelected # т.к. больше латинских символов (на 1), то перевод будет произведен на английский язык
-Get-Translate "Hello друг" -LanguageSelected # перевод на русский язык
-Get-Translate -Text "Модуль для перевода текста" -LanguageSource ru -LanguageTarget tr
-Get-Translate -Provider MyMemory -Text "Hello World" -Alternatives # выбрать провайдер перевода и добавить альтернативные варианты вывода
-Get-DeepLX "Get select" ru
-Start-DeepLX -Job # запустить сервер в режиме процесса
-Start-DeepLX -Status
-Get-DeepLX -Server 192.168.3.99 -Text "Module for text translation" ru
-Stop-DeepLX
-Get-LanguageCode # получение кодов языков по стандарту ISO-639-1
 
 # Bit
 
@@ -6108,13 +6090,20 @@ Get-Command -Module PackageManagement # отобразить все команд
 Get-Package # отобразить все установленные пакеты PowerShellGallery
 Get-Package -ProviderName msi,Programs # список установленных программ
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 # включить использование протокол TLS 1.2 (если не отключены протоколы TLS 1.0 и 1.1)
-Find-PackageProvider # поиск провайдеров
-Install-PackageProvider PSGallery -force # установить источник
-Install-PackageProvider NuGet -force
-Install-PackageProvider Chocolatey -force
 Get-PackageSource # источники установки пакетов
-Set-PackageSource -Name PSGallery -Trusted # по умолчанию
-Find-Package -Name *Veeam* -Source PSGallery # поиск пакетов с указанием источника
+Get-PackageProvider # отобразить список провайдеров менеджеров пакетов
+Get-PackageProvider | Where-Object Name -Match nuget
+Find-PackageProvider # отображение всех доступных менеджеров пакетов
+Find-PackageProvider nuget
+Install-PackageProvider NuGet -Force # установить менеджер пакетов nuget
+Install-PackageProvider PSGallery -Force # установить источник
+Install-PackageProvider Chocolatey -Force
+Set-PackageSource nuget -Trusted # разрешить установку пакетов из указанного источника
+Register-PSRepository -Name "NuGet" -SourceLocation "https://www.nuget.org/api/v2" -InstallationPolicy Trusted # зарегестрировать менеджер пакетов используя url (работает для Power Shell Core)
+Set-PackageSource -Name NuGet -Trusted # изменить источник по умолчанию
+Find-Package PSEverything # поиск пакетов по имени во всех менеджерах
+Find-Package PSEverything -Provider NuGet # поиск пакета у выбранного провайдера
+Install-Module PSEverything -Scope CurrentUser # установить модуль для текущего пользователя
 Install-Package -Name VeeamLogParser -ProviderName PSGallery -scope CurrentUser
 Get-Command *Veeam*
 Import-Module -Name VeeamLogParser # загрузить модуль
@@ -6135,7 +6124,7 @@ winget download jqlang.jq # загрузкить пакет (https://github.com/
 winget install jqlang.jq # добавляет в переменную среду и псевдоним командной строки jq
 winget uninstall jqlang.jq
 
-### jqlang-install
+### jqlang
 
 [uri]$url = $($(irm https://api.github.com/repos/jqlang/jq/releases/latest).assets.browser_download_url -match "windows-amd64").ToString() # получить версию latest на GitHub
 irm $url -OutFile "C:\Windows\System32\jq.exe" # загрузить jq.exe
@@ -6190,7 +6179,9 @@ Copy-Item "$home\Documents\Git\$Name\README.md" "$path\"
     <owners>Lifailon</owners>
     <description>Cross-platform client for translating text in the console, uses API Google (edded public free token), MyMemory and DeepLX (no token required)</description>
     <tags>PowerShell, Module, Translate, api</tags>
+    <repository type="git" url="https://github.com/Lifailon/Console-Translate" />
     <projectUrl>https://github.com/Lifailon/Console-Translate</projectUrl>
+    <licenseUrl>https://github.com/Lifailon/Console-Translate/blob/rsa/LICENSE</licenseUrl>
     <contentFiles>
       <files include="Console-Translate.psm1" buildAction="Content" />
       <files include="Console-Translate.psd1" buildAction="Content" />
@@ -6215,6 +6206,186 @@ Find-Module -Name Console-Translate
 Install-Module Console-Translate -Repository NuGet
 
 & "$home\Documents\nuget.exe" delete Console-Translate 0.2.0 -Source https://api.nuget.org/v3/index.json -ApiKey $nuget_api_key -NoPrompt
+
+# Modules
+
+### Get-Query
+
+Install-Module Get-Query -Repository NuGet # установить модуль
+Get-Help Get-Query
+Get-Query localhost # отобразить всех авторизованных пользователей, их статус и время работы (по умолчанию localhost)
+Get-Query 192.168.1.1.1 -proc # список всех пользовательских процессов (по умолчанию -user *)
+Get-Query 192.168.1.1.1 -proc -user username # список процессов указанного пользователя
+
+### Console-Translate
+
+Install-Module Console-Translate -Repository NuGet
+Get-Translate "Module for text translation"
+Get-Translate "Модуль для перевода текста"
+Get-Translate "Привет world" -LanguageSelected # т.к. больше латинских символов (на 1), то перевод будет произведен на английский язык
+Get-Translate "Hello друг" -LanguageSelected # перевод на русский язык
+Get-Translate -Text "Модуль для перевода текста" -LanguageSource ru -LanguageTarget tr
+Get-Translate -Provider MyMemory -Text "Hello World" -Alternatives # выбрать провайдер перевода и добавить альтернативные варианты вывода
+Get-DeepLX "Get select" ru
+Start-DeepLX -Job # запустить сервер в режиме процесса
+Start-DeepLX -Status
+Get-DeepLX -Server 192.168.3.99 -Text "Module for text translation" ru
+Stop-DeepLX
+Get-LanguageCode # получение кодов языков по стандарту ISO-639-1
+
+### PSEverything
+
+Install-Module PSEverything -Repository NuGet
+Find-Everything pingui # найти все файлы в системе (на всех локальных дисках) с именем *pingui* через dll csharp версии Everything (по умолчанию)
+Find-Everything pingui-0.1.py | Format-List
+Find-Everything pingui -es # использовать cli версию Everything для поиска (при первом использовании версии, необходимо дождаться автоматической установки файлов зависимостей)
+Find-Everything pingui-0.1 -ComputerName localhost # поиск на удаленном компьютере через REST API, если запущен HTTP-сервер Everything
+
+### HardwareMonitor
+
+Install-Module HardwareMonitor -Repository NuGet -Scope AllUsers
+Install-LibreHardwareMonitor # установить и запустить LibreHardwareMonitor в систему (https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)
+Install-OpenHardwareMonitor # установить OpenHardwareMonitor (https://github.com/openhardwaremonitor/openhardwaremonitor)
+Get-Sensor | Where-Object {($_.SensorName -match "Temperature") -or ($_.SensorType -match "Temperature")} | Format-Table # использовать LibreHardwareMonitor и WMI/CIM (по умолчанию) и отфильтровать вывод по наименованию датчикам или типу сенсора для вывода датчиков температуры
+Get-Sensor -Open # использовать OpenHardwareMonitor
+Get-Sensor -ComputerName 192.168.3.99 -Port 8086 | Format-Table # вывести датчики системы через REST API
+Get-Sensor -ComputerName 192.168.3.99 -Port 8085 -User hardware -Password monitor | Where-Object Value -notmatch "^0,0" | Format-Table # использовать авторизацию и отфильтровать вывод не пустых датчиков
+Get-Sensor -Library | Where-Object Value -ne 0 | Format-Table # использовать динамическую библиотеку (dll) через .NET
+
+### CrystalDisk-Cli
+
+Install-Module CrystalDisk-Cli -Repository NuGet
+Get-DiskInfoSettings # отобразить настройки программы Crystal-DiskInfo (https://github.com/hiyohiyo/CrystalDiskInfo)
+Get-DiskInfoSettings -AutoRefresh 5 # изминить время сканирования на 5 минут
+Get-DiskInfo -List # отобразить список дисков
+Get-DiskInfo # получить результаты последнего сканирования (статус, температура и т.п.)
+Get-DiskInfo -Report | Select-Object Name,Date,HealthStatus,Temperature # получить актуальный отчет (запустить сканирование и дождаться результатов)
+
+### PSDomainTest
+
+Install-Module PSDomainTest -Repository NuGet -Scope CurrentUser
+Get-DomainTest -Domain github.com -Warning # протестировать домен и DNS записи на ошибки (вывести только ошибки) через ZoneMaster (https://github.com/zonemaster/zonemaster)
+Get-DomainTest -Domain github.com -Warning -json # вывод в формате json
+Get-DomainTest -Domain github.com -html | Out-File .\result.html # получить отчет в формате HTML-таблицы с фильтрацией по столбцам
+
+### Check-Host
+
+$path = $(($env:PSModulePath -split ";")[0]) + "\Get-CheckHost"
+if (Test-Path $path) {
+    Remove-Item $path -Force -Recurse
+    New-Item -ItemType Directory -Path $path
+} else {
+    New-Item -ItemType Directory -Path $path
+}
+Invoke-RestMethod "https://raw.githubusercontent.com/Lifailon/Check-Host/rsa/Get-CheckHost/Get-CheckHost.psm1" -OutFile "$path\Get-CheckHost.psm1"
+
+Install-Module CheckHost # установить модуль работы с Check-Host (https://check-host.net) через api
+Get-CheckHost -List # список хостов (node) разных регионов (40)
+Get-CheckHost -Server google.com -Type ping -Count 5 # использовать 5 любых хостов для 4 пингов с каждого до указанного url (google)
+Get-CheckHost -Server google.com -Type dns -Count 5 # проверить DNS (возвращает А-запись или диапазон с ip-адресом)
+Get-CheckHost -Server google.com:443 -Type http -Count 5 # проверить доступность порта
+Get-CheckHost -Server google.com:443 -Type tcp -Count 5 # проверить доступность TCP или UDP порта
+
+### WinAPI
+
+Import-Module ps.win.api
+Get-Command -Module ps.win.api
+Start-WinAPI # запустить сервер
+Test-WinAPI # статус сервера
+Stop-WinAPI # остановить сервер
+Read-WinAPI # отобразить лог в реальном времени
+Get-Hardware # вывести сводную информацию о системе с использованием потоков (фоновых заданий)
+Get-DiskPhysical # отобразить список физических дисков, их размер, интерфейс и статус
+Get-DiskPhysical -ComputerName 192.168.3.100 -Port 8443 -User rest -Pass api # получить информацию с удаленного сервер, на котором запущен сервер WinAPI (доступно для всех функций модуля)
+Get-DiskLogical # список логических дисков (включая виртуальные диски), их файловая система, общий и используемый размер в гб и процентах
+Get-DiskPartition # список разделов физических дисков (отобразит скрытые разделы, загрузочный и порядок назначения байт)
+Get-Smart # статус работы всех дисков и текущая температура
+Get-IOps # количество операций ввода/вывода дисковой подсистемы
+Get-Files # подробная информация о файлах (добавляет дату создания, изменения, доступа, количество дочерних файлов и директорий)
+Find-Process # поиск пути к исполняемому файлу по имени остановленного (не запущенного) процесса в директориях
+Get-ProcessPerformance # информация о процессах (Get-Process) в человеко-читаемом формате
+Get-CPU # список все ядер и нагрузка на каждое ядро и на все сразу (суммарное процессорное время, привилегированное и пользовательское время процессора)
+Get-MemorySize # размер оперативной, виртуальной памяти, суммарное потребление памяти процессов и путь к файлу подкачки
+Get-MemorySlots # список всех слотов оперативной памяти
+Get-NetInterfaceStat # статистика активного сетевого интерфейса за время с момента загрузки системы (количество пакетов и ГБ)
+Get-NetInterfaceStat -Current # текущая статистика активного сетевого интерфейса (количество пакетов и МБ/c)
+Get-NetIpConfig # конфигурация всех сетевых интерфейсов (ip и mac-адрес, статус DHCP сервера, дата аренды)
+Get-NetStat # развернутая статистика сетевых интерфейсов (из Get-NetTCPConnection), добавляет имя процесса, имя удаленного хоста (через nslookup), время работы процесса (не процессорное время) и путь к исполняемому файлу
+Get-Performance # информация из счетчиков (Get-Counter) человеко-читаемом формате
+Get-VideoCard # информация о всех видео-картах (наименование, частота и объем видео-памяти)
+Get-Software # список установленного програмного обеспечения
+Get-WinUpdate # список обновлений Windows (дата установки и источник)
+Get-Driver # список установленных драйверов (имя, провайдер, версия и дата установки)
+
+### pSyslog
+
+Install-Module pSyslog -Repository NuGet
+Start-pSyslog -Port 514 # запустить сервер на порту 514 (по умолчанию)
+Start-pSyslog -RotationSize 500 # указать размер файла локального журнала для его ротации (обрезания) в КБ
+Get-pSyslog -Status | Format-List # отобразить статус работы
+Get-pSyslog # вывести журнал сообщений в реальном времени
+Stop-pSyslog # остановить сервер
+Send-pSyslog -Content "Test" -Server 192.168.3.99 # отправить сообщение на Syslog-сервер
+Send-pSyslog -Content "Test" -Server 192.168.3.99 -Type Informational -PortServer 514 -PortClient 55514
+(Get-Service -Name WinRM).Status | Send-pSyslog -Server 192.168.3.102 -Tag Service[WinRM]
+Send-pSyslog -Content "test" -Server 192.168.3.99 -PortServer 514 -Base64 # использовать шифрование при отправки сообщения (расшифровка работает только для сервера pSyslog)
+Start-UDPRelay -inPort 515 -outIP 192.168.3.102 -outPort 514 # запустить сервер в режиме UDP-Relay, который слушает на порту 515 и переадресует сообщения на Syslog сервер 192.168.3.102 с портом 514
+Send-pSyslog -Server 192.168.3.99 -PortServer 515 -Content $(Get-Date) # отправить сообщение на сервере UDP-Relay
+Show-pSyslog -Type Warning -Count # отобразить метрики (количество ошибок)
+Show-pSyslog -Type Alert -Count
+Show-pSyslog -Type Critical -Count
+Show-pSyslog -Type Error -Count
+Show-pSyslog -Type Emergency -Count
+Show-pSyslog -Type Informational -Count
+Show-pSyslog -LogFile 05-06 | Out-GridView # прочитать локальный журнал логирования и вывести в GridView для фильтрации сообщений
+Show-pSyslog -Count # отобразить количество сообщений локального журнала
+Show-pSyslog -Count -LogFile 10-06 # выбрать журнал по дате
+
+### Syslog source message
+
+Add-Type -TypeDefinition @"
+public enum Syslog_Facility {
+    kern,     // 0  kernel (core) messages
+    user,     // 1  user level messages
+    mail,     // 2  mail system
+    daemon,   // 3  system daemons
+    auth,     // 4  security/authorization messages (login/su)
+    syslog,   // 5  syslog daemon
+    lpr,      // 6  line printer subsystem (creating jobs and send to spool for print by using lpd)
+    news,     // 7  network news subsystem (USENET)
+    uucp,     // 8  Unix-to-Unix Copy subsystem
+    cron,     // 9  scheduling daemon
+    authpriv, // 10 security/authorization private messages
+    ftp,      // 11 FTP daemon
+    ntp,      // 12 NTP daemon
+    security, // 13 security log audit
+    console,  // 14 console log alert
+    clock,    // 15 clock subsystem
+    local0,   // 16 local use
+    local1,   // 17
+    local2,   // 18
+    local3,   // 19
+    local4,   // 20
+    local5,   // 21
+    local6,   // 22
+    local7    // 23
+}
+"@
+
+### Syslog type message
+
+Add-Type -TypeDefinition @"
+public enum Syslog_Severity {
+    Emergency,     // 0 emerg
+    Alert,         // 1 alert
+    Critical,      // 2 crit
+    Error,         // 3 err
+    Warning,       // 4 warning
+    Notice,        // 5 notice
+    Informational, // 6 info
+    Debug          // 7 debug
+}
+"@
 
 # Git
 
