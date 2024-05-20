@@ -1430,7 +1430,7 @@ $avg = $($metrics | Measure-Object -Average).Average
 Write-Host "Average download speed: " -NoNewline
 Write-Host "$avg" -ForegroundColor Green
 
-### Ookla-SpeedTest
+### SpeedTest-Ookla
 
 function Get-SpeedTestOokla {
     param (

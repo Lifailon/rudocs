@@ -1381,12 +1381,12 @@ function Get-ARP {
 
 ### Network Adapter Statistics
 
-netstat -se
-Get-NetAdapterStatistics
+`netstat -se` \
+`Get-NetAdapterStatistics`
+
+### SpeedTest
 
 ### SpeedTest-Download
-
-### Interface Speed Download
 ```PowerShell
 # Формируем путь для загрузки файла
 $path = "$home\Downloads"
@@ -1430,7 +1430,7 @@ $avg = $($metrics | Measure-Object -Average).Average
 Write-Host "Average download speed: " -NoNewline
 Write-Host "$avg" -ForegroundColor Green
 ```
-### Ookla-SpeedTest
+### SpeedTest-Ookla
 ```PowerShell
 function Get-SpeedTestOokla {
     param (
