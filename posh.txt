@@ -31,6 +31,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # DISM
 # Scheduled
 # Network
+# SpeedTest
 # RDP
 # Shutdown
 # LocalAccounts
@@ -95,7 +96,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # NAT
 # WireGuard
 # VpnClient
-# Proxy
+# ProxyClient
 # netsh
 # OpenSSH
 # WinRM
@@ -843,9 +844,9 @@ function ConvertFrom-Bit {
 ConvertFrom-Bit 10010011
 
 Get-Process pwsh | fl ProcessorAffinity # привязка процесса к ядрам, представляет из себя битовую маску (bitmask), где каждому биту соответствует ядро процессора. Если для ядра отмечено сходство (affinity), то бит выставляется в 1, если нет — то в 0. Например, если выбраны все 16 ядер, то это 1111 1111 1111 1111 или 65535.
-(Get-Process pwsh).ProcessorAffinity = 15 # 0000000000001111 присвоить 4 первых ядра
-(Get-Process pwsh).ProcessorAffinity = 61440 # 1111000000000000 присвоить 4 последних ядра
-(Get-Process pwsh).ProcessorAffinity = (ConvertFrom-Bit 1111000000000000)
+$(Get-Process pwsh).ProcessorAffinity = 15 # 0000000000001111 присвоить 4 первых ядра
+$(Get-Process pwsh).ProcessorAffinity = 61440 # 1111000000000000 присвоить 4 последних ядра
+$(Get-Process pwsh).ProcessorAffinity = (ConvertFrom-Bit 1111000000000000)
 
 # Cycle
 
@@ -1225,6 +1226,7 @@ Register-ScheduledTask -Xml (Get-Content $home\Desktop\Task-Export-Startup.xml |
 # Network
 
 ### ping
+
 Test-Connection -Count 1 $srv1, $srv2 # отправить icmp-пакет двум хостам
 Test-Connection $srv -ErrorAction SilentlyContinue # не выводить ошибок, если хост не отвечает
 Test-Connection -Source $srv1 -ComputerName $srv2 # пинг с удаленного компьютера
@@ -1254,6 +1256,7 @@ Get-CimInstance -Class Win32_PingStatus -Filter "Address='127.0.0.1'" | Format-T
 $ips = 1..254 | ForEach-Object -Process {'192.168.1.' + $_} # сформировать массив из ip-адресов подсети
 
 ### dhcp
+
 Get-CimInstance -Class Win32_NetworkAdapterConfiguration -Filter "DHCPEnabled=$true" # отобразить адаптеры с включенным DHCP
 $wql = 'SELECT * from Win32_NetworkAdapterConfiguration WHERE IPEnabled=True and DHCPEnabled=False'
 Invoke-CimMethod -MethodName ReleaseDHCPLease -Query $wql # включение DHCP на всех адаптерах
@@ -1261,22 +1264,26 @@ Invoke-CimMethod -ClassName Win32_NetworkAdapterConfiguration -MethodName Releas
 Invoke-CimMethod -ClassName Win32_NetworkAdapterConfiguration -MethodName RenewDHCPLeaseAll # обновить аренду адресов DHCP на всех адаптерах
 
 ### port
+
 tnc $srv -p 5985
 tnc $srv -CommonTCPPort WINRM # HTTP,RDP,SMB
 tnc ya.ru –TraceRoute -Hops 2 # TTL=2
 tnc ya.ru -DiagnoseRouting # маршрутизация до хоста, куда (DestinationPrefix: 0.0.0.0/0) через (NextHop: 192.168.1.254)
 
 ### nslookup
+
 nslookup ya.ru 1.1.1.1 # с указанием DNS сервера
 nslookup -type=any ya.ru # указать тип записи
 Resolve-DnsName ya.ru -Type MX # ALL,ANY,A,NS,SRV,CNAME,PTR,TXT(spf)
 [System.Net.Dns]::GetHostEntry("ya.ru")
 
 ### ipconfig
+
 Get-NetIPConfiguration
 Get-NetIPConfiguration -InterfaceIndex 14 -Detailed
 
 ### Adapter
+
 Get-NetAdapter
 Set-NetIPInterface -InterfaceIndex 14 -Dhcp Disabled # отключить DHCP
 Get-NetAdapter -InterfaceIndex 14 | New-NetIPAddress –IPAddress 192.168.3.99 -DefaultGateway 192.168.3.1 -PrefixLength 24 # задать/добавить статический IP-адрес
@@ -1285,34 +1292,36 @@ Remove-NetIPAddress -InterfaceIndex 14 -IPAddress 192.168.3.99 # удалить 
 Set-NetIPInterface -InterfaceIndex 14 -Dhcp Enabled # включить DHCP
 
 ### DNSClient
-Get-DNSClientServerAddress
-Set-DNSClientServerAddress -InterfaceIndex 14 -ServerAddresses 8.8.8.8
+
+Get-DNSClientServerAddress # список интерфейсов и настроенные на них адреса DNS сервера
+Set-DNSClientServerAddress -InterfaceIndex 14 -ServerAddresses 8.8.8.8 # изменить адрес DNS сервера на указанного интерфейсе
 
 ### DNSCache
+
 Get-DnsClientCache # отобразить кэшированные записи клиента DNS
 Clear-DnsClientCache # очистить кэш
 
 ### Binding
+
 Get-NetAdapterBinding -Name Ethernet -IncludeHidden -AllBindings
 Get-NetAdapterBinding -Name "Беспроводная сеть" -DisplayName "IP версии 6 (TCP/IPv6)" | Set-NetAdapterBinding -Enabled $false # отключить IPv6 на адаптере
 
 ### TCPSetting
+
 Get-NetTCPSetting
-Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -CongestionProvider DCTCP
-Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -CwndRestart True
-Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -ForceWS Disabled
+Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -CongestionProvider DCTCP # настраивает провайдера управления перегрузкой (Congestion Control Provider) на DCTCP (Data Center TCP) для профилей TCP с именами DatacenterCustom и Datacenter
+Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -CwndRestart True # включает функцию перезапуска окна перегрузки (Congestion Window Restart, CwndRestart) для указанных профилей TCP. Это означает, что после периода идле (когда нет передачи данных) TCP окно перегрузки будет сбрасываться
+Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -ForceWS Disabled # отключает принудительное масштабирование окна (Forced Window Scaling) для указанных профилей TCP. Масштабирование окна — это механизм, который позволяет увеличивать размер окна перегрузки TCP, чтобы улучшить производительность передачи данных по сети с высокой пропускной способностью и большой задержкой
 
 ### netstat
+
 netstat -anop tcp # -n/-f/-b
 Get-NetTCPConnection -State Established,Listen | ? LocalPort -Match 3389
 Get-NetTCPConnection -State Established,Listen | ? RemotePort -Match 22
 Get-NetUDPEndpoint | ? LocalPort -Match 514 # netstat -ap udp
 
-### Statistics
-netstat -se
-Get-NetAdapterStatistics
-
 ### hostname
+
 $env:computername
 hostname.exe
 (Get-CIMInstance CIM_ComputerSystem).Name
@@ -1321,52 +1330,139 @@ hostname.exe
 [System.Net.Dns]::GetHostName()
 
 ### arp
+
 ipconfig /all | Select-String "физ" # grep
 Get-NetNeighbor -AddressFamily IPv4
 
 function Get-ARP {
-Param (
-$proxy,
-$search
-)
-if (!$proxy) {
-$arp = arp -a
-}
-if ($proxy) {
-$arp = icm $proxy {arp -a}
-}
-$mac = $arp[3..260]
-$mac = $mac -replace "^\s\s"
-$mac = $mac -replace "\s{1,50}"," "
-$mac_coll = New-Object System.Collections.Generic.List[System.Object]
-foreach ($m in $mac) {
-$smac = $m -split " "
-$mac_coll.Add([PSCustomObject]@{
-IP = $smac[0];
-MAC = $smac[1];
-Type = $smac[2]
-})
-}
-if ($search) {
-if ($search -NotMatch "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
-#$ns = nslookup $search
-#$ns = $ns[-2]
-#$global:ns = $ns -replace "Address:\s{1,10}"
-$rdns = Resolve-DnsName $search -ErrorAction Ignore
-$ns = $rdns.IPAddress
-if ($ns -eq $null) {
-return
-}
-} else {
-$ns = $search
-}
-$mac_coll = $mac_coll | ? ip -Match $ns
-}
-$mac_coll
+    Param (
+        $proxy,
+        $search
+    )
+    if (!$proxy) {
+        $arp = arp -a
+    }
+    if ($proxy) {
+        $arp = icm $proxy { arp -a }
+    }
+    $mac = $arp[3..260]
+    $mac = $mac -replace "^\s\s"
+    $mac = $mac -replace "\s{1,50}", " "
+    $mac_coll = New-Object System.Collections.Generic.List[System.Object]
+    foreach ($m in $mac) {
+        $smac = $m -split " "
+        $mac_coll.Add([PSCustomObject]@{
+                IP   = $smac[0];
+                MAC  = $smac[1];
+                Type = $smac[2]
+            })
+    }
+    if ($search) {
+        if ($search -NotMatch "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
+            #$ns = nslookup $search
+            #$ns = $ns[-2]
+            #$global:ns = $ns -replace "Address:\s{1,10}"
+            $rdns = Resolve-DnsName $search -ErrorAction Ignore
+            $ns = $rdns.IPAddress
+            if ($ns -eq $null) {
+                return
+            }
+        }
+        else {
+            $ns = $search
+        }
+        $mac_coll = $mac_coll | ? ip -Match $ns
+    }
+    $mac_coll
 }
 
 Get-ARP -search 192.168.3.100
 Get-ARP -search 192.168.3.100 -proxy dc-01
+
+### Network Adapter Statistics
+
+netstat -se
+Get-NetAdapterStatistics
+
+# SpeedTest
+
+### SpeedTest-Download
+
+# Формируем путь для загрузки файла
+$path = "$home\Downloads"
+$file = "ubuntu.iso.temp"
+$pathDown = "$path\$file"
+# Файл для загрузки
+$url = "https://mirror.yandex.ru/ubuntu-releases/24.04/ubuntu-24.04-desktop-amd64.iso"
+# Получить размер файла из заголовка в МБ (100%)
+$AllSize = $($($(Invoke-WebRequest -Uri $url -Method Head).Headers["Content-Length"])/1mb).ToString(0)
+# Начать загрузку файла
+Start-Job {
+    Invoke-WebRequest "https://mirror.yandex.ru/ubuntu-releases/24.04/ubuntu-24.04-desktop-amd64.iso" -OutFile $using:pathDown
+} | Out-Null
+# Массив для заполнения метриками скорости загрузки 
+$metrics = @()
+while ($true) {
+    clear
+    # Узнать текущий размер файла в МБ
+    $CurrentSize = $($(Get-ChildItem $pathDown).Length/1mb).ToString(0)
+    # Текущая скорость загрузки и отдачи на интерфейса
+    $interface = Get-CimInstance -ClassName Win32_PerfFormattedData_Tcpip_NetworkInterface | Select-Object Name,
+    @{name="Received";expression={$($_.BytesReceivedPersec/1mb).ToString("0.0")}},
+    @{name="Sent";expression={$($_.BytesSentPersec/1mb).ToString("0.0")}}
+    # Добавляем скорость загрузки в массив
+    $metrics += $interface.Received
+    # Получаем текущий процент загрузки
+    $downProc = $($($CurrentSize / $AllSize) * 100).ToString(0)
+    # Вывод метрик
+    Write-Host "Скорость загрузки: $($interface.Received) mbyte/sec"
+    Write-Host "Загружено: $downProc % ($CurrentSize / $AllSize mbyte)"
+    if ($downProc -eq 100) {
+        # Remove-Item $pathDown
+        Write-Host Complete -ForegroundColor Green
+        break
+    }
+    Start-Sleep 2
+}
+# Получаем среднюю скорость загрузки
+$metrics = $metrics -replace ",","."
+$avg = $($metrics | Measure-Object -Average).Average
+Write-Host "Average download speed: " -NoNewline
+Write-Host "$avg" -ForegroundColor Green
+
+### Ookla-SpeedTest
+
+function Get-SpeedTestOokla {
+    param (
+        $Server = 3682,
+        [switch]$List
+    )
+    $path = "$env:TEMP\speedtest.exe"
+    $testPath = Test-Path "$env:TEMP\speedtest.exe"
+    if ($testPath -eq $false) {
+        Invoke-RestMethod https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win64.zip -OutFile "$env:TEMP\speedtest.zip"
+        Expand-Archive "$env:TEMP\speedtest.zip" -DestinationPath $env:TEMP
+    }
+    if ($List) {
+        $(& $path -L -f json | ConvertFrom-Json).servers
+    } else {
+        $test = & $path -s $Server -f json
+        $Collections = New-Object System.Collections.Generic.List[System.Object]
+        $Collections.Add(
+            [PSCustomObject]@{
+                Date = $($test | ConvertFrom-Json).timestamp
+                Url = $($test | ConvertFrom-Json).result.url
+                Download = [double]::Round($($($test | ConvertFrom-Json).download.bandwidth / 1mb * 8), 2)
+                Upload = [double]::Round($($($test | ConvertFrom-Json).upload.bandwidth / 1mb * 8), 2)
+                Ping = $($test | ConvertFrom-Json).ping.latency
+                Internal_IP = $($test | ConvertFrom-Json).interface.internalIp
+                External_IP = $($test | ConvertFrom-Json).interface.externalIp
+                Server = $($test | ConvertFrom-Json).server
+            }
+        )
+        $Collections
+    }
+}
 
 # RDP
 
@@ -5919,7 +6015,7 @@ Add-VpnConnectionRoute -ConnectionName "vpn-failon" -DestinationPrefix 172.22.22
 (Get-VpnConnection -ConnectionName "vpn-failon").routes # отобразить таблицу маршрутизации для указанного соединения
 Remove-VpnConnectionRoute -ConnectionName "vpn-failon" -DestinationPrefix "172.22.23.0/24"
 
-# Proxy
+# ProxyClient
 
 $user = "lifailon"
 $pass = "Proxy"
@@ -5928,16 +6024,16 @@ $Credential = New-Object System.Management.Automation.PSCredential($user, $Secur
 [System.Net.Http.HttpClient]::DefaultProxy = New-Object System.Net.WebProxy("http://192.168.3.100:9090")
 [System.Net.Http.HttpClient]::DefaultProxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
 [System.Net.Http.HttpClient]::DefaultProxy.Credentials = $Credential
-Invoke-RestMethod http://ifconfig.me/ip
+Invoke-RestMethod http://ifconfig.me/ip # узнать внешний ip-адрес (по умолчанию в текущей сессии подключения будут происходить через заданный прокси сервер)
 Invoke-RestMethod https://kinozal.tv/rss.xml
 
 # netsh
 
-### Proxy
+### Reverse Proxy
 
-netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=192.168.3.108
-netsh interface portproxy show all
-netsh interface portproxy delete v4tov4 listenport=8080 listenaddress=0.0.0.0
+netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=192.168.3.108 # настраивает входящее подключение на 8080 порту и переадресует трафик на 80 порт указанного хоста
+netsh interface portproxy show all # отобразить список всех настроек
+netsh interface portproxy delete v4tov4 listenport=8080 listenaddress=0.0.0.0 # удалить переадресацию
 
 ### Wlan
 
@@ -8001,7 +8097,7 @@ Escape-последовательности: https://learn.microsoft.com/ru-ru/c
         },
         "keys": "ctrl+g"
     },
-    // Вставить шаблон модуля для перевода текста через MyMomory
+    // Вставить шаблон модуля для перевода текста через MyMemory
     {
         "command": {
             "action": "sendInput",
