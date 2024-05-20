@@ -7869,22 +7869,24 @@ $Client.Dispose()
 
 [Themes](https://ohmyposh.dev/docs/themes)
 
-`Get-PoshThemes` \
-`oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/di4am0nd.omp.json" | Invoke-Expression` \
-`oh-my-posh init pwsh --config "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/cert.omp.json" | Invoke-Expression`
-
-`New-Item -Path $PROFILE -Type File -Force` \
-`notepad $PROFILE` \
-`oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/di4am0nd.omp.json" | Invoke-Expression`
+`Get-PoshThemes` отобразить список всех тем \
+`oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/di4am0nd.omp.json" | Invoke-Expression` применить (использовать) тему в текущей сессии \
+`oh-my-posh init pwsh --config "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/cert.omp.json" | Invoke-Expression` считать тему из репозитория \
+`New-Item -Path $PROFILE -Type File -Force` создайт файл профилья PowerShell \
+`'oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/di4am0nd.omp.json" | Invoke-Expression' > $PROFILE` сохранить тему профиля (загружать тему при запуске PowerShell)
 
 ### themes-performance
-```PowerShell
-Install-Module themes-performance -Repository NuGet
-Import-Module themes-performance
-Set-PoshTheme -Theme System-Sensors # -Save
-Set-PoshTheme -Theme System-Performance # -Save
-Set-PoshTheme -Theme Pwsh-Process-Performance # -Save
-```
+
+`Install-Module themes-performance -Repository NuGet` установить модуль с темами \
+`Set-PoshTheme -Theme System-Sensors` использовать тему с датчиками из LibreHardwareMonitor \
+`Set-PoshTheme -Theme System-Sensors -Save` загрузить тему из репозитория на локальный компьютер и сохранить тему в профиле \
+`Set-PoshTheme -Theme System-Performance` использовать тему с датчиками системы, получаемыми из системы WMI/CIM (заряд батареи ноутбука | загрузка CPU в % | использование оперативной памяти | скорость активного сетевого интерфейса) \
+`Set-PoshTheme -Theme System-Performance -Save` \
+`Set-PoshTheme -Theme Pwsh-Process-Performance` время работы текущего процесса pwsh (процессорное время), количество работающих/общее (статус успех/ошибка) фоновых заданий, Working Set текущего процесса и всех процессов PowerShell в системе \
+`Set-PoshTheme -Theme Pwsh-Process-Performance -Save`
+
+# Windows-Terminal 
+
 ### Terminal-Icons
 
 `Install-Module -Name Terminal-Icons -Repository PSGallery` \
@@ -7914,11 +7916,11 @@ Set-PoshTheme -Theme Pwsh-Process-Performance # -Save
     },
     "list": 
     [
-        // PowerShell Core 7
+        // PowerShell Core
         {
             "font": 
             {
-                "face": "CaskaydiaMono Nerd Font"
+                "face": "CaskaydiaMono Nerd Font" // устанавливаем шрифт для работы Terminal-Icons
             },
             "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
             "hidden": false,
@@ -7942,8 +7944,6 @@ Set-PoshTheme -Theme Pwsh-Process-Performance # -Save
     ]
 }
 ```
-# Windows-Terminal 
-
 ### Custom Actions
 
 Custom actions: https://learn.microsoft.com/ru-ru/windows/terminal/customize-settings/actions \
@@ -7977,7 +7977,7 @@ Escape-последовательности: https://learn.microsoft.com/ru-ru/c
         },
         "keys": "ctrl+shift+d" // default: alt+shift+d
     },
-    // Clear Line
+    // Очистить строку
     {
         "command": {
             "action": "sendInput",
@@ -7985,7 +7985,7 @@ Escape-последовательности: https://learn.microsoft.com/ru-ru/c
         },
         "keys": "ctrl+k"
     },
-    // Clear All
+    // Очистить терминал
     {
         "command": {
             "action": "sendInput",
@@ -7993,23 +7993,31 @@ Escape-последовательности: https://learn.microsoft.com/ru-ru/c
         },
         "keys": "ctrl+l"
     },
-    // Past Translate MyMemory:
-    {
-        "command": {
-            "action": "sendInput",
-            "input": "\u0001\u001b[3~Get-Translate -Alternatives -Provider MyMemory ''\u001b[D"
-        },
-        "keys": "ctrl+t"
-    },
-    // Past Translate Google:
+    // Вставить шаблон модуля для перевода текста через Google Translate
     {
         "command": {
             "action": "sendInput",
             "input": "\u0001\u001b[3~Get-Translate -Alternatives -Provider Google ''\u001b[D"
         },
         "keys": "ctrl+g"
+    },
+    // Вставить шаблон модуля для перевода текста через MyMomory
+    {
+        "command": {
+            "action": "sendInput",
+            "input": "\u0001\u001b[3~Get-Translate -Alternatives -Provider MyMemory ''\u001b[D"
+        },
+        "keys": "ctrl+q"
+    },
+    // Быстрый перевод текста из буфера обмена
+    {
+        "command": {
+            "action": "sendInput",
+            "input": "\u0001\u001b[3~Get-Translate -Alternatives -Provider MyMemory -Text $(Get-Clipboard)\u001b[D\r"
+        },
+        "keys": "ctrl+shift+q"
     }
-],
+]
 ```
 # Pester
 
