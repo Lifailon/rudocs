@@ -109,6 +109,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # DSC
 # Ansible
 # Win_Modules
+# Docker
 # GigaChat
 # YandexGPT
 # SuperAGI
@@ -7187,6 +7188,202 @@ https://docs.chocolatey.org/en-us/guides/organizations/organizational-deployment
     state: present
 	# source: URL-адрес внутреннего репозитория
     source: https://community.chocolatey.org/api/v2/ChocolateyInstall.ps1
+
+# Docker
+
+### WSL
+
+wsl --list # список установленных дистрибутивов Linux
+wsl --list --online # список доступных дистрибутивов
+wsl --install -d Ubuntu # установить Ubuntu в Windows Subsystem for Linux
+wsl --status
+wsl --exec "htop" # выполнить команду в подсистеме Linux по умолчанию
+wsl -e bash -c "docker -v"
+wsl -e bash -c "systemctl status docker"
+
+### Install
+
+apt update && apt upgrade -y
+apt install docker.io
+systemctl status docker
+systemctl start docker
+systemctl enable docker
+iptables -t nat -N DOCKER
+docker -v
+docker -h
+curl https://registry-1.docker.io/v2/ # проверить доступ: {"errors":[{"code":"UNAUTHORIZED","message":"authentication required","detail":null}]} или (35) OpenSSL SSL_connect: Connection reset by peer in connection to registry-1.docker.io:443
+curl -s -X POST -H "Content-Type: application/json" -d '{"username": "lifailon", "password": "password"}' https://hub.docker.com/v2/users/login | jq -r .token > dockerToken.txt # получить временный токен доступа для авторизации
+sudo docker login # вход в реестр репозитория hub.docker.com
+cat dockerToken.txt | sudo docker login --username lifailon --password-stdin # передать токен авторизации (https://hub.docker.com/settings/security) из файла через stdin
+cat /root/.docker/config.json | jq -r .auths[].auth # место хранения токена авторизации в системе
+cat /root/.docker/config.json | python3 -m json.tool
+
+### Run 
+
+Commands: search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/kill/rm/rmi
+
+docker search speedtest # поиск образа в реестре
+docker pull adolfintel/speedtest # скачать образ LibreSpeed из реестра docker hub (https://hub.docker.com/r/adolfintel/speedtest)
+docker images (docker image ls) # отобразить все локальные (уже загруженные) образы docker (image ls)
+docker images --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}" # отфильтровать вывод (json-формат)
+docker create -it --name speedtest -p 8080:80 adolfintel/speedtest # создать контейнер из образа adolfintel/speedtest с именем speedtest и проброс 80 порта контейнера на 8080 порт хоста
+docker start speedtest # запустить созданный контейнер
+ss -ltp | grep 8080 # проверить, что порт открыт
+docker ps # отобразить все запущенные докер контейнеры
+docker ps -a # список всех существующих контейнеров (для их запуска/удаления по NAMES/ID и код выхода Exited 0 - успешная остановка)
+docker ps -s # размер контейнеров (--size)
+docker restart speedtest # перезапустить контейнер
+docker pause speedtest # приостановить контейнер
+docker unpause uptime-kuma # возобновить работу контейнера
+docker rename speedtest speedtest-2 # переименоввать контейнер (docker rename old_name new_name)
+docker stop speedtest-2 # остановить работающий контейнер с отправкой главному процессу контейнера сигнал SIGTERM, и через время SIGKILL
+docker kill uptime-kuma # остановить работающий контейнер с отправкой главному процессу контейнера сигнал SIGKILL
+docker kill $(docker ps -q) # остановить все контейнеры
+docker rm speedtest-2 # удалить контейнер
+docker rmi adolfintel/speedtest # удалить образ
+docker run -d --restart=unless-stopped --name openspeedtest -p 3000:3000 -p 3001:3001 openspeedtest/latest # загрузить образ OpenSpeedTest (https://hub.docker.com/r/openspeedtest/latest), создать контейнер и запустить в одну команду в фоновом режиме (-d/--detach, терминал возвращает контроль сразу после запуска контейнера, если не используется, можно видеть логи, но придется остановить контейнер для выхода)
+docker rm openspeedtest && docker rmi openspeedtest/latest # удаляем контейнер и образ в одну команду
+docker run --name pg1 -p 5433:5432 -e POSTGRES_PASSWORD=PassWord -d postgres # создать контейнер postgres (https://hub.docker.com/_/postgres) с параметрами (-e)
+docker run -d --restart=always --name uptime-kuma -p 8080:3001 louislam/uptime-kuma:1 # создать и запустить контейнер Uptime-Kuma (https://hub.docker.com/r/elestio/uptime-kuma) в режиме always, при котором контейнер должен перезапускаться автоматически, если он остановится или если перезапустится Docker (например, после перезагрузки хоста)
+
+### Update
+
+docker update --restart unless-stopped uptime-kuma # изменить режим перезапуска контейнера после его остановки на unless-stopped (режим аналогичен always, но контейнер не будет перезапущен, если он был остановлен вручную с помощью docker stop) или on-failure (контейнер будет перезапущен только в случае его завершения с ошибкой, когда код завершения отличается от 0, через двоеточие можно указать количество попыток перезапуска, например, 3:10s) 
+docker update --restart on-failure uptime-kuma # контейнер будет перезапущен только в случае его завершения с ошибкой, когда код завершения отличается от 0, через двоеточие можно указать количество попыток перезапуска (например, on-failure:3)
+docker update --cpu-shares 512 --memory 500M uptime-kuma # задать ограничения по CPU, контейнер будет иметь доступ к указанной доле процессорного времени в диапазоне от 2 до 262,144 (2^18) или --cpus (количество процессоров), --memory/--memory-swap и --blkio-weight для IOps (относительный вес от 10 до 1000)
+
+### Stats
+
+docker stats # посмотреть статистику потребляемых ресурсов запущенными контейнерами (top)
+docker stats --no-stream --format json # вывести результат один раз в формате json
+
+### Logs
+
+docker logs uptime-kuma --tail 100 # показать логи конкретного запущенного контейнера в терминале (последние 100 строк)
+docker system events # предоставляют события от демона dockerd в реальном времени
+journalctl -xeu docker.service
+docker system df # отобразить сводную информацию занятого пространства образами и контейнерами
+du -h --max-depth=1 /var/lib/docker
+du -h --max-depth=2 /var/lib/docker/containers
+
+### Volume
+
+docker volume ls # показывает список томов и место хранения (механизмы хранения постояннымх данных контейнера на хостовой машине, которые сохраняются между перезапусками или пересозданиями контейнеров)
+docker volume inspect uptime-kuma # подробная информация конфигурации тома (отображает локальный путь к данным в системе, Mountpoint: /var/lib/docker/volumes/uptime-kuma/_data)
+docker volume create test # создать том
+docker volume rm test # удалить том
+docker run -d --restart=always --name uptime-kuma -p 8080:3001 -v uptime-kuma:/app/data louislam/uptime-kuma:1 # создать и запустить контейнер на указанном томе (том создается автоматически, в дальнейшем его можно указывать при создании контейнера, если необходимо загружать из него сохраненные данные)
+
+### Network
+
+docker network ls # список сетей
+docker network inspect bridge # подробная информация о сети bridge
+docker inspect uptime-kuma | jq .[].NetworkSettings.Networks # узнать наименование сетевого адаптера указанного контейнера
+docker run -d --name uptime-kuma --network host nginx louislam/uptime-kuma:1 # запуск контейнера с использованием host сети, которая позволяет контейнеру использовать сеть хостовой машины
+docker network create network_test # создать новую сеть
+docker network connect network_test uptime-kuma # подключить работающий контейнер к указанной сети
+docker network disconnect network_test uptime-kuma # отключить от сети
+
+### Inspect
+
+docker inspect uptime-kuma # подробная информация о контейнере (например, конфигурация NetworkSettings)
+docker inspect uptime-kuma --format='{{.LogPath}}' # показать, где хранятся логи для конкретного контейнера в локальной системе
+docker inspect uptime-kuma | grep LogPath
+docker inspect $(docker ps -q) --format='{{.NetworkSettings.Ports}}' # отобразить TCP порты всех запущенных контейнеров
+docker inspect $(docker ps -q) --format='{{.NetworkSettings.Ports}}' | grep -Po "[0-9]+(?=}])" # отобразить порты хоста (внешние)
+docker port uptime-kuma # отобразить проброшенные порты контейнера
+for ps in $(docker ps -q); do docker port $ps | sed -n 2p | awk -F ":" '{print $NF}'; done # отобразить внешние порты всех запущенных контейнеров
+id=$(docker inspect uptime-kuma | jq -r .[].Id) # узнать ID контейнера по его имени в конфигурации
+cat /var/lib/docker/containers/$id/config.v2.json | jq . # прочитать конфигурационный файл контейнера
+
+### Exec
+
+docker exec -it uptime-kuma /bin/bash # подключиться к работающему контейнеру (при выходе из оболочки, контейнер будет работать), используя интерпритатор bash
+docker top uptime-kuma # отобразить работающие процессы контейнера
+docker exec -it --user root uptime-kuma bash apt-get install -y procps # авторизоваться под пользователем root и установить procps
+docker exec -it uptime-kuma ps -aux # отобразить работающие процессы внутри контейнера
+docker exec uptime-kuma kill -9 25055 # убить процесс внутри контейнера
+docker exec -it uptime-kuma ping 8.8.8.8
+docker exec -it uptime-kuma pwd
+docker cp ./Console-Performance.sh uptime-kuma:/app # скопировать из локальной системы в контейнер
+docker exec -it uptime-kuma ls
+docker cp uptime-kuma:/app/db/ backup/db # сокпировать из контейнера в локальную систему
+ls backup/db
+
+### Prune
+
+docker network prune && docker image prune && docker volume prune && docker container prune # удалить все неиспользуемые сети, висящие образа, остановленные контейнеры, все неиспользуемые тома
+system prune –volumes # заменяет все четыре команды для очистки и дополнительно очищает кеш сборки
+
+### Remove
+
+systemctl stop docker.service
+systemctl stop docker.socket
+pkill -f docker
+pkill -f containerd
+apt purge docker.io docker-ce docker-ce-cli containerd.io -y
+dpkg --remove --force-remove-reinstreq docker.io
+rm -rf /var/lib/docker
+rm -rf /var/lib/containerd
+rm -rf /etc/docker
+rm -rf /run/docker
+rm -rf /run/docker.sock
+rm -rf /usr/lib/docker
+
+### Docker-api
+
+curl --silent -XGET --unix-socket /run/docker.sock http://localhost/version | jq . # использовать локальный сокет (/run/docker.sock) для взаимодействия с Docker daemon через его API
+curl --silent -XGET --unix-socket /run/docker.sock http://localhost/info | jq . # количество образов, запущенных и остановленных контейнеров и остальные метрики ОС
+curl --silent -XGET --unix-socket /run/docker.sock http://localhost/events # логи Docker daemon
+curl --silent -XGET --unix-socket /run/docker.sock -H "Content-Type: application/json" http://localhost/containers/json | jq . # список работающих контейнеров и их параметры конфигурации
+curl --silent -XGET --unix-socket /run/docker.sock http://localhost/containers/uptime-kuma/json | jq . # подробные сведения (конфигурация) контейнера
+curl --silent -XPOST --unix-socket /run/docker.sock -d "{"Image":"nginx:latest"}" http://localhost/containers/create?name=nginx # создать контейнер с указанным образом в теле запроса (должен уже присутствовать образ)
+curl --silent -XPOST --unix-socket /run/docker.sock http://localhost/containers/17fab06a820debf452fe685d1522a9dd1611daa3a5087ff006c2dabbe25e52a1/start # запустить контейнер по Id
+curl --silent -XPOST --unix-socket /run/docker.sock http://localhost/containers/17fab06a820debf452fe685d1522a9dd1611daa3a5087ff006c2dabbe25e52a1/stop # остановить контейнер
+curl --silent -XDELETE --unix-socket /run/docker.sock http://localhost/containers/17fab06a820debf452fe685d1522a9dd1611daa3a5087ff006c2dabbe25e52a1 # удалить контейнер
+
+### Docker-tcp-api
+
+echo '{
+    "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
+}' > "/etc/docker/daemon.json"
+service=$(cat /lib/systemd/system/docker.service | sed "s/ -H fd:\/\///")
+printf "%s\n" "$service" > /lib/systemd/system/docker.service
+systemctl daemon-reload
+systemctl restart docker
+
+curl --silent -XGET http://192.168.3.101:2375/version | jq .
+
+### ctop
+
+scoop install ctop # установка в Windows
+
+wget https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64 -O /usr/local/bin/ctop
+chmod +x /usr/local/bin/ctop
+
+ctop # отображает сводную таблицу (top) CPU, MEM, NET RX/TX, IO R/W
+o - подробный график
+l - логи контейнера в реальном времени
+s - stop
+p - pause
+r - restart
+e - exec shell
+
+### LazyDocker
+
+scoop install lazydocker || choco install lazydocker # установка в Windows
+
+wget https://github.com/jesseduffield/lazydocker/releases/download/v0.23.1/lazydocker_0.23.1_Linux_x86.tar.gz -O ~/lazydocker.tar.gz
+tar -xzf ~/lazydocker.tar.gz lazydocker
+rm ~/lazydocker.tar.gz
+mv ~/lazydocker /usr/local/bin/lazydocker
+chmod +x /usr/local/bin/lazydocker
+
+lazydocker
+
+### Dozzle
+
+docker run -d --name dozzle -v /var/run/docker.sock:/var/run/docker.sock -p 9999:8080 amir20/dozzle:latest
 
 # GigaChat
 
