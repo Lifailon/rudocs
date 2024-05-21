@@ -7211,7 +7211,7 @@ ansible_shell_type=powershell
 `iptables -t nat -N DOCKER` \
 `docker -v` \
 `docker -h` \
-`curl https://registry-1.docker.io/v2/` проверить доступ: {"errors":[{"code":"UNAUTHORIZED","message":"authentication required","detail":null}]} или (35) OpenSSL SSL_connect: Connection reset by peer in connection to registry-1.docker.io:443 \
+`curl https://registry-1.docker.io/v2/` проверить доступ к Docker Hub \
 `curl -s -X POST -H "Content-Type: application/json" -d '{"username": "lifailon", "password": "password"}' https://hub.docker.com/v2/users/login | jq -r .token > dockerToken.txt` получить временный токен доступа для авторизации \
 `sudo docker login` вход в реестр репозитория hub.docker.com \
 `cat dockerToken.txt | sudo docker login --username lifailon --password-stdin` передать токен авторизации (https://hub.docker.com/settings/security) из файла через stdin \
@@ -7248,7 +7248,7 @@ Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/k
 
 ### Update
 
-`docker update --restart unless-stopped uptime-kuma` изменить режим перезапуска контейнера после его остановки на unless-stopped (режим аналогичен always, но контейнер не будет перезапущен, если он был остановлен вручную с помощью docker stop) или on-failure (контейнер будет перезапущен только в случае его завершения с ошибкой, когда код завершения отличается от 0, через двоеточие можно указать количество попыток перезапуска, например, 3:10s) \
+`docker update --restart unless-stopped uptime-kuma` изменить режим перезапуска контейнера после его остановки на unless-stopped (режим аналогичен always, но контейнер не будет перезапущен, если он был остановлен вручную с помощью docker stop) \
 `docker update --restart on-failure uptime-kuma` контейнер будет перезапущен только в случае его завершения с ошибкой, когда код завершения отличается от 0, через двоеточие можно указать количество попыток перезапуска (например, on-failure:3) \
 `docker update --cpu-shares 512 --memory 500M uptime-kuma` задать ограничения по CPU, контейнер будет иметь доступ к указанной доле процессорного времени в диапазоне от 2 до 262,144 (2^18) или --cpus (количество процессоров), --memory/--memory-swap и --blkio-weight для IOps (относительный вес от 10 до 1000)
 
@@ -7321,14 +7321,11 @@ Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/k
 `systemctl stop docker.socket` \
 `pkill -f docker` \
 `pkill -f containerd` \
-`apt purge docker.io docker-ce docker-ce-cli containerd.io -y` \
-`dpkg --remove --force-remove-reinstreq docker.io` \
+`apt purge docker.io -y || dpkg --purge docker.io` \
+`dpkg -l | grep docker` \
 `rm -rf /var/lib/docker` \
-`rm -rf /var/lib/containerd` \
-`rm -rf /etc/docker` \
 `rm -rf /run/docker` \
-`rm -rf /run/docker.sock` \
-`rm -rf /usr/lib/docker`
+`rm -rf /run/docker.sock`
 
 ### Docker-api
 
@@ -7352,7 +7349,7 @@ printf "%s\n" "$service" > /lib/systemd/system/docker.service
 systemctl daemon-reload
 systemctl restart docker
 ```
-curl --silent -XGET http://192.168.3.101:2375/version | jq .
+curl --silent -XGET http://192.168.3.102:2375/version | jq .
 
 ### ctop
 
@@ -7362,10 +7359,11 @@ wget https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-am
 chmod +x /usr/local/bin/ctop
 ```
 `ctop` отображает сводную таблицу (top) CPU, MEM, NET RX/TX, IO R/W \
-`o` - подробный график \
+`o` - графики \
 `l` - логи контейнера в реальном времени \
-`s` - stop \
-`p` - pause \
+`s` - stop/start \
+`R` - remove после stop \
+`p` - pause/unpause \
 `r` - restart \
 `e` - exec shell
 
@@ -7376,14 +7374,227 @@ chmod +x /usr/local/bin/ctop
 wget https://github.com/jesseduffield/lazydocker/releases/download/v0.23.1/lazydocker_0.23.1_Linux_x86.tar.gz -O ~/lazydocker.tar.gz
 tar -xzf ~/lazydocker.tar.gz lazydocker
 rm ~/lazydocker.tar.gz
-mv ~/lazydocker /usr/local/bin/lazydocker
+mv lazydocker /usr/local/bin/lazydocker
 chmod +x /usr/local/bin/lazydocker
 ```
 lazydocker
 
+### Dockerfile
+
+`git clone https://github.com/Lifailon/TorAPI` \
+`cd TorAPI` \
+`nano Dockerfile`
+```Dockerfile
+# Указать базовый образ, который содержит последнюю версию Node.js и npm для создания контейнера
+FROM node:latest
+# Установить рабочую директорию для контейнера (все последующие команды будут выполняться относительно этой директории)
+WORKDIR /torapi
+# Копирует файл package.json из текущей директории на хосте в рабочую директорию контейнера
+COPY package.json ./
+# Запускает команду (используя оболочку по умолчанию) для установки зависимостей, указанных в package.json
+RUN npm install
+# Копирует все файлы из текущей директории на хосте в рабочую директорию контейнера
+COPY . .
+# Определяем переменные окружения по умолчанию
+ENV PORT=8443
+# Открывает порт 8443 для доступа к приложению из контейнера
+EXPOSE $PORT
+# Устанавливает команду по умолчанию для запуска при старте контейнера, которая запускает приложение с помощью npm start
+CMD ["npm", "start"]
+```
+`docker build -t torapi .` собрать образ из dockerfile \
+`docker run -d --name TorAPI -p 8443:8443 torapi`
+
+### Push
+
+`docker login` \
+`git clone https://github.com/Lifailon/TorAPI` \
+`cd TorAPI` \
+`docker build -t lifailon/torapi .` собрать образ для публикации на Docker Hub \
+`docker push lifailon/torapi` загрузить образ на Docker Hub
+
+`docker pull lifailon/torapi:latest` загрузить образ из Docker Hub \
+`docker run -d --name TorAPI -p 8443:8443 lifailon/torapi:latest` загрузить образ и создать контейнер
+
+### Docker-Compose
+```bash
+curl -L "https://github.com/docker/compose/releases/download/1.27.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+```
+`nano docker-compose.yml`
+```yml
+version: "3.8"
+services:
+  torapi:
+    image: lifailon/torapi:latest
+    container_name: TorAPI
+    volumes:
+      - torapi:/rotapi
+    ports:
+      - "8443:8443"
+    restart: unless-stopped
+volumes:
+  torapi:
+```
+`docker-compose up -d`
+
+### Uptime-Kuma
+
+`nano docker-compose.yml`
+```yml
+version: "3.8"
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    volumes:
+      - uptime-kuma:/app/data
+    ports:
+      - "8080:3001"
+    restart: unless-stopped
+volumes:
+  uptime-kuma:
+```
+`docker-compose up -d`
+
+### Uptime-Kuma-Api
+
+`nano docker-compose.yml`
+```yml
+version: "3.9"
+services:
+  kuma:
+    container_name: uptime-kuma-frontend
+    image: louislam/uptime-kuma:latest
+    ports:
+      - "8080:3001"
+    restart: unless-stopped
+    volumes:
+      - uptime-kuma:/app/data
+  api:
+    container_name: uptime-kuma-backend-api
+    image: medaziz11/uptimekuma_restapi
+    volumes:
+      - api:/db
+    restart: unless-stopped
+    environment:
+      - KUMA_SERVER=http://kuma:3001
+      - KUMA_USERNAME=admin
+      - KUMA_PASSWORD=KumaAdmin
+      - ADMIN_PASSWORD=KumaApiAdmin
+    depends_on:
+      - kuma
+    ports:
+      - "8081:8000"
+volumes:
+  uptime-kuma:
+  api:
+```
+`docker-compose up -d`
+
+OpenAPI doc: http://192.168.3.102:8081/docs \
+`TOKEN=$(curl -s -X POST http://192.168.3.102:8081/login/access-token --data "username=admin" --data "password=KumaApiAdmin" | jq -r .access_token)` \
+`curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors | jq .` \
+`curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors/1 | jq '.monitor | "\(.name) - \(.active)"'`
+
+### Swarm
+
+`docker swarm init` инициализировать manager node и получить токен для подключения worker node (сервер) \
+`docker swarm join-token manager` узнать токен подключения \
+`docker swarm join --token SWMTKN-1-1a078rm7vuenefp6me84t4swqtvdoveu6dh2pw34xjcf2gyw33-81f8r32jt3kkpk4dqnt0oort9 192.168.3.101:2377` подключение на worker node (клиент) \
+`docker node ls` отобразить список node на manager node \
+`docker node inspect u4u897mxb1oo39pbj5oezd3um` подробная информация (конфигурация) о node по id \
+`docker swarm leave --force` выйти из кластера на worker node (на manager node изменится статус с Ready на Down) \
+`docker node rm u4u897mxb1oo39pbj5oezd3um` удалить node (со статусом Down) на manager node \
+`docker pull lifailon/torapi:latest` \
+`nano docker-compose-stack.yml`
+```yml
+version: "3.8"
+services:
+  torapi:
+    image: lifailon/torapi:latest
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+      # Режим виртуального IP для балансировки нагрузки
+      endpoint_mode: vip
+    volumes:
+      - torapi:/rotapi
+    ports:
+      # Порт внутри контейнера
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        # Режим балансировки нагрузки по умолчанию
+        mode: ingress
+volumes:
+  torapi:
+```
+`docker stack deploy -c docker-compose-stack.yml TorAPI` собрать стэк сервисов, определенных в docker-compose (на worker node появится контейнер TorAPI_torapi.1.ug5ngdlqkl76dt) \
+`docker stack ls` отобразить список стэков \
+`docker service ls` список сервисов всех стэков \
+`docker stack ps TorAPI` список задач в стеке \
+`docker stack services TorAPI` список сервисов внутри стэка указанного стэка по имени \
+`docker service ps TorAPI_torapi` подробная информация о сервисе по его имени (TorAPI имя стэка и _torapi имя сервиса) \
+`docker service inspect --pretty TorAPI_torapi` конфигурация сервиса \
+`docker service inspect TorAPI_torapi` конфигурация сервиса в формате JSON \
+`docker service logs TorAPI_torapi` журнала конкретного сервиса по всем серверам кластера \
+`docker service scale TorAPI_torapi=3` масштабирует сервис до указанного числа реплик \
+`docker stack rm TorAPI` удалить стэк (не требует остановки контейнеров)
+
 ### Dozzle
 
-`docker run -d --name dozzle -v /var/run/docker.sock:/var/run/docker.sock -p 9999:8080 amir20/dozzle:latest`
+`docker run -d --name dozzle -v /var/run/docker.sock:/var/run/docker.sock -p 9999:8080 amir20/dozzle:latest` \
+`docker run -d --name dozzle -v /var/run/docker.sock:/var/run/docker.sock -p 9999:8080 amir20/dozzle:latest --remote-host tcp://192.168.3.102:2375|mon-01` доступ к удаленному хосту через Docker-tcp-api \
+http://192.168.3.102:9999
+
+### Dozzle-Auth
+
+`echo -n DozzleAdmin | shasum -a 256` получить пароль в формате sha-256 \
+`mkdir dozzle && nano ./dozzle/users.yml` создать авторизационный файл
+```yml
+users:
+  admin:
+    name: "admin"
+    password: "a800c3ee4dac5102ed13ba673589077cf0a87a7ddaff59882bb3c08f275a516e"
+```
+`nano docker-compose.yml`
+```yml
+version: "3.8"
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./dozzle:/data
+    ports:
+      - 9999:8080
+    environment:
+      DOZZLE_AUTH_PROVIDER: simple
+      DOZZLE_REMOTE_HOST: tcp://192.168.3.102:2375|mon-01
+```
+`docker-compose up -d`
+
+### Portainer
+
+`curl -L https://downloads.portainer.io/portainer-agent-stack.yml -o portainer-agent-stack.yml` скачать yaml файл \
+`version_update=$(cat portainer-agent-stack.yml | sed "s/2.11.1/latest/g")` \
+`printf "%s\n" "$version_update" > portainer-agent-stack.yml` обновить версию в yaml файле на последнюю доступную в Docker Hub (2.19.5) \
+`docker stack deploy -c portainer-agent-stack.yml portainer` развернуть в кластере swarm (на каждом node будет установлен агент, который будет собирать данные, а на manager будет установлен сервер с web панелью) \
+https://192.168.3.101:9443
+
+`docker run -d --name portainer_agent -p 9001:9001 --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker/volumes:/var/lib/docker/volumes portainer/agent:2.19.5` установить агент на удаленный хост \
+https://192.168.3.101:9443/#!/endpoints добавить удаленный хост по URL 192.168.3.102:9001
+
+`docker volume create portainer_data` создать volume для установки локального контейнера (не в кластер swarm) \
+`docker create -it --name=portainer -p 9000:9000 --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer` создать локальный контейнер \
+`docker start portainer` \
+http://192.168.3.101:9000
 
 # GigaChat
 
@@ -8344,6 +8555,14 @@ Escape-последовательности: https://learn.microsoft.com/ru-ru/c
             "input": "\u0001\u001b[3~Get-Translate -Alternatives -Provider MyMemory -Text $(Get-Clipboard)\u001b[D\r"
         },
         "keys": "ctrl+shift+q"
+    },
+    // Быстрый пинг dns google
+    {
+        "command": {
+            "action": "sendInput",
+            "input": "\u0001\u001b[3~ping 8.8.8.8 -t\r"
+        },
+        "keys": "ctrl+p"
     }
 ]
 ```
