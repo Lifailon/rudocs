@@ -27,7 +27,6 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # WinEvent
 # Firewall
 # Defender
-# WindowsUpdate
 # DISM
 # Scheduled
 # Network
@@ -36,6 +35,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # Shutdown
 # LocalAccounts
 # SMB
+# WSUS
 # ActiveDirectory
 # repadmin
 # dcdiag
@@ -104,6 +104,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # PackageManagement
 # NuGet
 # Modules
+# Atlassian
 # Git
 # GitHub-api
 # GitHub-Actions
@@ -129,7 +130,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # Telegram
 # Discord
 # oh-my-posh
-# Windows-Terminal 
+# Windows-Terminal
 # Pester
 # Pandoc
 # FFmpeg
@@ -1161,38 +1162,6 @@ cd "C:\Program Files\Windows Defender\"
 .\MpCmdRun.exe -restore -name $ThreatName # восстановить файл из карантина
 .\MpCmdRun.exe -restore -filepath $path_file
 
-# WindowsUpdate
-
-Get-Hotfix | Sort-Object -Descending  InstalledOn # список установленных обновлений (информация из cimv2)
-Get-Hotfix -Description "Security update"
-Get-CimInstance Win32_QuickFixEngineering
-Get-Command -Module WindowsUpdate
-Get-WindowsUpdateLog
-Get-Service uhssvc # служба Microsoft Health Update Tools, которая отвечает за предоставление обновлений
-
-Install-Module -Name PSWindowsUpdate -Scope CurrentUser
-Import-Module PSWindowsUpdate
-Get-Command -Module PSWindowsUpdate
-Get-WindowsUpdate # список обновлений для скачать и установить с сервера WSUS или Microsoft Update
-Get-WindowsUpdate -Download # загрузить все обновления
-Get-WindowsUpdate –Install # установить все обновления
-Install-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot # установить все обновления без перезагрузки
-Get-WindowsUpdate -KBArticleID KB2267602, KB4533002 -Install
-Get-WindowsUpdate -KBArticleID KB2538243 -Hide # скрыть обновления, что бы они никогда не устанавливались
-Get-WindowsUpdate –IsHidden # отобразить скрытые обновления (Hide-WindowsUpdate)
-Remove-WindowsUpdate -KBArticleID KB4011634 -NoRestart # удалить обновление
-Uninstall-WindowsUpdate # удалить обновление
-Add-WUServiceManager # регистрация сервера обновления (Windows Update Service Manager)
-Enable-WURemoting # включить правила Windows Defender, разрешающие удаленное использование командлета PSWindowsUpdate
-Get-WUApiVersion # версия Windows Update Agent
-Get-WUHistory # список всех установленных обновлений (история обновлений)
-Get-WUHistory | Where-Object {$_.Title -match "KB4517389"} # поиск обновления
-Get-WULastResults # даты последнего поиска и установки обновлений
-Get-WURebootStatus # проверить, нужна ли перезагрузка для применения конкретного обновления
-Get-WUServiceManager # выводит источники обновлений
-Get-WUInstallerStatus # статус службы Windows Installer
-Remove-WUServiceManager # отключить Windows Update Service Manager
-
 # DISM
 
 Get-Command -Module Dism -Name *Driver*
@@ -1648,6 +1617,152 @@ Get-IscsiServerTarget | fl TargetName, LunMappings
 Connect-IscsiTarget -NodeAddress "iqn.1995-05.com.microsoft:srv2-iscsi-target-2-target" -IsPersistent $true # подключиться инициатором к таргету
 Get-IscsiTarget | fl
 Disconnect-IscsiTarget -NodeAddress ″iqn.1995-05.com.microsoft:srv2-iscsi-target-2-target″ -Confirm:$false # отключиться
+
+# WSUS
+
+Get-Hotfix | Sort-Object -Descending  InstalledOn # список установленных обновлений (информация из cimv2)
+Get-Hotfix -Description "Security update"
+Get-CimInstance Win32_QuickFixEngineering
+Get-Service uhssvc # служба Microsoft Health Update Tools, которая отвечает за предоставление обновлений
+
+### WindowsUpdate
+
+Get-Command -Module WindowsUpdate
+Get-WindowsUpdateLog # формирует отчет в $home\AppData\Local\Temp\WindowsUpdateLog в формате csv
+
+### PSWindowsUpdate
+
+Install-Module -Name PSWindowsUpdate -Scope CurrentUser
+Import-Module PSWindowsUpdate
+Get-Command -Module PSWindowsUpdate
+Get-WindowsUpdate # список обновлений для скачать и установить с сервера WSUS или Microsoft Update
+Get-WindowsUpdate -Download # загрузить все обновления
+Get-WindowsUpdate –Install # установить все обновления
+Install-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot # установить все обновления без перезагрузки
+Get-WindowsUpdate -KBArticleID KB2267602, KB4533002 -Install
+Get-WindowsUpdate -KBArticleID KB2538243 -Hide # скрыть обновления, что бы они никогда не устанавливались
+Get-WindowsUpdate –IsHidden # отобразить скрытые обновления (Hide-WindowsUpdate)
+Remove-WindowsUpdate -KBArticleID KB4011634 -NoRestart # удалить обновление
+Uninstall-WindowsUpdate # удалить обновление
+Add-WUServiceManager # регистрация сервера обновления (Windows Update Service Manager)
+Enable-WURemoting # включить правила Windows Defender, разрешающие удаленное использование командлета PSWindowsUpdate
+Get-WUApiVersion # версия Windows Update Agent
+Get-WUHistory # список всех установленных обновлений (история обновлений)
+Get-WUHistory | Where-Object {$_.Title -match "KB4517389"} # поиск обновления
+Get-WULastResults # даты последнего поиска и установки обновлений
+Get-WURebootStatus # проверить, нужна ли перезагрузка для применения конкретного обновления
+Get-WUServiceManager # выводит источники обновлений
+Get-WUInstallerStatus # статус службы Windows Installer
+Remove-WUServiceManager # отключить Windows Update Service Manager
+
+### UpdateScope
+
+$UpdateScope = New-Object Microsoft.UpdateServices.Administration.UpdateScope
+[enum]::GetValues([Microsoft.UpdateServices.Administration.ApprovedStates]) # список утвержденных состояний
+[enum]::GetValues([Microsoft.UpdateServices.Administration.UpdateInstallationStates]) # статус установки (неизвестный, непригодный, не установлен, скачено, установлен, неуспешный, установлен и ожидает перезагрузки, все)
+$UpdateScope.ApprovedStates = [Microsoft.UpdateServices.Administration.ApprovedStates]"NotApproved" # выставляем статус не утвержденных обновлений на сервере WSUS
+$UpdateScope.IncludedInstallationStates = [Microsoft.UpdateServices.Administration.UpdateInstallationStates]"NotInstalled" # выставляем статус не установленных обновлений
+$UpdateScope.IncludedInstallationStates = [Microsoft.UpdateServices.Administration.UpdateInstallationStates]"NotInstalled,Downloaded" # обновления загружены, но не установлены
+
+### PoshWSUS
+
+Install-Module -Name PoshWSUS
+Get-Command -Module PoshWSUS # нужны права администратора
+Add-PSWSUSClientToGroup # добавление клиента в группу
+Approve-PSWSUSUpdate # утверждение обновления
+Connect-PSWSUSDatabaseServer # подключение к серверу базы данных WSUS
+Connect-PSWSUSServer # подключение к серверу WSUS
+Deny-PSWSUSUpdate # отклонение обновления
+Disconnect-PSWSUSServer # отключение от сервера WSUS
+Export-PSWSUSMetaData # экспорт метаданных WSUS
+Get-PoshWSUSSyncUpdateCategories # получение категорий обновлений для синхронизации
+Get-PoshWSUSSyncUpdateClassifications # получение классификаций обновлений для синхронизации
+Get-PSWSUSCategory # получение категории WSUS
+Get-PSWSUSChildServer # получение дочернего сервера WSUS
+Get-PSWSUSClassification # получение классификации WSUS
+Get-PSWSUSClient # получение информации о клиенте
+Get-PSWSUSClientGroupMembership # получение групповой принадлежности клиента
+Get-PSWSUSClientPerUpdate # получение информации о клиентах по обновлениям
+Get-PSWSUSClientsInGroup # получение клиентов в группе
+Get-PSWSUSCommand # получение информации о командах WSUS
+Get-PSWSUSConfig # получение конфигурации WSUS
+Get-PSWSUSConfigEnabledUpdateLanguages # получение включенных языков обновлений
+Get-PSWSUSConfigProxyServer # получение конфигурации прокси-сервера
+Get-PSWSUSConfigSupportedUpdateLanguages # получение поддерживаемых языков обновлений
+Get-PSWSUSConfigSyncSchedule # получение расписания синхронизации
+Get-PSWSUSConfigSyncUpdateCategories # получение категорий обновлений для синхронизации
+Get-PSWSUSConfigSyncUpdateClassifications # получение классификаций обновлений для синхронизации
+Get-PSWSUSConfigUpdateFiles # получение конфигурации файлов обновлений
+Get-PSWSUSConfigUpdateSource # получение источника обновлений
+Get-PSWSUSConfiguration # получение полной конфигурации WSUS
+Get-PSWSUSContentDownloadProgress # получение прогресса загрузки контента
+Get-PSWSUSCurrentUserRole # получение роли текущего пользователя
+Get-PSWSUSDatabaseConfig # получение конфигурации базы данных
+Get-PSWSUSDownstreamServer # получение конфигурации нижестоящего сервера
+Get-PSWSUSEmailConfig # получение конфигурации электронной почты
+Get-PSWSUSEnabledUpdateLanguages # получение включенных языков обновлений
+Get-PSWSUSEvent # получение событий WSUS
+Get-PSWSUSGroup # получение информации о группе
+Get-PSWSUSInstallableItem # получение информации об установленных элементах
+Get-PSWSUSInstallApprovalRule # получение правил утверждения установки
+Get-PSWSUSProxyServer # получение информации о прокси-сервере
+Get-PSWSUSServer # получение информации о сервере WSUS
+Get-PSWSUSStatus # получение статуса WSUS
+Get-PSWSUSSubscription # получение подписки WSUS
+Get-PSWSUSSupportedUpdateLanguages # получение поддерживаемых языков обновлений
+Get-PSWSUSSyncEvent # получение событий синхронизации
+Get-PSWSUSSyncHistory # получение истории синхронизаций
+Get-PSWSUSSyncProgress # получение прогресса синхронизации
+Get-PSWSUSSyncSchedule # получение расписания синхронизации
+Get-PSWSUSUpdate # получение информации об обновлении
+Get-PSWSUSUpdateApproval # получение информации об утверждении обновлений
+Get-PSWSUSUpdateCategory # получение категории обновлений
+Get-PSWSUSUpdateClassification # получение классификации обновлений
+Get-PSWSUSUpdateFile # получение файлов обновлений
+Get-PSWSUSUpdateFiles # получение списка файлов обновлений
+Get-PSWSUSUpdatePerClient # получение информации об обновлениях по клиентам
+Get-PSWSUSUpdateSource # получение источника обновлений
+Get-PSWSUSUpdateSummary # получение сводки по обновлениям
+Get-PSWSUSUpdateSummaryPerClient # получение сводки по обновлениям для каждого клиента
+Get-PSWSUSUpdateSummaryPerGroup # получение сводки по обновлениям для каждой группы
+Import-PSWSUSMetaData # импорт метаданных WSUS
+New-PSWSUSComputerScope # создание области охвата компьютеров
+New-PSWSUSGroup # создание новой группы
+New-PSWSUSInstallApprovalRule # создание правила утверждения установки
+New-PSWSUSUpdateScope # создание области охвата обновлений
+Remove-PSWSUSClient # удаление клиента
+Remove-PSWSUSClientFromGroup # удаление клиента из группы
+Remove-PSWSUSGroup # удаление группы
+Remove-PSWSUSInstallApprovalRule # удаление правила утверждения установки
+Remove-PSWSUSUpdate # удаление обновления
+Reset-PSWSUSContent # сброс контента WSUS
+Resume-PSWSUSDownload # возобновление загрузки
+Resume-PSWSUSUpdateDownload # возобновление загрузки обновлений
+Set-PoshWsusClassification # установка классификации WSUS
+Set-PoshWSUSProduct # установка продукта WSUS
+Set-PSWSUSConfigEnabledUpdateLanguages # установка включенных языков обновлений
+Set-PSWSUSConfigProduct # установка продукта конфигурации WSUS
+Set-PSWsusConfigProxyServer # установка прокси-сервера конфигурации WSUS
+Set-PSWSUSConfigSyncSchedule # установка расписания синхронизации
+Set-PSWSUSConfigTargetingMode # установка режима таргетирования
+Set-PSWSUSConfigUpdateClassification # установка классификации обновлений
+Set-PSWSUSConfigUpdateFiles # установка файлов обновлений
+Set-PSWSUSConfigUpdateSource # установка источника обновлений
+Set-PSWSUSEmailConfig # установка конфигурации электронной почты
+Set-PSWSUSEnabledUpdateLanguages # установка включенных языков обновлений
+Set-PSWSUSInstallApprovalRule # установка правила утверждения установки
+Set-PSWSUSProxyServer # установка прокси-сервера
+Set-PSWSUSSyncSchedule # установка расписания синхронизации
+Set-PSWSUSTargetingMode # установка режима таргетирования
+Set-PSWSUSUpdateFiles # установка файлов обновлений
+Set-PSWSUSUpdateSource # установка источника обновлений
+Start-PSWSUSCleanup # запуск очистки WSUS
+Start-PSWSUSInstallApprovalRule # запуск правила утверждения установки
+Start-PSWSUSSync # запуск синхронизации
+Stop-PSWSUSDownload # остановка загрузки
+Stop-PSWSUSSync # остановка синхронизации
+Stop-PSWSUSUpdateDownload # остановка загрузки обновлений
+Test-PSWSUSDatabaseServerConnection # тестирование подключения к серверу базы данных
 
 # ActiveDirectory
 
@@ -6554,6 +6669,121 @@ public enum Syslog_Severity {
     Debug          // 7 debug
 }
 "@
+
+# Atlassian
+
+### Bitbucket
+
+$url = "https://github.com/AtlassianPS/BitbucketPS/archive/refs/heads/master.zip"
+Invoke-RestMethod $url -OutFile $home\Downloads\BitbucketPS.zip
+Expand-Archive -Path "$home\Downloads\BitbucketPS.zip" -OutputPath "$home\Downloads"
+Copy-Item -Path "$home\Downloads\BitbucketPS-master\*" -Destination "$($env:PSModulePath.Split(";")[0])\PSBitBucket" -Recurse
+Remove-Item "$home\Downloads\Bitbucket*" -Recurse -Force
+
+Import-Module PSBitBucket
+Get-Command -Module PSBitBucket
+Set-BitBucketConfigServer -Url $url -User username -Password password # установить конфигурацию сервера BitBucket
+Get-BitBucketConfigServer # получить текущую конфигурацию сервера BitBucket
+Get-Repositories # получить список всех репозиториев для текущей конфигурации сервера BitBucket
+Get-ProjectKey # получить ключ проекта BitBucket
+Get-BranchList -Repository pSyslog # список всех веток в репозитории
+Get-Branch -Repository pSyslog -Branch main # получить информацию о конкретной ветке репозитория
+Get-CommitMessage -Repository pSyslog -CommitHash $hash # получить сообщение коммита по его хэшу
+Get-Commits -Repository pSyslog -Limit 10 # список последних 10 коммитов в репозитории
+Get-CommitsForBranch -Repository pSyslog -Branch main # список коммитов для конкретной ветки в репозитории
+
+### Jira
+
+Install-Module JiraPS -Scope CurrentUser -Repository PSGallery -AllowClobber -Force
+Get-Command -Module JiraPS
+Get-JiraServerInfo # информация о сервере
+Add-JiraFilterPermission # добавить разрешения для фильтра
+Add-JiraGroupMember # добавить участника в группу
+Add-JiraIssueAttachment # добавить вложения к задаче
+Add-JiraIssueComment # добавить комментария к задаче
+Add-JiraIssueLink # добавить ссылки на задачу
+Add-JiraIssueWatcher # добавить наблюдателя к задаче
+Add-JiraIssueWorklog # добавить рабочего журнала к задаче
+Find-JiraFilter # поиск фильтра
+Format-Jira # форматирование данных Jira
+Get-JiraComponent # получение компонента проекта
+Get-JiraConfigServer # получение конфигурации сервера Jira
+Get-JiraField # получение поля Jira
+Get-JiraFilter # получение фильтра
+Get-JiraFilterPermission # получение разрешения фильтра
+Get-JiraGroup # получение группы
+Get-JiraGroupMember # получение участников группы
+Get-JiraIssue # получение задачи
+Get-JiraIssueAttachment # получение вложения задачи
+Get-JiraIssueAttachmentFile # получение файла вложения задачи
+Get-JiraIssueComment # получение комментария задачи
+Get-JiraIssueCreateMetadata # получение метаданных создания задачи
+Get-JiraIssueEditMetadata # получение метаданных редактирования задачи
+Get-JiraIssueLink # получение ссылки задачи
+Get-JiraIssueLinkType # получение типа ссылки задачи
+Get-JiraIssueType # получение типа задачи
+Get-JiraIssueWatcher # получение наблюдателя задачи
+Get-JiraIssueWorklog # получение рабочего журнала задачи
+Get-JiraPriority # получение приоритета задачи
+Get-JiraProject # получение проекта
+Get-JiraRemoteLink # получение удаленной ссылки
+Get-JiraServerInformation # получение информации о сервере Jira
+Get-JiraSession # получение сессии
+Get-JiraUser # получение пользователя
+Get-JiraVersion # получение версии проекта
+Invoke-JiraIssueTransition # выполнение перехода задачи
+Invoke-JiraMethod # выполнение метода Jira
+Move-JiraVersion # перемещение версии проекта
+New-JiraFilter # создание нового фильтра
+New-JiraGroup # создание новой группы
+New-JiraIssue # создание новой задачи
+New-JiraSession # создание новой сессии
+New-JiraUser # создание нового пользователя
+New-JiraVersion # создание новой версии проекта
+Remove-JiraFilter # удаление фильтра
+Remove-JiraFilterPermission # удаление разрешения фильтра
+Remove-JiraGroup # удаление группы
+Remove-JiraGroupMember # удаление участника группы
+Remove-JiraIssue # удаление задачи
+Remove-JiraIssueAttachment # удаление вложения задачи
+Remove-JiraIssueLink # удаление ссылки задачи
+Remove-JiraIssueWatcher # удаление наблюдателя задачи
+Remove-JiraRemoteLink # удаление удаленной ссылки
+Remove-JiraSession # удаление сессии
+Remove-JiraUser # удаление пользователя
+Remove-JiraVersion # удаление версии проекта
+Set-JiraConfigServer # установка конфигурации сервера Jira
+Set-JiraFilter # установка фильтра
+Set-JiraIssue # установка задачи
+Set-JiraIssueLabel # установка метки задачи
+Set-JiraUser # установка пользователя
+Set-JiraVersion # установка версии проекта
+
+### Confluence
+
+Install-Module ConfluencePS -Scope CurrentUser -Repository PSGallery -AllowClobber -Force
+Get-Command -Module ConfluencePS
+Add-ConfluenceAttachment # добавить вложения к странице
+Add-ConfluenceLabel # добавить метки к странице
+ConvertTo-ConfluenceStorageFormat # конвертация содержимого в формат хранения Confluence
+ConvertTo-ConfluenceTable # конвертация данных в таблицу Confluence
+Get-ConfluenceAttachment # получение вложения страницы
+Get-ConfluenceAttachmentFile # получение файла вложения страницы
+Get-ConfluenceChildPage # получение дочерних страниц
+Get-ConfluenceLabel # получение меток страницы
+Get-ConfluencePage # получение информации о странице
+Get-ConfluenceSpace # получение информации о пространстве
+Invoke-ConfluenceMethod # выполнение метода Confluence
+New-ConfluencePage # создание новой страницы
+New-ConfluenceSpace # создание нового пространства
+Remove-ConfluenceAttachment # удаление вложения страницы
+Remove-ConfluenceLabel # удаление метки со страницы
+Remove-ConfluencePage # удаление страницы
+Remove-ConfluenceSpace # удаление пространства
+Set-ConfluenceAttachment # установка вложения страницы
+Set-ConfluenceInfo # установка информации о странице
+Set-ConfluenceLabel # установка метки страницы
+Set-ConfluencePage # установка страницы
 
 # Git
 
