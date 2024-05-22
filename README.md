@@ -4393,7 +4393,7 @@ Title                                                                    Size   
 $path = "$home\Documents\Get-Service.db"
 $Module = Get-Module MySQLite
 if ($Module -eq $null) {
-Install-Module MySQLite -Repository PSGallery -Scope CurrentUser
+    Install-Module MySQLite -Repository PSGallery -Scope CurrentUser
 }
 Import-Module MySQLite
 New-MySQLiteDB -Path $path # создать БД
@@ -4401,10 +4401,10 @@ Invoke-MySQLiteQuery -Path $path -Query "CREATE TABLE Service (Name TEXT NOT NUL
 
 $Service = Get-Service | select Name,DisplayName,Status
 foreach ($S in $Service) {
-$Name = $S.Name
-$DName = $S.DisplayName
-$Status = $S.Status
-Invoke-MySQLiteQuery -Path $path -Query "INSERT INTO Service (Name, DisplayName, Status) VALUES ('$Name', '$DName', '$Status');"
+    $Name = $S.Name
+    $DName = $S.DisplayName
+    $Status = $S.Status
+    Invoke-MySQLiteQuery -Path $path -Query "INSERT INTO Service (Name, DisplayName, Status) VALUES ('$Name', '$DName', '$Status');"
 }
 ```
 `(Get-MySQLiteDB $path).Tables` список таблиц в базе \
@@ -4433,11 +4433,11 @@ Invoke-SqliteQuery -Query "SELECT * FROM Service" -DataSource "$path;Password=pa
 `nano /etc/mysql/mysql.conf.d/mysqld.cnf`
 ```
 [mysqld]
-user            = mysql
-# pid-file      = /var/run/mysqld/mysqld.pid
-# socket        = /var/run/mysqld/mysqld.sock
-# port          = 3306
-# datadir       = /var/lib/mysql
+user                    = mysql
+# pid-file              = /var/run/mysqld/mysqld.pid
+# socket                = /var/run/mysqld/mysqld.sock
+# port                  = 3306
+# datadir               = /var/lib/mysql
 # tmpdir                = /tmp
 bind-address            = 0.0.0.0
 mysqlx-bind-address     = 0.0.0.0
@@ -4604,17 +4604,17 @@ $pass = "1qaz!QAZ"
 $db = "db_aduser"
 Add-Type –Path "$home\Documents\MySQL-Connector-NET\8.0.31-4.8\MySql.Data.dll"
 $Connection = [MySql.Data.MySqlClient.MySqlConnection]@{
-ConnectionString="server=$ip;uid=$user;pwd=$pass;database=$db"
+    ConnectionString="server=$ip;uid=$user;pwd=$pass;database=$db"
 }
 $Connection.Open()
 $Command = New-Object MySql.Data.MySqlClient.MySqlCommand
 $Command.Connection = $Connection
 $UserList = Get-ADUser -filter * -properties name,EmailAddress
 foreach ($user in $UserList) {
-$uname=$user.Name
-$uemail=$user.EmailAddress
-$Command.CommandText = "INSERT INTO table_aduser (Name,Email) VALUES ('$uname','$uemail')"
-$Command.ExecuteNonQuery()
+    $uname=$user.Name
+    $uemail=$user.EmailAddress
+    $Command.CommandText = "INSERT INTO table_aduser (Name,Email) VALUES ('$uname','$uemail')"
+    $Command.ExecuteNonQuery()
 }
 $Connection.Close()
 ```
@@ -4626,7 +4626,7 @@ $pass = "1qaz!QAZ"
 $db = "db_aduser"
 Add-Type –Path "$home\Documents\MySQL-Connector-NET\8.0.31-4.8\MySql.Data.dll"
 $Connection = [MySql.Data.MySqlClient.MySqlConnection]@{
-ConnectionString = "server=$ip;uid=$user;pwd=$pass;database=$db"
+    ConnectionString = "server=$ip;uid=$user;pwd=$pass;database=$db"
 }
 $Connection.Open()
 $Command = New-Object MySql.Data.MySqlClient.MySqlCommand
@@ -4638,9 +4638,9 @@ $MYSQLDataAdapter.SelectCommand = $Command
 $NumberOfDataSets = $MYSQLDataAdapter.Fill($MYSQLDataSet, "data")
 $Collections = New-Object System.Collections.Generic.List[System.Object]
 foreach($DataSet in $MYSQLDataSet.tables[0]) {
-$Collections.Add([PSCustomObject]@{
-Name = $DataSet.name;
-Mail = $DataSet.email
+    $Collections.Add([PSCustomObject]@{
+    Name = $DataSet.name;
+    Mail = $DataSet.email
 })
 }
 $Connection.Close()
