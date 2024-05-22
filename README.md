@@ -50,8 +50,9 @@
 - [NSSM](#nssm)
 - [Jobs](#jobs)
 - [SMTP](#smtp)
-- [Hyper-V](#hyper-v)
 - [VMWare/PowerCLI](#vmwarepowercli)
+- [Hyper-V](#hyper-v)
+- [Azure](#azure)
 - [Exchange/EMShell](#exchangeemshell)
 - [TrueNAS](#truenas)
 - [Veeam](#veeam)
@@ -2252,78 +2253,6 @@ param (
 ```
 `Send-SMTP $(Get-Service)`
 
-# Hyper-V
-
-`Install-WindowsFeature -Name Hyper-V -IncludeManagementTools -Restart` установить роль на Windows Server \
-`Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V –All` установить роль на Windows Desktop \
-`Get-Command -Module hyper-v` \
-`Get-VMHost`
-```PowerShell
-New-VMSwitch -name NAT -SwitchType Internal # создать виртуальный коммутатор и адаптер для него
-Get-NetAdapter | where InterfaceDescription -match Hyper-V # список сетевых адаптеров
-New-NetNat -Name LocalNat -InternalIPInterfaceAddressPrefix "192.168.3.0/24" # задать сеть
-Get-NetAdapter "vEthernet (NAT)" | New-NetIPAddress -IPAddress 192.168.3.200 -AddressFamily IPv4 -PrefixLength 24 # присвоить адрес, необходимо на ВМ указать шлюз 192.168.3.200, что бы находиться за NAT, или в настройка ВМ указать соответствующий адаптер
-Add-NetNatStaticMapping -NatName LocalNat -Protocol TCP -ExternalIPAddress 0.0.0.0 -ExternalPort 2222 -InternalIPAddress 192.168.3.103 -InternalPort 2121 # проброс, вест трафик который приходит на хост Hyper-V TCP/2222, будет перенаправляться на соответствующий порт виртуальной машины за NAT.
-(Get-NetAdapter | where Name -match NAT).Status
-```
-`Get-NetNatStaticMapping` отобразить пробросы (NAT) \
-`Get-NetNat` список сетей \
-`Remove-NetNatStaticMapping -StaticMappingID 0` удалить проброс \
-`Remove-NetNat -Name LocalNat` удалить сеть
-
-`New-VMSwitch -Name Local -AllowManagementOS $True -NetAdapterName "Ethernet 4" -SwitchType External` создать вшений (External) виртуальный коммутатор 
-```PowerShell
-$VMName = "hv-dc-01"
-$VM = @{
-    Name = $VMName
-    MemoryStartupBytes = 4Gb
-    Generation = 2
-    NewVHDPath = "D:\VM\$VMName\$VMName.vhdx"
-    NewVHDSizeBytes = 50Gb
-    BootDevice = "VHD"
-    Path = "D:\VM\$VMName"
-    SwitchName = "NAT"
-}
-```
-`New-VM @VM` создать виртуальную машину с параметрами
-
-`Set-VMDvdDrive -VMName $VMName -Path "C:\Users\Lifailon\Documents\WS-2016.iso"` примонтировать образ \
-`New-VHD -Path "D:\VM\$VMName\disk_d.vhdx" -SizeBytes 10GB` создать VHDX диск \
-`Add-VMHardDiskDrive -VMName $VMName -Path "D:\VM\$VMName\disk_d.vhdx"` примонтировать диск \
-`Get-VM –VMname $VMName | Set-VM –AutomaticStartAction Start` автозапуск \
-`Get-VM -Name $VMName | Set-VMMemory -StartupBytes 8Gb` назначить стартовый размер оперативной памяти при запуске \
-`Set-VMProcessor $VMName -Count 2` количество виртуальных процессоров (vCPU: ядер/потоков) \
-`Set-VMProcessor $VMName -Count 2 -Maximum 4 -Reserve 50 -RelativeWeight 200` указать максимальное количество выделяемых процессоров, резервируется 50% ресурсов процессора хоста и установить относительный вес 200 для приоритизации распределения ресурсов процессора относительно других виртуальных машин \
-`Get-VM -Name $VMName | Checkpoint-VM -SnapshotName "Snapshot-1"` создать снапшот \
-`Restore-VMCheckpoint -Name "Snapshot-1" -VMName $VMName -Confirm:$false` восстановление из снапшота \
-`Get-VM | Select -ExpandProperty NetworkAdapters | Select VMName,IPAddresses,Status` получить IP адрес всех ВМ
-
-### VMConnect via RDCMan
-
-`vmconnect.exe localhost $VMHost` подключиться к виртуальной машине через VMConnect (используется в диспетчере Hyper-V) \
-`Get-NetTCPConnection -State Established,Listen | Where-Object LocalPort -Match 2179` найти порт слушателя  \
-`Get-Process -Id (Get-NetTCPConnection -State Established,Listen | Where-Object LocalPort -Match 2179).OwningProcess` найти процесс по ID (vmms/VMConnect) \
-`New-NetFirewallRule -Name "Hyper-V" -DisplayName "Hyper-V" -Group "Hyper-V" -Direction Inbound -Protocol TCP -LocalPort 2179 -Action Allow -Profile Public` открыть порт в локальном Firewall \
-`Get-LocalGroupMember -Group "Администраторы Hyper-V"` \
-`Get-LocalGroupMember -Group "Hyper-V Administrators"` \
-`Add-LocalGroupMember -Group "Администраторы Hyper-V" -Member "lifailon"` добавить пользователя в группу администраторов (для возможности подключения) \
-`Get-VM * | Select-Object Name,Id` добавить id в RDCMan для подключения \
-`Grant-VMConnectAccess -ComputerName plex-01 -VMName hv-devops-01 -UserName lifailon` дать доступ на подключение не администратору \
-`Get-VMConnectAccess` \
-`Revoke-VMConnectAccess -VMName hv-devops-01 -UserName lifailon` забрать доступ
-
-Error: `Unknown disconnection reason 3848` - добавить ключи реестра на стороне клиента
-```PowerShell
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowDefaultCredentials -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsWhenNTLMOnlyDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowDefaultCredentialsDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentials -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsWhenNTLMOnly -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowSavedCredentialsWhenNTLMOnly -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowSavedCredentials -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowSavedCredentialsDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
-```
 # VMWare/PowerCLI
 
 `Install-Module -Name VMware.PowerCLI # -AllowClobber` установить модуль (PackageProvider: nuget) \
@@ -2399,6 +2328,137 @@ CreateDate,CpuHotAddEnabled,MemoryHotAddEnabled,CpuHotRemoveEnabled,Notes
 `Get-Command –Module *vmware* -name *syslog*` \
 `Set-VMHostSysLogServer -VMHost esxi-05 -SysLogServer "tcp://192.168.3.100" -SysLogServerPort 3515` установить сервер syslog сервер для хранения системных логов для хоста esxi-05 \
 `Get-VMHostSysLogServer -VMHost esxi-05`
+
+# Hyper-V
+
+`Install-WindowsFeature -Name Hyper-V -IncludeManagementTools -Restart` установить роль на Windows Server \
+`Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V –All` установить роль на Windows Desktop \
+`Get-Command -Module hyper-v` \
+`Get-VMHost`
+```PowerShell
+New-VMSwitch -name NAT -SwitchType Internal # создать виртуальный коммутатор и адаптер для него
+Get-NetAdapter | where InterfaceDescription -match Hyper-V # список сетевых адаптеров
+New-NetNat -Name LocalNat -InternalIPInterfaceAddressPrefix "192.168.3.0/24" # задать сеть
+Get-NetAdapter "vEthernet (NAT)" | New-NetIPAddress -IPAddress 192.168.3.200 -AddressFamily IPv4 -PrefixLength 24 # присвоить адрес, необходимо на ВМ указать шлюз 192.168.3.200, что бы находиться за NAT, или в настройка ВМ указать соответствующий адаптер
+Add-NetNatStaticMapping -NatName LocalNat -Protocol TCP -ExternalIPAddress 0.0.0.0 -ExternalPort 2222 -InternalIPAddress 192.168.3.103 -InternalPort 2121 # проброс, вест трафик который приходит на хост Hyper-V TCP/2222, будет перенаправляться на соответствующий порт виртуальной машины за NAT.
+(Get-NetAdapter | where Name -match NAT).Status
+```
+`Get-NetNatStaticMapping` отобразить пробросы (NAT) \
+`Get-NetNat` список сетей \
+`Remove-NetNatStaticMapping -StaticMappingID 0` удалить проброс \
+`Remove-NetNat -Name LocalNat` удалить сеть
+
+`New-VMSwitch -Name Local -AllowManagementOS $True -NetAdapterName "Ethernet 4" -SwitchType External` создать вшений (External) виртуальный коммутатор 
+```PowerShell
+$VMName = "hv-dc-01"
+$VM = @{
+    Name = $VMName
+    MemoryStartupBytes = 4Gb
+    Generation = 2
+    NewVHDPath = "D:\VM\$VMName\$VMName.vhdx"
+    NewVHDSizeBytes = 50Gb
+    BootDevice = "VHD"
+    Path = "D:\VM\$VMName"
+    SwitchName = "NAT"
+}
+```
+`New-VM @VM` создать виртуальную машину с параметрами
+
+`Set-VMDvdDrive -VMName $VMName -Path "C:\Users\Lifailon\Documents\WS-2016.iso"` примонтировать образ \
+`New-VHD -Path "D:\VM\$VMName\disk_d.vhdx" -SizeBytes 10GB` создать VHDX диск \
+`Add-VMHardDiskDrive -VMName $VMName -Path "D:\VM\$VMName\disk_d.vhdx"` примонтировать диск \
+`Get-VM –VMname $VMName | Set-VM –AutomaticStartAction Start` автозапуск \
+`Get-VM -Name $VMName | Set-VMMemory -StartupBytes 8Gb` назначить стартовый размер оперативной памяти при запуске \
+`Set-VMProcessor $VMName -Count 2` количество виртуальных процессоров (vCPU: ядер/потоков) \
+`Set-VMProcessor $VMName -Count 2 -Maximum 4 -Reserve 50 -RelativeWeight 200` указать максимальное количество выделяемых процессоров, резервируется 50% ресурсов процессора хоста и установить относительный вес 200 для приоритизации распределения ресурсов процессора относительно других виртуальных машин \
+`Get-VM -Name $VMName | Checkpoint-VM -SnapshotName "Snapshot-1"` создать снапшот \
+`Restore-VMCheckpoint -Name "Snapshot-1" -VMName $VMName -Confirm:$false` восстановление из снапшота \
+`Get-VM | Select -ExpandProperty NetworkAdapters | Select VMName,IPAddresses,Status` получить IP адрес всех ВМ
+
+### VMConnect via RDCMan
+
+`vmconnect.exe localhost $VMHost` подключиться к виртуальной машине через VMConnect (используется в диспетчере Hyper-V) \
+`Get-NetTCPConnection -State Established,Listen | Where-Object LocalPort -Match 2179` найти порт слушателя  \
+`Get-Process -Id (Get-NetTCPConnection -State Established,Listen | Where-Object LocalPort -Match 2179).OwningProcess` найти процесс по ID (vmms/VMConnect) \
+`New-NetFirewallRule -Name "Hyper-V" -DisplayName "Hyper-V" -Group "Hyper-V" -Direction Inbound -Protocol TCP -LocalPort 2179 -Action Allow -Profile Public` открыть порт в локальном Firewall \
+`Get-LocalGroupMember -Group "Администраторы Hyper-V"` \
+`Get-LocalGroupMember -Group "Hyper-V Administrators"` \
+`Add-LocalGroupMember -Group "Администраторы Hyper-V" -Member "lifailon"` добавить пользователя в группу администраторов (для возможности подключения) \
+`Get-VM * | Select-Object Name,Id` добавить id в RDCMan для подключения \
+`Grant-VMConnectAccess -ComputerName plex-01 -VMName hv-devops-01 -UserName lifailon` дать доступ на подключение не администратору \
+`Get-VMConnectAccess` \
+`Revoke-VMConnectAccess -VMName hv-devops-01 -UserName lifailon` забрать доступ
+
+Error: `Unknown disconnection reason 3848` - добавить ключи реестра на стороне клиента
+```PowerShell
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowDefaultCredentials -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsWhenNTLMOnlyDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowDefaultCredentialsDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentials -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsWhenNTLMOnly -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowSavedCredentialsWhenNTLMOnly -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowSavedCredentials -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowSavedCredentialsDomain -Name Hyper-V -PropertyType String -Value "Microsoft Virtual Console Service/*" -Force
+```
+# Azure
+
+`Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force` установить все модули для работы с Azure \
+`Get-Module *Az.*` список всех модулей
+
+`Get-Command -Module Az.Accounts` отобразить список команд модуля Az.Accounts \
+`Connect-AzAccount` подключиться у учетной записи Azure \
+`Get-AzContext` получить текущий статус подключения к Azure \
+`Get-AzSubscription` получить список подписок Azure, доступных для текущего пользователя \
+`Set-AzContext` установить контекст Azure для конкретной подписки и/или учетной записи \
+`Disconnect-AzAccount` отключиться от учетной записи Azure
+
+`Get-Command -Module Az.Compute` \
+`Get-AzVM` получить список виртуальных машин в текущей подписке или группе ресурсов \
+`Get-AzVMSize` получить список доступных размеров виртуальных машин в определенном регионе \
+`Get-AzVMImage` получить список доступных образов виртуальных машин \
+`New-AzVM -Name vm-01 $(Get-Credential)` создать новую виртуальную машину \
+`Remove-AzVM vm-01` удалить виртуальную машину \
+`Start-AzVM vm-01` запустить виртуальную машину \
+`Stop-AzVM vm-01` остановить виртуальную машину \
+`Restart-AzVM vm-01`
+
+`Get-Command -Module Az.Network` \
+`Get-AzVirtualNetwork` получить список виртуальных сетей в текущей подписке или группе ресурсов \
+`New-AzVirtualNetwork` создать новую виртуальную сеть \
+`Remove-AzVirtualNetwork` удалить виртуальную сеть \
+`Get-AzNetworkInterface` получить список сетевых интерфейсов \
+`New-AzNetworkInterface` создать новый сетевой интерфейс \
+`Remove-AzNetworkInterface` удалить сетевой интерфейс
+
+`Get-Command -Module Az.Storage` \
+`Get-AzStorageAccount` получить список учетных записей хранилища \
+`New-AzStorageAccount` создать новую учетную запись хранилища \
+`Remove-AzStorageAccount` удалить учетную запись хранилища \
+`Get-AzStorageContainer` список контейнеров в учетной записи хранилища \
+`New-AzStorageContainer` создать новый контейнер в учетной записи хранилища \
+`Remove-AzStorageContainer` удалить контейнер
+
+`Get-Command -Module Az.ResourceManager` \
+`Get-AzResourceGroup` получить список групп ресурсов в текущей подписке \
+`New-AzResourceGroup` создать новую группу ресурсов \
+`Remove-AzResourceGroup` удалить группу ресурсов \
+`Get-AzResource` получить список ресурсов \
+`New-AzResource` создать новый ресурс \
+`Remove-AzResource` удалить ресурс
+
+`Get-Command -Module Az.KeyVault` \
+`Get-AzKeyVault` список хранилищ ключей \
+`New-AzKeyVault` создать новое хранилище ключей в Azure \
+`Remove-AzKeyVault` удалить хранилище ключей в Azure
+
+`Get-Command -Module Az.Identity` \
+`Get-AzADUser` получить информацию о пользователях Azure Active Directory \
+`New-AzADUser` создать нового пользователя \
+`Remove-AzADUser` удалить пользователя \
+`Get-AzADGroup` получить информацию о группах \
+`New-AzADGroup` создать новую группу \
+`Remove-AzADGroup` удалить группу
 
 # Exchange/EMShell
 
