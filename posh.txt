@@ -110,6 +110,9 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # Ansible
 # Win_Modules
 # Docker
+# Dockerfile
+# Docker-Compose
+# Swarm
 # GigaChat
 # YandexGPT
 # SuperAGI
@@ -2156,20 +2159,21 @@ Receive-Job # получение результатов выполненного
 Remove-Job # удалить задачу
 
 function Start-PingJob ($Network) {
-$RNetwork = $Network -replace "\.\d{1,3}$","."
-foreach ($4 in 1..254) {
-$ip = $RNetwork+$4
-# создаем задания, забираем 3-ю строку вывода и добавляем к выводу ip-адрес:
-(Start-Job {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
-}
-while ($True){
-$status_job = (Get-Job).State[-1] # забираем статус последнего задания
-if ($status_job -like "Completed"){ # проверяем на выполнение (задания выполняются по очереди сверху вниз)
-$ping_out = Get-Job | Receive-Job # если выполнен, забираем вывод всех заданий
-Get-Job | Remove-Job -Force # удаляем задания
-$ping_out
-break # завершаем цикл
-}}
+    $RNetwork = $Network -replace "\.\d{1,3}$","."
+    foreach ($4 in 1..254) {
+        $ip = $RNetwork+$4
+        # создаем задания, забираем 3-ю строку вывода и добавляем к выводу ip-адрес:
+        (Start-Job {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
+    }
+    while ($True){
+        $status_job = (Get-Job).State[-1] # забираем статус последнего задания
+        if ($status_job -like "Completed") { # проверяем на выполнение (задания выполняются по очереди сверху вниз)
+            $ping_out = Get-Job | Receive-Job # если выполнен, забираем вывод всех заданий
+            Get-Job | Remove-Job -Force # удаляем задания
+            $ping_out
+            break # завершаем цикл
+        }
+    }
 }
 
 Start-PingJob -Network 192.168.3.0
@@ -2185,20 +2189,21 @@ Get-Job | Receive-Job -Keep # отобразить и не удалять выв
 (Get-Job)[-1].Output # отобразить вывод последней задачи
 
 function Start-PingThread ($Network) {
-$RNetwork = $Network -replace "\.\d{1,3}$","."
-foreach ($4 in 1..254) {
-$ip = $RNetwork+$4
-# создаем задания, забираем 3-ю строку вывода и добавляем к выводу ip-адрес:
-(Start-ThreadJob {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
-}
-while ($True){
-$status_job = (Get-Job).State[-1] # забираем статус последнего задания
-if ($status_job -like "Completed"){ # проверяем на выполнение (задания выполняются по очереди сверху вниз)
-$ping_out = Get-Job | Receive-Job # если выполнен, забираем вывод всех заданий
-Get-Job | Remove-Job -Force # удаляем задания
-$ping_out
-break # завершаем цикл
-}}
+    $RNetwork = $Network -replace "\.\d{1,3}$","."
+    foreach ($4 in 1..254) {
+        $ip = $RNetwork+$4
+        # создаем задания, забираем 3-ю строку вывода и добавляем к выводу ip-адрес:
+        (Start-ThreadJob {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
+    }
+    while ($True){
+        $status_job = (Get-Job).State[-1] # забираем статус последнего задания
+        if ($status_job -like "Completed") { # проверяем на выполнение (задания выполняются по очереди сверху вниз)
+            $ping_out = Get-Job | Receive-Job # если выполнен, забираем вывод всех заданий
+            Get-Job | Remove-Job -Force # удаляем задания
+            $ping_out
+            break # завершаем цикл
+        }
+    }
 }
 
 Start-PingThread -Network 192.168.3.0
@@ -2207,14 +2212,14 @@ Start-PingThread -Network 192.168.3.0
 ### PoshRSJob
 
 function Start-PingRSJob ($Network) {
-$RNetwork = $Network -replace "\.\d{1,3}$","."
-foreach ($4 in 1..254) {
-$ip = $RNetwork+$4
-(Start-RSJob {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
-}
-$ping_out = Get-RSJob | Receive-RSJob
-$ping_out
-Get-RSJob | Remove-RSJob
+    $RNetwork = $Network -replace "\.\d{1,3}$","."
+    foreach ($4 in 1..254) {
+        $ip = $RNetwork+$4
+        (Start-RSJob {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
+    }
+    $ping_out = Get-RSJob | Receive-RSJob
+    $ping_out
+    Get-RSJob | Remove-RSJob
 }
 
 Start-PingRSJob -Network 192.168.3.0
@@ -2224,25 +2229,25 @@ Start-PingRSJob -Network 192.168.3.0
 
 function Send-SMTP {
 param (
-[Parameter(Mandatory = $True)]$mess
+    [Parameter(Mandatory = $True)]$mess
 )
-$srv_smtp = "smtp.yandex.ru" 
-$port = "587"
-$from = "login1@yandex.ru" 
-$to = "login2@yandex.ru" 
-$user = "login1"
-$pass = "password"
-$subject = "Service status on Host: $hostname"
-$Message = New-Object System.Net.Mail.MailMessage
-$Message.From = $from
-$Message.To.Add($to) 
-$Message.Subject = $subject 
-$Message.IsBodyHTML = $true 
-$Message.Body = "<h1> $mess </h1>"
-$smtp = New-Object Net.Mail.SmtpClient($srv_smtp, $port)
-$smtp.EnableSSL = $true 
-$smtp.Credentials = New-Object System.Net.NetworkCredential($user, $pass);
-$smtp.Send($Message) 
+    $srv_smtp = "smtp.yandex.ru" 
+    $port = "587"
+    $from = "login1@yandex.ru" 
+    $to = "login2@yandex.ru" 
+    $user = "login1"
+    $pass = "password"
+    $subject = "Service status on Host: $hostname"
+    $Message = New-Object System.Net.Mail.MailMessage
+    $Message.From = $from
+    $Message.To.Add($to) 
+    $Message.Subject = $subject 
+    $Message.IsBodyHTML = $true 
+    $Message.Body = "<h1> $mess </h1>"
+    $smtp = New-Object Net.Mail.SmtpClient($srv_smtp, $port)
+    $smtp.EnableSSL = $true 
+    $smtp.Credentials = New-Object System.Net.NetworkCredential($user, $pass);
+    $smtp.Send($Message) 
 }
 
 Send-SMTP $(Get-Service)
@@ -2250,7 +2255,7 @@ Send-SMTP $(Get-Service)
 # Hyper-V
 
 Install-WindowsFeature -Name Hyper-V -IncludeManagementTools -Restart # установить роль на Windows Server
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V –All # установить роль на  Windows Desktop
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V –All # установить роль на Windows Desktop
 Get-Command -Module hyper-v
 Get-VMHost
 
@@ -2267,41 +2272,45 @@ Remove-NetNatStaticMapping -StaticMappingID 0 # удалить проброс
 Remove-NetNat -Name LocalNat # удалить сеть
 
 New-VMSwitch -Name Local -AllowManagementOS $True -NetAdapterName "Ethernet 4" -SwitchType External # создать вшений (External) виртуальный коммутатор
+
 $VMName = "hv-dc-01"
-
 $VM = @{
-Name = $VMName
-MemoryStartupBytes = 4Gb
-Generation = 2
-NewVHDPath = "D:\VM\$VMName\$VMName.vhdx"
-NewVHDSizeBytes = 50Gb
-BootDevice = "VHD"
-Path = "D:\VM\$VMName"
-SwitchName = "NAT"
+    Name = $VMName
+    MemoryStartupBytes = 4Gb
+    Generation = 2
+    NewVHDPath = "D:\VM\$VMName\$VMName.vhdx"
+    NewVHDSizeBytes = 50Gb
+    BootDevice = "VHD"
+    Path = "D:\VM\$VMName"
+    SwitchName = "NAT"
 }
-New-VM @VM
 
-Set-VMDvdDrive -VMName $VMName -Path "C:\Users\Lifailon\Documents\WS-2016.iso"
+New-VM @VM # создать виртуальную машину с параметрами
+
+Set-VMDvdDrive -VMName $VMName -Path "C:\Users\Lifailon\Documents\WS-2016.iso" # примонтировать образ
 New-VHD -Path "D:\VM\$VMName\disk_d.vhdx" -SizeBytes 10GB # создать VHDX диск
 Add-VMHardDiskDrive -VMName $VMName -Path "D:\VM\$VMName\disk_d.vhdx" # примонтировать диск
 Get-VM –VMname $VMName | Set-VM –AutomaticStartAction Start # автозапуск
-Get-VM -Name $VMName | Set-VMMemory -StartupBytes 8Gb
-Set-VMProcessor $VMName -Count 2
-Get-VM -Name $VMName | Checkpoint-VM -SnapshotName "Snapshot-1"
-Restore-VMCheckpoint -Name Snapshot-1" -VMName $VMName -Confirm:$false
+Get-VM -Name $VMName | Set-VMMemory -StartupBytes 8Gb # назначить стартовый размер оперативной памяти при запуске
+Set-VMProcessor $VMName -Count 2 # количество виртуальных процессоров (vCPU: ядер/потоков)
+Set-VMProcessor $VMName -Count 2 -Maximum 4 -Reserve 50 -RelativeWeight 200 # указать максимальное количество выделяемых процессоров, резервируется 50% ресурсов процессора хоста и установить относительный вес 200 для приоритизации распределения ресурсов процессора относительно других виртуальных машин
+Get-VM -Name $VMName | Checkpoint-VM -SnapshotName "Snapshot-1" # создать снапшот
+Restore-VMCheckpoint -Name "Snapshot-1" -VMName $VMName -Confirm:$false # восстановление из снапшота
 Get-VM | Select -ExpandProperty NetworkAdapters | Select VMName,IPAddresses,Status # получить IP адрес всех ВМ
-vmconnect.exe localhost $VMHost
 
+### VMConnect via RDCMan
+
+vmconnect.exe localhost $VMHost # подключиться к виртуальной машине через VMConnect (используется в диспетчере Hyper-V)
 Get-NetTCPConnection -State Established,Listen | Where-Object LocalPort -Match 2179 # найти порт слушателя
 Get-Process -Id (Get-NetTCPConnection -State Established,Listen | Where-Object LocalPort -Match 2179).OwningProcess # найти процесс по ID (vmms/VMConnect)
-New-NetFirewallRule -Name "Hyper-V" -DisplayName "Hyper-V" -Group "Hyper-V" -Direction Inbound -Protocol TCP -LocalPort 2179 -Action Allow -Profile Public
-Get-LocalGroupMember -Group "Администраторы Hyper-V" # или "Hyper-V Administrators"
-Add-LocalGroupMember -Group "Администраторы Hyper-V" -Member "lifailon"
-Get-VM * | select name,ID # добавить id в RDCMan для подключения
-Grant-VMConnectAccess -ComputerName plex-01 -VMName hv-devops-01 -UserName lifailon # дать доступ на подключение не администратору
-Grant-VMConnectAccess -ComputerName huawei-book -VMName hv-devops-01 -UserName lifailon
+New-NetFirewallRule -Name "Hyper-V" -DisplayName "Hyper-V" -Group "Hyper-V" -Direction Inbound -Protocol TCP -LocalPort 2179 -Action Allow -Profile Public # открыть порт в локальном Firewall
+Get-LocalGroupMember -Group "Администраторы Hyper-V"
+Get-LocalGroupMember -Group "Hyper-V Administrators"
+Add-LocalGroupMember -Group "Администраторы Hyper-V" -Member "lifailon" # добавить пользователя в группу администраторов (для возможности подключения)
+Get-VM * | Select-Object Name,Id # добавить id в RDCMan для подключения
+Grant-VMConnectAccess -ComputerName plex-01 -VMName hv-devops-01 -UserName lifailon # дать доступ на подключение не администратору (не добавлять в группу)
 Get-VMConnectAccess
-Revoke-VMConnectAccess -VMName hv-devops-01 -UserName lifailon
+Revoke-VMConnectAccess -VMName hv-devops-01 -UserName lifailon # забрать доступ
 
 Error: Unknown disconnection reason 3848 - добавить ключи реестра на стороне клиента
 
@@ -2335,58 +2344,60 @@ $Cred = New-Object -TypeName System.Management.Automation.PSCredential -Argument
 Connect-VIServer $esxi -User $Cred.Username -Password $Cred.GetNetworkCredential().password # подключиться, используя PSCredential ($Cred)
 Connect-VIServer $esxi -User $user -Password $pass # подключиться, используя логин и пароль
 
-Get-Command –Module *vmware*
-Get-Command –Module *vmware* -name *get*iscsi*
-Get-IScsiHbaTarget
-Get-Datacenter
-Get-Cluster
-Get-VMHost
-Get-VMHost | select Name,Model,ProcessorType,MaxEVCMode,NumCpu,CpuTotalMhz,CpuUsageMhz,MemoryTotalGB,MemoryUsageGB
-Get-VMHostDisk | select VMHost,ScsiLun,TotalSectors
+Get-Command –Module *vmware* # отобразить список команд модуля VMware
+Get-Command –Module *vmware* -name *get*iscsi* # найти команды модуля VMware, связанные с iSCSI
+Get-IScsiHbaTarget # получить цели iSCSI HBA (Host Bus Adapter)
+Get-Datacenter # получить список датацентров в инфраструктуре VMware
+Get-Cluster # список кластеров
+Get-VMHost # список хостов виртуальных машин (ESXi хостов)
+Get-VMHost | Select-Object Name,Model,ProcessorType,MaxEVCMode,NumCpu,CpuTotalMhz,CpuUsageMhz,MemoryTotalGB,MemoryUsageGB # получить информацию о хостах виртуальных машин, включая имя, модель, тип процессора и использование ресурсов
+Get-VMHostDisk | Select-Object VMHost,ScsiLun,TotalSectors # получить информацию о дисках хостов виртуальных машин, включая хост, SCSI LUN и общее количество секторов
 
-Get-Datastore
-Get-Datastore TNAS-vmfs-4tb-01
-Get-Datastore TNAS-vmfs-4tb-01 | get-vm
-Get-Datastore -RelatedObject vm-01
-(Get-Datastore TNAS-vmfs-4tb-01).ExtensionData.Info.GetType()
-(Get-Datastore TNAS-vmfs-4tb-01).ExtensionData.Info.Vmfs.Extent
+Get-Datastore # список всех хранилищ данных
+Get-Datastore TNAS-vmfs-4tb-01 # получить информацию о хранилище данных с именем TNAS-vmfs-4tb-01
+Get-Datastore TNAS-vmfs-4tb-01 | get-vm # получить список виртуальных машин, которые используют хранилище данных
+Get-Datastore -RelatedObject vm-01 # получить информацию о хранилищах данных, связанных с виртуальной машиной
+$(Get-Datastore TNAS-vmfs-4tb-01).ExtensionData.Info.GetType() # получить тип информации о хранилище данных
+$(Get-Datastore TNAS-vmfs-4tb-01).ExtensionData.Info.Vmfs.Extent # получить информацию о том, на каких дисках находится хранилище данных
 
-Get-Command –Module *vmware* -name *disk*
-Get-VM vm-01 | Get-Datastore
-Get-VM vm-01 | Get-HardDisk
-Get-VM | Get-HardDisk | select Parent,Name,CapacityGB,StorageFormat,FileName | ft
-Copy-HardDisk
-Get-VM | Get-Snapshot
-Get-VM | where {$_.Powerstate -eq "PoweredOn"}
-Get-VMHost esxi-05 | Get-VM | where {$_.Powerstate -eq "PoweredOff"} | Move-VM –Destination (Get-VMHost esxi-06)
+Get-Command –Module *vmware* -name *disk* # найти команды модуля VMware, связанные с дисками
+Get-VM vm-01 | Get-Datastore # получить информацию о хранилищах данных, используемых виртуальной машиной
+Get-VM vm-01 | Get-HardDisk # получить информацию о подключенных дисках к виртуальной машины
+Get-VM | Get-HardDisk | select Parent,Name,CapacityGB,StorageFormat,FileName | ft # получить информацию о дисках всех виртуальных машин, включая родительскую ВМ, имя, емкость, формат и имя файла
+Copy-HardDisk # скопировать жесткий диск виртуальной машины
+Get-VM | Get-Snapshot # список всех снимков виртуальных машин
+Get-VM | where {$_.Powerstate -eq "PoweredOn"} # список всех включенных виртуальных машин
+Get-VMHost esxi-05 | Get-VM | where {$_.Powerstate -eq "PoweredOff"} | Move-VM –Destination (Get-VMHost esxi-06) # переместить все выключенные виртуальные машины с хоста esxi-05 на хост esxi-06
 
 Get-VM | select Name,VMHost,PowerState,NumCpu,MemoryGB,
-@{Name="UsedSpaceGB"; Expression={[int32]($_.UsedSpaceGB)}},@{Name="ProvisionedSpaceGB"; Expression={[int32]($_.ProvisionedSpaceGB)}},
+@{Name="UsedSpaceGB"; Expression={[int32]($_.UsedSpaceGB)}},
+@{Name="ProvisionedSpaceGB"; Expression={[int32]($_.ProvisionedSpaceGB)}},
 CreateDate,CpuHotAddEnabled,MemoryHotAddEnabled,CpuHotRemoveEnabled,Notes
 
-Get-VMGuest vm-01 | Update-Tools
-Get-VMGuest vm-01 | select OSFullName,IPAddress,HostName,State,Disks,Nics,ToolsVersion
-Get-VMGuest * | select -ExpandProperty IPAddress
-Restart-VMGuest -vm vm-01 -Confirm:$False
-Start-VM -vm vm-01 -Confirm:$False
-Shutdown-VMGuest -vm vm-01 -Confirm:$false
+Get-VMGuest vm-01 | Update-Tools # обновить VMware Tools на виртуальной машине vm-01
+Get-VMGuest vm-01 | select OSFullName,IPAddress,HostName,State,Disks,Nics,ToolsVersion # получить информацию о гостевой операционной системе виртуальной машины vm-01 (имя ОС, IP-адрес, имя хоста, состояние, диски, сетевые адаптеры и версию VMware Tools)
+Get-VMGuest * | select -ExpandProperty IPAddress # получить IP-адреса всех гостевых ОС виртуальных машин
+Restart-VMGuest -vm vm-01 -Confirm:$False # перезагрузить гостевую ОС виртуальной машины без запроса подтверждения
+Start-VM -vm vm-01 -Confirm:$False # включить виртуальную машину без запроса подтверждения
+Shutdown-VMGuest -vm vm-01 -Confirm:$false # выключить
 
-New-VM –Name vm-01 -VMHost esxi-06 –ResourcePool Production –DiskGB 60 –DiskStorageFormat Thin –Datastore TNAS-vmfs-4tb-01
-Get-VM vm-01 | Copy-VMGuestFile -Source "\\$srv\Install\Soft\Btest.exe" -Destination "C:\Install\" -LocalToGuest -GuestUser USER -GuestPassword PASS -force
+New-VM –Name vm-01 -VMHost esxi-06 –ResourcePool Production –DiskGB 60 –DiskStorageFormat Thin –Datastore TNAS-vmfs-4tb-01 # создать новую виртуальную машину vm-01 на хосте esxi-06 в пуле ресурсов Production с диском 60 ГБ в формате Thin и размещением на хранилище данных TNAS-vmfs-4tb-01
 
-Get-VM -name vm-01 | Export-VApp -Destination C:\Install -Format OVF # Export template (.ovf, .vmdk, .mf)
-Get-VM -name vm-01 | Export-VApp -Destination C:\Install -Format OVA
+Get-VM vm-01 | Copy-VMGuestFile -Source "\\$srv\Install\Soft\Btest.exe" -Destination "C:\Install\" -LocalToGuest -GuestUser USER -GuestPassword PASS -force # Скопировать файл с хоста на гостевую ОС виртуальной машины vm-01 с принудительным выполнением
 
-Get-VMHostNetworkAdapter | select VMHost,Name,Mac,IP,@{Label="Port Group"; Expression={$_.ExtensionData.Portgroup}} | ft
-Get-VM | Get-NetworkAdapter | select Parent,Name,Id,Type,MacAddress,ConnectionState,WakeOnLanEnabled | ft
+Get-VM -name vm-01 | Export-VApp -Destination C:\Install -Format OVF # экспортировать виртуальную машину vm-01 в шаблон OVF (.ovf, .vmdk, .mf)
+Get-VM -name vm-01 | Export-VApp -Destination C:\Install -Format OVA # экспортировать виртуальную машину vm-01 в шаблон OVA
+
+Get-VMHostNetworkAdapter | select VMHost,Name,Mac,IP,@{Label="Port Group"; Expression={$_.ExtensionData.Portgroup}} | ft # получить информацию о сетевых адаптерах хостов виртуальных машин, включая хост, имя, MAC-адрес, IP-адрес и портовую группу
+Get-VM | Get-NetworkAdapter | select Parent,Name,Id,Type,MacAddress,ConnectionState,WakeOnLanEnabled | ft # получить информацию о сетевых адаптерах виртуальных машин, включая родительскую ВМ, имя, идентификатор, тип, MAC-адрес, состояние подключения и поддержку Wake-on-LAN
 
 Get-Command –Module *vmware* -name *event*
-Get-VIEvent -MaxSamples 1000 | where {($_.FullFormattedMessage -match "power")} | select username,CreatedTime,FullFormattedMessage
-Get-logtype | select Key,SourceEntityId,Filename,Creator,Info
-(Get-Log vpxd:vpxd.log).Entries | select -Last 50
+Get-VIEvent -MaxSamples 1000 | where {($_.FullFormattedMessage -match "power")} | select username,CreatedTime,FullFormattedMessage # получить последние 1000 событий, связанных с питанием, включая имя пользователя, время создания и полное сообщение
+Get-logtype | select Key,SourceEntityId,Filename,Creator,Info # получить информацию о типах логов
+$(Get-Log vpxd:vpxd.log).Entries | select -Last 50 # получить последние 50 записей из лога vpxd
 
 Get-Command –Module *vmware* -name *syslog*
-Set-VMHostSysLogServer -VMHost esxi-05 -SysLogServer "tcp://192.168.3.100" -SysLogServerPort 3515
+Set-VMHostSysLogServer -VMHost esxi-05 -SysLogServer "tcp://192.168.3.100" -SysLogServerPort 3515 # установить сервер syslog сервер для хранения системных логов для хоста esxi-05
 Get-VMHostSysLogServer -VMHost esxi-05
 
 # Exchange/EMShell
@@ -7223,7 +7234,7 @@ cat /root/.docker/config.json | python3 -m json.tool
 Commands: search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/kill/rm/rmi
 
 docker search speedtest # поиск образа в реестре
-docker pull adolfintel/speedtest # скачать образ LibreSpeed из реестра docker hub (https://hub.docker.com/r/adolfintel/speedtest)
+docker pull adolfintel/speedtest # скачать образ LibreSpeed из реестра Docker Hub (https://hub.docker.com/r/adolfintel/speedtest)
 docker images (docker image ls) # отобразить все локальные (уже загруженные) образы docker (image ls)
 docker images --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}" # отфильтровать вывод (json-формат)
 docker create -it --name speedtest -p 8080:80 adolfintel/speedtest # создать контейнер из образа adolfintel/speedtest с именем speedtest и проброс 80 порта контейнера на 8080 порт хоста
@@ -7379,7 +7390,7 @@ chmod +x /usr/local/bin/lazydocker
 
 lazydocker
 
-### Dockerfile
+# Dockerfile
 
 git clone https://github.com/Lifailon/TorAPI
 cd TorAPI
@@ -7416,7 +7427,7 @@ docker push lifailon/torapi # загрузить образ на Docker Hub
 docker pull lifailon/torapi:latest # загрузить образ из Docker Hub
 docker run -d --name TorAPI -p 8443:8443 lifailon/torapi:latest # загрузить образ и создать контейнер
 
-### Docker-Compose
+# Docker-Compose
 
 curl -L "https://github.com/docker/compose/releases/download/1.27.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
@@ -7437,7 +7448,7 @@ services:
 volumes:
   torapi:
 
-docker-compose up -d
+docker-compose up -d # при повторном запуске пересоздаст контейнер с изменениями
 
 ### Uptime-Kuma
 
@@ -7498,7 +7509,7 @@ TOKEN=$(curl -s -X POST http://192.168.3.102:8081/login/access-token --data "use
 curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors | jq .
 curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors/1 | jq '.monitor | "\(.name) - \(.active)"'
 
-### Swarm
+# Swarm
 
 docker swarm init # инициализировать manager node и получить токен для подключения worker node (сервер)
 docker swarm join-token manager # узнать токен подключения
@@ -7576,6 +7587,7 @@ services:
       - 9999:8080
     environment:
       DOZZLE_AUTH_PROVIDER: simple
+      DOZZLE_HOSTNAME: dozzle
       DOZZLE_REMOTE_HOST: tcp://192.168.3.102:2375|mon-01
 
 docker-compose up -d
