@@ -115,6 +115,7 @@
 - [Dockerfile](#dockerfile)
 - [Docker-Compose](#docker-compose)
 - [Swarm](#swarm)
+- [Docker.DotNet](#docker.dotnet)
 - [GigaChat](#GigaChat)
 - [YandexGPT](#YandexGPT)
 - [SuperAGI](#superagi)
@@ -2532,11 +2533,11 @@ New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\Policy
 `Get-AzVM` получить список виртуальных машин в текущей подписке или группе ресурсов \
 `Get-AzVMSize` получить список доступных размеров виртуальных машин в определенном регионе \
 `Get-AzVMImage` получить список доступных образов виртуальных машин \
-`New-AzVM -Name vm-01 $(Get-Credential)` создать новую виртуальную машину \
-`Remove-AzVM vm-01` удалить виртуальную машину \
-`Start-AzVM vm-01` запустить виртуальную машину \
-`Stop-AzVM vm-01` остановить виртуальную машину \
-`Restart-AzVM vm-01`
+`New-AzVM` создать новую виртуальную машину \
+`Remove-AzVM` удалить виртуальную машину \
+`Start-AzVM` запустить виртуальную машину \
+`Stop-AzVM` остановить виртуальную машину \
+`Restart-AzVM` перезагрузить виртуальную машину
 
 `Get-Command -Module Az.Network` \
 `Get-AzVirtualNetwork` получить список виртуальных сетей в текущей подписке или группе ресурсов \
@@ -2574,6 +2575,31 @@ New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\Policy
 `Get-AzADGroup` получить информацию о группах \
 `New-AzADGroup` создать новую группу \
 `Remove-AzADGroup` удалить группу
+
+### Manage-VM
+
+Source: https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-vm
+
+`New-AzResourceGroup -Name "Resource-Group-01" -Location "EastUS"` создать группу ресурсов (логический контейнер, в котором происходит развертывание ресурсов Azure) \
+`Get-AzVMImageOffer -Location "EastUS" -PublisherName "MicrosoftWindowsServer"` список доступных образов Windows Server для установки \
+`$cred = Get-Credential` \
+`New-AzVm -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Location 'EastUS' -Image "MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest" -Size "Standard_D2s_v3" -OpenPorts 80,3389 --Credential $cred` создать виртуальную машину \
+`Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Status | Select @{n="Status"; e={$_.Statuses[1].Code}}` статус виртуальной машины \
+`Start-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` запустить виртуальную машину \
+`Stop-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Force` остановить виртуальную машину \
+`Invoke-AzVMRunCommand -ResourceGroupName "Resource-Group-01" -VMName "vm-01" -CommandId "RunPowerShellScript" -ScriptString "Install-WindowsFeature -Name Web-Server -IncludeManagementTools"` установить роль веб-сервера IIS
+
+### Manage-Disk
+
+Source: https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-data-disk
+
+`$diskConfig = New-AzDiskConfig -Location "EastUS" -CreateOption Empty -DiskSizeGB 512 -SkuName "Standard_LRS"` создать диск на 512 Гб \
+`$dataDisk = New-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512" -Disk $diskConfig` создание объекта диска для подготовки диска данных к работе \
+`Get-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512"` список дисков \
+`$vm = Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` \
+`Add-AzVMDataDisk -VM $vm -Name "Resource-Group-01" -CreateOption Attach -ManagedDiskId $dataDisk.Id -Lun 1` подключить диск к виртуальной машине \
+`Update-AzVM -ResourceGroupName "Resource-Group-01" -VM $vm` обновить конфигурацию виртуальной машины \
+`Get-Disk | Where PartitionStyle -eq 'raw' | Initialize-Disk -PartitionStyle MBR -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel "disk-512" -Confirm:$false` инициализировать диск в ОС (необходимо подключиться к виртуальной машине) с таблицей MBR, создать раздел и назначить все пространство и форматировать в файловую систему NTFS
 
 # Exchange/EMShell
 
@@ -7898,6 +7924,29 @@ https://192.168.3.101:9443/#!/endpoints добавить удаленный хо
 `docker start portainer` \
 http://192.168.3.101:9000
 
+# Docker.DotNet
+```PowerShell
+# Импорт библиотеки Docker.DotNet
+Add-Type -Path "$home\Documents\Docker.DotNet-3.125.15\lib\netstandard2.1\Docker.DotNet.dll"
+# Указываем адрес удаленного сервера Docker, на котором слушает сокет Docker API
+$config = [Docker.DotNet.DockerClientConfiguration]::new("http://192.168.3.102:2375")
+# Подключаемся клиентом
+$client = $config.CreateClient()
+# Получить список методов класса клиента
+$client | Get-Member
+# Выводим список контейнеров
+$containers = $client.Containers.ListContainersAsync([Docker.DotNet.Models.ContainersListParameters]::new()).GetAwaiter().GetResult()
+# Забираем id по имени
+$kuma_id = $($containers | Where-Object names -match "uptime-kuma-front").id
+# Получить список дочерних методов
+$client.Containers | Get-Member
+# Остановить контейнер
+$StopParameters = [Docker.DotNet.Models.ContainerStopParameters]::new()
+$client.Containers.StopContainerAsync($kuma_id, $StopParameters)
+# Запустить контейнер
+$StartParameters = [Docker.DotNet.Models.ContainerStartParameters]::new()
+$client.Containers.StartContainerAsync($kuma_id, $StartParameters)
+```
 # GigaChat
 
 [Developers chat](https://developers.sber.ru/gigachat/login)
