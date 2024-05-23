@@ -6572,8 +6572,13 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 `Get-DiskInfo -Report | Select-Object Name,Date,HealthStatus,Temperature` получить актуальный отчет (запустить сканирование и дождаться результатов)
 
 ### PS-Pi-Hole
-
-`Install-Module PS-Pi-Hole -Repository NuGet -Scope CurrentUser` \
+```PowerShell
+$path_psm = ($env:PSModulePath.Split(";")[0])+"\Invoke-Pi-Hole\Invoke-Pi-Hole.psm1"
+if (!(Test-Path $path_psm)) {
+    New-Item $path_psm -ItemType File -Force
+}
+irm https://raw.githubusercontent.com/Lifailon/PS-Pi-Hole/rsa/Invoke-Pi-Hole/Invoke-Pi-Hole.psm1 | Out-File $path_psm -Force
+```
 `sudo cat /etc/pihole/setupVars.conf | grep WEBPASSWORD` получить токен доступа \
 `$Server = "192.168.1.253"` \
 `$Token = "5af9bd44aebce0af6206fc8ad4c3750b6bf2dd38fa59bba84ea9570e16a05d0f"` \
@@ -6591,13 +6596,6 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 `Invoke-Pi-Hole -LastBlockedDomain -Server $Server -Token $Token` адрес последнего заблокированного домена \
 `Invoke-Pi-Hole -ForwardServer -Server $Server -Token $Token` список серверов для пересылки, которым обычно выступает DNS-сервер стоящий за Pi-Hole в локальной сети, например AD \
 `Invoke-Pi-Hole -Data -Server $Server -Token $Token` количество запросов за каждые 10 минут в течение последних 24 часов
-
-### PSDomainTest
-
-`Install-Module PSDomainTest -Repository NuGet -Scope CurrentUser` \
-`Get-DomainTest -Domain github.com -Warning` протестировать домен и DNS записи на ошибки (вывести только ошибки) через ZoneMaster (https://github.com/zonemaster/zonemaster) \
-`Get-DomainTest -Domain github.com -Warning -json` вывод в формате json \
-`Get-DomainTest -Domain github.com -html | Out-File .\result.html` получить отчет в формате HTML-таблицы с фильтрацией по столбцам
 
 ### Check-Host
 ```PowerShell
@@ -6617,8 +6615,16 @@ Invoke-RestMethod "https://raw.githubusercontent.com/Lifailon/Check-Host/rsa/Get
 `Get-CheckHost -Server google.com:443 -Type http -Count 5` проверить доступность порта \
 `Get-CheckHost -Server google.com:443 -Type tcp -Count 5` проверить доступность TCP или UDP порта
 
+### PSDomainTest
+
+`Install-Module PSDomainTest -Repository NuGet -Scope CurrentUser` \
+`Get-DomainTest -Domain github.com -Warning` протестировать домен и DNS записи на ошибки (вывести только ошибки) через ZoneMaster (https://github.com/zonemaster/zonemaster) \
+`Get-DomainTest -Domain github.com -Warning -json` вывод в формате json \
+`Get-DomainTest -Domain github.com -html | Out-File .\result.html` получить отчет в формате HTML-таблицы с фильтрацией по столбцам
+
 ### WinAPI
 
+`Install-Module ps.win.api` \
 `Import-Module ps.win.api` \
 `Get-Command -Module ps.win.api` \
 `Start-WinAPI` запустить сервер \
