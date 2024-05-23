@@ -109,6 +109,7 @@
 - [GitHub-api](#github-api)
 - [GitHub-Actions](#github-actions)
 - [DSC](#dsc)
+- [PSAppDeployToolkit](#psappdeploytoolkit)
 - [Ansible](#ansible)
 - [Win_Modules](#win_modules)
 - [Docker](#docker)
@@ -6624,7 +6625,7 @@ Invoke-RestMethod "https://raw.githubusercontent.com/Lifailon/Check-Host/rsa/Get
 
 ### WinAPI
 
-`Install-Module ps.win.api` \
+`Install-Module ps.win.api -Repository NuGet -AllowClobber` \
 `Import-Module ps.win.api` \
 `Get-Command -Module ps.win.api` \
 `Start-WinAPI` запустить сервер \
@@ -7068,6 +7069,89 @@ Configuration InstallPowerShellCore {
 `Start-DscConfiguration -Path $path -Wait -Verbose` \
 `Get-Job`
 
+# PSAppDeployToolkit
+
+### Install-DeployToolkit
+```PowerShell
+$githubRepository = "psappdeploytoolkit/psappdeploytoolkit"
+$filenamePatternMatch = "PSAppDeployToolkit*.zip"
+$psadtReleaseUri = "https://api.github.com/repos/$githubRepository/releases/latest"
+$psadtDownloadUri = ((Invoke-RestMethod -Method GET -Uri $psadtReleaseUri).assets | Where-Object name -like $filenamePatternMatch ).browser_download_url
+$zipExtractionPath = Join-Path $env:USERPROFILE "Downloads" "PSAppDeployToolkit"
+$zipTempDownloadPath = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $psadtDownloadUri -Leaf)
+## Download to a temporary folder
+Invoke-WebRequest -Uri $psadtDownloadUri -Out $zipTempDownloadPath
+## Remove any Zone.Identifier alternate data streams to unblock the file (if required)
+Unblock-File -Path $zipTempDownloadPath
+New-Item -Type Directory $zipExtractionPath
+Expand-Archive -Path $zipTempDownloadPath -OutputPath $zipExtractionPath -Force
+Write-Host ("File: {0} extracted to Path: {1}" -f $psadtDownloadUri, $zipExtractionPath) -ForegroundColor Yellow
+Remove-Item $zipTempDownloadPath
+```
+### Deploy-Notepad-Plus-Plus
+
+`$url_notepad = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.6/npp.8.6.6.Installer.x64.exe"` \
+`Invoke-RestMethod $url_notepad -OutFile "$home\Downloads\PSAppDeployToolkit\Toolkit\Files\npp.8.6.6.Installer.x64.exe"`
+```PowerShell
+'# Подключаем модуль PSAppDeployToolkit
+Import-Module "$PSScriptRoot\AppDeployToolkit\AppDeployToolkitMain.ps1"
+# Название приложения
+$AppName = "Notepad++"
+# Версия приложения
+$AppVersion = "8.6.6"
+# Путь к установщику Notepad++
+$InstallerPath = "$PSScriptRoot\Files\npp.$AppVersion.Installer.x64.exe"
+# Проверка существования установщика
+If (-not (Test-Path $InstallerPath)) {
+    Write-Host "Установщик Notepad++ не найден: $InstallerPath"
+    Exit-Script -ExitCode 1
+}
+# Настройки установки Notepad++
+$InstallerArguments = "/S /D=$ProgramFiles\Notepad++"
+Function Install-Application {
+    # Выводим сообщение о начале установки
+    Show-InstallationWelcome -CloseApps "iexplore" -CheckDiskSpace -PersistPrompt
+    # Запускаем установку
+    Execute-Process -Path $InstallerPath -Parameters $InstallerArguments -WindowStyle Hidden -IgnoreExitCodes "3010"
+    # Выводим сообщение об успешной установке
+    Show-InstallationPrompt -Message "Установка $AppName завершена." -ButtonRightText "Закрыть" -Icon Information -NoWait
+    # Завершаем процесс установки
+    Exit-Script -ExitCode $AppDependentExitCode
+}
+Install-Application' | Out-File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" -Encoding unicode
+```
+`powershell -File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1"`
+
+### Uninstall-Notepad-Plus-Plus
+```PowerShell
+'Import-Module "$PSScriptRoot\AppDeployToolkit\AppDeployToolkitMain.ps1"
+$AppName = "Notepad++"
+$UninstallerPath = "C:\Program Files\Notepad++\uninstall.exe"
+If (-not (Test-Path $UninstallerPath)) {
+    Write-Host "Деинсталлятор Notepad++ не найден: $UninstallerPath"
+    Exit-Script -ExitCode 1
+}
+Function Uninstall-Application {
+    Show-InstallationWelcome -CloseApps "iexplore" -CheckDiskSpace -PersistPrompt
+    Execute-Process -Path $UninstallerPath -Parameters "/S" -WindowStyle Hidden -IgnoreExitCodes "3010"
+    Show-InstallationPrompt -Message "Программа $AppName удалена." -ButtonRightText "Закрыть" -Icon Information -NoWait
+    Exit-Script -ExitCode $AppDependentExitCode
+}
+Uninstall-Application' | Out-File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" -Encoding unicode
+```
+`powershell -File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1"`
+
+### Deploy-WinSCP
+```PowerShell
+$PSAppDeployToolkit = "$home\Downloads\PSAppDeployToolkit\"
+$version = "6.3.3"
+$url_winscp = "https://cdn.winscp.net/files/WinSCP-$version.msi?secure=P2HLWGKaMDigpDQw-H9BgA==,1716466173"
+$WinSCP_Template = Get-Content "$PSAppDeployToolkit\Examples\WinSCP\Deploy-Application.ps1" # читаем пример конфигурации для WinSCP
+$WinSCP_Template_Latest = $WinSCP_Template -replace "6.3.2","$version" # обновляем версию на актуальную
+$WinSCP_Template_Latest > "$PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" # заменяем скрипт развертывания 
+Invoke-RestMethod $url_winscp -OutFile "$PSAppDeployToolkit\Toolkit\Files\WinSCP-$version.msi" # загружаем msi-пакет
+powershell -File "$PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" # запускаем установку
+```
 # Ansible
 
 `apt -y update && apt -y upgrade` \
