@@ -110,8 +110,8 @@
 - [Git](#git)
 - [GitHub-api](#github-api)
 - [GitHub-Actions](#github-actions)
-- [DSC](#dsc)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
+- [DSC](#dsc)
 - [Ansible](#ansible)
 - [Win_Modules](#win_modules)
 - [Docker](#docker)
@@ -2352,22 +2352,22 @@ function Start-PingJob ($Network) {
     $RNetwork = $Network -replace "\.\d{1,3}$","."
     foreach ($4 in 1..254) {
         $ip = $RNetwork+$4
-        # создаем задания, забираем 3-ю строку вывода и добавляем к выводу ip-адрес:
+        # Создаем задания, забираем 3-ю строку вывода и добавляем к выводу ip-адрес
         (Start-Job {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
     }
-    while ($True){
-        $status_job = (Get-Job).State[-1] # забираем статус последнего задания
-        if ($status_job -like "Completed") { # проверяем на выполнение (задания выполняются по очереди сверху вниз)
-            $ping_out = Get-Job | Receive-Job # если выполнен, забираем вывод всех заданий
+    while ($True) {
+        $status_job = $(Get-Job).State[-1] # забираем статус последнего задания (задания выполняются по очереди сверху вниз)
+        if ($status_job -like "Completed") { # проверяем задание на выполнение
+            $ping_out = Get-Job | Receive-Job # если выполнено, забираем вывод всех заданий
             Get-Job | Remove-Job -Force # удаляем задания
-            $ping_out
             break # завершаем цикл
         }
     }
+    $ping_out
 }
 ```
 `Start-PingJob -Network 192.168.3.0` \
-`(Measure-Command {Start-PingJob -Network 192.168.3.0}).TotalSeconds` 60 Seconds
+`$(Measure-Command {Start-PingJob -Network 192.168.3.0}).TotalSeconds` 60 Seconds
 
 ### ThreadJob
 
@@ -2378,42 +2378,73 @@ function Start-PingJob ($Network) {
 `(Get-Job).HasMoreData` если False, то вывод команы удален \
 `(Get-Job)[-1].Output` отобразить вывод последней задачи
 ```PowerShell
-function Start-PingThread ($Network) {
+function Start-PingThreadJob ($Network) {
     $RNetwork = $Network -replace "\.\d{1,3}$","."
     foreach ($4 in 1..254) {
         $ip = $RNetwork+$4
-        # создаем задания, забираем 3-ю строку вывода и добавляем к выводу ip-адрес:
-        (Start-ThreadJob {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
+        $(Start-ThreadJob {
+            "$using:ip : " + $(ping -n 1 -w 50 $using:ip)[2]
+        }) | Out-Null
     }
-    while ($True){
-        $status_job = (Get-Job).State[-1] # забираем статус последнего задания
-        if ($status_job -like "Completed") { # проверяем на выполнение (задания выполняются по очереди сверху вниз)
-            $ping_out = Get-Job | Receive-Job # если выполнен, забираем вывод всех заданий
-            Get-Job | Remove-Job -Force # удаляем задания
-            $ping_out
-            break # завершаем цикл
+    while ($True) {
+        $status_job = $(Get-Job).State[-1]
+        if ($status_job -like "Completed") {
+            $ping_out = Get-Job | Receive-Job
+            Get-Job | Remove-Job -Force
+            break
         }
     }
+    $ping_out
 }
 ```
-`Start-PingThread -Network 192.168.3.0` \
-`(Measure-Command {Start-PingThread -Network 192.168.3.0}).TotalSeconds` 24 Seconds
+`Start-PingThreadJob -Network 192.168.3.0` \
+`$(Measure-Command {Start-PingThread -Network 192.168.3.0}).TotalSeconds` 24 Seconds
 
 ### PoshRSJob
+
+Install-Module -Name PoshRSJob
 ```PowerShell
 function Start-PingRSJob ($Network) {
     $RNetwork = $Network -replace "\.\d{1,3}$","."
     foreach ($4 in 1..254) {
         $ip = $RNetwork+$4
-        (Start-RSJob {"$using:ip : "+(ping -n 1 -w 50 $using:ip)[2]}) | Out-Null
+        $(Start-RSJob {
+            "$using:ip : " + $(ping -n 1 -w 50 $using:ip)[2]
+        }) | Out-Null
     }
-    $ping_out = Get-RSJob | Receive-RSJob
+    while ($True) {
+        $status_job = $(Get-RSJob).State -notcontains "Running" # проверяем, что массив не содержит активных заданий
+        if ($status_job) {
+            $ping_out = Get-RSJob | Receive-RSJob
+            Get-RSJob | Remove-RSJob
+            break
+        }
+    }
     $ping_out
-    Get-RSJob | Remove-RSJob
 }
 ```
 `Start-PingRSJob -Network 192.168.3.0` \
-`(Measure-Command {Start-PingRSJob -Network 192.168.3.0}).TotalSeconds` 10 Seconds
+`$(Measure-Command {Start-PingRSJob -Network 192.168.3.0}).TotalSeconds` 10 Seconds
+
+### Invoke-Parallel
+```PowerShell
+# Import function from GitHub to current session
+$module = "https://raw.githubusercontent.com/RamblingCookieMonster/Invoke-Parallel/master/Invoke-Parallel/Invoke-Parallel.ps1"
+Invoke-Expression $(Invoke-RestMethod $module)
+```
+Get-Help Invoke-Parallel -Full
+```PowerShell
+function Start-PingParallel ($Network) {
+    $RNetwork = $Network -replace "\.\d{1,3}$","."
+    1..254 | ForEach-Object {$srvList += @($RNetwork+$_)}
+    Invoke-Parallel -InputObject $srvList -ScriptBlock {
+        "$_ : " + $(ping -n 1 -w 50 $_)[2]
+    }
+}
+```
+`Start-PingParallel -Network 192.168.3.0` \
+`$(Get-History)[-1].Duration.TotalSeconds` \
+`$(Measure-Command {Start-PingParallel -Network 192.168.3.0}).TotalSeconds` 7-8 seconds
 
 # SMTP
 ```PowerShell
@@ -3058,12 +3089,17 @@ CopyQueue Length - длина репликационной очереди коп
 
 # Veeam
 
-`Set-ExecutionPolicy AllSigned` or Set-ExecutionPolicy Bypass -Scope Process \
-`Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))` \
-`choco install veeam-backup-and-replication-console` \
-`Get-Module Veeam.Backup.PowerShell` \
-`Get-Command -Module Veeam.Backup.PowerShell` or Get-VBRCommand \
-`Connect-VBRServer -Server $srv -Credential $cred` or -User and -Password` - Port 9392` default \
+VeeamHub (https://github.com/VeeamHub/powershell)
+
+### Get-VBRCommand
+
+`Set-ExecutionPolicy AllSigned` \
+`Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))` установить choco \
+`choco install veeam-backup-and-replication-console` установить консоль управления (https://community.chocolatey.org/packages/veeam-backup-and-replication-console) \
+`Get-Module Veeam.Backup.PowerShell` модуль, который устанавливается вместе с клиентской консолью по умолчанию \
+`Get-Command -Module Veeam.Backup.PowerShell` \
+`Get-Command -Module Get-VBRCommand` \
+`Connect-VBRServer -Server $srv -Credential $cred -Port 9392` \
 `Get-VBRJob` \
 `Get-VBRCommand *get*backup*` \
 `Get-VBRComputerBackupJob` \
@@ -3073,6 +3109,27 @@ CopyQueue Length - длина репликационной очереди коп
 `Get-VBRBackupServerCertificate` \
 `Get-VBRRestorePoint` \
 `Get-VBRViProxy`
+
+### Veeam-REStat
+```PowerShell
+$path = ($env:PSModulePath.Split(";")[0])+"\Veeam-REStat\Veeam-REStat.psm1"
+if (!(Test-Path $path)) {
+    New-Item $path -ItemType "File" -Force
+}
+$(iwr https://raw.githubusercontent.com/Lifailon/Veeam-REStat/rsa/Veeam-REStat/Veeam-REStat.psm1).Content | Out-File $path -Force
+```
+`Veeam-REStat -Server srv-veeam-11 -Port 9419` при первом запуске необходимо заполнить Credential для подключения к экземпляру сервера VBR, которые сохраняются в файл с именем сервера в формате xml с применением шифрования PSCredential для последующего подключения \
+`Veeam-REStat -Reset` сброс учетных данных для подключения к серверу VBR \
+`Veeam-REStat -Statistic` статистика всех заданий с сортировкой по дате (выводит время начала, завершения и статус работы, процент прогресса, результат выполнений и сообщение с причиной в случае ошибки: Warning или Failed) \
+`Veeam-REStat -Jobs` подробная статистика по всем настроенным заданиям резеврного копирования: статус работы (In Active/disabled), результат последнего задания (LastResult), тип аутентификации (Standard/Linux), имя и размер виртуальной машины, тип резервного копирования (например, Incremental), дату и время последнего и следущего выполнения \
+`Veeam-REStat -ConfigBackup` отображает статус состояния работы резервного копирования конфигурации сервера VBR, кол-во точек восстановления, дату и время последней копии \
+`Veeam-REStat -Repositories` статистика по инвентарным данным репозиториев: тип хранилища, путь на сервере до директории хранения, общий (capacityGB), свободный (freeGB) и используемый (usedSpaceGB) размер диска под данные \
+`Veeam-REStat -Backup` список заданий резервного копирования, тип копирования (VM/Directory) и кол-во точек восстановления \
+`Veeam-REStat -Points` история статистики всех точек восстановления с датой создания \
+`Veeam-REStat -Hosts` список физически (в ручную) добавленных хостов в инфраструктуру VBR \
+`Veeam-REStat -Proxy` список серверов с ролью Proxy \
+`Veeam-REStat -Users` список УЗ, добавленных для подключения к серверам \
+`Veeam-REStat -Service` выводит информацию о связанных внутренних службах, подключение к этим службам может потребоваться только для интеграции с VBR
 
 # REST API
 
@@ -7048,6 +7105,89 @@ jobs:
         # Отправляем коммит в удаленный репозиторий
         git push
 ```
+# PSAppDeployToolkit
+
+### Install-DeployToolkit
+```PowerShell
+$githubRepository = "psappdeploytoolkit/psappdeploytoolkit"
+$filenamePatternMatch = "PSAppDeployToolkit*.zip"
+$psadtReleaseUri = "https://api.github.com/repos/$githubRepository/releases/latest"
+$psadtDownloadUri = ((Invoke-RestMethod -Method GET -Uri $psadtReleaseUri).assets | Where-Object name -like $filenamePatternMatch ).browser_download_url
+$zipExtractionPath = Join-Path $env:USERPROFILE "Downloads" "PSAppDeployToolkit"
+$zipTempDownloadPath = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $psadtDownloadUri -Leaf)
+## Download to a temporary folder
+Invoke-WebRequest -Uri $psadtDownloadUri -Out $zipTempDownloadPath
+## Remove any Zone.Identifier alternate data streams to unblock the file (if required)
+Unblock-File -Path $zipTempDownloadPath
+New-Item -Type Directory $zipExtractionPath
+Expand-Archive -Path $zipTempDownloadPath -OutputPath $zipExtractionPath -Force
+Write-Host ("File: {0} extracted to Path: {1}" -f $psadtDownloadUri, $zipExtractionPath) -ForegroundColor Yellow
+Remove-Item $zipTempDownloadPath
+```
+### Deploy-Notepad-Plus-Plus
+
+`$url_notepad = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.6/npp.8.6.6.Installer.x64.exe"` \
+`Invoke-RestMethod $url_notepad -OutFile "$home\Downloads\PSAppDeployToolkit\Toolkit\Files\npp.8.6.6.Installer.x64.exe"`
+```PowerShell
+'# Подключаем модуль PSAppDeployToolkit
+Import-Module "$PSScriptRoot\AppDeployToolkit\AppDeployToolkitMain.ps1"
+# Название приложения
+$AppName = "Notepad++"
+# Версия приложения
+$AppVersion = "8.6.6"
+# Путь к установщику Notepad++
+$InstallerPath = "$PSScriptRoot\Files\npp.$AppVersion.Installer.x64.exe"
+# Проверка существования установщика
+If (-not (Test-Path $InstallerPath)) {
+    Write-Host "Установщик Notepad++ не найден: $InstallerPath"
+    Exit-Script -ExitCode 1
+}
+# Настройки установки Notepad++
+$InstallerArguments = "/S /D=$ProgramFiles\Notepad++"
+Function Install-Application {
+    # Выводим сообщение о начале установки
+    Show-InstallationWelcome -CloseApps "iexplore" -CheckDiskSpace -PersistPrompt
+    # Запускаем установку
+    Execute-Process -Path $InstallerPath -Parameters $InstallerArguments -WindowStyle Hidden -IgnoreExitCodes "3010"
+    # Выводим сообщение об успешной установке
+    Show-InstallationPrompt -Message "Установка $AppName завершена." -ButtonRightText "Закрыть" -Icon Information -NoWait
+    # Завершаем процесс установки
+    Exit-Script -ExitCode $AppDependentExitCode
+}
+Install-Application' | Out-File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" -Encoding unicode
+```
+`powershell -File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1"`
+
+### Uninstall-Notepad-Plus-Plus
+```PowerShell
+'Import-Module "$PSScriptRoot\AppDeployToolkit\AppDeployToolkitMain.ps1"
+$AppName = "Notepad++"
+$UninstallerPath = "C:\Program Files\Notepad++\uninstall.exe"
+If (-not (Test-Path $UninstallerPath)) {
+    Write-Host "Деинсталлятор Notepad++ не найден: $UninstallerPath"
+    Exit-Script -ExitCode 1
+}
+Function Uninstall-Application {
+    Show-InstallationWelcome -CloseApps "iexplore" -CheckDiskSpace -PersistPrompt
+    Execute-Process -Path $UninstallerPath -Parameters "/S" -WindowStyle Hidden -IgnoreExitCodes "3010"
+    Show-InstallationPrompt -Message "Программа $AppName удалена." -ButtonRightText "Закрыть" -Icon Information -NoWait
+    Exit-Script -ExitCode $AppDependentExitCode
+}
+Uninstall-Application' | Out-File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" -Encoding unicode
+```
+`powershell -File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1"`
+
+### Deploy-WinSCP
+```PowerShell
+$PSAppDeployToolkit = "$home\Downloads\PSAppDeployToolkit\"
+$version = "6.3.3"
+$url_winscp = "https://cdn.winscp.net/files/WinSCP-$version.msi?secure=P2HLWGKaMDigpDQw-H9BgA==,1716466173"
+$WinSCP_Template = Get-Content "$PSAppDeployToolkit\Examples\WinSCP\Deploy-Application.ps1" # читаем пример конфигурации для WinSCP
+$WinSCP_Template_Latest = $WinSCP_Template -replace "6.3.2","$version" # обновляем версию на актуальную
+$WinSCP_Template_Latest > "$PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" # заменяем скрипт развертывания 
+Invoke-RestMethod $url_winscp -OutFile "$PSAppDeployToolkit\Toolkit\Files\WinSCP-$version.msi" # загружаем msi-пакет
+powershell -File "$PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" # запускаем установку
+```
 # DSC
 
 `Import-Module PSDesiredStateConfiguration` \
@@ -7140,89 +7280,6 @@ Configuration InstallPowerShellCore {
 `Start-DscConfiguration -Path $path -Wait -Verbose` \
 `Get-Job`
 
-# PSAppDeployToolkit
-
-### Install-DeployToolkit
-```PowerShell
-$githubRepository = "psappdeploytoolkit/psappdeploytoolkit"
-$filenamePatternMatch = "PSAppDeployToolkit*.zip"
-$psadtReleaseUri = "https://api.github.com/repos/$githubRepository/releases/latest"
-$psadtDownloadUri = ((Invoke-RestMethod -Method GET -Uri $psadtReleaseUri).assets | Where-Object name -like $filenamePatternMatch ).browser_download_url
-$zipExtractionPath = Join-Path $env:USERPROFILE "Downloads" "PSAppDeployToolkit"
-$zipTempDownloadPath = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $psadtDownloadUri -Leaf)
-## Download to a temporary folder
-Invoke-WebRequest -Uri $psadtDownloadUri -Out $zipTempDownloadPath
-## Remove any Zone.Identifier alternate data streams to unblock the file (if required)
-Unblock-File -Path $zipTempDownloadPath
-New-Item -Type Directory $zipExtractionPath
-Expand-Archive -Path $zipTempDownloadPath -OutputPath $zipExtractionPath -Force
-Write-Host ("File: {0} extracted to Path: {1}" -f $psadtDownloadUri, $zipExtractionPath) -ForegroundColor Yellow
-Remove-Item $zipTempDownloadPath
-```
-### Deploy-Notepad-Plus-Plus
-
-`$url_notepad = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.6/npp.8.6.6.Installer.x64.exe"` \
-`Invoke-RestMethod $url_notepad -OutFile "$home\Downloads\PSAppDeployToolkit\Toolkit\Files\npp.8.6.6.Installer.x64.exe"`
-```PowerShell
-'# Подключаем модуль PSAppDeployToolkit
-Import-Module "$PSScriptRoot\AppDeployToolkit\AppDeployToolkitMain.ps1"
-# Название приложения
-$AppName = "Notepad++"
-# Версия приложения
-$AppVersion = "8.6.6"
-# Путь к установщику Notepad++
-$InstallerPath = "$PSScriptRoot\Files\npp.$AppVersion.Installer.x64.exe"
-# Проверка существования установщика
-If (-not (Test-Path $InstallerPath)) {
-    Write-Host "Установщик Notepad++ не найден: $InstallerPath"
-    Exit-Script -ExitCode 1
-}
-# Настройки установки Notepad++
-$InstallerArguments = "/S /D=$ProgramFiles\Notepad++"
-Function Install-Application {
-    # Выводим сообщение о начале установки
-    Show-InstallationWelcome -CloseApps "iexplore" -CheckDiskSpace -PersistPrompt
-    # Запускаем установку
-    Execute-Process -Path $InstallerPath -Parameters $InstallerArguments -WindowStyle Hidden -IgnoreExitCodes "3010"
-    # Выводим сообщение об успешной установке
-    Show-InstallationPrompt -Message "Установка $AppName завершена." -ButtonRightText "Закрыть" -Icon Information -NoWait
-    # Завершаем процесс установки
-    Exit-Script -ExitCode $AppDependentExitCode
-}
-Install-Application' | Out-File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" -Encoding unicode
-```
-`powershell -File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1"`
-
-### Uninstall-Notepad-Plus-Plus
-```PowerShell
-'Import-Module "$PSScriptRoot\AppDeployToolkit\AppDeployToolkitMain.ps1"
-$AppName = "Notepad++"
-$UninstallerPath = "C:\Program Files\Notepad++\uninstall.exe"
-If (-not (Test-Path $UninstallerPath)) {
-    Write-Host "Деинсталлятор Notepad++ не найден: $UninstallerPath"
-    Exit-Script -ExitCode 1
-}
-Function Uninstall-Application {
-    Show-InstallationWelcome -CloseApps "iexplore" -CheckDiskSpace -PersistPrompt
-    Execute-Process -Path $UninstallerPath -Parameters "/S" -WindowStyle Hidden -IgnoreExitCodes "3010"
-    Show-InstallationPrompt -Message "Программа $AppName удалена." -ButtonRightText "Закрыть" -Icon Information -NoWait
-    Exit-Script -ExitCode $AppDependentExitCode
-}
-Uninstall-Application' | Out-File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" -Encoding unicode
-```
-`powershell -File "$home\Downloads\PSAppDeployToolkit\Toolkit\Deploy-Application.ps1"`
-
-### Deploy-WinSCP
-```PowerShell
-$PSAppDeployToolkit = "$home\Downloads\PSAppDeployToolkit\"
-$version = "6.3.3"
-$url_winscp = "https://cdn.winscp.net/files/WinSCP-$version.msi?secure=P2HLWGKaMDigpDQw-H9BgA==,1716466173"
-$WinSCP_Template = Get-Content "$PSAppDeployToolkit\Examples\WinSCP\Deploy-Application.ps1" # читаем пример конфигурации для WinSCP
-$WinSCP_Template_Latest = $WinSCP_Template -replace "6.3.2","$version" # обновляем версию на актуальную
-$WinSCP_Template_Latest > "$PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" # заменяем скрипт развертывания 
-Invoke-RestMethod $url_winscp -OutFile "$PSAppDeployToolkit\Toolkit\Files\WinSCP-$version.msi" # загружаем msi-пакет
-powershell -File "$PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" # запускаем установку
-```
 # Ansible
 
 `apt -y update && apt -y upgrade` \
