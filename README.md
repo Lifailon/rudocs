@@ -115,7 +115,7 @@
 - [Dockerfile](#dockerfile)
 - [Docker-Compose](#docker-compose)
 - [Swarm](#swarm)
-- [Docker.DotNet](#docker.dotnet)
+- [Docker.DotNet](#dockerdotnet)
 - [GigaChat](#GigaChat)
 - [YandexGPT](#YandexGPT)
 - [SuperAGI](#superagi)
@@ -1656,8 +1656,9 @@ icm $_ {Get-LocalGroupMember "Administrators"}
 `Get-WUInstallerStatus` статус службы Windows Installer \
 `Remove-WUServiceManager` отключить Windows Update Service Manager
 
-### UpdateScope
+### UpdateServices
 
+`Install-WindowsFeature -Name UpdateServices-RSAT` установить роль UpdateServices \
 `$UpdateScope = New-Object Microsoft.UpdateServices.Administration.UpdateScope` \
 `[enum]::GetValues([Microsoft.UpdateServices.Administration.ApprovedStates])` список утвержденных состояний \
 `[enum]::GetValues([Microsoft.UpdateServices.Administration.UpdateInstallationStates])` статус установки (неизвестный, непригодный, не установлен, скачено, установлен, неуспешный, установлен и ожидает перезагрузки, все) \
@@ -6570,6 +6571,27 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 `Get-DiskInfo` получить результаты последнего сканирования (статус, температура и т.п.) \
 `Get-DiskInfo -Report | Select-Object Name,Date,HealthStatus,Temperature` получить актуальный отчет (запустить сканирование и дождаться результатов)
 
+### PS-Pi-Hole
+
+`Install-Module PS-Pi-Hole -Repository NuGet -Scope CurrentUser` \
+`sudo cat /etc/pihole/setupVars.conf | grep WEBPASSWORD` получить токен доступа \
+`$Server = "192.168.1.253"` \
+`$Token = "5af9bd44aebce0af6206fc8ad4c3750b6bf2dd38fa59bba84ea9570e16a05d0f"` \
+`Invoke-Pi-Hole -Versions -Server $Server -Token $Token` получить текущую версию ядра (backend) и веб (frontend) на сервере а также последнюю доступную версию для обновления \
+`Invoke-Pi-Hole -Releases -Server $Server -Token $Token` узнать последнюю доступную версию в репозитории на GitHub \
+`Invoke-Pi-Hole -QueryLog -Server $Server -Token $Token` отобразить полный журнал запросов (клиент, домен назначения, тип записи, статус время запроса и адрес пересылки forward dns - куда ушел запрос) \
+`Invoke-Pi-Hole -AdList -Server $Server -Token $Token` получить списки блокировак используемых на сервере (дата обновления, количество доменов и url-источника) \
+`Invoke-Pi-Hole -Status -Server $Server -Token $Token` статус работы режима блокировки \
+`Invoke-Pi-Hole -Enable -Server $Server -Token $Token` включить блокировку \
+`Invoke-Pi-Hole -Disable -Server $Server -Token $Token` отключить блокировку \
+`Invoke-Pi-Hole -Stats -Server $Server -Token $Token` подключиться к серверу Pi-Hole для получения статистики (метрики: количество доменов для блокировки, количество запросов и блокировок за сегодня и т.д.) \
+`Invoke-Pi-Hole -QueryTypes -Server $Server -Token $Token` статистика запросов по типу записей относительно 100% \
+`Invoke-Pi-Hole -TopClient -Server $Server -Token $Token` список самых активных клиентов (ip/name и количество запросов проходящих через сервер) \
+`Invoke-Pi-Hole -TopPermittedDomains -Count 100 -Server $Server -Token $Token` список самых посещяемых доменов и количество запросов \
+`Invoke-Pi-Hole -LastBlockedDomain -Server $Server -Token $Token` адрес последнего заблокированного домена \
+`Invoke-Pi-Hole -ForwardServer -Server $Server -Token $Token` список серверов для пересылки, которым обычно выступает DNS-сервер стоящий за Pi-Hole в локальной сети, например AD \
+`Invoke-Pi-Hole -Data -Server $Server -Token $Token` количество запросов за каждые 10 минут в течение последних 24 часов
+
 ### PSDomainTest
 
 `Install-Module PSDomainTest -Repository NuGet -Scope CurrentUser` \
@@ -7926,7 +7948,7 @@ http://192.168.3.101:9000
 
 # Docker.DotNet
 ```PowerShell
-# Импорт библиотеки Docker.DotNet
+# Импорт библиотеки Docker.DotNet (https://nuget.info/packages/Docker.DotNet/3.125.15)
 Add-Type -Path "$home\Documents\Docker.DotNet-3.125.15\lib\netstandard2.1\Docker.DotNet.dll"
 # Указываем адрес удаленного сервера Docker, на котором слушает сокет Docker API
 $config = [Docker.DotNet.DockerClientConfiguration]::new("http://192.168.3.102:2375")
@@ -7940,7 +7962,7 @@ $containers = $client.Containers.ListContainersAsync([Docker.DotNet.Models.Conta
 $kuma_id = $($containers | Where-Object names -match "uptime-kuma-front").id
 # Получить список дочерних методов
 $client.Containers | Get-Member
-# Остановить контейнер
+# Остановить контейнер по его id
 $StopParameters = [Docker.DotNet.Models.ContainerStopParameters]::new()
 $client.Containers.StopContainerAsync($kuma_id, $StopParameters)
 # Запустить контейнер
