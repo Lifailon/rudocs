@@ -23,6 +23,8 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # Bit
 # Cycle
 # Files
+# Archive
+# Handle
 # Credential
 # WinEvent
 # Firewall
@@ -903,21 +905,9 @@ finally {$out = "End"} # выполняется в конце в любом сл
 
 # Files
 
-$file = [System.IO.File]::Create("$home\desktop\test.txt") # создать файл
-$file.Close() # закрыть файл
-[System.IO.File]::ReadAllLines("$home\desktop\test.txt") # прочитать файл
-$file = New-Object System.IO.StreamReader("$home\desktop\test.txt") # файл будет занят процессом PowerShell
-$file | gm
-$file.ReadLine() # построчный вывод
-$file.ReadToEnd() # прочитать файл целиком
-
-### Read/Write Bytes
-
-$file = [io.file]::ReadAllBytes("$home\desktop\powershell.jpg") # метод открывает двоичный файл, считывает его в массив байт и закрывает файл
-[io.file]::WriteAllBytes("$home\desktop\tloztotk-2.jpg",$file) # сохранить байты в файл (можно использовать для выгрузки двоичных файлов из БД)
-
 Get-Content $home/desktop\test.txt -Wait # аналог tail
 Test-Path $path # проверить доступность пути
+Get-FileHash -Algorithm SHA256 "$path" # узнать хэш файла по алгоритму sha256
 Get-ChildItem $path -Filter *.txt -Recurse # отобразить содержимое каталога (Alias: ls/gci/dir) и дочерних каталогов (-Recurse) и отфильтровать вывод
 Get-Location # отобразить текущие месторасположение (Alias: pwd/gl)
 Set-Location $path # перемещение по каталогам (Alias: cd/sl)
@@ -939,6 +929,7 @@ Copy-Item -Path "C:\*.txt" -Destination "C:\test\" # знак '\' в конце 
 Copy-Item -Path "C:\*" -Destination "C:\test\" -Include '*.txt','*.jpg' # копировать объекты с указанным расширением (Include)
 Copy-Item -Path "C:\*" -Destination "C:\test\" -Exclude '*.jpeg' # копировать объекты, за исключением файлов с расширением (Exclude)
 $log = Copy-Item "C:\*.txt" "C:\test\" -PassThru # вывести результат копирования (логирование) в переменную, можно забирать строки с помощью индексов $log[0].FullName
+Unblock-File "script.ps1" # разблокирует файлы скриптов PowerShell скачанных из Интернета, чтобы их можно было запустить, даже если политика выполнения PowerShell в режиме RemoteSigned
 
 ### Clear-env-Temp-14-days
 
@@ -951,12 +942,92 @@ foreach ($l in $ls) {
     }
 }
 
-### Filehash
-Get-Filehash -Algorithm SHA256 "$env:USERPROFILE\Documents\RSA.conf.txt"
+### System.IO.File
+
+$file = [System.IO.File]::Create("$home\desktop\test.txt") # создать файл
+$file.Close() # закрыть файл
+[System.IO.File]::ReadAllLines("$home\desktop\test.txt") # прочитать файл
+$file = New-Object System.IO.StreamReader("$home\desktop\test.txt") # файл будет занят процессом PowerShell
+$file | Get-Member
+$file.ReadLine() # построчный вывод
+$file.ReadToEnd() # прочитать файл целиком
+
+### Read/Write Bytes
+
+$file = [io.file]::ReadAllBytes("$home\desktop\powershell.jpg") # метод открывает двоичный файл, считывает его в массив байт и закрывает файл
+[io.file]::WriteAllBytes("$home\desktop\tloztotk-2.jpg",$file) # сохранить байты в файл (можно использовать для выгрузки двоичных файлов из БД)
+
+# Archive
 
 ### Microsoft.PowerShell.Archive
-Compress-Archive -Path $sourcepath -DestinationPath $dstpath -CompressionLevel Optimal # архивировать
-Expand-Archive .\powerlinefonts.zip # разархивировать
+
+Compress-Archive -Path $srcPath -DestinationPath "$($srcPath).zip" -CompressionLevel Optimal # архивировать (по исходному пути и названию с добавлением расширения)
+Expand-Archive -Path $zip # разархивировать
+Expand-Archive -Path $zip -DestinationPath $dstPath # указать путь извлечения
+Expand-Archive -Path $zip -OutputPath $dstPath
+
+### System.IO.Compression.FileSystem
+
+function Expand-ArchiveFile {
+    param (
+        # Путь к архиву
+        $Path,
+        # Путь, куда извлечь файл
+        $DestinationPath,
+        # Имя файла, который нужно извлечь
+        $FileName
+    )
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    try {
+        # Открыть архив для чтения
+        $zipArchive = [System.IO.Compression.ZipFile]::OpenRead($Path)
+        # Найти файл в архиве
+        $fileEntry = $zipArchive.Entries | Where-Object { $_.FullName -eq $fileName }
+        if ($fileEntry) {
+            # Создание потока для чтения содержимого файла
+            $stream = $fileEntry.Open()
+            # Создание файла и запись в него данных из потока
+            $DestinationPathFileName = "$DestinationPath\$FileName"
+            $fileStream = [System.IO.File]::Create($DestinationPathFileName)
+            $stream.CopyTo($fileStream)
+            # Закрытие потоков
+            $stream.Close()
+            $fileStream.Close()
+        } else {
+            Write-Output "Файл $fileName не найден в архиве"
+        }
+    } catch {
+        Write-Error "Ошибка при извлечении файла из архива"
+    } finally {
+        # Закрыть архив
+        $zipArchive.Dispose()
+    }
+}
+
+### WinRAR
+
+function Expand-ArchivePassword {
+    param (
+        $Path,
+        $Password
+    )
+    $winrar =  "C:\Program Files\WinRAR\WinRAR.exe"
+    & $winrar x -p"$Password" $Path
+}
+
+cd "$home\Downloads"
+Expand-ArchivePassword archive.rar qwe123
+
+# Handle
+
+$url = "https://download.sysinternals.com/files/Handle.zip"
+Invoke-RestMethod $url -OutFile "$env:TEMP\handle.zip"
+Expand-ArchiveFile -Path "$env:TEMP\handle.zip" -DestinationPath "$home\Documents" -FileName "handle.exe" # извлекаем выбранный файл из архива
+Remove-Item "$env:TEMP\handle.zip"
+$handle = "$home\Documents\handle.exe"
+$test = New-Object System.IO.StreamReader("$home\desktop\test.txt") # занять файл текущим процессом pwsh ($pid)
+$SearchProcess = & $handle "C:\Users\Lifailon\Desktop\test.txt" -nobanner -u -v | ConvertFrom-Csv # вывести список дескрипторов по пути к файлу (имя процесса, его PID и пользователь который запустил)
+Stop-Process $SearchProcess.PID # завершить процесс, который удерживал файл
 
 # Credential
 
