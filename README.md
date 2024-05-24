@@ -33,7 +33,6 @@
 - [DISM](#dism)
 - [Scheduled](#scheduled)
 - [Network](#network)
-- [SpeedTest](#speedtest)
 - [RDP](#rdp)
 - [Shutdown](#shutdown)
 - [LocalAccounts](#localaccounts)
@@ -217,11 +216,17 @@
 `Get-Clipboard` вставить
 
 ### Write
-
-`Write-Host -ForegroundColor Black -BackgroundColor Green "Test" -NoNewline` \
-`Write-Error Test` \
-`Foreach ($n in 1..100) {Write-Progress -Activity "Test Progress" -PercentComplete $n}`
-
+```PowerShell
+Write-Host -BackgroundColor Green "Test:" -NoNewline # изменить цвет фона и запретить перенос строки
+Write-Host " True" -ForegroundColor Green # данная строка будет печататься продолжая предыдущую с новыми параметрами цвета (фон по умолчанию, изменяем цвет текста)
+```
+`Write-Error "False"`
+```PowerShell
+Foreach ($n in 1..100) {
+    Start-Sleep -Milliseconds 100
+    Write-Progress -Activity "Test Progress" -PercentComplete $n
+}
+```
 ### Array
 
 `$srv = @("server-01", "server-02")`  создать массив \
@@ -1482,52 +1487,6 @@ function Get-ARP {
 `Get-NetAdapterStatistics`
 
 ### SpeedTest
-
-### SpeedTest-Download
-```PowerShell
-# Формируем путь для загрузки файла
-$path = "$home\Downloads"
-$file = "ubuntu.iso.temp"
-$pathDown = "$path\$file"
-# Файл для загрузки
-$url = "https://mirror.yandex.ru/ubuntu-releases/24.04/ubuntu-24.04-desktop-amd64.iso"
-# Получить размер файла из заголовка в МБ (100%)
-$AllSize = $($($(Invoke-WebRequest -Uri $url -Method Head).Headers["Content-Length"])/1mb).ToString(0)
-# Начать загрузку файла
-Start-Job {
-    Invoke-WebRequest "https://mirror.yandex.ru/ubuntu-releases/24.04/ubuntu-24.04-desktop-amd64.iso" -OutFile $using:pathDown
-} | Out-Null
-# Массив для заполнения метриками скорости загрузки 
-$metrics = @()
-while ($true) {
-    clear
-    # Узнать текущий размер файла в МБ
-    $CurrentSize = $($(Get-ChildItem $pathDown).Length/1mb).ToString(0)
-    # Текущая скорость загрузки и отдачи на интерфейса
-    $interface = Get-CimInstance -ClassName Win32_PerfFormattedData_Tcpip_NetworkInterface | Select-Object Name,
-    @{name="Received";expression={$($_.BytesReceivedPersec/1mb).ToString("0.0")}},
-    @{name="Sent";expression={$($_.BytesSentPersec/1mb).ToString("0.0")}}
-    # Добавляем скорость загрузки в массив
-    $metrics += $interface.Received
-    # Получаем текущий процент загрузки
-    $downProc = $($($CurrentSize / $AllSize) * 100).ToString(0)
-    # Вывод метрик
-    Write-Host "Скорость загрузки: $($interface.Received) mbyte/sec"
-    Write-Host "Загружено: $downProc % ($CurrentSize / $AllSize mbyte)"
-    if ($downProc -eq 100) {
-        # Remove-Item $pathDown
-        Write-Host Complete -ForegroundColor Green
-        break
-    }
-    Start-Sleep 2
-}
-# Получаем среднюю скорость загрузки
-$metrics = $metrics -replace ",","."
-$avg = $($metrics | Measure-Object -Average).Average
-Write-Host "Average download speed: " -NoNewline
-Write-Host "$avg" -ForegroundColor Green
-```
-### SpeedTest-Ookla
 ```PowerShell
 function Get-SpeedTestOokla {
     param (
