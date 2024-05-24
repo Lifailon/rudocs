@@ -1,13 +1,9 @@
 function Start-PingParallel ($Network) {
-    # Прочитать и импортировать функцию из репозитория GitHub
-    $module = "https://raw.githubusercontent.com/RamblingCookieMonster/Invoke-Parallel/master/Invoke-Parallel/Invoke-Parallel.ps1"
-    Invoke-Expression $(Invoke-RestMethod $module)
     $RNetwork = $Network -replace "\.\d{1,3}$","."
-    1..254 | ForEach-Object {$srvList += @($RNetwork+$_)}
-    Invoke-Parallel -InputObject $srvList -ScriptBlock {
-        "$_ : " + $(ping -n 1 -w 50 $_)[2]
-    }
+    1..254 | ForEach-Object -Parallel {
+        "$using:RNetwork.$_ : " + $(ping -n 1 -w 50 "$using:RNetwork$_")[2]
+    } -ThrottleLimit 254
 }
 
 # Start-PingParallel -Network 192.168.3.0
-# $(Measure-Command {Start-PingParallel -Network 192.168.3.0}).TotalSeconds
+# $(Get-History)[-1].Duration.TotalSeconds
