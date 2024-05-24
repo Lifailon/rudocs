@@ -1040,7 +1040,7 @@ Stop-Process $SearchProcess.PID # завершить процесс, котор�
 $module = "https://raw.githubusercontent.com/chrisseroka/ps-menu/master/ps-menu.psm1"
 Invoke-Expression $(Invoke-RestMethod $module)
 
-Пример навигации по директориям в системе:
+Пример навигации по директориям в системе используя меню:
 
 function ls-menu {
 	param (
@@ -1077,6 +1077,7 @@ function ls-menu {
 
 ls-menu
 ls-menu $home
+ls-menu "D:\"
 
 # Credential
 

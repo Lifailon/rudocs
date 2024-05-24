@@ -25,6 +25,7 @@
 - [Files](#files)
 - [Archive](#archive)
 - [Handle](#handle)
+- [Console-Menu](#console-menu)
 - [Credential](#credential)
 - [WinEvent](#winevent)
 - [Firewall](#firewall)
@@ -1032,6 +1033,51 @@ function Expand-ArchivePassword {
 `$test = New-Object System.IO.StreamReader("$home\desktop\test.txt")` занять файл текущим процессом pwsh ($pid) \
 `$SearchProcess = & $handle "C:\Users\Lifailon\Desktop\test.txt" -nobanner -u -v | ConvertFrom-Csv` вывести список дескрипторов по пути к файлу (имя процесса, его PID и пользователь который запустил) \
 `Stop-Process $SearchProcess.PID` завершить процесс, который удерживал файл
+
+# Console-Menu
+```PowerShell
+# Импортируем модуль PS-Menu в текущую сессию из репозитория GitHub
+$module = "https://raw.githubusercontent.com/chrisseroka/ps-menu/master/ps-menu.psm1"
+Invoke-Expression $(Invoke-RestMethod $module)
+```
+Пример навигации по директориям в системе используя меню:
+```PowerShell
+function ls-menu {
+	param (
+		$startDir = "C:\"
+	)
+	clear
+	# Проверяем, что мы не находимся в root директории (исключить возврат назад)
+	if ([System.IO.Path]::GetPathRoot($startDir) -eq $startDir) {
+		$select = menu @(
+			@($(Get-ChildItem $startDir).name)
+		)
+	}
+	else {
+		$select = menu @(
+			@("..")+@($(Get-ChildItem $startDir).name)
+		)
+	}
+	# Если выбрали возврат назад, то забираем только путь у стартовой директории
+	if ($select -eq "..") {
+		$backPath = [System.IO.Path]::GetDirectoryName($startDir)
+		ls-menu $backPath
+	}
+	else {
+		# Проверяем, что выбрали директорию
+		if ($(Test-Path "$startDir\$select" -PathType Container)) {
+			# Если выбрали директорию, к стартовому пути добавляем выбранное имя директории
+			ls-menu "$startDir\$select"
+		}
+		else {
+			ls-menu $startDir
+		}
+	}
+}
+```
+`ls-menu` \
+`ls-menu $home` \
+`ls-menu "D:\"`
 
 # Credential
 
