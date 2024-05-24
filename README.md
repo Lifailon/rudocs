@@ -6731,6 +6731,14 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 `Stop-DeepLX` \
 `Get-LanguageCode` получение кодов языков по стандарту ISO-639-1
 
+### Console-Download
+
+`Install-Module Console-Download -Repository NuGet` \
+`Invoke-Expression $(Invoke-RestMethod "https://raw.githubusercontent.com/Lifailon/Console-Download/rsa/module/Console-Download/Console-Download.psm1")` \
+`Invoke-Download -Url "https://releases.ubuntu.com/18.04/ubuntu-18.04.6-live-server-amd64.iso" -Path "C:\Users\Lifailon\Downloads" -FileName "us-18.04.6.iso" -Update 1` \
+`Invoke-Download "https://releases.ubuntu.com/24.04/ubuntu-24.04-desktop-amd64.iso"` \
+`Invoke-Download "https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.msi"`
+
 ### PSEverything
 
 `Install-Module PSEverything -Repository NuGet` \
