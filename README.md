@@ -82,6 +82,7 @@
 - [MySQL](#mysql)
 - [MSSQL](#mssql)
 - [InfluxDB](#influxdb)
+- [InfluxDB-api](#influxdb-api)
 - [Telegraf](#telegraf)
 - [Elasticsearch](#elasticsearch)
 - [CData](#cdata)
@@ -533,7 +534,10 @@ g    # Период или эра (например, "н.э.")
 
 `-replace "1","2"` замена элементов в индексах массива (везде где присутствует 1, заменить на 2), для удаления используется только первое значение \
 `-split " "` преобразовать строку в массив, разделителем указан пробел, которой удаляется ($url.Split("/")[-1]) \
-`-join " "` преобразовать массив (коллекцию) в единую строку (string), добавить разделителем пробел \
+`-join " "` преобразовать массив (коллекцию) в единую строку (string), добавить разделителем пробел
+
+`@(1,2,3) -contains 3` проверить, что элемент справа содержится в массиве слева \
+`@(1,2) -notcontains 3` проверить, что элемент справа не содержится в массиве слева
 
 `-like *txt*` поиск по маскам wildcard, выводит значение на экран \
 `-match txt` поиска по шаблонам, проверка на соответствие содержимого текста \
@@ -553,7 +557,7 @@ g    # Период или эра (например, "н.э.")
 `$String -Match ".*(?=\.txt)" | Out-Null` \
 `$Matches[0][-4..-1] -Join ""`
 
-`$string.Substring($string.IndexOf(".txt")-4, 4)` 2-й вариант (IndexOf)`
+`$string.Substring($string.IndexOf(".txt")-4, 4)` 2-й вариант (IndexOf)
 
 ### Форматирование (.NET method format)
 
@@ -5337,6 +5341,8 @@ SELECT * FROM "HardwareMonitor" WHERE time > now() - 5m
 `ALTER RETENTION POLICY del6h ON powershell DEFAULT` изменить (ALTER) политику хранения для БД на del6h (DEFAULT) \
 `DROP RETENTION POLICY del2d ON powershell` удаление политики хранения приводит к безвозвратному удалению всех измерений (таблиц) и данных, хранящихся в политике хранения \
 `SHOW RETENTION POLICIES ON PowerShell` отобразить действующие политики базы данных PowerShell
+
+# InfluxDB-api
 ```PowerShell
 $data = Invoke-RestMethod http://192.168.3.102:8086/query?q="SHOW RETENTION POLICIES ON PowerShell"
 $col = $data.results.series.columns
@@ -5467,6 +5473,22 @@ $Service_Name = "PerformanceTo-InfluxDB"
 Get-Service $Service_Name | Start-Service
 Get-Service $Service_Name | Set-Service -StartupType Automatic
 ```
+### PSInfluxDB
+
+`Install-Module psinfluxdb -Repository NuGet` \
+`Get-InfluxUsers -server 192.168.3.102` список пользователей на сенвере InfluxDB и права доступа \
+`Get-InfluxDatabases -server 192.168.3.102` список баз данных \
+`Get-InfluxDatabases -server 192.168.3.102 -creat -database test` создать базу данных \
+`Get-InfluxDatabases -server 192.168.3.102 -delete -database test` удалить базу данных \
+`Get-InfluxPolicy -server 192.168.3.102 -database PowerShell` список политик хранения указанной базы данных \
+`Get-InfluxPolicy -server 192.168.3.102 -database PowerShell -creat -policyName del2d -hours 48` создать политику хранения \
+`Get-InfluxPolicy -server 192.168.3.102 -database PowerShell -policyName del2d -default` применить политику хранения к базе данных по умолчанию \
+`Get-InfluxTables -server 192.168.3.102 -database PowerShell` список таблиц/измерений в базе данных \
+`$Data = Get-InfluxData -server 192.168.3.102 -database PowerShell -table ping | Format-Table` отобразить данные в таблице \
+`$Data | Where-Object {$_.SensorName -match "CPU_Package" -and $_.Value -gt 90} | Format-Table` отфильтровать данные по двум параметрам (сенсоры процессора с показателем выше 90) \
+`$influx = Get-InfluxData -server 192.168.3.104 -database PowerShell -table speedtest` \
+`Get-InfluxChart -time ($influx.time) -data ($influx.download) -title "SpeedTest Download" -path "C:\Users\Lifailon\Desktop"` создать график (WinForms Chart) измерений и сохранить в jpeg-файл
+
 # Telegraf
 
 [Plugins](https://docs.influxdata.com/telegraf/v1.27/plugins/#input-plugins)
