@@ -56,7 +56,7 @@
 - [Hyper-V](#hyper-v)
 - [Azure](#azure)
 - [Exchange/EMShell](#exchangeemshell)
-- [TrueNAS](#truenas)
+- [NAS](#nas)
 - [Veeam](#veeam)
 - [REST API](#rest-api)
 - [Pode](#pode)
@@ -3102,10 +3102,15 @@ CopyQueue Length - длина репликационной очереди коп
 
 `Get-MailboxDatabaseCopyStatus * | where {$_.ContentIndexState -eq "Failed" -or $_.ContentIndexState -eq "FailedAndSuspended"}` отобразить у какой БД произошел сбой работы (FailedAndSuspended) или индекса (ContentIndexState)
 
-# TrueNAS
+# NAS
 
-`import-Module TrueNas` \
-`(Get-Module TrueNas).ExportedCommands` \
+### TrueNAS
+
+[PowerTrueNas](https://github.com/PowerTrueNas/TrueNas)
+
+`Install-Module TrueNas` \
+`Import-Module TrueNas` \
+`$(Get-Module TrueNas).ExportedCommands` \
 `Connect-TrueNasServer -Server tnas-01 -SkipCertificateCheck` \
 `Get-TrueNasCertificate` настройки сертификата \
 `Get-TrueNasSetting` настройки языка, time zone, syslog level и server, https port \
@@ -3127,6 +3132,63 @@ CopyQueue Length - длина репликационной очереди коп
 `Get-TrueNasService | ft` список служб и их статус \
 `Start-TrueNasService ssh` запустить службу \
 `Stop-TrueNasService ssh` остановить службу
+
+### Synology
+
+[pSynology](https://github.com/pspete/pSynology)
+
+`New-SYNOSession` аутентификация на Synology Diskstation и запуск нового сеанса API \
+`Close-SYNOSession` выход из сеанса API \
+`Get-SYNOInfo` получить информацию об API DiskStation \
+`Add-SYNOFSFAvorite` добавить папку в избранное пользователя \
+`Add-SYNOFSFile` загрузить файл \
+`Clear-SYNOFSBackgroundTask` удалить все завершенные фоновые задачи \
+`Clear-SYNOFSFavoriteStatus` удалить все избранное с неработающим статусом \
+`Clear-SYNOFSSharingLink` удалить все просроченные и неработающие ссылки для обмена \
+`Get-SYNOFSArchiveCompress` получить статус задачи сжатия \
+`Get-SYNOFSArchiveContent` вывести содержимое архива \
+`Get-SYNOFSArchiveExtract` получить статус задачи извлечения \
+`Get-SYNOFSBackgroundTask` список всех фоновых задач, включая копирование \
+`Get-SYNOFSCopy` получить статус операции копирования \
+`Get-SYNOFSDeleteItem` получить статус задачи удаления \
+`Get-SYNOFSDirSize` получить статус задачи расчета размера \
+`Get-SYNOFSFavorite` список избранного пользователя \
+`Get-SYNOFSFile` перечислить файлы в заданной папке \
+`Get-SYNOFSFileInfo` получить информацию о файлах или файле \
+`Get-SYNOFSInfo` получить информацию о файловой станции \
+`Get-SYNOFSMD5` получить статус вычислительной задачи MD5 \
+`Get-SYNOFSSearch` перечислить совпадающие файлы во временной базе данных поиска \
+`Get-SYNOFSShare` список всех общих папок \
+`Get-SYNOFSSharingLink` список ссылок пользователя на общий доступ к файлам \
+`Get-SYNOFSSharingLinkInfo` получить информацию о ссылке общего доступа по идентификатору ссылки общего доступа \
+`Get-SYNOFSThumbnail` получить миниатюру файла \
+`Get-SYNOFSVirtualFolder` список всех папок точек монтирования заданного типа виртуальной файловой системы \
+`New-SYNOFSFolder` создать папку \
+`New-SYNOFSSharingLink` создать одну или несколько ссылок для общего доступа по пути к файл или папку \
+`Remove-SYNOFSFAvorite` удаление избранного из избранного пользователя \
+`Remove-SYNOFSItem` удалить файл или папку \
+`Remove-SYNOFSSearch` удалить временные базы данных поиска \
+`Remove-SYNOFSSharingLink` удалить одну или несколько ссылок общего доступа \
+`Rename-SYNOFSItem` переименовываем файл или папку \
+`Save-SYNOFSFile` загрузить файл или папку \
+`Set-SYNOFSFAvorite` редактировать избранное имя \
+`Set-SYNOFSSharingLink` изменить ссылку для общего доступа \
+`Start-SYNOFSArchiveCompress` запустить задание сжатия файла или папки \
+`Start-SYNOFSArchiveExtract` запустить задание распаковки архива \
+`Start-SYNOFSCopy` запустить задание копирования файлов \
+`Start-SYNOFSDeleteItem` запустить задание удаления файлов или папок \
+`Start-SYNOFSDirSize` расчитать размер для одного или нескольких путей к файлам или папкам \
+`Start-SYNOFSMD5` получить MD5 файла \
+`Start-SYNOFSSearch` поиск файлов по заданным критериям \
+`Stop-SYNOFSArchiveCompress` остановить задачу сжатия \
+`Stop-SYNOFSArchiveExtract` остановить задачу извлечения \
+`Stop-SYNOFSCopy` остановить задачу копирования \
+`Stop-SYNOFSDeleteItem` остановить задачу удаления \
+`Stop-SYNOFSDirSize` остановить расчет размера \
+`Stop-SYNOFSMD5` остановить вычисление MD5 файла \
+`Stop-SYNOFSSearch` остановить задачу поиска \
+`Test-SYNOFSPermission` проверить, имеет ли вошедший в систему пользователь разрешение на запись в данную папку \
+`Update-SYNOFSFAvorite` заменить несколько избранных папок в избранном пользователя
 
 # Veeam
 
@@ -6733,11 +6795,15 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 ### Console-Download
 
-`Install-Module Console-Download -Repository NuGet` \
-`Invoke-Expression $(Invoke-RestMethod "https://raw.githubusercontent.com/Lifailon/Console-Download/rsa/module/Console-Download/Console-Download.psm1")` \
-`Invoke-Download -Url "https://releases.ubuntu.com/18.04/ubuntu-18.04.6-live-server-amd64.iso" -Path "C:\Users\Lifailon\Downloads" -FileName "us-18.04.6.iso" -Update 1` \
-`Invoke-Download "https://releases.ubuntu.com/24.04/ubuntu-24.04-desktop-amd64.iso"` \
-`Invoke-Download "https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.msi"`
+`Install-Module Console-Download -Repository NuGet` устаовить модуль из менеджера пакетов NuGet \
+`Invoke-Expression $(Invoke-RestMethod "https://raw.githubusercontent.com/Lifailon/Console-Download/rsa/module/Console-Download/Console-Download.psm1")` или импортировать модуль из GitHub репозитория в текущую сессию PowerShell \
+`Invoke-Download -Url "https://releases.ubuntu.com/24.04/ubuntu-24.04-live-server-amd64.iso" -Path "C:\Users\Lifailon\Downloads" -FileName "us-24.04.iso" -Update 2` загрузить iso-образ из репозитория релизов Ubuntu (указать путь по умолчанию и имя файла) \
+`Invoke-Download -Url "https://github.com/Lifailon/helperd/releases/download/0.0.1/Helper-Desktop-Setup-0.0.1.exe"` \
+`Invoke-Download -Url "https://104-234-233-47.lg.looking.house/1000.mb"` Загрузить пустой файл для проверки скорости через хост Looking Glass \
+`$urls = Get-LookingGlassList` отобразить актуальный список конечных точек Looking Glass через Looking.House (выдает 3 ссылки на загрузку файлов по 10, 100 и 1000 мбайт для каждого региона) \
+`$usaNy = $urls | Where-Object region -like *USA*NY*` отфильтровать список по региону и городу \
+`$url1gb = $usaNy[0].url1000mb` забрать первую ссылку с файлов на 1Гб \
+`Invoke-Download $url1gb`
 
 ### PSEverything
 
