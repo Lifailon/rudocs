@@ -215,16 +215,26 @@
 `Set-Clipboard $srv` скопировать в буфер обмена \
 `Get-Clipboard` вставить
 
-### Write
+### Write-Host
 ```PowerShell
 Write-Host -BackgroundColor Green "Test:" -NoNewline # изменить цвет фона и запретить перенос строки
 Write-Host " True" -ForegroundColor Green # данная строка будет печататься продолжая предыдущую с новыми параметрами цвета (фон по умолчанию, изменяем цвет текста)
 ```
-`Write-Error "False"`
+`Write-Error "False"` \
+`Write-Warning "False"`
+
+### Write-Progress
 ```PowerShell
-Foreach ($n in 1..100) {
-    Start-Sleep -Milliseconds 100
+foreach ($n in 1..100) {
     Write-Progress -Activity "Test Progress" -PercentComplete $n
+    Start-Sleep -Milliseconds 100
+}
+```
+### for
+```PowerShell
+for ($i = 0; $i -le 100; $i+=10) {
+    Write-Progress -Activity "Test Progress" -PercentComplete $i
+    Start-Sleep -Seconds 1
 }
 ```
 ### Array
