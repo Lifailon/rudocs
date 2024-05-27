@@ -33,6 +33,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # DISM
 # Scheduled
 # Network
+# iPerf
 # RDP
 # Shutdown
 # LocalAccounts
@@ -111,6 +112,7 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # Git
 # GitHub-api
 # GitHub-Actions
+# Pester
 # PSAppDeployToolkit
 # DSC
 # Ansible
@@ -136,7 +138,6 @@ https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=gi
 # Discord
 # oh-my-posh
 # Windows-Terminal
-# Pester
 # Pandoc
 # FFmpeg
 # ImageMagick
@@ -1382,6 +1383,13 @@ tnc $srv -CommonTCPPort WINRM # HTTP,RDP,SMB
 tnc ya.ru –TraceRoute -Hops 2 # TTL=2
 tnc ya.ru -DiagnoseRouting # маршрутизация до хоста, куда (DestinationPrefix: 0.0.0.0/0) через (NextHop: 192.168.1.254)
 
+### netstat
+
+netstat -anop tcp # -n/-f/-b
+Get-NetTCPConnection -State Established,Listen | ? LocalPort -Match 3389
+Get-NetTCPConnection -State Established,Listen | ? RemotePort -Match 22
+Get-NetUDPEndpoint | ? LocalPort -Match 514 # netstat -ap udp
+
 ### nslookup
 
 nslookup ya.ru 1.1.1.1 # с указанием DNS сервера
@@ -1424,13 +1432,6 @@ Get-NetTCPSetting
 Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -CongestionProvider DCTCP # настраивает провайдера управления перегрузкой (Congestion Control Provider) на DCTCP (Data Center TCP) для профилей TCP с именами DatacenterCustom и Datacenter
 Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -CwndRestart True # включает функцию перезапуска окна перегрузки (Congestion Window Restart, CwndRestart) для указанных профилей TCP. Это означает, что после периода идле (когда нет передачи данных) TCP окно перегрузки будет сбрасываться
 Set-NetTCPSetting -SettingName DatacenterCustom,Datacenter -ForceWS Disabled # отключает принудительное масштабирование окна (Forced Window Scaling) для указанных профилей TCP. Масштабирование окна — это механизм, который позволяет увеличивать размер окна перегрузки TCP, чтобы улучшить производительность передачи данных по сети с высокой пропускной способностью и большой задержкой
-
-### netstat
-
-netstat -anop tcp # -n/-f/-b
-Get-NetTCPConnection -State Established,Listen | ? LocalPort -Match 3389
-Get-NetTCPConnection -State Established,Listen | ? RemotePort -Match 22
-Get-NetUDPEndpoint | ? LocalPort -Match 514 # netstat -ap udp
 
 ### hostname
 
@@ -1529,6 +1530,92 @@ function Get-SpeedTestOokla {
         $Collections
     }
 }
+
+# iPerf
+
+### Install
+
+$url = $($(Invoke-RestMethod https://api.github.com/repos/ar51an/iperf3-win-builds/releases/latest).assets | Where-Object name -match "win64.zip").browser_download_url
+Invoke-RestMethod $url -OutFile $home\Downloads\iperf.zip
+New-Item "$home\Documents\iperf3" -Type Directory | Out-Null
+Expand-Archive -Path "$home\Downloads\iperf.zip" -OutputPath "$home\Documents\iperf3"
+Remove-Item "$home\Downloads\iperf*" -Force -Recurse
+
+& "$home\Documents\iperf3\iperf3.exe" -h
+
+### Env-Update-Exec-Path
+
+$EnvPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
+$EnvPath -split ";"
+$iperfPath = "$home\Documents\iperf3\"
+$EnvAddPath = $EnvPath + ";" + $iperfPath
+[Environment]::SetEnvironmentVariable("Path", $EnvAddPath, [EnvironmentVariableTarget]::Machine)
+$([Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)) -split ";"
+
+iperf3 -h
+
+### iPerf-GUI
+
+Invoke-RestMethod "https://github.com/Lifailon/iPerf-GUI/raw/rsa/iPerf-GUI-Install.exe" -OutFile "$home\Downloads\iPerf-GUI-Install.exe" # скачать установочную версию собранную с помощью WinRAR
+Start-Process -FilePath "$home\Downloads\iPerf-GUI-Install.exe" -ArgumentList "/S" -NoNewWindow -Wait # установить в тихом режиме
+
+### iPerf-Docker
+
+echo '
+FROM alpine:latest
+RUN apk update && apk add --no-cache iperf3
+ENV PORT=5201
+EXPOSE $PORT
+CMD ["sh", "-c", "iperf3 -s -p $PORT"]
+' > Dockerfile
+
+docker build -t iperf3-alpine-server .
+docker run -d -p 5201:5201 --name iperf3-alpine-server iperf3-alpine-server
+
+### Server
+
+iperf3 -s # запуск сервера
+iperf3 -s -D # запустить сервер в фоновом режиме как службу (--daemon)
+Get-NetTCPConnection -State Established,Listen | ? LocalPort -Match 5201 # проверить, что порт сервера слушает
+Get-Process -Id $(Get-NetTCPConnection -State Established,Listen | ? LocalPort -Match 5201).OwningProcess # получить процесс по порту
+Get-Process iperf3 | Stop-Process # остановить процесс
+iperf3 -s -D --logfile "$home\Documents\iperf3\iperf3.log" # перенаправить вывод в лог файл
+iperf3 -s -p 5211 # указать порт, на котором будет слушать сервер или отправлять запросы клиент
+iperf3 -s -p 5211 -f M # изменить формат выводимых данных (измерять в байтах а не в битах, доступные значения: K,M,G,T)
+iperf3 -s -p 5211 -f M -J # вывод в формате json
+iperf3 -s -p 5211 -f M -V # вывод подробной информации
+
+### Client
+
+iperf3 -c 192.168.3.100 -p 5211 # подключение к серверу (по умолчанию проверяется отдача на сервер с клиента)
+iperf3 -c 192.168.3.100 -p 5211 -R # обратный тест, проверка скачивания с сервера (--reverse, сервер отправляет данные клиенту)
+iperf3 -c 192.168.3.100 -p 5211 -R -P 2 # количество одновременных потоков ([SUM] - суммарная скорость нескольки потоков)
+iperf3 -c 192.168.3.100 -p 5211 -R -4 # использовать только IPv4
+iperf3 -c 192.168.3.100 -p 5211 -R -u # использовать UDP вместо TCP
+iperf3 -c 192.168.3.100 -p 5211 -R -u -b 2mb # установить битрейт в 2.00 Mbits/sec для UDP (по умолчанию 1 Мбит/сек, для TCP не ограничено)
+iperf3 -c 192.168.3.100 -p 5211 -R -t 30 # время одного теста в секундах (по умолчанию 10 секунд)
+iperf3 -c 192.168.3.100 -p 5211 -R -n 1gb # указать объем данных для проверки (применяется вместо времени -t)
+iperf3 -c 192.168.3.100 -p 5211 -R --get-server-output # вывести вывод сервера на клиенте
+
+### Output
+
+sender # upload (скорость передачи на удаленный сервер)
+receiver # download (скорость скачивания с удаленного сервера)
+Interval # общее время сканирования
+Transfer # кол-во переданных и полученных МБайт
+Bandwidth # скорость передачи (измеряется в Мбит/c)
+
+### PS-iPerf
+
+Install-Module ps-iperf -Repository NuGet
+Import-Module PS-iPerf
+Start-iPerfServer -Port 5211 # запустить сервер
+Get-iPerfServer # статус работы сервера
+Stop-iPerfServer # остановить сервер
+Connect-iPerfServer -Server 192.168.3.100 -Port 5211 -MBytes 500 -Download # подключиться к серверу и скачать 500 МБайт
+$SpeedTest = Connect-iPerfServer -Server 192.168.3.100 -Port 5211 -MBytes 500 -LogWrite # передать 500 МБайт на сервер (вести запись в лог-файл)
+$SpeedTest.Intervals # метрики измерений
+Get-iPerfLog # прочитать лог-файл
 
 # RDP
 
@@ -7275,6 +7362,59 @@ jobs:
         # Отправляем коммит в удаленный репозиторий
         git push
 
+# Pester
+
+Source: https://github.com/pester/Pester
+
+Install-Module -Name Pester -Repository PSGallery -Force -AllowClobber
+Import-Module Pester
+$(Get-Module Pester -ListAvailable).Version
+
+.Tests.ps1
+
+function Add-Numbers {
+    param (
+        [int]$a,
+        [int]$b
+    )
+    $a + $b
+}
+Describe "Add-Numbers" {
+    Context "При сложении двух чисел" {
+        It "Должна вернуться правильная сумма" {
+            $result = Add-Numbers -a 3 -b 4
+            $result | Should -Be 7
+        }
+    }
+    Context "При сложении двух чисел" {
+        It "Должна вернуться ошибка (5+0 -ne 4)" {
+            $result = Add-Numbers -a 5 -b 0
+            $result | Should -Be 4
+        }
+    }
+}
+
+function Get-RunningProcess {
+    return Get-Process | Select-Object -ExpandProperty Name
+}
+Describe "Get-RunningProcess" {
+    Context "При наличии запущенных процессов" {
+        It "Должен возвращать список имен процессов" {
+            $result = Get-RunningProcess
+            $result | Should -Contain "svchost"
+            $result | Should -Contain "explorer"
+        }
+    }
+    Context "Когда нет запущенных процессов" {
+        It "Должен возвращать пустой список" {
+            # Замокать функцию Get-Process, чтобы она всегда возвращала пустой список процессов
+            Mock Get-Process { return @() }
+            $result = Get-RunningProcess
+            $result | Should -BeEmpty
+        }
+    }
+}
+
 # PSAppDeployToolkit
 
 ### Install-DeployToolkit
@@ -9326,59 +9466,6 @@ Escape-последовательности: https://learn.microsoft.com/ru-ru/c
         "keys": "ctrl+p"
     }
 ]
-
-# Pester
-
-Source: https://github.com/pester/Pester
-
-Install-Module -Name Pester -Repository PSGallery -Force -AllowClobber
-Import-Module Pester
-$(Get-Module Pester -ListAvailable).Version
-
-.Tests.ps1
-
-function Add-Numbers {
-    param (
-        [int]$a,
-        [int]$b
-    )
-    $a + $b
-}
-Describe "Add-Numbers" {
-    Context "При сложении двух чисел" {
-        It "Должна вернуться правильная сумма" {
-            $result = Add-Numbers -a 3 -b 4
-            $result | Should -Be 7
-        }
-    }
-    Context "При сложении двух чисел" {
-        It "Должна вернуться ошибка (5+0 -ne 4)" {
-            $result = Add-Numbers -a 5 -b 0
-            $result | Should -Be 4
-        }
-    }
-}
-
-function Get-RunningProcess {
-    return Get-Process | Select-Object -ExpandProperty Name
-}
-Describe "Get-RunningProcess" {
-    Context "При наличии запущенных процессов" {
-        It "Должен возвращать список имен процессов" {
-            $result = Get-RunningProcess
-            $result | Should -Contain "svchost"
-            $result | Should -Contain "explorer"
-        }
-    }
-    Context "Когда нет запущенных процессов" {
-        It "Должен возвращать пустой список" {
-            # Замокать функцию Get-Process, чтобы она всегда возвращала пустой список процессов
-            Mock Get-Process { return @() }
-            $result = Get-RunningProcess
-            $result | Should -BeEmpty
-        }
-    }
-}
 
 # Pandoc
 
