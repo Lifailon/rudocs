@@ -2463,7 +2463,15 @@ function Start-PingInvokeParallel ($Network) {
 ```
 `Start-PingInvokeParallel -Network 192.168.3.0` \
 `$(Get-History)[-1].Duration.TotalSeconds` 7 seconds
-
+```PowerShell
+$array_main  = 1..10 | ForEach-Object {"192.168.3.$_"}
+Invoke-Parallel -InputObject $(0..$($array_main.Count-1)) -ScriptBlock {
+    Foreach ($n in 1..100) {
+        Start-Sleep -Milliseconds 100
+        Write-Progress -Activity $($array_main[$_]) -PercentComplete $n -id $_
+    }
+} -ImportVariables
+```
 ### ForEach-Object-Parallel
 ```PowerShell
 function Start-PingParallel ($Network) {
@@ -2496,7 +2504,16 @@ function Start-TestConnectParallel (
 ```
 `Start-TestConnectParallel -Network 192.168.3.0 -Csv | ConvertFrom-Csv` \
 `$(Get-History)[-1].Duration.TotalSeconds` 3 seconds
-
+```PowerShell
+$array_main  = 1..10 | ForEach-Object {"192.168.3.$_"}
+$(0..$($array_main.Count-1)) | ForEach-Object -Parallel {
+    Foreach ($n in 1..100) {
+        Start-Sleep -Milliseconds 100
+        $array_temp = $using:array_main
+        Write-Progress -Activity $($array_temp[$_]) -PercentComplete $n -id $_
+    }
+} -ThrottleLimit $($array_main.Count)
+```
 # SMTP
 ```PowerShell
 function Send-SMTP {
@@ -6807,13 +6824,23 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 `Install-Module Console-Download -Repository NuGet` устаовить модуль из менеджера пакетов NuGet \
 `Invoke-Expression $(Invoke-RestMethod "https://raw.githubusercontent.com/Lifailon/Console-Download/rsa/module/Console-Download/Console-Download.psm1")` или импортировать модуль из GitHub репозитория в текущую сессию PowerShell \
-`Invoke-Download -Url "https://releases.ubuntu.com/24.04/ubuntu-24.04-live-server-amd64.iso" -Path "C:\Users\Lifailon\Downloads" -FileName "us-24.04.iso" -Update 2` загрузить iso-образ из репозитория релизов Ubuntu (указать путь по умолчанию и имя файла) \
-`Invoke-Download -Url "https://github.com/Lifailon/helperd/releases/download/0.0.1/Helper-Desktop-Setup-0.0.1.exe"` \
-`Invoke-Download -Url "https://104-234-233-47.lg.looking.house/1000.mb"` Загрузить пустой файл для проверки скорости через хост Looking Glass \
+`Invoke-Download -Url "https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.zip"` загрузить файл в один поток с отображением скорости загрузки в реальном времен (путь загрузки файла по умолчанию: $home\downloads) \
+`Invoke-Download -Url "https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.zip" -Thread 3` загрузить один и тотже файл в 3 потока (создается 3 файла, доступно от 1 до 20 потоков)
+```PowerShell
+$urls = @(
+    "https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.zip",
+    "https://github.com/Lifailon/helperd/releases/download/0.0.1/Helper-Desktop-Setup-0.0.1.exe"
+)
+Invoke-Download $urls # загрузить параллельно 2 файла
+```
+`$urls = Get-Content "$home\Desktop\links.txt"` \
+`Invoke-Download $urls` передайте список URL-адресов из файла для загрузки файлов, эквивалентному числу url
+
 `$urls = Get-LookingGlassList` отобразить актуальный список конечных точек Looking Glass через Looking.House (выдает 3 ссылки на загрузку файлов по 10, 100 и 1000 мбайт для каждого региона) \
-`$usaNy = $urls | Where-Object region -like *USA*NY*` отфильтровать список по региону и городу \
-`$url1gb = $usaNy[0].url1000mb` забрать первую ссылку с файлов на 1Гб \
-`Invoke-Download $url1gb`
+`$usaNy = $urls | Where-Object region -like *USA*New*York*` отфильтровать список по региону и городу \
+`$url = $usaNy[0].url100mb` забрать первую ссылку с файлов на 100 МБайт \
+`Invoke-Download $url` начать загрузку файла \
+`Invoke-Download $url -Thread 3` начать загрузку 3-х одинаковых файлов
 
 ### PSEverything
 
