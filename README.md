@@ -891,31 +891,38 @@ function ConvertFrom-Bit {
 
 ### ForEach-Object (%)
 ```PowerShell
-100..110 | %{ping -n 1 -w 50 192.168.3.$_ > $null
-if ($LastExitCode -eq 0) {Write-Host "192.168.3.$_" -ForegroundColor green
-} else {
-Write-Host "192.168.3.$_"-ForegroundColor Red}}
-%  # передать цикл через конвеер (ForEach-Object)
-$_ # переменная цикла и конвеера ($PSItem)
-gwmi Win32_QuickFixEngineering | where {$_.InstalledOn.ToString() -match "2022"} | %{($_.HotFixID.Substring(2))} # gwmi создает массив, вывод команды передается where для поиска подходящих под критерии объектов. По конвееру передается в цикл для удаления первых (2) символов методом Substring из всех объектов HotFixID.
+100..110 | %{
+    ping -n 1 -w 50 192.168.3.$_ > $null
+    if ($LastExitCode -eq 0) {
+        Write-Host "192.168.3.$_" -ForegroundColor green
+    } else {
+    Write-Host "192.168.3.$_"-ForegroundColor Red
+    }
+}
 ```
+`% ` передать цикл через конвеер (ForEach-Object) \
+`$_` переменная цикла и конвеера ($PSItem) \
+`gwmi Win32_QuickFixEngineering | where {$_.InstalledOn.ToString() -match "2022"} | %{($_.HotFixID.Substring(2))}` gwmi создает массив, вывод команды передается where для поиска подходящих под критерии объектов. По конвееру передается в цикл для удаления первых (2) символов методом Substring из всех объектов HotFixID.
+
 ### While
 ```PowerShell
 $srv = "yandex.ru"
 $out2 = "Есть пинг"
 $out3 = "Нет пинга"
 $out = $false # предварительно сбросить переменную, While проверяет условие до запуска цикла
-While ($out -eq $false){ # пока условие является $true, цикл будет повторяться
-$out = ping -n 1 -w 50 $srv
-if ($out -match "ttl") {$out = $true; $out2} else {$out = $false; $out3; sleep 1}
+While ($out -eq $false) { # пока условие является $true, цикл будет повторяться
+    $out = ping -n 1 -w 50 $srv
+    if ($out -match "ttl") {$out = $true; $out2} else {$out = $false; $out3; sleep 1}
 }
 
-while ($True){ # запустить бесконечный цикл
-$result = ping yandex.ru -n 1 -w 50
-if ($result -match "TTL"){ # условие, при котором будет выполнен break
-Write-Host "Сайт доступен"
-break # остановит цикл
-} else {Write-Host "Сайт недоступен"; sleep 1}
+while ($True) { # запустить бесконечный цикл
+    $result = ping yandex.ru -n 1 -w 50
+    if ($result -match "TTL") { # условие, при котором будет выполнен break
+        Write-Host "Сайт доступен"
+        break # остановит цикл
+    } else {
+        Write-Host "Сайт недоступен"; sleep 1
+    }
 }
 ```
 ### Try-Catch-Finally
@@ -1204,13 +1211,14 @@ $FilterXPath = '<QueryList><Query Id="0"><Select>*[System[EventID=21]]</Select><
 $RDPAuths = Get-WinEvent -ComputerName $srv -LogName "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational" -FilterXPath $FilterXPath
 [xml[]]$xml = $RDPAuths | Foreach {$_.ToXml()}
 $EventData = Foreach ($event in $xml.Event) {
-New-Object PSObject -Property @{
-"Connection Time" = (Get-Date ($event.System.TimeCreated.SystemTime) -Format 'yyyy-MM-dd hh:mm K')
-"User Name" = $event.UserData.EventXML.User
-"User ID" = $event.UserData.EventXML.SessionID
-"User Address" = $event.UserData.EventXML.Address
-"Event ID" = $event.System.EventID
-}}
+    New-Object PSObject -Property @{
+        "Connection Time" = (Get-Date ($event.System.TimeCreated.SystemTime) -Format 'yyyy-MM-dd hh:mm K')
+        "User Name" = $event.UserData.EventXML.User
+        "User ID" = $event.UserData.EventXML.SessionID
+        "User Address" = $event.UserData.EventXML.Address
+        "Event ID" = $event.System.EventID
+    }
+}
 $EventData | ft
 ```
 ### EventLog
@@ -1720,8 +1728,8 @@ function Start-Shutdown {
 `Get-LocalGroupMember "Administrators"` члены группы
 ```PowerShell
 @("vproxy-01","vproxy-02","vproxy-03") | %{
-icm $_ {Add-LocalGroupMember -Group "Administrators" -Member "support4"}
-icm $_ {Get-LocalGroupMember "Administrators"}
+    icm $_ {Add-LocalGroupMember -Group "Administrators" -Member "support4"}
+    icm $_ {Get-LocalGroupMember "Administrators"}
 }
 ```
 # SMB
@@ -2304,9 +2312,10 @@ $zone = icm $srv {Get-DnsServerZone} | select ZoneName,ZoneType,DynamicUpdate,Re
 DirectoryPartitionName | Out-GridView -Title "DNS Server: $srv" –PassThru
 $zone_name = $zone.ZoneName
 if ($zone_name -ne $null) {
-icm $srv {Get-DnsServerResourceRecord -ZoneName $using:zone_name | sort RecordType | select RecordType,HostName, @{
-Label="IPAddress"; Expression={$_.RecordData.IPv4Address.IPAddressToString}},TimeToLive,Timestamp
-} | select RecordType,HostName,IPAddress,TimeToLive,Timestamp | Out-GridView -Title "DNS Server: $srv"
+    icm $srv {
+        Get-DnsServerResourceRecord -ZoneName $using:zone_name | sort RecordType | select RecordType,HostName, @{
+        Label="IPAddress"; Expression={$_.RecordData.IPv4Address.IPAddressToString}},TimeToLive,Timestamp
+    } | select RecordType,HostName,IPAddress,TimeToLive,Timestamp | Out-GridView -Title "DNS Server: $srv"
 }
 ```
 `Sync-DnsServerZone –passthru` синхронизировать зоны с другими DC в домене \
@@ -2325,10 +2334,10 @@ $DNSRR = [WmiClass]"\\$DNSServer\root\MicrosoftDNS:MicrosoftDNS_ResourceRecord"
 $ConvFile = $DataFile + "_unicode"
 Get-Content $DataFile | Set-Content $ConvFile -Encoding Unicode
 Import-CSV $ConvFile -Delimiter ";" | ForEach-Object {
-$FQDN = $_.HostName + "." + $DNSFZone
-$IP = $_.HostIP
-$TextA = "$FQDN IN A $IP"
-[Void]$DNSRR.CreateInstanceFromTextRepresentation($DNSServer,$DNSFZone,$TextA)
+    $FQDN = $_.HostName + "." + $DNSFZone
+    $IP = $_.HostIP
+    $TextA = "$FQDN IN A $IP"
+    [Void]$DNSRR.CreateInstanceFromTextRepresentation($DNSServer,$DNSFZone,$TextA)
 }
 ```
 # DHCPServer
@@ -3407,12 +3416,12 @@ param (
 ```PowerShell
 https://veeam-11:9419/swagger/ui/index.html
 $Header = @{
-"x-api-version" = "1.0-rev2"
+    "x-api-version" = "1.0-rev2"
 }
 $Body = @{
-"grant_type" = "password"
-"username" = "$login"
-"password" = "$password"
+    "grant_type" = "password"
+    "username" = "$login"
+    "password" = "$password"
 }
 $vpost = iwr "https://veeam-11:9419/api/oauth2/token" -Method POST -Headers $Header -Body $Body -SkipCertificateCheck
 $vtoken = (($vpost.Content) -split '"')[3]
@@ -3423,8 +3432,8 @@ $token = $vtoken | ConvertTo-SecureString -AsPlainText –Force
 $vjob = iwr "https://veeam-11:9419/api/v1/jobs" -Method GET -Headers $Header -Authentication Bearer -Token $token -SkipCertificateCheck
 
 $Header = @{
-"x-api-version" = "1.0-rev1"
-"Authorization" = "Bearer $vtoken"
+    "x-api-version" = "1.0-rev1"
+    "Authorization" = "Bearer $vtoken"
 }
 $vjob = iwr "https://veeam-11:9419/api/v1/jobs" -Method GET -Headers $Header -SkipCertificateCheck
 $vjob = $vjob.Content | ConvertFrom-Json
@@ -3657,12 +3666,13 @@ $ie.Quit()
 `$wshell.SendKeys("{+}{^}{%}{~}{(}{)}{[}{]}{{}{}}")`
 ```PowerShell
 function Get-AltTab {
-(New-Object -ComObject wscript.shell).SendKeys("%{Tab}")
-Start-Sleep $(Get-Random -Minimum 30 -Maximum 180)
-Get-AltTab
+    (New-Object -ComObject wscript.shell).SendKeys("%{Tab}")
+    Start-Sleep $(Get-Random -Minimum 30 -Maximum 180)
+    Get-AltTab
 }
-Get-AltTab
 ```
+`Get-AltTab`
+
 ### Wscript.Shell.Popup
 
 `$wshell = New-Object -ComObject Wscript.Shell` \
@@ -4032,37 +4042,40 @@ Start-Sleep -Seconds 0.5
 `Get-Service | Out-File $home\Desktop\Service.txt -Append` >>
 ```PowerShell
 do {
-if ([Console]::KeyAvailable) {
-$keyInfo = [Console]::ReadKey($true)
-break
-}
-Write-Host "." -NoNewline
-sleep 1
+    if ([Console]::KeyAvailable) {
+        $keyInfo = [Console]::ReadKey($true)
+        break
+    }
+    Write-Host "." -NoNewline
+    Start-Sleep 1
 } while ($true)
 Write-Host
 $keyInfo
 
 function Get-KeyPress {
-param (
-[Parameter(Mandatory)][ConsoleKey]$Key,
-[System.ConsoleModifiers]$ModifierKey = 0
-)
-if ([Console]::KeyAvailable) {
-$pressedKey = [Console]::ReadKey($true)
-$isPressedKey = $key -eq $pressedKey.Key
-if ($isPressedKey) {
-$pressedKey.Modifiers -eq $ModifierKey
-} else {
-[Console]::Beep(1800, 200)
-$false
-}}}
+    param (
+        [Parameter(Mandatory)][ConsoleKey]$Key,
+        [System.ConsoleModifiers]$ModifierKey = 0
+    )
+    if ([Console]::KeyAvailable) {
+        $pressedKey = [Console]::ReadKey($true)
+        $isPressedKey = $key -eq $pressedKey.Key
+        if ($isPressedKey) {
+            $pressedKey.Modifiers -eq $ModifierKey
+        }
+        else {
+            [Console]::Beep(1800, 200)
+            $false
+        }
+    }
+}
 
 Write-Warning 'Press Ctrl+Shift+Q to exit'
 do {
-Write-Host "." -NoNewline
-$pressed = Get-KeyPress -Key Q -ModifierKey 'Control,Shift'
-if ($pressed) {break}
-sleep 1
+    Write-Host "." -NoNewline
+    $pressed = Get-KeyPress -Key Q -ModifierKey 'Control,Shift'
+    if ($pressed) { break }
+    Start-Sleep 1
 } while ($true)
 ```
 # Drawing
@@ -4122,27 +4135,28 @@ $date = Get-Date -f hh:mm:ss
 ```
 # Sockets
 
-### UDP Socket
+### UDP-Socket
+
 [Source](https://cloudbrothers.info/en/test-udp-connection-powershell/)
 ```PowerShell
 function Start-UDPServer {
-param(
-$Port = 5201
-)
-$RemoteComputer = New-Object System.Net.IPEndPoint([System.Net.IPAddress]::Any, 0)
-do {
-$UdpObject = New-Object System.Net.Sockets.UdpClient($Port)
-$ReceiveBytes = $UdpObject.Receive([ref]$RemoteComputer)
-$UdpObject.Close()
-$ASCIIEncoding = New-Object System.Text.ASCIIEncoding
-[string]$ReturnString = $ASCIIEncoding.GetString($ReceiveBytes)
-[PSCustomObject]@{
-LocalDateTime = $(Get-Date -UFormat "%Y-%m-%d %T")
-ClientIP      = $RemoteComputer.address.ToString()
-ClientPort    = $RemoteComputer.Port.ToString()
-Message       = $ReturnString
-}
-} while (1)
+    param(
+        $Port = 5201
+    )
+    $RemoteComputer = New-Object System.Net.IPEndPoint([System.Net.IPAddress]::Any, 0)
+    do {
+        $UdpObject = New-Object System.Net.Sockets.UdpClient($Port)
+        $ReceiveBytes = $UdpObject.Receive([ref]$RemoteComputer)
+        $UdpObject.Close()
+        $ASCIIEncoding = New-Object System.Text.ASCIIEncoding
+        [string]$ReturnString = $ASCIIEncoding.GetString($ReceiveBytes)
+        [PSCustomObject]@{
+            LocalDateTime = $(Get-Date -UFormat "%Y-%m-%d %T")
+            ClientIP      = $RemoteComputer.address.ToString()
+            ClientPort    = $RemoteComputer.Port.ToString()
+            Message       = $ReturnString
+        }
+    } while (1)
 }
 ```
 `Start-UDPServer -Port 5201`
@@ -4150,116 +4164,143 @@ Message       = $ReturnString
 ### Test-NetUDPConnection
 ```PowerShell
 function Test-NetUDPConnection {
-param(
-[string]$ComputerName = "127.0.0.1",
-[int32]$PortServer    = 5201,
-[int32]$PortClient    = 5211,
-$Message
-)
-begin {
-$UdpObject = New-Object system.Net.Sockets.Udpclient($PortClient)
-$UdpObject.Connect($ComputerName, $PortServer)
-}
-process {
-$ASCIIEncoding = New-Object System.Text.ASCIIEncoding
-if (!$Message) {$Message = Get-Date -UFormat "%Y-%m-%d %T"}
-$Bytes = $ASCIIEncoding.GetBytes($Message)
-[void]$UdpObject.Send($Bytes, $Bytes.length)
-}
-end {
-$UdpObject.Close()
-}
+    param(
+        [string]$ComputerName = "127.0.0.1",
+        [int32]$PortServer = 5201,
+        [int32]$PortClient = 5211,
+        $Message
+    )
+    begin {
+        $UdpObject = New-Object system.Net.Sockets.Udpclient($PortClient)
+        $UdpObject.Connect($ComputerName, $PortServer)
+    }
+    process {
+        $ASCIIEncoding = New-Object System.Text.ASCIIEncoding
+        if (!$Message) { $Message = Get-Date -UFormat "%Y-%m-%d %T" }
+        $Bytes = $ASCIIEncoding.GetBytes($Message)
+        [void]$UdpObject.Send($Bytes, $Bytes.length)
+    }
+    end {
+        $UdpObject.Close()
+    }
 }
 ```
 `Test-NetUDPConnection -ComputerName 127.0.0.1 -PortServer 5201` \
 `Test-NetUDPConnection -ComputerName 127.0.0.1 -PortServer 514 -Message "<30>May 31 00:00:00 HostName multipathd[784]: Test message"`
 
-### TCP Socket
+### TCP-Socket
 ```PowerShell
 function Start-TCPServer {
-param(
-$Port = 5201
-)
-do {
-$TcpObject = New-Object System.Net.Sockets.TcpListener($port)
-$ReceiveBytes = $TcpObject.Start()
-$ReceiveBytes = $TcpObject.AcceptTcpClient()
-$TcpObject.Stop()
-$ReceiveBytes.Client.RemoteEndPoint | select Address,Port
-} while (1)
+    param(
+        $Port = 5201
+    )
+    do {
+        $TcpObject = New-Object System.Net.Sockets.TcpListener($port)
+        $ReceiveBytes = $TcpObject.Start()
+        $ReceiveBytes = $TcpObject.AcceptTcpClient()
+        $TcpObject.Stop()
+        $ReceiveBytes.Client.RemoteEndPoint | select Address, Port
+    } while (1)
 }
 ```
 `Start-TCPServer -Port 5201` \
 `Test-NetConnection -ComputerName 127.0.0.1 -Port 5201`
 
 ### WakeOnLan
+
 Broadcast package consisting of 6 byte filled "0xFF" and then 96 byte where the mac address is repeated 16 times
 ```PowerShell
 function Send-WOL {
-param (
-[Parameter(Mandatory = $True)]$Mac,
-$IP,
-[int]$Port = 9
-)
-$Mac = $Mac.replace(":", "-")
-if (!$IP) {$IP = [System.Net.IPAddress]::Broadcast}
-$SynchronizationChain = [byte[]](,0xFF * 6)
-$ByteMac = $Mac.Split("-") | %{[byte]("0x" + $_)}
-$Package = $SynchronizationChain + ($ByteMac * 16)
-$UdpClient = New-Object System.Net.Sockets.UdpClient
-$UdpClient.Connect($IP, $port)
-$UdpClient.Send($Package, $Package.Length)
-$UdpClient.Close()
+    param (
+        [Parameter(Mandatory = $True)]$Mac,
+        $IP,
+        [int]$Port = 9
+    )
+    $Mac = $Mac.replace(":", "-")
+    if (!$IP) { $IP = [System.Net.IPAddress]::Broadcast }
+    $SynchronizationChain = [byte[]](, 0xFF * 6)
+    $ByteMac = $Mac.Split("-") | % { [byte]("0x" + $_) }
+    $Package = $SynchronizationChain + ($ByteMac * 16)
+    $UdpClient = New-Object System.Net.Sockets.UdpClient
+    $UdpClient.Connect($IP, $port)
+    $UdpClient.Send($Package, $Package.Length)
+    $UdpClient.Close()
 }
 ```
 `Send-WOL -Mac "D8-BB-C1-70-A3-4E"` \
 `Send-WOL -Mac "D8-BB-C1-70-A3-4E" -IP 192.168.3.100`
 
-### HTTP Listener
+### HTTPListener
 ```PowerShell
 $httpListener = New-Object System.Net.HttpListener
 $httpListener.Prefixes.Add("http://+:8888/")
 $httpListener.Start()
 while (!([console]::KeyAvailable)) {
-$info = Get-Service | select name,status | ConvertTo-HTML
-$context = $httpListener.GetContext()
-$context.Response.StatusCode = 200
-$context.Response.ContentType = 'text/HTML'
-$WebContent = $info
-$EncodingWebContent = [Text.Encoding]::UTF8.GetBytes($WebContent)
-$context.Response.OutputStream.Write($EncodingWebContent , 0, $EncodingWebContent.Length)
-$context.Response.Close()
-Get-NetTcpConnection -LocalPort 8888
+    $info = Get-Service | select name, status | ConvertTo-HTML
+    $context = $httpListener.GetContext()
+    $context.Response.StatusCode = 200
+    $context.Response.ContentType = 'text/HTML'
+    $WebContent = $info
+    $EncodingWebContent = [Text.Encoding]::UTF8.GetBytes($WebContent)
+    $context.Response.OutputStream.Write($EncodingWebContent , 0, $EncodingWebContent.Length)
+    $context.Response.Close()
+    Get-NetTcpConnection -LocalPort 8888
 (Get-Date).datetime
 }
 $httpListener.Close()
 ```
 ### WebClient
+
 `[System.Net.WebClient] | Get-Member` \
 `(New-Object Net.WebClient).DownloadString("https://raw.githubusercontent.com/Lifailon/PowerShell-Commands/rsa/README.md")`
 
+### HttpClient
+```PowerShell
+$url = "https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.zip"
+$path = "$home\Downloads\$(Split-Path -Path $url -Leaf)"
+$httpClient = [System.Net.Http.HttpClient]::new()
+# Выполнение GET-запроса для загрузки файла (считывая заголовки ответа)
+$response = $httpClient.GetAsync($url, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
+# Получение потока содержимого из заголовка ответа
+$stream = $response.Content.ReadAsStreamAsync().Result
+# Открытие файла для записи
+$fileStream = [System.IO.File]::OpenWrite($path)
+try {
+    # Создание буфера размером 81920 байт (80 КБ) для чтения данных из потока
+    $buffer = New-Object byte[] 81920
+    # Чтение данных из потока и запись их в файл
+    while (($bytesRead = $stream.Read($buffer, 0, $buffer.Length)) -ne 0) {
+        $fileStream.Write($buffer, 0, $bytesRead)
+    }
+}
+finally {
+    # Освобождение ресурсов, связанных с потоками
+    $stream.Dispose()
+    $fileStream.Dispose()
+}
+```
 ### Certificate
 ```PowerShell
 function Get-WebCertificate ($srv) {
-$iwr = iwr $srv
-$status_code = $iwr.StatusCode
-$status = $iwr.BaseResponse.StatusCode
-$info = $iwr.BaseResponse.Server
-$spm = [System.Net.ServicePointManager]::FindServicePoint($srv)
-$date_end = $spm.Certificate.GetExpirationDateString()
-$cert_name = ($spm.Certificate.Subject) -replace "CN="
-$cert_owner = ((($spm.Certificate.Issuer) -split ", ") | where {$_ -match "O="}) -replace "O="
-$Collections = New-Object System.Collections.Generic.List[System.Object]
-$Collections.Add([PSCustomObject]@{
-Host = $srv;
-Server = $info;
-Status =  $status;
-StatusCode = $status_code;
-Certificate = $cert_name;
-Issued = $cert_owner;
-End = $date_end
-})
-$Collections
+    $iwr = iwr $srv
+    $status_code = $iwr.StatusCode
+    $status = $iwr.BaseResponse.StatusCode
+    $info = $iwr.BaseResponse.Server
+    $spm = [System.Net.ServicePointManager]::FindServicePoint($srv)
+    $date_end = $spm.Certificate.GetExpirationDateString()
+    $cert_name = ($spm.Certificate.Subject) -replace "CN="
+    $cert_owner = ((($spm.Certificate.Issuer) -split ", ") | where { $_ -match "O=" }) -replace "O="
+    $Collections = New-Object System.Collections.Generic.List[System.Object]
+    $Collections.Add([PSCustomObject]@{
+            Host        = $srv;
+            Server      = $info;
+            Status      = $status;
+            StatusCode  = $status_code;
+            Certificate = $cert_name;
+            Issued      = $cert_owner;
+            End         = $date_end
+        })
+    $Collections
 }
 ```
 `Get-WebCertificate https://google.com`
@@ -4311,30 +4352,31 @@ $ExcelWorkSheet.Columns.Item(4).ColumnWidth=25
 $services =  Get-Service
 $counter = 2` задать начальный номер строки для записи
 foreach ($service in $services) {
-$status = $service.Status
-if ($status -eq 1) {
-$status_type = "Stopped"
-} elseif ($status -eq 4) {
-$status_type = "Running"
-}
-$Start = $service.StartType
-if ($Start -eq 1) {
-$start_type = "Delayed start"
-} elseif ($Start -eq 2) {
-$start_type = "Automatic"
-} elseif ($Start -eq 3) {
-$start_type = "Manually"
-} elseif ($Start -eq 4) {
-$start_type = "Disabled"
-}
-$ExcelWorkSheet.Columns.Item(1).Rows.Item($counter) = $service.Name
-$ExcelWorkSheet.Columns.Item(2).Rows.Item($counter) = $service.DisplayName
-$ExcelWorkSheet.Columns.Item(3).Rows.Item($counter) = $status_type
-$ExcelWorkSheet.Columns.Item(4).Rows.Item($counter) = $start_type
-if ($status_type -eq "Running") {
-$ExcelWorkSheet.Columns.Item(3).Rows.Item($counter).Font.Bold = $true
-}
-$counter++` +1 увеличить для счетчика строки Rows
+    $status = $service.Status
+    if ($status -eq 1) {
+        $status_type = "Stopped"
+    } elseif ($status -eq 4) {
+        $status_type = "Running"
+    }
+    $Start = $service.StartType
+    if ($Start -eq 1) {
+        $start_type = "Delayed start"
+    } elseif ($Start -eq 2) {
+        $start_type = "Automatic"
+    } elseif ($Start -eq 3) {
+        $start_type = "Manually"
+    } elseif ($Start -eq 4) {
+        $start_type = "Disabled"
+    }
+    $ExcelWorkSheet.Columns.Item(1).Rows.Item($counter) = $service.Name
+    $ExcelWorkSheet.Columns.Item(2).Rows.Item($counter) = $service.DisplayName
+    $ExcelWorkSheet.Columns.Item(3).Rows.Item($counter) = $status_type
+    $ExcelWorkSheet.Columns.Item(4).Rows.Item($counter) = $start_type
+    if ($status_type -eq "Running") {
+        $ExcelWorkSheet.Columns.Item(3).Rows.Item($counter).Font.Bold = $true
+    }
+    # +1 увеличить для счетчика строки Rows
+    $counter++
 }
 $ExcelWorkBook.SaveAs($path)
 $ExcelWorkBook.close($true)
@@ -4352,6 +4394,7 @@ $ExcelWorkSheet = $ExcelWorkBook.Sheets.Item(1)` открыть лист по н
 $Excel.Quit()
 ```
 ### ImportExcel
+
 `Install-Module -Name ImportExcel` \
 `$data | Export-Excel .\Data.xlsx` \
 `$data = Import-Excel .\Data.xlsx`
