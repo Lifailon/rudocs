@@ -8,7 +8,10 @@
 <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
 </p>
 <p align="center">Большая база заметок PowerShell на русском языке.</p>
-<p align="center"><a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/Web%20version-%230072C6?style=for-the-badge&logo=github&logoColor=white"></a></p>
+<p align="center">
+<a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/web%20version-%23006f5c.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
+<a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/markdown%20version-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white"></a>
+</p>
 
 ---
 
