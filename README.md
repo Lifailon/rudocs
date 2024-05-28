@@ -1,4 +1,4 @@
-![Image alt](https://github.com/Lifailon/PS-Commands/blob/rsa/Logo/PowerShell-Commands.png)
+<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="https://github.com/Lifailon/PS-Commands/blob/rsa/Logo/PowerShell-Commands.png"></a></p>
 
 <p align="center">
 <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
@@ -9,8 +9,9 @@
 </p>
 <p align="center">Большая база заметок PowerShell на русском языке.</p>
 <p align="center">
-<a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/web%20version-%23006f5c.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
-<a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/markdown%20version-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white"></a>
+<a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
+<a href="https://github.com/Lifailon/PS-Commands/blob/rsa/README.md"><img title="GitHub top language"src="https://img.shields.io/badge/markdown-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white"></a>
+<a href="https://github.com/Lifailon/PS-Commands/blob/rsa/posh.pdf"><img title="GitHub top language"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
 </p>
 
 ---
@@ -455,10 +456,10 @@ $(Get-History)[-1] | Select-Object @{
 
 `[DateTime]::UtcNow` время в формате UTC 0 \
 `$(Get-Date).AddHours(-3)` вычесть три часа из текущего времени \
-`$Date = $(Get-Date -Format "dd/MM/yyyy HH:mm:ss")` изменить формат отображения `времени \
-`$Date = Get-Date -f "dd/MM/yyyy"` получаем тип данных [string] ($Date.GetType().Name) \
+`$Date = $(Get-Date -Format "dd/MM/yyyy HH:mm:ss")` изменить формат отображения времени \
+`$Date = Get-Date -f "dd/MM/yyyy"` получаем тип данных [string] $($Date.GetType().Name) \
 `$Date = "19.05.2024"` \
-`[DateTime]$Date = Get-Date "$Date"` преобразовать строку подходящую под формат даты `в тип данных [DateTime] \
+`[DateTime]$Date = Get-Date "$Date"` преобразовать строку подходящую под формат даты в тип данных [DateTime] \
 `$BeforeDate = Get-Date "12.05.2024"` \
 `[int32]$days=$($Date - $BeforeDate).Days` посчитать разницу в днях \
 `"5/7/07" -as [DateTime]` преобразовать входные данные в тип данных [DateTime]

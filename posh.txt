@@ -1,4 +1,4 @@
-PowerShell Commands
+PowerShell Commands (https://i.imgur.com/cQYubvh.png)
 
 -
 https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell
@@ -9,8 +9,9 @@ https://img.shields.io/github/stars/Lifailon/PS-Commands
 -
 Большая база заметок PowerShell на русском языке.
 -
-https://img.shields.io/badge/web%20version-%23006f5c.svg?style=for-the-badge&logo=html5&logoColor=white
-https://img.shields.io/badge/markdown%20version-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white
+https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white
+https://img.shields.io/badge/markdown-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white
+https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white
 -
 
 ---
@@ -149,7 +150,7 @@ https://img.shields.io/badge/markdown%20version-%2307405e.svg?style=for-the-badg
 
 # Cheat-Sheet
 
-https://github.com/Lifailon/PS-Commands/blob/rsa/Cheat-Sheet/PowerShell-Cheat-Sheet-RU.jpg
+PowerShell-Cheat-Sheet-RU (https://i.imgur.com/GQ0AKiW.jpeg)
 
 # Help
 
@@ -456,7 +457,7 @@ $(Measure-Command {ping ya.ru}).TotalSeconds # получить время вы�
 [DateTime]::UtcNow # время в формате UTC 0
 $(Get-Date).AddHours(-3) # вычесть три часа из текущего времени
 $Date = $(Get-Date -Format "dd/MM/yyyy HH:mm:ss") # изменить формат отображения времени
-$Date = Get-Date -f "dd/MM/yyyy" # получаем тип данных [string] ($Date.GetType().Name)
+$Date = Get-Date -f "dd/MM/yyyy" # получаем тип данных [string] $($Date.GetType().Name)
 $Date = "19.05.2024"
 [DateTime]$Date = Get-Date "$Date" # преобразовать строку подходящую под формат даты в тип данных [DateTime]
 $BeforeDate = Get-Date "12.05.2024"
