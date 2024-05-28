@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="https://github.com/Lifailon/PS-Commands/blob/rsa/Logo/PowerShell-Commands.png"></a></p>
+<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="https://github.com/Lifailon/PS-Commands/blob/rsa/Logo/PS-Commands-Logo.png"></a></p>
 
 <p align="center">
 <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
