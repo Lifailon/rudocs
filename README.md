@@ -3,16 +3,17 @@
 <p align="center">
 <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
 <a href="https://lifailon.github.io"><img title="GitHub page"src="https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page"></a>
-<a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
 <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
+<a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
 <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
 </p>
-<p align="center">Большая база заметок PowerShell на русском языке.</p>
 <p align="center">
 <a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
 <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/README.md"><img title="GitHub top language"src="https://img.shields.io/badge/markdown-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white"></a>
 <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/posh.pdf"><img title="GitHub top language"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
 </p>
+<p align="center">Большая база заметок PowerShell на русском языке.</p>
+<p align="center">Репозиторий содержит набор полезных <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts" title="скриптов и модулей">скриптов и модулей</a> автора, а также <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms/WinForms-Test-Stend.ps1" title="тестовый стенд WinForms">тестовый стенд WinForms</a> с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания своей программы с графическим интерфейсом.</p>
 
 ---
 
@@ -144,7 +145,9 @@
 - [Windows-Terminal](#windows-terminal)
 - [Pandoc](#pandoc)
 - [FFmpeg](#ffmpeg)
+- [HandBrake](#handbrake)
 - [ImageMagick](#imagemagick)
+- [YouTube](#youtube)
 
 ---
 
@@ -5834,6 +5837,8 @@ $dt
 ```
 # PostgreSQL
 
+### ODBC Driver
+
 [Скачать и установить драйвер](https://www.postgresql.org/ftp/odbc/versions/msi/)
 ```PowerShell
 $dbServer = "192.168.3.101"
@@ -5861,6 +5866,51 @@ foreach ($row in $dsDB[0].Tables[0].Rows) {
     $row.login
     $row.age
 }
+```
+### npgsql
+
+[Source](https://github.com/npgsql/npgsql) \
+[Package](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL)
+```PowerShell
+# Подключаем сборку Npgsql
+Add-Type -Path "$home\Documents\Npgsql.PostgreSQL\8.0.4\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll"
+# Определяем строку подключения к базе данных PostgreSQL
+$connString = "Host=myserver;Username=mylogin;Password=mypass;Database=mydatabase"
+# Создаем объект подключения
+$conn = New-Object Npgsql.NpgsqlConnection($connString)
+# Открываем соединение с базой данных
+$conn.Open()
+try {
+    # Создаем SQL команду
+    $cmd = $conn.CreateCommand()
+    $cmd.CommandText = "INSERT INTO data (some_field) VALUES (@p)"
+    # Добавляем параметр и его значение
+    $param = $cmd.Parameters.Add("p", [NpgsqlTypes.NpgsqlDbType]::Text)
+    $param.Value = "Hello world"
+    # Выполняем команду
+    $cmd.ExecuteNonQuery() | Out-Null
+} finally {
+    $cmd.Dispose()
+}
+# Извлекаем все строки из таблицы
+try {
+    # Создаем команду SQL для извлечения данных
+    $cmd = $conn.CreateCommand()
+    $cmd.CommandText = "SELECT some_field FROM data"
+    # Выполняем команду и получаем объект чтения данных
+    $reader = $cmd.ExecuteReader()
+    # Читаем и выводим данные построчно
+    while ($reader.Read()) {
+        Write-Host $reader.GetString(0)
+    }
+} finally {
+    # Освобождаем ресурсы чтения данных и команды
+    $reader.Dispose()
+    $cmd.Dispose()
+}
+# Закрываем соединение с базой данных
+$conn.Close()
+$conn.Dispose()
 ```
 # WMI
 
@@ -8142,6 +8192,27 @@ ansible_shell_type=powershell
 `cat /root/.docker/config.json | jq -r .auths[].auth` место хранения токена авторизации в системе \
 `cat /root/.docker/config.json | python3 -m json.tool`
 
+### Mirror
+
+`echo '{ "registry-mirrors": ["https://dockerhub.timeweb.cloud"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://huecker.io"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://mirror.gcr.io"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://daocloud.io"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://c.163.com"] }' > "/etc/docker/daemon.json"`
+
+`systemctl restart docker`
+
+### Proxy
+```bash
+mkdir -p /etc/systemd/system/docker.service.d
+
+'[Service]
+Environment="HTTP_PROXY=http://docker:password@192.168.3.100:9090"
+Environment="HTTPS_PROXY=http://docker:password@192.168.3.100:9090"' > /etc/systemd/system/docker.service.d/http-proxy.conf
+```
+`systemctl daemon-reload` \
+`systemctl restart docker`
+
 ### Run 
 
 Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/kill/rm/rmi`
@@ -9556,7 +9627,26 @@ Remove-Item "$home\Downloads\ffmpeg-*" -Force -Recurse
 `ffmpeg -i "%d.jpeg" -framerate 2 -c:v libx264 -r 30 -pix_fmt yuv420p output.mp4` создать видео из фото (1.jpeg, 2.jpeg и т.д.) с framerate (частотой кадров) в создаваемом видео 2 кадра в секунду \
 `ffmpeg -i "rtsp://admin:password@192.168.3.201:554" -rtsp_transport tcp -c:v copy -c:a aac -strict experimental output.mp4` запись без перекодирования (copy) RTSP-потока с камеры видеонаблюдения (+ аудио в кодеке AAC) в файл \
 `ffmpeg -i "rtsp://admin:password@192.168.3.201:554" -rtsp_transport tcp -c:v copy -c:a aac -strict experimental -movflags +faststart+frag_keyframe+empty_moov output.mp4` переместить метаданные в начало файла, что позволяет начать воспроизведение файла в видеоплеере до его полной загрузки \
-`ffmpeg -i "rtsp://admin:password@192.168.3.201:554" -rtsp_transport tcp -frames:v 1 -c:v mjpeg output.jpg` сделать скриншот
+`ffmpeg -i "rtsp://admin:password@192.168.3.201:554" -rtsp_transport tcp -frames:v 1 -c:v mjpeg output.jpg` сделать скриншот \
+`ffmpeg -i input.mp4 -vf "pad=width=iw:height=ih+100:x=0:y=100:color=black" -c:a copy output.mp4` width=iw: (ширина видео остается как у исходного файла), height=ih+100 (высота видео увеличивается на 100 пикселей), x=0 (горизонтальное смещение установлено в 0), y=100 (вертикальное смещение установлено в 100 пикселей вниз, чтобы добавить черное пространство сверху), color=black (цвет добавленного пространства — черный)
+
+# HandBrake
+```PowerShell
+$url = "https://github.com/HandBrake/HandBrake/releases/download/1.8.0/HandBrakeCLI-1.8.0-win-x86_64.zip"
+Invoke-RestMethod $url -OutFile $home\Downloads\HandBrakeCLI.zip
+Expand-Archive -Path $home\Downloads\HandBrakeCLI.zip -OutputPath "$home\Downloads\"
+Copy-Item -Path "$home\Downloads\HandBrakeCLI.exe" -Destination "C:\Windows\System32\HandBrakeCLI.exe"
+Remove-Item "$home\Downloads\doc" -Force -Recurse
+Remove-Item "$home\Downloads\HandBrakeCLI*"
+```
+`HandBrakeCLI -i input.mp4 -o output.mkv` конвертирует видео в формате mp4 в формат mkv с использованием стандартных настроек HandBrake \
+`HandBrakeCLI -i input.mp4 -o output.mkv -q 20` установить качество видео 20, значения варьируются от 0 (максимальное качество) до 51 (минимальное качество), где 20 считается хорошим качеством для большинства видео \
+`HandBrakeCLI -i input.mp4 -o output.mkv -r 30` установить частоту кадров на 30 fps \
+`HandBrakeCLI -i input.mp4 -o output.mkv --maxWidth 1280 --maxHeight 720` изменить размер на 1280х720 \
+`HandBrakeCLI -i input.mp4 -o output.mkv -b 1500` установить битрейт видео 1500 кбит/с \
+`HandBrakeCLI -i input.mp4 -o output.mkv -e x264` преобразовать видео с использованием кодека x264 \
+`HandBrakeCLI -i input.mp4 -o output.mp4 --crop 0:200:0:0` обрезать видео снизу на 200px (верх:низ:лево:право) \
+`HandBrakeCLI -i input.mp4 -o output.mp4 --start-at duration:5 --stop-at duration:15` обрезать видео (на выходе будет 15-секундное видео с 5 по 20 секунду)
 
 # ImageMagick
 
@@ -9571,3 +9661,39 @@ Source: [ImageMagick](https://sourceforge.net/projects/imagemagick)
 `magick PowerShell-Commands.png -brightness-contrast +20x+10 output.jpg` изменить яркость и контрастность \
 `magick convert -delay 100 1.png 2.png 3.png output.gif` создать gif из изображений \
 `magick convert image1.jpg image2.jpg -append output.jpg` вертикально объединенить изображения
+
+# YouTube
+```PowerShell
+$release_latest = Invoke-RestMethod "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
+$url = $($release_latest.assets | Where-Object name -match "yt-dlp.exe").browser_download_url
+Invoke-RestMethod $url -OutFile "C:\Windows\System32\yt-dlp.exe"
+```
+`yt-dlp -F https://www.youtube.com/watch?v=gxplizjhqiw` отобразить список всех доступных форматов \
+`yt-dlp -J https://www.youtube.com/watch?v=gxplizjhqiw` вывести данные в формате JSON \
+`yt-dlp -J https://www.youtube.com/watch?v=gxplizjhqiw | jq -r .formats.[].format` id - resolution (format_note) \
+`yt-dlp -f 137 https://www.youtube.com/watch?v=gxplizjhqiw` загрузить только видео в указанном формате по id \
+`yt-dlp -f bestaudio https://www.youtube.com/watch?v=gxplizjhqiw` загрузить только аудио \
+`yt-dlp -f best https://www.youtube.com/watch?v=gxplizjhqiw` загрузить видео с аудио в лучшем качестве \
+`yt-dlp -f 'bestvideo[height<=1080]+bestaudio/best[height<=1080]' https://www.youtube.com/watch?v=gxplizjhqiw` загрузить в указанном качестве \
+`yt-dlp -r 2m https://www.youtube.com/watch?v=gxplizjhqiw` ограничить скорость загрузки до 2 МБит/с
+```PowerShell
+function Get-YouTube {
+    param (
+        $url
+    )
+    $result = yt-dlp -J $url
+    $($result | ConvertFrom-Json).formats | 
+    Where-Object filesize -ne $null | 
+    Select-Object format_id,
+    @{Name="FileSize"; 
+        Expression={[string]([int]($_.filesize / 1024kb)).ToString("0.0")+" Mb"}
+    },
+    resolution,format_note,quality,fps,ext,language
+}
+
+$formats = Get-YouTube "https://www.youtube.com/watch?v=gxplizjhqiw"
+$video = $($formats | Where-Object format_note -match 1080 | Where-Object ext -match mp4)[-1].format_id
+$audio = $($formats | Where-Object resolution -match "audio" | Where-Object ext -match m4a)[-1].format_id
+cd "$home\Downloads"
+yt-dlp -f $video+$audio https://www.youtube.com/watch?v=gxplizjhqiw -o '%(title)s.%(ext)s'
+```
