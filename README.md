@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="https://github.com/Lifailon/PS-Commands/blob/rsa/Logo/PS-Commands-Logo.png"></a></p>
+<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
 
 <p align="center">
 <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
@@ -153,7 +153,7 @@
 
 # Cheat-Sheet
 
-![Image alt](https://github.com/Lifailon/PS-Commands/blob/rsa/Cheat-Sheet/PowerShell-Cheat-Sheet-RU.jpg)
+![Image alt](Cheat-Sheet/PowerShell-Cheat-Sheet-RU.jpg)
 
 # Help
 
@@ -8322,7 +8322,7 @@ Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/k
 `rm -rf /run/docker` \
 `rm -rf /run/docker.sock`
 
-### Docker-api
+### Docker Socket API
 
 `curl --silent -XGET --unix-socket /run/docker.sock http://localhost/version | jq .` использовать локальный сокет (/run/docker.sock) для взаимодействия с Docker daemon через его API \
 `curl --silent -XGET --unix-socket /run/docker.sock http://localhost/info | jq .` количество образов, запущенных и остановленных контейнеров и остальные метрики ОС \
@@ -8334,7 +8334,7 @@ Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/k
 `curl --silent -XPOST --unix-socket /run/docker.sock http://localhost/containers/17fab06a820debf452fe685d1522a9dd1611daa3a5087ff006c2dabbe25e52a1/stop` остановить контейнер \
 `curl --silent -XDELETE --unix-socket /run/docker.sock http://localhost/containers/17fab06a820debf452fe685d1522a9dd1611daa3a5087ff006c2dabbe25e52a1` удалить контейнер
 
-### Docker-tcp-api
+### Docker TCP API
 ```bash
 echo '{
     "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
@@ -8345,6 +8345,14 @@ systemctl daemon-reload
 systemctl restart docker
 ```
 curl --silent -XGET http://192.168.3.102:2375/version | jq .
+
+### Context
+
+`docker context create devops-01 --docker "host=tcp://192.168.3.101:2375"` подключиться к удаленному сокету \
+`docker context ls` список контекстов \
+`docker context inspect devops-01` конфигурация указанного контекста \
+`docker context use devops-01` использовать выбранный контекст по умолчанию (возможно на прямую взаимосдействовать с удаленным Docker Engine через cli) \
+`docker context rm devops-01` удалить контекст
 
 ### ctop
 
