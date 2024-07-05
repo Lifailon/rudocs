@@ -1,19 +1,21 @@
 <p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
 
 <p align="center">
-<a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
-<a href="https://lifailon.github.io"><img title="GitHub page"src="https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page"></a>
-<a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
-<a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
-<a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
+    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
+    <a href="https://lifailon.github.io"><img title="GitHub page"src="https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page"></a>
+    <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
+    <a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
+    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
 </p>
 <p align="center">
-<a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
-<a href="https://github.com/Lifailon/PS-Commands/blob/rsa/README.md"><img title="GitHub top language"src="https://img.shields.io/badge/markdown-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white"></a>
-<a href="https://github.com/Lifailon/PS-Commands/blob/rsa/posh.pdf"><img title="GitHub top language"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
+    <a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
+    <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/README.md"><img title="GitHub top language"src="https://img.shields.io/badge/markdown-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white"></a>
+    <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/posh.pdf"><img title="GitHub top language"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
 </p>
-<p align="center">Большая база заметок PowerShell на русском языке.</p>
-<p align="center">Репозиторий содержит набор полезных <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts" title="скриптов и модулей">скриптов и модулей</a> автора, а также <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms/WinForms-Test-Stend.ps1" title="тестовый стенд WinForms">тестовый стенд WinForms</a> с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания своей программы с графическим интерфейсом.</p>
+
+<p align="center"> Большая база заметок <img src="Logo/PS-Commands-Logo-x256.png" width="14" /> PowerShell на русском языке.</p>
+
+<p align="center">Репозиторий содержит набор полезных <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts" title="скриптов и модулей">скриптов и модулей</a> автора, а также <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms/WinForms-Test-Stend.ps1" title="тестовый стенд WinForms">тестовый стенд WinForms</a> с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.</p>
 
 ---
 
