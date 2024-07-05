@@ -2,6 +2,7 @@
 
 # filesystem
 # curl
+# wget
 # json
 # brew
 # yq
@@ -17,52 +18,30 @@
 # find
 # cron
 # systemctl
-# netcat
-# ncat
-# socat
-# iperf
-# rustscan
-# nmap
-# vnstat
-# iftop
-# tcpdump
-# tshark
-# dig
-# mtr
-# ss
-# ip
-# net-tools
-# networkd
-# resolved
 # networkmanager
 # iw
 # networking
 # netplan
-# yamllint
-# iptables
-# ufw
-# firewalld
-# nftables
-# ssh
+# ip
+# ss
+# dns
+# vnstat
+# netcat
+# nmap
+# tcpdump
+# firewall
 # openssl
+# ssh
+# sudoers
 # apt
 # snap
 # dpkg
-# wget
 # time
 # ntp
-# realmd
-# cifs
-# sudoers
 # top
-# htop
-# atop
-# iotop
-# jobs
 # ps
-# kill
+# jobs
 # lsof
-# descriptor
 # strace
 # vmstat
 # sysstat
@@ -85,7 +64,8 @@
 # dd
 # users
 # chmod
-# samba
+# domain
+# smb
 # nfs
 # ftp
 # rsync
@@ -193,6 +173,13 @@ else
     rtt="0"
 fi
 curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,server=$server status=$status,rtt=$rtt $date"
+
+## wget
+
+wget --spider https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # проверить (--spider) работоспособность URL
+wget -O nextcloud.tar.bz2 https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # скачать с указанным именем (-O) 
+wget -P /tmp https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # скачать в указанную директорию (-P)
+wget -b -o ~/wget.log https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # загрузить в фоновом режиме (-b) и записать вывод в лог-файл (-o)
 
 ## json
 
@@ -742,3 +729,772 @@ systemctl enable icmp-test-log.service
 systemctl start icmp-test-log
 systemctl status icmp-test-log
 tail -f /var/log/icmp-test.log
+
+## networkmanager
+
+apt install network-manager
+systemctl status NetworkManager
+nmcli device status # состояние интерфейсов
+nmcli general status
+nmcli connection show # список доступных подключений (ethernet, vpn и WiFi-сетей)
+nmcli device wifi list # список доступных Wi-Fi-сетей
+nmcli connection show "Проводное соединение 2" # информация о сети
+nmcli connection up "Проводное соединение 2" # подключиться
+nmcli conn down "Проводное соединение 2" # отключиться
+nmcli radio wifi # состояние Wi-Fi
+nmcli connection add con-name "dhcp" type ethernet ifname ens33 # создать подключение, передать тип устройства ethernet (Проводное соединение) и ifname, название сетевого интерфейса
+nmcli conn modify "dhcp" ipv4.dns 8.8.8.8 # настройки подключения (modify)
+nmcli radio wifi on # включить или выключить (off) Wi-Fi
+nmcli device wifi connect "TP-Link" password 12345678 name "TP-Link Wifi" # подключиться к Wi-Fi сети
+nmcli networking off # отключить сеть через (если управление через Network Manager, указывается в блоке конфигурации renderer для netplan)
+nmcli networking on # включить сеть
+systemctl restart NetworkManager
+
+## iw
+
+apt install wireless-tools
+iwconfig
+apt install iw
+iw list
+apt install wavemon
+wavemon # отобразить качество соединения и мощность передатчика
+
+## networking
+
+nano /etc/network/interfaces
+
+auto ens33 # активировать интерфейс при загрузке
+iface ens33 inet static # статический
+address 192.168.1.50/24
+#netmask 255.255.255.0
+gateway 192.168.1.254
+dns-nameservers 8.8.8.8 1.1.1.1
+
+auto ens33
+iface ens33 inet dhcp # динамический
+
+service networking restart # перезагрузка сети
+systemctl restart networking.service
+
+### resolv
+
+cat /etc/resolv.conf | grep nameserver
+nano /etc/resolv.conf # работает до перезагрузки
+domain domain.local
+search domain.local
+nameserver 8.8.8.8
+nameserver 1.1.1.1
+
+## netplan
+
+netplan --debug generate # проверка конфигурации на ошибки
+netplan apply # применить изменения (перезапускает сеть)
+netplan get # прочитать конфигурацию
+
+nano /etc/netplan/*.yaml
+
+#Динамический адрес (использовать два сетевых интерфейса):
+network:
+  version: 2
+  ethernets:
+    ens33:
+      dhcp4: yes
+    ens36:
+      dhcp4: yes
+
+#Статический адрес:
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens33:
+      dhcp4: no
+      addresses: [192.168.3.105/24]
+      routes:
+        - to: default
+          via: 192.168.3.1
+      nameservers:
+        addresses: [192.168.3.101, 8.8.8.8, 1.1.1.1]
+        search: [domain.local]
+
+#renderer указывает, кому передать управление сетью NetworkManager (nmcli) в средах с графическим интерфейсом или networkd (networkctl)
+
+netplan status # в релизе netplan 0.106 от февраля 2023 (Ubuntu 23.04) может получить статус используемого renderer
+#ens33 ethernet UP (networkd: ens33)
+
+#MAC/MTU:
+      dhcp4: no
+      match:
+        macaddress: 54:43:32:21:10:09
+        mtu: 1500
+
+#Подключение к WiFi:
+network:
+  version: 2
+  wifis:
+    wlp33:
+      dhcp4: yes
+      dhcp6: no
+      nameservers:
+        addresses: [8.8.8.8]
+      access-points:
+        "wifi-ssid":
+          password: "12345678"
+
+#Bonding для объединения физических сетевых интерфейсов в один логический
+network:
+  version: 2
+  ethernets:
+    ens33: {}
+    ens36: {}
+  bonds:
+    bond0:
+      dhcp4: no
+        interfaces:
+          - ens33
+          - ens36
+          parameters:
+            mode: active-backup # используется только один интерфейс, второй активируется в случае неработоспособности первого
+            mode: broadcast # задействуются оба интерфейса одновременно, пакеты передают все интерфейсы
+            mode: balance-rr # задействуются оба интерфейса по очереди с распределением пакетов
+            mode: balance-tlb # задействуются оба интерфейса по очереди, пакеты распределяются в соответствии с текущей нагрузкой
+            mode: balance-xor # задействуются оба интерфейса по очереди, распределение пакетов на основе политики хеширования
+          addresses:
+            - 192.168.1.150/24
+          gateway4: 192.168.1.1
+          mtu: 1500
+          nameservers:
+            addresses:
+              - 8.8.8.8
+
+### yamllint
+
+apt install yamllint
+yamllint /etc/netplan/*.yaml # проверить синтаксические ошибки YAML-файла
+
+## ip
+
+ip a # ip addr show
+ip -s link # вывести ститстику всех сетевых интерфейсов
+ip -br a show # вывести только название интерфейса, статус работы и ip-адрес
+ip link set dev ens33 up # включить сетевой интерфейс
+ip link set dev ens33 down # выключить сетевой интерфейс 
+ip link set mtu 1550 dev ens33 # изменить mtu
+ip link set dev ens33 address AA:BB:CC:DD:EE:FF # изменить mac-адрес (предварительно нужно отключить интерфейс, работает до перезагрузки)
+ip addr add 192.168.3.106/24 broadcast 192.168.3.255 dev ens33 # добавить адрес
+ip addr del 192.168.3.106/24 dev ens33 # удалить адрес
+ip route show # отобразить таблицу маршрутизации
+ip route add 192.168.4.0 via 192.168.3.100 # добавить маршрут
+ip route del 192.168.4.0 via 192.168.3.100 # удалить маршрут
+ip route add 192.168.4.0 dev ens33 # указать сетевой интерфейс, через который отправлять пакеты в определенную подсеть
+ip neigh show # отобразить ARP-таблицу
+ip neigh add 192.168.3.110 lladdr b0:be:76:43:21:41 dev ens33
+ip neigh del dev end33 192.168.3.110
+ip neigh flush # очистить ARP-таблицу
+
+### net-tools
+
+ifconfig ens33 # up/down
+ifdown -a # выключить все сетевые интерфейсы (пропадут из списка ifconfig) и включить (ifup -a)
+ifconfig ens33 192.168.3.106 netmask 255.255.255.0 broadcast 192.168.3.255
+ifconfig -s # netstat -i # список сетевых интерфейсов
+netstat -atu # ALL (-a) tcp (-t) и udp (-u)
+netstat -lntup # LISTEN (-l) dont resolve names (-n) и сканирует директорию /proc для вывода PID/Program name (-p)
+arp -a # таблица сопоставления ip и mac адресов
+route -e # отобразить таблицу маршрутизации
+route add -net 192.168.4.0 netmask 255.255.255.0 gw 192.168.3.100 # добавить маршрут в подсеть 192.168.4.0 через шлюз 192.168.3.100
+route del -net 192.168.4.0 netmask 255.255.255.0 # удалить маршрут
+
+### networkd
+
+systemctl status systemd-networkd
+networkctl list # список всех адаптеров, тип и состояния
+networkctl status # статус службы, Address и Gateway адаптера, DNS-адреса и лог systemd-networkd
+networkctl status ens33 # характеристики адаптера (Network File, Driver, Vendor, Model, MTU, Speed)
+
+## ss
+
+ss -a # All отобразить все сокеты
+ss -l # показать только прослушиваемые сокеты (LISTEN)
+ss -t # отобразить только установленные TCP соединения (ESTAB/ESTABLISHED)
+ss -ua # отобразить все открытые UDP сокеты
+ss -da # DHCP сокеты
+ss -x # отобразить только локальные UNIX соединения
+ss -r # Resolve, определять сетевые имена адресов с помощью DNS
+ss -p # Processes, показать процессы, использующие сокет
+ss -n # Numeric не определять имена служб (отображать только номер порта в числовом формате)
+ss -ltp | grep 8080
+ss -tna | grep 22
+
+## dns
+
+### resolved
+
+networkctl status # отображает список всех настроенные DNS-серверов в системе через netplan (или другое) для всех адаптеров
+resolvectl status # в systemd 239 (ubuntu 22.04) systemd-resolve переименован в resolvectl, выводит настроенные сервера для global и список все адресов для конкретного сетевого интерфейса Link (ens33)
+resolvectl status | grep "Current DNS" # отображает текущие используемые DNS-сервер
+systemd-resolve --status # служба локального DNS сервера
+resolvectl flush-caches # systemd-resolve --flush-caches # очистить локальный кэш DNS
+journalctl -u systemd-resolved | grep -E "IN A|IN PTR|IN AAAA|IN PTR|IN MX" # логи кэша DNS
+systemctl status systemd-resolved # статус службы и его лог
+cat /run/systemd/resolve/stub-resolv.conf # файл-заглушка для демона systemd-resolved, по умолчанию nameserver 127.0.0.53, который перенаправляет обращения к локальному DNS серверу, а он, в свою очередь уже получает информацию от других серверов в интернете
+nano /etc/systemd/resolved.conf # конфигурационный файл, отвечающий за настройку DNS-серверов
+[Resolve]
+DNS=8.8.8.8, 192.168.3.101
+Cache=yes # включить кэширование
+ln -svi /run/systemd/resolve/resolv.conf /etc/resolv.conf # создать симлинк для совместимости с приложениями, которые не используют библиотечные вызовы, а обращаются к DNS серверам напрямую, получая их из /etc/resolv.conf
+ls -la /etc/resolv.conf
+nano /etc/resolv.conf # не управляется напрямую службой systemd-resolved, а иногда с помощью использования initscripts или NetworkManager, и любые пользовательские изменения могут быть изменены через время или после перезагрузки
+nameserver 8.8.8.8
+apt install resolvconf # сервис для обновления списа адресов в /etc/resolv.conf (что бы он не перезаписывался)
+systemctl status resolvconf
+nano /etc/resolvconf/resolv.conf.d/head
+nameserver 8.8.8.8
+nameserver 1.1.1.1
+
+### dig
+
+dig
+dig google.com
+dig @1.1.1.1 google.com a # использовать DNS сервер Cloudflare для преобразования имени
+dig @9.9.9.9 google.com mx # использовать DNS сервер Quad9 для получения MX записи (A, NS, TXT)
+dig -x 8.8.8.8 @9.9.9.9 # разрешить ip в имя
+
+### mtr
+
+mtr google.com # объединяет traceroute и ping каждого узла в трассеровке
+mtr -I ens33 google.com # указать интерфейс для проверки
+mtr -b google.com # отображать имя и ip
+mtr --tcp google.com # использовать TCP SYN-пакеты или UDP-дейтаграммы (--udp)
+mtr -s 1000 google.com # указать размер пакета
+mtr -r -c 1 google.com --json # указать кол-во ping пакетов (-c 1 и -i 2 изменить интервал) и вывести в виде отчета (--report) в формате json/xml/csv/raw
+
+## vnstat
+
+apt install vnstat # журнал часового, ежедневного и ежемесячного сетевого трафика
+systemctl status vnstat # проверить службу
+vnstat -l # мониторинг в реальном режиме
+vnstat -h # ежедневная почасовая история
+
+## netcat
+
+nc -zv 192.168.3.100 5985 # проверить порт без попытки соединения (-z) в подробном режиме (-v)
+nc -zvn 192.168.3.100 1-1000 # сканирование tcp-портов, не используя преобразование DNS (-n)
+nc -zvn 192.168.3.100 1-1000 2>&1 | grep succeeded # перенаправить вывод ошибок в stdout и отфильтровать вывод
+nc -zvnu 192.168.3.100 5550-5560 # сканирование udp-портов (-u)
+nc -lp 8081 # открыть сокет (чат сервер) в режиме прослушивания (-listen) с указанием номера порта (-p)
+nc 192.168.3.101 8081 # подключиться к сокету (чат-клиент)
+nc -lp 8081 > out.txt # все поступившие данные на сокет записываются в файл (вместо вывода в консоль)
+cat /etc/passwd | nc -N 192.168.3.101 8081 # передать содержимое файла на удаленный сокет принимающей стороны (содержимое /etc/passwd запишется в out.txt) и закрыть удаленный сокет (-N)
+nc -l -w 1 -p 8081 # задать timeout (-w) ожидания, в течении которого сервер слушает запрос, если будет 0, может не успеть считать запрос, на стороне клиента timeout должен быть не ниже
+nc -w 5 -Uvl server.sock > out.txt # создать UNIX-сокет и передать вывод в файл, сокет закроется через 5 секунд (-w 5) или если будет задан параметр -N на стороне клиента
+lsblk | nc -Uv server.sock # подключиться к локальному сокету с второго терминала и отправить вывод команды в файл сокета приема
+while true; do echo -e "HTTP/1.1 200 OK\n\n$(systemd-analyze plot)" | nc -l -w 1 -p 8085; done # HTTP-сервер с выводом анализа загрузки системы
+
+### api
+
+port=8085
+while true
+do
+    request=$(nc -l -w 1 -p $port)
+    request=$(echo "$request" | head -n 1)
+    method=$(echo "$request" | cut -d " " -f 1)
+    endpoint=$(echo "$request" | cut -d " " -f 2)
+    if [[ $endpoint == "/api/date" ]]
+        then
+        response="HTTP/1.1 200 OK\nContent-Type: application/text\n\n$(date)"
+    elif [[ $endpoint == "/api/disk" ]]
+        then
+        response="HTTP/1.1 200 OK\nContent-Type: application/json\n\n$(lsblk -e7 --json)"
+    else
+        response="HTTP/1.1 404 Not Found\n\n404 Not Found\n"
+    fi
+    echo -e "$response" | nc -l -w 1 -p $port
+done
+
+curl -s http://192.168.3.101:8085/api/date
+curl -s http://192.168.3.101:8085/api/disk | jq .blockdevices[]
+
+### proxy
+
+ncat -l 8080 -k --sh-exec "ncat 192.168.3.101 80"
+socat TCP-LISTEN:8080,fork,reuseaddr TCP:192.168.3.101:80
+
+## nmap
+
+nmap localhost # узнать какие локальные порты прослушиваются
+nmap -sV localhost # определить какое какая ОС и ПО работает на портах и их версия
+nmap -sL 192.168.3.0/24 # список хостов с разрешением имен без пинга
+nmap -sP 192.168.3.0/24 # ping метод host discovery (TCP ACK SYN пакет, используя системныей вызов connect) с отображением производителя сетевой платы
+nmap -F 192.168.3.0/24 # fast mode port
+nmap -A 192.168.3.100 # подробное сканирование ОС и ПО (ssh на другом порту, version, ad sites, rdp-ntlm-info)
+nmap -sA 192.168.3.100 # обнаружить фильтрацию пакетов fw (filtered/unfiltered) с помощью TCP ACK
+nmap -PN 192.168.3.100 # сканировании защищенного хоста без ping
+nmap -sO 192.168.3.100 # определить какие именно IP-протоколы доступны и их статус, если отсутствует, значит фильтруется
+nmap -PU 192.168.3.100 # обойти межсетевой экран с помощью UDP-пинга
+nmap -sS 192.168.3.100 # выполнить полуоткрытое сканирование (TCP SYN) без установки подключения
+nmap -sU 192.168.3.100 # проверка только UDP-портов
+
+### rustscan
+
+wget https://github.com/RustScan/RustScan/releases/download/2.0.1/rustscan_2.0.1_amd64.deb
+snap install nmap # требуется установить пакет зависимости
+apt-get install -f # разрешить зависимости
+dpkg --install rustscan_2.0.1_amd64.deb
+rustscan -a 127.0.0.1
+rustscan -a 192.168.3.100 # 32400/tcp open plex
+
+## tcpdump
+
+tcpdump -D # список доступных сетевых интерфейсов
+tcpdump -n -i ens33 icmp # слушать icmp-пакеты от всех на указанном интерфейсе (-i) без отображения доменных имен (-n)
+tcpdump -n -i ens33 udp -e # слушать udp-пакеты и отображать MAC-адреса (-e)
+tcpdump -n -i ens33 port 8080 # слушать трафик 8080 порта
+tcpdump -n -i ens33 port 80 or 443
+tcpdump -n -i ens33 portrange 21-80
+tcpdump -n -i ens33 ip src 192.168.3.99 and dst 192.168.3.103 # отобразить ip пакеты, которые отправлены с указанного (src) ip-адреса на указанный (dst) ip-адрес
+tcpdump -n -i ens33 -X host 192.168.3.100 and port 32400 # отобразить содержимое пакетов (-X) для хоста и порта
+
+### tshark
+
+apt install tshark
+apt install termshark # terminal UI for tshark (https://github.com/gcla/termshark)
+tshark -D # список интерфейсов
+tshark -i 1
+disown
+tshark -i 1 -Y "syslog" # захват пакетов syslog (udp.port == 514)
+tshark -i 1 host 192.168.3.104 # захват пакетов для конкретного IP-адреса
+tshark -i 1 net 192.168.3.0/24 # захват пакетов указанной подсети
+tshark -i 1 src host 192.168.3.104 # захват исходящих пакетов
+tshark -i 1 dst host 192.168.3.104 # захват входящих пакетов
+tshark -i 1 dst host 192.168.3.104 and port 8086 # отфильтровать по входящему хосту и порту
+tshark -i 1 dst host 192.168.3.104 and port 8086 and src host 192.168.3.99 # отфильтровать по исходящему хосту
+tshark -i 1 -x dst host 192.168.3.104 and port 8086 and src host 192.168.3.101 # прочитать пакеты в шестнадцатеричном формате (-x)
+tshark -i 1 -O TCP dst host 192.168.3.104 and port 8086 and src host 192.168.3.101 # прочитать TCP-заголовки
+tshark -i 1 -a duration:10 -w ~/192.168.3.0.pcap # сохранить захват
+tshark -Y 'ip.addr == 192.168.3.106' -r ~/192.168.3.0.pcap # прочитать файл захвата с использованием фильтра
+tshark -Y "(ip.addr == 192.168.3.106) or (ip.addr == 192.168.3.107)" -r ~/192.168.3.0.pcap # отфильтровать по двум адресам (или)
+tshark -Y "(ip.addr == 192.168.3.104) and (tcp.port == 8086)" -r ~/192.168.3.0.pcap # отфильтровать по двум параметрам (и)
+tshark -Y "!(ip.addr == 192.168.3.104)" -r ~/192.168.3.0.pcap # исключить
+tshark -Y "not arp and not (udp.port == 53)" -r ~/192.168.3.0.pcap # отобразить весь udp-трафик, исключив ping и dns пакеты
+
+## firewall
+
+### ufw
+
+systemctl status ufw
+ufw status
+ufw enable # включить ufw (Uncomplicated Firewall)
+ufw disable # отключить
+ufw reload # перезапустить/применить настройки
+ufw reset # сбросить настройки (отключить ufw и удалить все правила)
+ufw default deny incoming # все входящие пакеты отклонять (политика по умолчанию, какие действия будут применяться к пакетам, если они не подпадают под созданные правила)
+ufw default allow outgoing # все исходящие разрешать
+ufw allow in 22 # разрешить входящий трафик на порт 22
+ufw allow out 22 # разрешить исходящий трафик на порт 22
+ufw deny in 80/tcp # запретить входящий TCP-трафик на 80 порт
+ufw delete deny in 80/tcp # удалить правило
+ufw allow 161,10050,10051/tcp # открыть несколько портов
+ufw allow proto tcp from 0.0.0.0/24 to 192.168.3.100 port 3389 # разрешить доступ со всех IP-адресов по TCP-протоколу к IP-адресу и порту 3389
+ufw allow from 192.168.3.0/24 to 192.168.3.110 # разрешить подключение всем с подсети 192.168.1.0 к интерфейсу 192.168.1.2 (для Proxmox MGW)
+ufw allow 25/tcp # открыть для всех направлений 25 порт
+ufw limit ssh # лимт подключений к определенному порту с одного IP-адреса (для защиты от перебора), по умолчанию подключения блокируются, если пользователь пытается создать шесть и больше подключений за 30 секунд (настроить время и количество запросов можно только через iptables)
+ufw logging on # включить логирование
+ufw logging medium # выбрать уровень логирования (low/medium/high)
+cat /var/log/ufw # директория хранения логов. Синтаксис: [UFW ALLOW/BLOCK/AUDIT] IN=интерфейс OUT=итерфейс SRC=ip_источника DST=ip_назначения LEN=размер_пакета TOS=0x10 PREC=0x00 TTL=64 ID=728 DF PROTO=протокол SPT=порт_источника DPT=порт назначения LEN=размер_пакета
+
+### show
+
+ufw show listening # отображает все прослушиваемые порты и правила для них (с указанием очередного номера в списке: [20] allow 161,10050,10051/tcp)
+ufw show raw # все активные правила в формате iptables
+ufw show added # недавно добавленные правила
+ufw show builtins # правила, добавленные по умолчанию
+ufw show user-rules # правила, добавленные пользователем
+ufw show before-rules # правила, которые выполняются перед принятием пакета
+ufw show after-rules # правила, которые выполняются после принятия пакета
+ufw show logging-rules # правила логгирования пакетов
+
+### firewalld
+
+apt install firewalld
+systemctl status firewalld
+systemctl start firewalld
+pkill -f firewalld # убить процесс, если при запуске failed
+firewall-cmd --state # статус работы
+firewall-cmd --reload # применить настройки (перечитать)
+firewall-cmd --list-all # список созданных правил (для services и ports)
+firewall-cmd --list-port # только открытые порты
+firewall-cmd --list-service # только открытые службы
+firewall-cmd --list-all-zones # отобразить список зон
+firewall-cmd --get-active-zones # список используемых зон
+firewall-cmd --list-all --zone=public # информация о конкретной зоне
+firewall-cmd --permanent --add-port=22/tcp # открыть 22 порт
+firewall-cmd --permanent --add-port=8000-8080/udp # открыть диапазон портов
+firewall-cmd --get-services | grep ssh # отобразить список доступных служб
+firewall-cmd --permanent --add-service=ssh # разрешить порты для сервиса ssh
+firewall-cmd --permanent --new-service=speedtest # добавить службу
+firewall-cmd --permanent --service=speedtest --add-port=80/tcp # добавить порт к службе
+firewall-cmd --info-service=speedtest # информация о службе
+firewall-cmd --permanent --add-rich-rule 'rule family="ipv4" source address="192.168.3.0/24" service name="speedtest" accept' # открыть доступ для подсети
+firewall-cmd --permanent --add-rich-rule 'rule family="ipv4" source address="192.168.3.0/24" port port="22" protocol="tcp" accept'
+firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='192.168.21.0/24' reject" # закрыть доступ для подсети
+firewall-cmd --list-rich-rules # список правил с условиями
+firewall-cmd --permanent --remove-port=22/tcp # удалить правило
+
+### iptables
+
+iptables -L -v # выводит все существующие правила для каждой цепочки
+iptables -L | grep -E "tcp|udp"
+if (( $(iptables -L | wc -l | bc) == 8)); then echo active; else echo inactive; fi
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT # открыть входящий порт ssh
+iptables -A INPUT -p tcp -s !192.168.3.99 --dport 22 -j DROP # закрыть входящий порт ssh, исключить 192.168.3.99
+iptables-save # сохранить настройки, что бы они были активны после перезагрузки
+iptables -F # удалить все правила текущей таблицы
+
+### nftables
+
+nft -a list ruleset # список существующих правил
+nft list tables # список существующих таблиц
+nft flush ruleset # очистить правила
+nft add table inet filter # создать таблицу filter
+nft add chain inet filter input { type filter hook input priority 0\; } # добавить цепочку input
+nft add rule inet filter input ct state related,established counter accept
+nft add rule inet filter input iifname "lo" counter accept
+nft add rule inet filter input ip protocol icmp counter accept # разрешить icmp
+nft add rule inet filter input tcp dport {80, 443} counter accept # открыть порты
+nft add rule inet filter input ip saddr { 192.168.100.0/24, 1.1.1.1/32 } tcp dport 22 counter accept # открыть 22 порт для подсетей
+nft chain inet filter input { policy drop \; } # остальное блокировать
+echo "flush ruleset" > /etc/nftables.conf # очистить все правила
+nft -s list ruleset >> /etc/nftables.conf # добавить правила в конфигурацию
+systemctl enable nftables.service
+nft delete rule inet filter input handle 5 # удалить правило по номеру
+nft add rule inet filter input position 5 tcp dport 22 counter accept # добавить правило в конкретное место с номером в списке
+
+## openssl
+
+openssl passwd -6 'xz3' # генератор хеша пароля с использованием алгоритма SHA-512. Вот разбор команды:
+openssl rand -base64 12 # генератор пароля в кодировке Base64
+openssl s_client -connect yandex.ru:443 # проверка сертификата на удаленном веб-сервере
+openssl s_client -connect mail.yandex.ru:465 -starttls smtp # используется для установления защищенного соединения с SMTP сервером через SSL/TLS
+
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 # создание самоподписанного сертификата
+openssl dgst -sha256 filename.txt # хеширование файла с использованием SHA-256
+openssl dgst -sha256 -verify publickey.pem -signature signature.bin filename.txt # проверка цифровой подписи файла
+openssl enc -aes-256-cbc -salt -in plaintext.txt -out encrypted.bin # шифрование файлов с использованием алгоритма AES-256-CBC
+openssl enc -d -aes-256-cbc -in encrypted.bin -out decrypted.txt # дешифрование файлов
+
+## ssh
+
+w # отобразить активные сессии и их активность (время/дата входа, IDLE время простоя и последняя выполняемая команда)
+who # отобразить активные сессии, время/дата входа и ip с которого подключен пользователь
+last -a # история всех последних входов пользователей в систему
+lastlog # дата последнего входа каждого пользователя в систему
+last reboot # история перезагрузки
+id -G # получить список id крупп в которых состоит текущий пользователь
+
+apt install xclip xsel # буфер обмена
+cat /etc/ssh/sshd_config | xclip
+xsel > sshd_config.bak
+nano /etc/ssh/sshd_config
+Port 2121 # изменить порт
+PermitRootLogin yes # включить возможность подключения пользователем root
+PasswordAuthentication no # отключить аудентификацию по паролю
+X11Forwarding yes # включить X11
+TCPKeepAlive yes # отвечает за проверку активности соединения (отправка пустых keep-alive пакетов для сохранения соединения)
+ClientAliveInterval 60 # задать интервал ожидания в секундах, через который sshd запросит ответ от клиента
+ClientAliveCountMax 3 # количество запросов без ответа до завешрения сеанса (ClientAliveInterval * ClientAliveCountMax = 180 секунд)
+systemctl restart sshd
+systemctl status sshd
+
+### keygen
+
+ssh-keygen # -t rsa -b 4096 # сгенерировать пару ключей
+id_rsa # приватный/закрытый ключ хранится на клиенте, от кого происходит подключение (для подключения без пароля имя файла должно быть по умолчанию)
+cat ~/.ssh/id_rsa.pub | xclip # публичный/открытый ключ, для передачи на сервер, куда будем подключаться3
+xsel > ~/.ssh/authorized_keys # передать содержимое публичного ключа (id_rsa.pub) на сервер, куда подключаться
+
+### x11
+
+apt-get install virt-manager ssh-askpass
+virt-manager
+export DISPLAY=username-VirtualBox:10.0 && firefox
+
+### scp
+
+ssh-copy-id root@192.168.3.105 -p 2121 # скопировать публичный ключ на удаленный сервер (добавить новой строкой), утилита будет искать в директории текущего локального пользователя файл публичного ключа и скопирует содержимое файла ключа ~/.ssh/id_rsa.pub указанному при подключение пользователю на удаленный компьютер в файл authorized_keys
+scp -P 2121 /home/lifailon/files/* lifailon@192.168.3.105:/home/lifailon/downaload/ # скопировать содержимое каталога files на удаленный компьютер в директорию downaload
+scp -P 2121 -r kup@192.168.3.105:/home/lifailon/downaload /home/lifailon/files/ # скачать (-r) данные с удаленного сервера на локальный
+
+### sshpass
+
+hosts=(192.168.3.101 192.168.3.102 192.168.3.103 192.168.3.104)
+username="lifailon"
+port=2121
+read -s -p "Введите пароль пользователя $username: " password
+echo
+for host in ${hosts[@]}; do
+    sshpass -p $password ssh -p $port $username@$host "echo $(uname -n) $(free -m | grep Mem: | awk '{print $3"/"$2}')"
+done
+
+## sudoers
+
+cat /etc/sudoers # конфигурационный файл настройки прав доступа утилиты sudo
+visudo # открыть sudoers в режиме проверки синтаксиса
+Defaults env_reset, timestamp_timeout=10 # задать ограничение времени для sudo на 10 минут
+echo "lifailon ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/lifailon # создать конфигурацию пользователя для использования sudo без пароля
+chmod 644 /etc/sudoers.d/lifailon
+lifailon ALL=NOPASSWD: /usr/bin/service memcahched restart, /usr/bin/apt-get update, /usr/bin/apt-get upgrade # разрешить перезапуск определенного сервиса, обновление списка пакетов и установку обновлений системы
+%powerusers ALL=NOPASSWD: /usr/bin/service memcahched restart # доступ на группу
+visudo --check # проверка синтаксиса и всех прав доступа (0440)
+
+## apt
+
+apt-mark showauto # список установленных автоматически пакетов
+apt-mark showmanual # список установленных пакетов вручную
+echo $(($(apt-mark showauto | wc -l) + $(apt-mark showmanual | wc -l))) # количество всех установленных пакетов
+apt list --installed # список установленных пакетов apt (Advanced Package Tool)
+apt update # обновить список всех установленных пакетов системы из источников, указанных в файле конфигурации /etc/apt/sources.list
+cat /etc/apt/sources.list | grep -Ev "^#" # список источников
+apt list --upgradable # отобразить список, для каких пакетов доступны обновления
+apt list --upgradable -a # upgradable from, installed и все доступные версии
+apt full-upgrade # обновляет все пакеты, которые уже установлены в системе, доставляет новые пакеты зависимости и удаляет пакеты, которые устанавливались в систему и уже не используются
+apt install net-tools # установить пакет
+apt download net-tools # скачать пакет без установки
+apt install net-tools --reinstall # переустановить пакет
+apt remove net-tools # удалить пакет (конфигурационные файлы, которые были изменены в системе удалены не будут)
+apt purge net-tools # полностью удалить пакет, вместе со всеми его конфигурационными файлами
+apt policy net-tools # какая версия установленна и какие доступны
+apt install net-tools=number ver. # установить конкретную версию
+apt autoremove # очистить ненужные пакеты, которые система не использует
+apt autoclean # очистить кэш пакетов
+
+## snap
+
+Содержат саму программу (deb-пакет), а также все её зависимости и библитотеки необходимых версий для данной программы.
+ls /snap # директория пакетов
+ls /var/lib/snapd/snaps # расположение загруженных пакетов .snap
+snap install snap-store # установка магазина приложений
+snap find nmap # поиск приложения в магазине snap
+snap info nmap # информация о пакете (его наличии, версия, дата релиза и размер)
+snap list # список установленных в системе пакетов
+snap list | sed 1d | wc -l # количество установленных пакетов
+snap list --all nmap # все доступные версии определенного пакета
+snap refresh nmap # обновить пакет до последней версии
+snap revert nmap # откатить версию до предыдущей
+snap install nmap --stable # установить конкретную версию пакета
+snap connections nmap # посмотреть доступность приложения к интерфейсам системы
+snap remove nmap # удалить пакет
+
+## dpkg
+
+dpkg -i spark.deb # установить пакет
+dpkg -l # список установленных deb-пакетов
+dpkg -l | wc -l # количество установленных пакетов
+dpkg -l spark # проверить, установлен ли пакет в системе и его версию
+dpkg -s spark # проверить статус пакета
+dpkg -r spark # удалить (--remove) .deb пакет
+dpkg -P spark # удалить пакет вместе с фаилами конфигурации
+dpkg -L spark # куда установлен пакет (opt/Spark)
+
+## time
+
+timedatectl # текущее время
+timedatectl set-timezone 'Europe/Moscow' # изменить временную зону на MSK, +0300 (изменится Local time)
+timedatectl list-timezones # список часовых поясов
+timedatectl set-ntp no # отключить NTP service
+timedatectl set-time "13:00:00" # после отключения NTP указать время в ручную
+timedatectl set-ntp yes # включить NTP service (NTP service: active)
+
+### language
+
+locale # установленные в системе локализации
+update-locale LANG=en_US.UTF-8 # изменить локализацию
+apt-get install language-pack-en language-pack-en-base # установить пакет локализаций
+nano /etc/default/locale
+LANG=en_US.UTF-8
+dpkg-reconfigure locales
+
+## ntp
+
+### systemd-timesyncd
+
+systemctl status systemd-timesyncd
+systemctl status systemd-timesyncd | grep "Status": | sed -E "s/^.+server //; "s/.\"//"" # узнать адрес сервера синхронизации времени
+apt install systemd-timesyncd # установить службу, если unit не запускается
+apt-get remove ntp ntpstat --purge && apt autoremove # удалить ntpd (если был установлен)
+nano /etc/systemd/timesyncd.conf
+NTP=192.168.3.233 # DC
+NTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org
+FallbackNTP=ntp.ubuntu.com # резерв
+systemctl restart systemd-timesyncd
+timedatectl set-ntp true # включить использование systemd-timesyncd для синхронизации времени (вместо ntpd)
+timedatectl status
+
+### ntpd
+
+apt install ntp # установить NTP-сервер/клиент, при установке будет удален пакет systemd-timesyncd
+systemctl status ntp
+sntp --version
+ufw allow 123/udp && ufw reload
+timedatectl set-ntp false # отключить синхронизацию через systemd-timesyncd на клиенте
+nano /etc/ntp.conf
+pool 0.ubuntu.pool.ntp.org # указать пул серверов
+server 0.ru.pool.ntp.org # указать на конкретный сервер (если это pool, возьмет один)
+restrict default kod notrap nomodify nopeer noquery limited # настройки/ограничения для локального NTP сервера
+systemctl restart ntp
+systemctl status ntp
+timedatectl status
+ntpq -p # проверка синхронизации времени (+ сервер можно использовать для сверки часов, * синхронизирует сейчас, - не рекомандован, st - уровень stratum, when — когда последний раз сверялось время, delay - время задержки, offset - разница между локальным временем и временем на сервере - отстают от сервера или спешат)
+
+## top
+
+top -c # выводит полный путь к исполняемым файлам с ключами, вместо названия
+top -H # выводит потоки процессов
+top -i # не выводит процессы, которые не используют ресурсы процессора
+top -o %CPU # отсортировать по CPU
+top -o %MEM # отсортировать по Memory
+
+### htop
+
+space # выделить несколько процессов (отменить Shift+U)
+u # выбрать конкретного пользователя
+l # посмотреть файлы, которые использует процесс
+s # отобразить статистику системных вызовов (strace PID attached) F8 - AutoScroll, F4 - Filter, F9 - Stop/Start Tracing
+F4 # фильтр по ключевому слову (например, cron)
+F5 # древовидная структура
+F6 # сортировка (PERCENT_CPU/PERCENT_MEM/USER/PRIORITY/TIME)
+F7 # повысить приортите (до -20), чем меньше приоритет, тем больше процессорного времени отводится процессу
+F8 # понизить приоритет (до 19)
+F9/K # действие с процессом (сигналы), для завершения процесса: 15, 2, 3, 9 или 19
+S (STATE) # состояние процесса
+R # [running or runnable] запущенные или находятся в очереди на запуск
+S # [interruptible sleep] прерываемый сон (не исполняется процессором и ждет события или условия для запуска)
+D # [uninterruptible sleep] непрерываемый сон (кратковременное состояние, которое невозможно остановить сигналом, т.к. процесс не может на него ответить)
+Z # [zombie] завершенный процесс, ожидающий пока родительский процесс примет результат
+T # остановленный сигналом SIGSTOP (-19/CTRL+Z)
+X # мертвый (не должен показываться)
+
+### atop
+
+apt install atop
+nano /etc/default/atop
+LOGINTERVAL=10
+systemctl restart atop
+atop -g # показать общую информацию о процессе (по умолчанию)
+atop -m # показать информацию о процессах, связанных с памятью
+atop -d # показать информацию о процессах, связанных с дисками
+atop -n # показать информацию о процессах, связанных с сетью
+atop -v # показывать различную информацию о процессах (PPID родителя, пользователь/группа, дата/время)
+atop -c # показать командную строку для каждого процесса
+atop -A # сортировать процессы в порядке наибольшей активности ресурсов (автоматический режим)
+atop -C # сортировать процессы в порядке потребления процессора (по умолчанию)
+atop -M # сортировать процессы в порядке потребления памяти
+atop -D # сортировать процессы в порядке дисковой активности
+atop -N # сортировать процессы в порядке сетевой активности
+atop -E # сортировать процессы в порядке активности GPU
+
+### iftop
+
+apt install iftop # установить пакет
+iftop -ti ens33 # использовать текстовый интерфейс без ncurses
+iftop -ts 1 -i ens33 # печать одного единственного текстового вывода (-s) через 1 секунд, затем выход из системы
+iftop -tL 0 -s 1 -i ens33 # количество строк (-L) для печати
+iftop -ni ens33 # не преобразовывать имена хостов
+iftop -Ni ens33 # не преобразовывать номера портов в сервисы
+iftop -pi ens33 # работать в режиме promiscuous (показывать трафик между другими хостами в одном сегменте сети)
+iftop -bi ens33 # не отображать гистограмму трафика
+iftop -Bi ens33 # отображать пропускную способность в байтах
+iftop -o 10si ens33 # сортировка по второму столбцу (среднее значение трафика за 10 секунд, значение по умолчанию)
+
+### iotop
+
+apt install iotop
+iotop -o # показывать только процессы или потоки, фактически выполняющие ввод-вывод
+iotop -ou mysql # показывать активные процессы от пользователя
+iotop -P # показывать только процессы, без потоков
+iotop -p PID
+
+## ps
+
+apt-get install -y procps # установить пакет procps
+pstree -a # отобразить все (-a) работающие процессы (демоны) и их дочерние в виде дерева
+ps -FA # отобразить подробный вывод (-F, PPID - родительский процесс) всех (-A) работающих процессов
+ps -LFC mysqld # отобразить потоки (-L) в колонках LWP и NLWP конкретного процесса по имени (-C)
+ps -Fl # отобразить приостановленные процессы (фоновые задания &)
+ps f -F # отображает активные процессы текущего пользователя
+ps f -u root # активные процессы указанного пользователя
+ps -o pid -u lifailon # вывести только pid процессов запущенных конкретным пользователем
+ps -p 3618275 # найти процесс по его PID (-p/-s)
+ps -aux --sort -rss # выбрать все процессы, кроме фоновых (-a), сопоставлять с именем пользователя (-u), все процессы вне терминала (-x) и отсортировать по RSS, добавляется %CPU и %MEM
+ps -lax # не сопоставляются идентификаторы процессов с именами пользователей, к выводу добавляется WCHAN - ресурс, которого ожидает процесс
+ps -FA --sort time # сортировать по времени работы процесса
+ps -Ao comm,user,rss,vsz,command # отфильтровать вывод по потреблению памяти, названию команды/процесса и полному вызову команды с ключами
+PRI # приоритет процесса
+NI # уступчивость процесса (nice value от 19 до -20)
+(($PRI+$NI))=((39+-20))=19
+TTY # терминал, из под которого запущен процесс
+TIME # общее время процессора, затраченное на работу процесса (bsdtime/cputime/time) или накопленное процессорное время (пользовательское + системное)
+STIME # время запуска команды (bsdstart), если процесс был запущен менее 24 часов назад, то формат вывода будет HH:MM, если больше, то Mmm:SS (Sep 18)
+C # целочисленное значение процента времени процессора (%CPU) за время жизни процесса
+%CPU # процент времени центрального процесса выделенного процессу или использование процессорного времени деленное на время работы процесса (pcpu)
+%MEM # процент реальной памяти, используемой процессом или отношение размера резидентного набора процесса к объему физической памяти на машине (pmem)
+SZ # размер в физических страницах образа ядра процесса.  Сюда входят текст, данные и пространство стека
+RSS # постоянное потребление физической памяти (Resident Set Size non-swapped), реальный размер процесса в оперативной памяти, которую процесс занял (то есть что-то сохранил в память)
+VSZ # виртуальная память (Virtual Memory Size) в килобайтах (1024-байтных единицах), которую выделили процессу, но это не означает, что он успел в эту память что-то записать
+LWP # идентификатор дочернего потока (Light-Weight Process), будет выведен текущий ID если один или первый поток
+NLWP # количество (Number) дочерних потоков (ps -LFC mysqld | sed 1d | wc -l)
+PSR # ядро процессора, на котором выполняется процесс
+STAT # R - выполняется, D - ожидает записи на диск, S - неактивен (<20 с), T - приостановлен, Z - зомби, с дополнительными флагами (W - процесс выгружен на диск, < - процесс имеет повышенный приоритет, N - процесс имеет пониженный приоритет, L - некоторые процессы блокированы в ядре, s - процесс является лидером сеанса)
+maj_flt # количество крупных страничных ошибок, произошедших с данным процессом
+min_flt # количество мелких ошибок страниц
+ps -Ao comm,user,cputime,pcpu,pmem,sz,rss,vsz,nlwp,psr,pri,ni --sort cputime
+
+### kill
+
+kill -INT (-2) PID # прерывания с терминала, bash пошлёт сигнал SIGINT процессу (аналогично CTRL+C)
+kill -KILL (-9) PID # принудительно завершить процесс
+kill -STOP (-19) PID # остановить процесс, bash пошлёт сигнал SIGSTOP процессу (аналогично CTRL+Z)
+kill -CONT (-18) PID # продолжить остановленный процесс
+
+## jobs
+
+(ping google.com) & # запустить задачу в фоне (отображается [job] - номер задачи и PID процесса)
+jobs # отобразить список фоновых задач (+ задача активна)
+jobs -l | wc -l # получить список всех запущенных заданий
+fg 1 # открыть задачу по номеру
+disown # завершить все фоновые задачи (удалить/очистить всю очередь заданий)
+disown %1 # завершить последнию (если она первая) запущенную задачу
+kill %1 # завершить последнию запущенную задачу
+
+## lsof
+
+PID # идентификационный номер процесса, который открыл файл
+TID # идентификационный номер задачи/потока, пустой столбец означает, что это не задача а процесс
+FD # файловый дескриптор файла (r - доступ для чтения, w - доступ для записи, u - доступ для чтения и записи, -r - режим неизвестен и есть символ блокировки на чтение часть файла, R - на весь файл)
+TYPE # тип узла, связанного с файлом (REG - обычный файл файловой системы, DIR - директория, CHR - символьный файл, BLK - блочный файл, INET - Интернет-сокет, unix - доменный сокет UNIX, IPv4 - IPv4 сокет, sock - неизвестный сокет, DEL - указатель Linux для удалённого файла, LINK - файл символьной ссылки, PIPE: — способ обмена данными между процессами)
+SIZE/OFF # размер файла или смещение файла в байтах
+lsof | sed 1d | wc -l # кол-во открытых файлов/дескрипторов
+cat /proc/sys/fs/file-nr # кол-во открытых файловых дескрипторов в текущий момент, открытые файлы которые сейчас не используются, максимальное количество для открытия
+lsof +D /var/log/ # отобразить каким процессом и пользователем используются файлы в каталоге (+D dir) FD: r/w/u
+dd if=/dev/zero of=~/dd-zero-file # занять файл процессом dd и Ctrl+Z остановить процесс (отправить в jobs)
+ls -lh ~/dd*
+lsof ~/dd-zero-file # отобразить каким процессом занят файл (List Open Files)
+lsof -c dd # отобразить все файлы запущенные по имени процесса/команды (в формате wildcard)
+lsof -p 1832509 # отобразить все открытые файлы по номеру PID-процесса (-p)
+lsof -c mysql # отобразить все файлы которые держит открытыми процесс по названию процесса (-c)
+lsof -c bash | grep "\.sh" # найти все запущенные скрипты
+kill -9 $(lsof -t ~/dd-zero-file) # отфильтровать для вывода уникальных номеров PID-процесса (-t) использующие файл, для их завершения (kill)
+kill -9 $(lsof -t +D /smb/backup) # убить все процессы использующие файлы в директории для дальнейшего umount /smb/backup
+lsof -u root # отобразить все файлы открытые пользователем 
+lsof -u^root | wc -l # исключить пользователя (^) из поиска и отобразить кол-во открытых файлов
+lsof -i:8080 # проверить открыт ли порт (-i:)
+
+### descriptor
+
+lsof -a -p $$ -d 0,1,2 # отобразить дескрипторы текущего интерпритатора (ps $$)
+0u # STDIN — стандартный поток ввода (с клавиатуры)
+1u # STDOUT — стандартный поток вывода (на экран/в файл)
+2u # STDERR — стандартный поток ошибок
+cat test.txt 1> out.txt 2> error.txt # перенаправить успешный вывод (если файл существует) в out.txt, если ошибка в error.txt
+cat test2.txt 2> /dev/null # не выводить ошибки
+cat=$(cat test 2>&1) # используется для перенаправления стандартного вывода ошибок (stderr - standard error) в стандартный вывод (stdout - standard output) с указанием файлового дескриптора (&) вместо файла
