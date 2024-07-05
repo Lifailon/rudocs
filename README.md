@@ -13,7 +13,7 @@
     <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/posh.pdf"><img title="GitHub top language"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
 </p>
 
-<p align="center"> Большая база заметок <img src="Logo/PS-Commands-Logo-x256.png" width="14" /> PowerShell на русском языке.</p>
+<p align="center"> Большая база заметок <img src="Logo/PowerShell-Logo.png" width="14" /> PowerShell на русском языке.</p>
 
 <p align="center">Репозиторий содержит набор полезных <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts" title="скриптов и модулей">скриптов и модулей</a> автора, а также <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms/WinForms-Test-Stend.ps1" title="тестовый стенд WinForms">тестовый стенд WinForms</a> с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.</p>
 
