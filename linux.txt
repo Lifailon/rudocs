@@ -1,0 +1,283 @@
+Заметки по работе с консольными утилитами Linux
+
+## filesystem
+
+file Console-Performance.sh # узнать тип файла (текстовый, испоолняемый файл, архив или другой)
+stat Console-Performance.sh # узнать размер файла, количество блоков, занятых файлом на диске, количество жестких ссылок, права доступа и временные метки 
+pwd # текущая директория
+ls -lh * # отобразить содержимое каждого подкаталога отдельно
+ls -lhaF # отобразить скрытые директории (-a) с точкой и выделит директории (/)
+which top # узнать путь до исполняемого файла
+stat $(which top) # узнать дату последнего доступа к файлу 
+cat -n /etc/passwd # просмотр содержимого файла с отображением номеров строк
+mkdir # создать директорию
+mktemp -d # создать временный файл/каталог (-d)
+touch -t 202106222200.15 test.file # создать файл и указать дату создания
+cp test.file test.file2 # копировать файла/каталог
+mv test.file2 test.file3 # переименовать/переместить файл/каталог
+rm -r test.file # удалить каталог с файлами (-r)
+
+### ln
+
+echo "test" > testfile
+ln /test/testfile /test/testlink # создать жестку (hard) ссылку, которая указывает на один и тот же inode, т.е. они делят одно и то же физическое местоположение на диске
+rm testfile # при удалении одного из файлов не приводит к удалению содержимого, пока существует хотя бы одна жесткая ссылка
+ln -s /test/testfile /test/testlink # создать символическую (-s - soft) ссылку, которая ссылается на файл testfile
+echo "test" >> testfile # при добавлении в оригинальный файл, все изменения будут отражены в testlink
+rm testfile # при удалении исходного файла у ссылки будет ошибка (No such file or directory)
+
+### zip
+
+rar a test.rar filename filename2 # создать архив test.rar и добавить туда два файла (файлы копируются в архив)
+unrar x test.rar # разархивировать
+zip -r test.zip filename # архивировать (файлы копируются в архив)
+unzip test.zip # разархивировать
+bzip2 filename # архивировать в filename.bz2 (файлы перепещаются в архив)
+bunzip2 filename.bz2 # разархивировать
+gzip filename # архивировать в filename.gz (файлы перепещаются в архив)
+tar --totals -cvf archive.tar file1 file2 file3 # архивировать три файла
+wget https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_linux_amd64.tar.gz # загрузить архив
+gunzip librespeed-cli_1.0.10_linux_amd64.tar.gz # извлечь из gz в tar
+tar -tf librespeed-cli_1.0.10_linux_amd64.tar # отобразить содержимое архива
+tar -xvf librespeed-cli_1.0.10_linux_amd64.tar # разархивировать
+./librespeed-cli --help
+./librespeed-cli --json
+
+### gpg
+
+gpg -c filename # зашифровать данные
+gpg filename.gpg # расшифровать данные
+gpg --gen-key # создавать пару ключей (публичный и приватный ключи)
+gpg --export -a 'User Name' > publickey.asc # экспорт публичного ключа
+gpg --import publickey.asc # импорт на второй стороне
+gpg --encrypt --recipient 'Recipient Name' filename # зашифровать данные с использованием публичного ключа получателя, только владелец приватного ключа сможет расшифровать эти данные
+gpg --decrypt encryptedfile.gpg # расшифровать данные можно с помощью приватного ключа
+gpg --sign filename # подписывать данные с использованием приватного ключа для подтверждения их подлинности и целостности
+gpg --verify signedfile.gpg # проверка подписи с использованием публичного ключа отправителя
+
+## printf
+
+top=$(top -bn1)
+printf "%s\n" "${top[@]}" # вывести вывод массива построчно
+printf "%.2f \n" 1.1111 # округлить до 2 символов после запятой
+printf "%.0f \n" 1.6 # удалить дробную часть (округлить до 2)
+printf "Arg1: %s\nArg2: %s\n" "10" "20" # принимает и выводит аргументы (%s) в виде строки
+
+## grep
+
+cat /var/log/auth.log | grep sshd # логи всех SSH-подключений
+cat /etc/passwd | grep -w sys # поиск целого слова, окруженное пробелами (-w)
+cat /etc/ssh/sshd_config | grep -win port # не учитывать регистр (-i) и отобразить номера строк (-n)
+ss -n | grep -P ":22|:80|:443|:8080" # искать по нескольким шаблонам, использовать Regex (-E)
+ss -n | grep -Pc ":22|:80" # вывести кол-во (--count) совпадений
+ss -n | grep "192.168.3...:" # поиск любых двух символов (.)
+ss -n | grep "192.168.3.*:" # поиск любого кол-ва (*)
+cat /etc/ssh/sshd_config | grep -v "#" # вывести значения, не подходящие под критерии поиска (-v)
+cat /etc/zabbix/zabbix_agentd.conf | grep -v "^#" # отсеить только в начале строки (^)
+cat /etc/zabbix/zabbix_agentd.conf | grep "=$" # найти строки, которые кончаются ($) на символ "=" (получить все параметры)
+cat /etc/zabbix/zabbix_agentd.conf | grep -Pv "^$|^#" # удалить пустые строки (^$) и комментарии (^#)
+cat /etc/zabbix/zabbix_agentd.conf | grep -E "#+{5}" # регулярное выражение (-E), где последний символ "#" повторяется 5 или более раз
+echo -e "Test\ntest\n123-45" | grep -E "[a-zA-Z\-]" # искать только текст (где есть буквы и тире)
+echo 'test<version>1.2.3</version>test' | grep -P -o "(?<=<version>).*(?=</version>)" # найти неизвестное значение (.*) между известными и вывести только найденное (-o)
+echo "test<version>3.6.4</version>test" | grep -Eo '[0-9.]+' # найти любую цифру и точку на конце, которые повторяются любое кол-во раз подряд
+echo $(lshw -class bus) | grep -P -o "(?<=Motherboard product: ).*(?=serial)" # с применение группировки (-P)
+zabbix_path=$(systemctl status zabbix-agent | grep -Po "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/") # забрать путь до конфигурационного файла Zabbix агента
+cat $zabbix_path | grep -E "^Server=|^ServerActive=" # найти имя сервера
+cat $zabbix_path | grep -Po "(?<=^Server=).+" # вывести только имя сервера
+resolvectl | grep "DNS Servers" -m 1 # напечатать только первое совпадение (-m int)
+networkctl status | grep -A 3 "DNS:" # найти строку и напечатать три строки после нее (-A)
+networkctl status | grep -B 3 "DNS:" # найти строку и напечатать три строки до нее (-B)
+networkctl status | grep -C 1 "DNS:" # найти строку и напечатать одну строки до нее и одну после (-C)
+resolvectl | grep -Ex ".+DNS Servers:.+" # вывести строки с точным совпадение (-x/like), сопоставлять только целые строки
+if echo "GET" | grep -Eq "^GET"; then echo da; else echo net; fi # подавлять вывод (-q) для проверки условия
+curl https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Eom 1 "https://.+.deb" # забрать только первый подходящий под поиск
+
+## sed
+
+cat /etc/passwd | sed -n "1,5p" # отобразить с первой по пятую строку (p)
+cat /etc/passwd | sed "$ d" # удалить (d) последнюю строку
+cat /etc/passwd | sed "1,3d" # удалить c первой по третью строку (2,3d)
+echo "One 1" | sed "s/One/Two/; s/1/2/" # заменить One на Two и 1 на 2
+cat /etc/zabbix/zabbix_agentd.conf | sed "s/127.0.0.1/192.168.3.102/" # > /etc/zabbix/zabbix_agentd.conf # заменить (s) ip-адрес
+cat /etc/zabbix/zabbix_agentd.conf | sed "/^#\|^$/d" # удалить пустые строки (^$) и комментарии (^#)
+timedatectl | grep zone | sed -E "s/.+zone: //" # удалить любое кол-во лимволов до слова "zone: " включительно, используя Regex (-E/-r)
+echo -e "test\ntest" | sed "2s/test/test2/" # заменить во второй строке (2s)
+echo -e "test\ntest\ntest\ntest" | sed "2,3s/test/test2/" # заменить во второй и третей строке (2,3s)
+echo -e "test\ntest\ntest\ntest" | sed "2ctest2" # заменить вторую строку (2c)
+echo "The test and test" | sed "s/test/test2/g" # заменить для каждого совпадения (/global)
+echo "The test and test" | sed "s/test/test2/2" # заменить для второго совпадения (/2)
+echo "line2" | sed "i\line1" # добавить строку в начало (i)
+echo "line1" | sed "a\line2" # добавить строку в конец (a) или в после указанной строки (2a)
+echo "11 22 33 34" | sed "y/123/234/" # заменить 1 на 2, 2 на 3, 3 на 4 (y)
+ls -R | grep ':' | sed "s/:$//; s/[^\/]*\// - /g" # удалить ":" в конце и заменить вначале строки "/любое кол-во символов между/" на " - " для всех (/g global)
+echo "test<version>3.6.4</version>test" | sed -r 's/[^<]*<(.*)>.*/\1/;s/<.*//;s/.*>//' # использовать regex (-r)
+ps aux | grep -E "^zabbix .+ -c" | sed -E "s/^zabbix.+-c //" # найти процесс zabbix с ключем -c и оставить путь conf
+echo "MPEG-H HEVC, 88.5 Мбит/с, 3840x2160, 23.976 кадр/с, 10 бит" | sed -nr 's/.* ([0-9]+x[0-9]+).*/\1/p' # выводить только найденные строки (-n) с заменой (s/), ищем только цифры [0-9] где одно или более вхождений (+) и между ними "x", вывести только первую группу поиска (то, что в скобках) на печать (/p)
+
+## awk
+
+cat /etc/passwd | awk -F: '{print "name: " $1 " \t Dir: " $NF}' # вывести содержимое первого и последнего ($NF) элемента в строке, используя разделитель ":" и табуляцию (\t)
+echo 'one two three four' | awk '{print $(NF-1)}' # вывести содержимое преподследнего элемента
+echo 'one two three four five' | awk '{print $((NF/2)+1)}' # вывести содержимое из середины
+echo "One Two Three" | awk '{$3="Four"; print $0}' # заменить третье значение/переменную в строке
+cat /etc/passwd | awk 'BEGIN{FS=":"; OFS=" - "} {print $1,$7}' # указать разделитель послей (элементов) на вход (FS) и заменить его на выходе (OFS)
+uptime | awk 'BEGIN{RS=" "; ORS="\n"} {print $0}' # указать разделитель записей (строк) на входе (RS) и заменить его на выходе (ORS)
+echo -e "12345\n54321" | awk 'BEGIN{FIELDWIDTHS="2 3"}{print $1,$2}' # указать фиксированное кол-во символов для разделения
+lsof | awk '{if($7=="REG")print $0}' # условие для выборки по столбцу
+cat /etc/ssh/sshd_config | awk '/Port / {print $2}' # условие поиска для вывода
+cat /etc/ssh/sshd_config | awk 'length $0 > 1' # вывести строки, которые длиннее, чем 1 символ (удалить пустые строки)
+cat /var/log/syslog | grep "$date" | awk '{print length($6)}' # вывести длинну значения
+awk 'BEGIN{x = "low"; print toupper(x)}' # использовать функцию для перевода в вверхний регистр
+awk 'BEGIN{x = "LOW"; print tolower(x)}' # использовать функцию для перевода в нижний регистр
+echo "1 2 3 4:5:6" | awk '{item=$4; split(item,array,":"); print array[2]}' # разбить 4 значение на массив (используя функцию split) и забрать значение по 2-му индексу
+free | awk '{if (NR == 2) print $0}' # вывести только вторую строку
+free | awk '{if (NR >= 2) print $0}' # вывести втроую и последующие строки
+free | awk '{if (NF >= 5) print $0}' # вывести строки, где 5 или больше значений
+cat /etc/passwd | awk '{ if (NR >= 10 && NR <= 20) print $0}' # вывести с 10 по 20 строки
+last | sed -n 1p | awk '$2=" ",$4=" "{print $0}' # вывести все, кроме 2 и 4 значения (заменить)
+ps -A | awk '{sum=""; for(i=1;i<=NF;i++) { if (i != 2) {sum=sum" "$i} } print sum}' # вывести все, кроме 2-го значения
+
+## cut
+
+echo "1 2 3" | cut -c 1,5 # вывести первый и пятый симов (--bytes/--characters)
+echo "1 2 3" | cut -c 1-3 # вывести с первой по третий символ
+echo "1 2 3" | cut -c3- # удалить первые 2 символа
+echo -e "test1,test2,test3\ntest1,test2,test3" | cut -d , -f 2-100 # указать разделитель полей/столбцов (--delimiter) и какие столбцы вывести (--fields) с 2 по 100
+echo -e "test1,test2,test3\ntest1,test2,test3" | cut -d , -f 1,3 | sed "s/,/ /" # вывести 1 и 3
+echo -e "test1,test2,test3\ntest1 test2 test3" | cut -d , -f 1,3 -s # печатать строки, где есть разделитель (-s)
+
+### rev
+
+echo "D:\plex-content\Rick.and.Morty.S07.2023.WEBDLRip.MegaPeer" | rev | cut -d \\ -f 1 | rev # забрать последний элемент в пути (вначале разворачивает всю строку, забирает первый элемент и разворачивает строку обратно)
+echo "D:\plex-content\Rick.and.Morty.S07.2023.WEBDLRip.MegaPeer" | sed -r 's/.+\\//' # удалить все до последнего слеша
+echo "D:\plex-content\Rick.and.Morty.S07.2023.WEBDLRip.MegaPeer" | sed 's/.*\\\(.*\)/\1/' # удаляет все до последнего слеша и забирает одну группу захвата, что остается после удаления, и заменяет вывод на первую группу (1)
+echo "D:\plex-content\Rick.and.Morty.S07.2023.WEBDLRip.MegaPeer" | awk -F '\\' '{print $NF}' # забрать последний элемент массива (NF)
+
+## tr
+
+echo "10 20 100 200" | tr 1 2 # translate заменяет 1 на 2 для всех подходящих сомволов (20 20 200 200)
+echo "1 2 3" | tr " " "," # заменить пробелы на запятые (1,2,3)
+echo "1 2 3" | tr -d " " # удалить пробелы (123)
+
+## tools
+
+### debug
+
+trap 'echo "$BASH_COMMAND"' DEBUG # построчная отладка скриптов bash, команда trap перехватывает сигнал DEBUG, посылаемый перед выполнением команды и выводит команду на экран
+trap 'echo "$BASH_COMMAND";read' DEBUG # read ожидает ввода с клавиатуры (Enter или Ctrl+C) перед выполнением каждой командой
+bash -x script.sh # отладка (печать команд и их аргументов по мере их выполнения)
+bash -x -c "ls -l" | grep *.sh | awk '{print $5,$NF}' # запуск команды через интерпритатор bash и вывод отладки
+bash --debug script.sh # проверка на ошибки
+apt-get install shellcheck # установить shellcheck
+shellcheck -S error hwstat.sh # error/warning/info/style
+
+### column
+
+column /etc/passwd -t -s ":"
+netcheck -t ping yandex.ru us1.node.check-host.net | sed -r 's/"//g; s/,$//; s/\{|\}|\[|\]//' | column -t -s ":" # распарсить JSON и добавить отступ (табуляцию) для колонок
+
+### wc
+
+ls /home | wc -l # word count выводит количество строк (--line)
+ls /home | wc -w # количество слов (--words)
+ls /home | wc -m # количество символом (--chars)
+ls /home | wc -c # количество символов/байт (--bytes)
+
+### bc
+
+echo "(5.5-2.2)" | bc # математические вычисления
+echo "(5.5-2.2)" | bc | sed -E "s/\..+//" # удалить дробную часть
+echo "1 < 2" | bc # возвращает булевое значение (1 - да или 0 - нет)
+echo "1 > 2" | bc # 0
+icmp_ignore=$(cat /proc/sys/net/ipv4/icmp_echo_ignore_all) # забрать значение
+if (( $(echo "$icmp_ignore == 1" | bc) )); then echo "true"; else echo "false"; fi # проверить в условии арефметическое значение на равенство (возвращает 0 - false или 1 - true)
+
+a=1
+b=0.55
+echo $(bc <<< "scale=2; $a+$b")
+echo "print $a+$b" | perl
+echo "print($a+$b)" | python3
+echo "print($a+$b)" | lua
+echo "puts $a+$b" | ruby
+pwsh -Command $a+$b
+
+### paste
+
+echo -e "key1\nkey2\nkey3" > 1.txt
+echo -e "value1\nvalue2\nvalue3" > 2.txt
+paste 1.txt 2.txt -d : # объединяет два файла в один многоколоночный вывод
+cat /etc/passwd | paste -s -d + # объеденить (join) многострочный файл, используя указанный delimiter
+
+### diff
+
+echo -e "test1\ntest2" > 1.txt
+echo -e "test\ntest2\ntest3" > 2.txt
+diff 1.txt 2.txt -c # ! есть изменения, + есть новая строка
+diff 1.txt 2.txt -yi # сравнивает в две колонки (| есть изменения, + есть новая строка) и игнорировать регистр (-i)
+diff 1.txt 2.txt -u # объеденяет два файла в один вывод с отображением изменений (+/)
+diff 1.txt 2.txt -ibBEt # не учитывать пробелы (-b) и пустые строки (-B), игнорировать изменения в табуляциях (-E) и заменить табуляции на пробелы в выводе (-t)
+diff -c <(echo "$predu") <(echo "$du") # сравнить содержимое переменных
+
+### sort
+
+cat /etc/passwd | sort -r # отсортировать вывод по алфовиту в обратном порядке (-r)
+du -h ~ | sort -n # сортировать по арифметическому значению (-n) размер файлов и директорий
+ls -l | sed 1d | sort -nk5 # сортировка по пятой колонке (-k)
+cat $tmp | sort -t "." -nk4 # сортировать по четвертой колонке, используя разделитель (-t) точку
+
+### uniq
+
+echo -e "1 2\n1 2\n2 1\n1 2" | uniq # удаляет соседние одинаковые строки
+echo -e "1 2\n1 2\n2 1\n1 2" | sort | uniq # удалить все дубликаты
+echo -e "1 2\n1 2\n2 1\n1 2" | sort | uniq -c # добавляет в начало каждой строки кол-во повторений
+echo -e "1 2\n1 2\n2 1\n1 2" | sort | uniq -u # отобразить только уникальные строки, без строк с повторениями
+
+### fold
+
+ls -l | fold -w 50 # задать ширину вывода каждой строки, выпадающее за указанный предел переносится на новую строку
+ls -l | fold -w 50 -s # разбивать строки только на символах пробела (--space)
+
+### head
+
+cat /var/log/syslog | head -n 5 # выводит первые 5 строк файла
+
+### tail
+
+cat /var/log/syslog | tail -n 5  # просмотр последних 5 строк файла
+tail -f /var/log/syslog # просмотр содержимого файла в реальном времени
+
+### less
+
+less /var/log/dmesg # вывести лог ядра с возможностью пролистывания
+
+### watch
+
+watch df -h # выводит на экран и обновляет состояния подключенных устройств каждые 2 секунды
+
+### EOF
+
+echo "line1" | tee test.txt # перезаписать файл (>)
+ls > /dev/null # перенаправить вывод в null
+echo "line2" | tee -a test.txt # добавить (>>) текст новой стройокй в конец файла
+echo -e "line3\nline4" >> test.txt # добавить две новые строки
+tee test.txt <<EOF
+line1
+line2
+EOF
+
+### xargs
+
+du -a /var/log | awk '{print $2}' | xargs fincore # передать вывод первой команды построчно в аргументы следующей
+
+### split
+
+split -l 100 input_file.txt output_prefix # разделить файл на части по 100 строк в каждой
+split -b 10M input_file.txt output_prefix # разделить файл на части по указанному размеру (например, 10MB)
+
+### fzf
+
+apt install fzf # установить fzf
+history | fzf # интерактивный поиск с фильтрацией
+eval $(history | fzf | awk '{print $2}') # выполнить (eval) выбранную команду из списка (добавить в макрос)
+ls *.json | fzf | xargs cat | jq . # вывести содержимое выбранного json файла через fzf
+find / -name "*.yaml" | fzf | xargs cat # найти в системе все файлы yaml и запустить по ним поиск

@@ -12,7 +12,9 @@ PowerShell Commands (https://i.imgur.com/nBUsASK.png))
     https://img.shields.io/badge/markdown-%2307405e.svg?style=for-the-badge&logo=markdown&logoColor=white
     https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white
 -
+
 Большая база заметок PowerShell на русском языке.
+
 Репозиторий содержит набор полезных скриптов и модулей (https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также тестовый стенд WinForms (https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms/WinForms-Test-Stend.ps1) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
 
 ---
