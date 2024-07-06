@@ -204,9 +204,9 @@ echo $hosts | jq '.nodes | to_entries[] | select(.value.location[0] == "ru" or .
 echo $messages | jq ".result[] | select(.message.chat.id == $INT and .message.entities[0].type == \"$TEXT\")" # при фильтрации по значению int кавычки не применяются
 echo $hosts | jq '.nodes | to_entries[] | select(.key | index("ru")) | .key' # приблизительный поиск (частичное совпадение в тексте значения key)
 
-echo $qbittorrent | jq ".[] | jq ".[] | {name: .name, size: (size: (.size / 1024 / 1024 / 1024 | tonumber * 100 | floor / 100 | tostring + \" GB\")}" # получить ГБ из байт и округлить до 2 символом после запятой
-echo $qbittorrent | jq ".[] | jq ".[] | {name: .name, progress: (.progress * 100 | floor / 100 * 100 | tostring + \" %\")}" # получить процент из дробной части (0,333 = 33%)
-echo $qbittorrent | jq ".[] | jq ".[] | {name: .name, date: (.added_on + 3 * 3600 | strftime(\"%H:%M:%S %d.%m.%Y\"))}" # получить дату
+echo '{"iso": [{"name": "Ubuntu", "size": 4253212899}, {"name": "Debian", "size": 3221225472}]}' | jq '.iso[] | {name: .name, size: (.size / 1024 / 1024 / 1024 | tonumber * 100 | floor / 100 | tostring + " GB")}' # получить ГБ из байт и округлить до 2 символом после запятой
+echo '{"iso": [{"name": "Ubuntu", "progress": 0.333}]}' | jq '.iso[] | {name: .name, progress: (.progress * 100 | floor / 100 * 100 | tostring + " %")}' # получить процент из дробной части (33%)
+echo '[{"name": "Ubuntu", "added_on": 1625072400}, {"name": "Debian", "added_on": 1625158800}]' | jq '.[] | {name: .name, date: (.added_on + 3 * 3600 | strftime("%H:%M:%S %d.%m.%Y"))}' # получить дату
 
 ### brew
 
@@ -219,18 +219,72 @@ brew --version
 
 brew install fx # установить fx (https://github.com/antonmedv/fx) TUI интерфейс для JSON на GoLang
 snap install fx || curl https://fx.wtf/install.sh | sh # доступна установка через snap или скрипт
+hosts=$(curl -s -H "Accept: application/json" https://check-host.net/nodes/hosts)
 echo $hosts | fx # доступна навигация с раскрытием блоков и отображает ключи доступа для jq
 source <(fx --comp bash) # добавить autocomplete в интерпритатор bash
+echo $hosts > hosts.json
 fx hosts.json .nodes .\[\"ru1.node.check-host.net\"\] .ip # происходит автоматический вывод ключей и подстановка
 
 ### dasel
 
-https://github.com/TomWright/dasel
-brew install dasel # аналог jq / yq , с поддержкой JSON, YAML, TOML, XML и CSV (поддерживает преобразование между форматами и может использоваться как пакет Go)
+brew install dasel # установить dasel (https://github.com/TomWright/dasel), с поддержкой JSON, YAML, TOML, XML и CSV (поддерживает преобразование между форматами) на GoLang
 echo '{"name": "Tom"}' | dasel -r json 'name'
 echo '{"name": "Tom"}' | dasel -r json -w yaml # конвертировать json в yaml
 echo '{"name": "Tom"}' | dasel put -r json -t string -v 'contact@tomwright.me' 'email' # добавить свойство
 echo '{"email": "contact@tomwright.me","name": "Tom"}' | dasel delete -r json '.email' # удалить свойство
+
+tee users.json <<EOF
+{
+    "users": [
+      {
+        "name": "Иван Иванов",
+        "email": "ivan.ivanov@example.com"
+      },
+      {
+        "name": "Мария Петрова",
+        "email": "maria.petrova@example.com"
+      }
+    ]
+}
+EOF
+
+dasel -f users.json -r json ".users.[0].email"
+
+tee users.yaml <<EOF
+users:
+  - name: Иван Иванов
+    email: ivan.ivanov@example.com
+  - name: Мария Петрова
+    email: maria.petrova@example.com
+EOF
+
+dasel -f users.yaml -r yaml ".users.[1].email"
+
+tee users.toml <<EOF
+[[users]]
+name = "Иван Иванов"
+email = "ivan.ivanov@example.com"
+[[users]]
+name = "Мария Петрова"
+email = "maria.petrova@example.com"
+EOF
+
+dasel -f users.toml -r toml ".users.[1].email"
+
+tee users.xml <<EOF
+<users>
+  <user>
+    <name>Иван Иванов</name>
+    <email>ivan.ivanov@example.com</email>
+  </user>
+  <user>
+    <name>Мария Петрова</name>
+    <email>maria.petrova@example.com</email>
+  </user>
+</users>
+EOF
+
+dasel -f users.xml -r xml ".users.user.[0].email"
 
 ### xq
 
