@@ -4,9 +4,6 @@
 # curl
 # wget
 # json
-# brew
-# yq
-# xml
 # grep
 # sed
 # awk
@@ -171,7 +168,7 @@ curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,s
 
 ## wget
 
-wget --spider https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # проверить (--spider) работоспособность URL
+wget --spider https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # проверить (--spider) работоспособность URL и узнать размер файла (Length)
 wget -O nextcloud.tar.bz2 https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # скачать с указанным именем (-O) 
 wget -P /tmp https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # скачать в указанную директорию (-P)
 wget -b -o ~/wget.log https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # загрузить в фоновом режиме (-b) и записать вывод в лог-файл (-o)
@@ -208,6 +205,17 @@ echo '{"iso": [{"name": "Ubuntu", "size": 4253212899}, {"name": "Debian", "size"
 echo '{"iso": [{"name": "Ubuntu", "progress": 0.333}]}' | jq '.iso[] | {name: .name, progress: (.progress * 100 | floor / 100 * 100 | tostring + " %")}' # получить процент из дробной части (33%)
 echo '[{"name": "Ubuntu", "added_on": 1625072400}, {"name": "Debian", "added_on": 1625158800}]' | jq '.[] | {name: .name, date: (.added_on + 3 * 3600 | strftime("%H:%M:%S %d.%m.%Y"))}' # получить дату
 
+### netcheck
+
+sudo curl -s https://raw.githubusercontent.com/Lifailon/Check-Host/rsa/netcheck/netcheck.sh -o /usr/bin/netcheck
+sudo chmod +x /usr/bin/netcheck
+netcheck -t ping yandex.ru
+netcheck -n
+netcheck -t ping yandex.ru ru1.node.check-host.net
+netcheck -t dns yandex.ru
+netcheck -t http yandex.ru:443 5
+netcheck -t tcp yandex.ru:443
+
 ### brew
 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" # установить менеджер пакетов brew (https://github.com/Homebrew/brew) для macOS/Linux
@@ -217,17 +225,26 @@ brew --version
 
 ### fx
 
-brew install fx # установить fx (https://github.com/antonmedv/fx) TUI интерфейс для JSON на GoLang
-snap install fx || curl https://fx.wtf/install.sh | sh # доступна установка через snap или скрипт
+brew install fx || snap install fx # установить fx (https://github.com/antonmedv/fx) TUI интерфейс для JSON на GoLang
 hosts=$(curl -s -H "Accept: application/json" https://check-host.net/nodes/hosts)
 echo $hosts | fx # доступна навигация с раскрытием блоков и отображает ключи доступа для jq
 source <(fx --comp bash) # добавить autocomplete в интерпритатор bash
 echo $hosts > hosts.json
 fx hosts.json .nodes .\[\"ru1.node.check-host.net\"\] .ip # происходит автоматический вывод ключей и подстановка
 
+### jid
+
+brew install jid # установить jid (https://github.com/simeji/jid) для интерактивной фильтрации JSON данных с использованием автозавершения на GoLang
+echo '{"info":{"date":"2016-10-23","version":1.0},"users":[{"name":"simeji","uri":"https://github.com/simeji","id":1},{"name":"simeji2","uri":"https://example.com/simeji","id":2},{"name":"simeji3","uri":"https://example.com/simeji3","id":3}],"userCount":3}}' | jid # .users[1].uri
+
+### jqp
+
+brew install noahgorstein/tap/jqp # установить jqp (https://github.com/noahgorstein/jqp) TUI интерфейс для отображения jq запросов на GoLang
+curl -s https://api.github.com/repos/Lifailon/PS-Commands/contents | jqp # слева отображается исходный файл, справа отфильтрованный вывод
+
 ### dasel
 
-brew install dasel # установить dasel (https://github.com/TomWright/dasel), с поддержкой JSON, YAML, TOML, XML и CSV (поддерживает преобразование между форматами) на GoLang
+brew install dasel # установить dasel (https://github.com/TomWright/dasel) для обработки JSON, YAML, TOML, XML и CSV (поддерживает преобразование между форматами) на GoLang
 echo '{"name": "Tom"}' | dasel -r json 'name'
 echo '{"name": "Tom"}' | dasel -r json -w yaml # конвертировать json в yaml
 echo '{"name": "Tom"}' | dasel put -r json -t string -v 'contact@tomwright.me' 'email' # добавить свойство
@@ -288,31 +305,26 @@ dasel -f users.xml -r xml ".users.user.[0].email"
 
 ### xq
 
-https://github.com/sibprogrammer/xq
-brew install xq # для XML и HTML
-apt-get install xq
-curl -sSL https://bit.ly/install-xq | sudo bash
-curl -s https://kinozal.tv | xq -q "head"
-curl -s https://kinozal.tv | xq -n -q "head"
-curl -s https://kinozal.tv/browse.php?s=the+rookie | xq -q "body"
-curl -s https://kinozal.tv/rss.xml | xq -x //rss//channel//item//link
+apt-get install xq || brew install xq # установить xq (https://github.com/sibprogrammer/xq) для XML и HTML на GoLang
+curl -s https://kinozal.tv -x kinozal:proxy@192.168.3.100:9090 | xq -nq "head" # вывести блок head целиком (с тегами)
+curl -s https://kinozal.tv -x kinozal:proxy@192.168.3.100:9090 | xq -q "head" # вывести только текст из дочерних элементов выбранного тега (содержимое title)
+curl -s https://kinozal.tv/browse.php?s=the+rookie -x kinozal:proxy@192.168.3.100:9090 | xq -nq "body > div > div > div > div > table > tbody > tr > td"
+curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xq -nx /rss/channel/item # вывод содержимого дочерних элементов с тегами
+curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xq -x /rss/channel/item/link # вывести только содержимое (массив ссылок)
 
 ## yq
 
-https://github.com/kislyuk/yq
-pip install yq # для YAML/XML/TOML
-cat /etc/netplan/*.yaml | yq .network.ethernets.ens33.addresses # -y (raw-формат)
+snap install yq || pip install yq # установить yq (https://github.com/kislyuk/yq) для YAML/XML/TOML на Python
+cat /etc/netplan/*.yaml | yq .network.ethernets # список адаптеров netplan
+cat /etc/netplan/*.yaml | yq .network.ethernets.eth0.nameservers.addresses[] # вывести массив dns адресов, настроенные на адаптере
+curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | yq -p xml .rss.channel.item[1].link # вывести ссылку из первого элемента
+curl -s https://raw.githubusercontent.com/JingWangTW/dark-theme-editor/main/hugo.toml | yq -p toml .params.footer.socialLink # прочитать конфигурацию Hugo
 
-### netcheck
+### csv
 
-sudo curl -s https://raw.githubusercontent.com/Lifailon/Check-Host/rsa/netcheck/netcheck.sh -o /usr/bin/netcheck
-sudo chmod +x /usr/bin/netcheck
-netcheck -t ping yandex.ru
-netcheck -n
-netcheck -t ping yandex.ru ru1.node.check-host.net
-netcheck -t dns yandex.ru
-netcheck -t http yandex.ru:443 5
-netcheck -t tcp yandex.ru:443
+brew install csvlens # установить csvlens (https://github.com/YS-L/csvlens) для взаимодестия в csv через TUR на Rust
+pwsh -Command "Get-Process | ConvertTo-Csv | Out-File process.csv"
+csvlens process.csv
 
 ## xml
 
@@ -332,15 +344,6 @@ done
 
 irm https://kinozal.tv/rss.xml # 100 последних (новых) публикаций с главной страницы (RSS-лента)
 irm https://habr.com/ru/rss/users/Lifailon/articles # публикации на Habr
-
-### xq
-
-https://github.com/sibprogrammer/xq
-curl -sSL https://bit.ly/install-xq | sudo bash
-brew install xq
-apt install xq
-curl -s https://kinozal.tv/rss.xml | xq # formatted xml
-curl -s https://kinozal.tv | xq # formatted html
 
 ## grep
 
