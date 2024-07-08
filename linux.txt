@@ -3,7 +3,7 @@
 # filesystem
 # curl
 # wget
-# json
+# data
 # grep
 # sed
 # awk
@@ -173,7 +173,7 @@ wget -O nextcloud.tar.bz2 https://download.nextcloud.com/server/releases/nextclo
 wget -P /tmp https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # скачать в указанную директорию (-P)
 wget -b -o ~/wget.log https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2 # загрузить в фоновом режиме (-b) и записать вывод в лог-файл (-o)
 
-## json
+## data
 
 ### jq
 
@@ -241,6 +241,12 @@ echo '{"info":{"date":"2016-10-23","version":1.0},"users":[{"name":"simeji","uri
 
 brew install noahgorstein/tap/jqp # установить jqp (https://github.com/noahgorstein/jqp) TUI интерфейс для отображения jq запросов на GoLang
 curl -s https://api.github.com/repos/Lifailon/PS-Commands/contents | jqp # слева отображается исходный файл, справа отфильтрованный вывод
+
+### xmllint
+
+apt-get install libxml2-utils || snap install libxml2 || brew install libxml2
+curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xmllint --xpath '//rss/channel/item/link/text()' -
+curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xmllint --xpath '//rss/channel/item[1]/link/text()' -
 
 ### dasel
 
@@ -326,24 +332,21 @@ brew install csvlens # установить csvlens (https://github.com/YS-L/csv
 pwsh -Command "Get-Process | ConvertTo-Csv | Out-File process.csv"
 csvlens process.csv
 
-## xml
+### sttr
 
-### xmllint
-
-apt-get install libxml2-utils
-snap install libxml2
-brew install libxml2
-scoop install libxml2
-curl -s https://kinozal.tv/rss.xml | xmllint --xpath '/rss/channel/item[1]/link/text()' -
-
-links=$(curl -s https://kinozal.tv/rss.xml | xmllint --xpath 'count(//item)' -)
-for ((i=1; i<=$links; i++)); do
-    link=$(echo "$xml_data" | xmllint --xpath "//item[$i]/link/text()" -)
-    echo "Link $i: $link"
-done
-
-irm https://kinozal.tv/rss.xml # 100 последних (новых) публикаций с главной страницы (RSS-лента)
-irm https://habr.com/ru/rss/users/Lifailon/articles # публикации на Habr
+snap install sttr # установить sttr (https://github.com/abhimanyu003/sttr) для конвертации и работы данными на GoLang
+curl -s https://api.github.com/repos/Lifailon/PS-Commands/contents | sttr json-yaml # конвертировать JSON в YAML
+cat /etc/netplan/*.yaml | sttr yaml-json # конвертировать YAML в JSON
+curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/README.md | sttr markdown-html # конвертировать Markdown в HTML
+echo "test" | sttr hex-encode # кодировать в HEX формат
+echo "74657374" | sttr hex-decode # декодировать HEX
+echo "Test" | sttr upper # поднять регистр (TEST)
+echo "Test" | sttr lower # опустить регистр (test)
+echo -e "test1\ntest1\ntest2" | sttr unique-lines # получить уникальные строки
+echo -e "a\nz\nb" | sttr sort-lines # сортировать строки по алфавиту
+echo -e "test1 \ntest2" | sttr remove-newlines # удалить новые строки
+echo -e "test1\ntest2" | sttr count-chars # посчитать количество символов
+echo -e "test1\ntest2" | sttr count-lines # посчитать количество строк
 
 ## grep
 
@@ -373,6 +376,12 @@ networkctl status | grep -C 1 "DNS:" # найти строку и напечат
 resolvectl | grep -Ex ".+DNS Servers:.+" # вывести строки с точным совпадение (-x/like), сопоставлять только целые строки
 if echo "GET" | grep -Eq "^GET"; then echo da; else echo net; fi # подавлять вывод (-q) для проверки условия
 curl https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Eom 1 "https://.+.deb" # забрать только первый подходящий под поиск
+
+### sig
+
+brew install ynqa/tap/sigrs # установить sig (https://github.com/ynqa/sig) интерактивный grep на Rust
+curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/README.md > README.md
+cat README.md |& sig -a
 
 ## sed
 
@@ -3048,7 +3057,7 @@ htpasswd /etc/apache2/.htpasswd admin # создать пользователя 
 a2ensite webdav # активировать конфигурацию сайта
 systemctl restart apache2
 
-# haproxy
+## haproxy
 
 apt install haproxy
 systemctl status haproxy
