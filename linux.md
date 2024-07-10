@@ -182,7 +182,7 @@ curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,s
 `check_result=$(curl -s -H "Accept: application/json" https://check-host.net/check-result/$check_id | jq .)` получить результат проверки по id
 `nodes=$(curl -s -H "Accept: application/json" https://check-host.net/nodes/ips)` получить список node
 `echo $nodes | jq '.nodes | length'` количество дочерних объектов в блоке node[]
-`echo $nodes | jq -r .nodes[1]` получить значение первого объекта
+`echo $nodes | jq -r .nodes[1]` получить значение второго объекта массива в формате raw string (not JSON)
 `hosts=$(curl -s -H "Accept: application/json" https://check-host.net/nodes/hosts)` получить список всех хостов
 `echo $hosts | jq .nodes | jq -r 'to_entries[].key'` получить список всех вложенных ключей (адреса хостов) или только их значений (value)
 `echo $hosts | jq '.nodes."us1.node.check-host.net"'` получить значение дочернего ключа nodes по имени
