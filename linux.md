@@ -177,30 +177,51 @@ curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,s
 ### jq
 
 `apt install jq` установить jq (https://github.com/jqlang/jq)
-`curl -s -H "Accept: application/json" 'https://check-host.net/check-ping?host=yandex.ru&max_nodes=3' | jq .` проверка check-<ping/http/tcp/udp/dns>
-`check_id=$(curl -s -H "Accept: application/json" 'https://check-host.net/check-ping?host=yandex.ru&max_nodes=3' | jq -r .request_id)` забрать текст (-r) id для получения результатов
-`check_result=$(curl -s -H "Accept: application/json" https://check-host.net/check-result/$check_id | jq .)` получить результат проверки по id
 `nodes=$(curl -s -H "Accept: application/json" https://check-host.net/nodes/ips)` получить список node
+`echo $nodes | jq` обработка входных данных командой jq (вывод отображается в правильно структурированном формате, а все элементы подсвечиваются соответствующим цветом)
 `echo $nodes | jq '.nodes | length'` количество дочерних объектов в блоке node[]
 `echo $nodes | jq -r .nodes[1]` получить значение второго объекта массива в формате raw string (not JSON)
+`echo $nodes | jq -r .nodes[-1]` получить значение последнего объекта массива
 `hosts=$(curl -s -H "Accept: application/json" https://check-host.net/nodes/hosts)` получить список всех хостов
-`echo $hosts | jq .nodes | jq -r 'to_entries[].key'` получить список всех вложенных ключей (адреса хостов) или только их значений (value)
-`echo $hosts | jq '.nodes."us1.node.check-host.net"'` получить значение дочернего ключа nodes по имени
-`echo $hosts | jq .nodes | jq -r 'to_entries[].value'` получить только значения вложанных ключений
-`echo $hosts | jq .nodes | jq 'to_entries[] | {Host: .key, Country: .value.location[1], City: .value.location[2]}'` получить формат key-value и пересобрать массив с новыми значениями ключей
-`echo $hosts | jq .nodes | jq -r 'to_entries[] | "\(.key) (\(.value.location[1]), \(.value.location[2]))"'` собрать строки (массив) из содержимого ключей
-`echo $hosts | jq .nodes | jq -r 'to_entries[-1] | .key'` забрать только название ключа из последнего значения массива
-`echo $hosts | jq .nodes | jq -r 'to_entries[-1] | .value.ip'` забрать только ip последнего хоста
-`echo $hosts | jq .nodes | jq '[.[]] | last'` забрать все значения из последнего ключа массива
-`echo $hosts | jq .nodes | jq 'to_entries[].value.location[0] == "ru"'` проверить в условии на true/false
-
-`echo $hosts | jq '.nodes | to_entries[] | select(.value.location[0] == "ru") | .key'` получить только найденные (select) объекты
+`echo $hosts | jq -r '.nodes | to_entries[].key'` получить список всех вложенных ключей (адреса хостов) из объека (не является массивом)
+`echo $hosts | jq -r '.nodes | to_entries[].value'` получить только значения всех вложанных ключей
+`echo $hosts | jq '.nodes."bg1.node.check-host.net"'` получить значение дочернего ключа nodes по имени
+`echo $hosts | jq '.nodes | [.[]] | last'` преобразовать отдельные объекты внутри nodes в массив, и передать полученный вывод в функцию last для получения значений последнего объекта
+`echo $hosts | jq '.nodes | to_entries[].value.location[0] == "ru"'` проверить каждый элемент объекта в условии на true/false (вернет массив)
+`echo $hosts | jq '.nodes | to_entries[] | {Host: .key, Country: .value.location[1], City: .value.location[2]}'` получить данные key-value из объекта nodes и пересобрать массив с новыми значениями ключей
+`echo $hosts | jq -r '.nodes | to_entries[] | "\(.key) (\(.value.location[1]), \(.value.location[2]))"'` собрать массив строки из содержимого ключей
+`var="-" && echo $hosts | jq --arg v "$var" -r '.nodes | to_entries[] | "\(.key) \($v) \(.value.location[1]) \($v) \(.value.location[2])"'` передать внешнюю переменную, которая будет использоваться внутри запроса
+`echo $hosts | jq -r '.nodes | to_entries[] | select(.value.location[0] == "ru") | .key'` произвести фильтрацию (select), что бы получить только нужные объекты
 `echo $hosts | jq '.nodes | to_entries[] | select(.value.location[0] != "ru") | .key'` вывести объекты, которые не равны значению
-`echo $hosts | jq '.nodes | to_entries[] | select(.value.location[0] == "ru" or .value.location[0] == "tr") | .key'` проверить два значеня (or/and)
-`echo $messages | jq ".result[] | select(.message.chat.id == $INT and .message.entities[0].type == \"$TEXT\")"` при фильтрации по значению int кавычки не применяются
-`echo $hosts | jq '.nodes | to_entries[] | select(.key | index("ru")) | .key'` приблизительный поиск (частичное совпадение в тексте значения key)
-
-`echo '{"iso": [{"name": "Ubuntu", "size": 4253212899}, {"name": "Debian", "size": 3221225472}]}' | jq '.iso[] | {name: .name, size: (.size / 1024 / 1024 / 1024 | tonumber * 100 | floor / 100 | tostring + " GB")}'` получить ГБ из байт и округлить до 2 символом после запятой
+`echo $hosts | jq '.nodes | length'` вывести общее количество объектов
+`echo $hosts | jq '.nodes | to_entries | map(select(.value.location[0] != "ru")) | length'` создать массив функцией map() (объеденяет отдельные объекты {}{} группируются в один массив [{},{}]) только из тех объектов, которые соответствуют условию select() и вывести количество найденных объектов
+`echo $hosts | jq -r '.nodes | to_entries[] | select(.value.location[0] == "ru" or .value.location[0] == "tr") | .key'` проверить два условия через or или and (для проверяемого типа данных int кавычки не используются)
+`echo $hosts | jq -r '.nodes | to_entries[] | select(.key | index("jp")) | .key'` вывести список хостов региона Japan, которые в названии ключа содержат ключевое слово jp (частичное совпадение в значении)
+```bash
+host="yandex.ru"
+protocol="ping"
+host="yandex.ru:443"
+protocol="tcp" # udp/http/dns
+# Забрать id для получения результатов
+check_id=$(curl -s -H "Accept: application/json" "https://check-host.net/check-$protocol?host=$host&max_nodes=3" | jq -r .request_id)
+# Функция получения результатов проверки по id
+function check-result {
+    curl -s -H "Accept: application/json" https://check-host.net/check-result/$1 | jq .
+}
+# Получить суммарное количество хостов, с которых производится проверка
+hosts_length=$(check-result $check_id | jq length)
+while true; do
+    check_result=$(check-result $check_id)
+    # Забираем результат и проверем, что содержимое всех проверок не равны null
+    check_values_not_null=$(echo $check_result | jq -e 'to_entries | map(select(.value != null)) | length')
+    if [[ $check_values_not_null == $hosts_length ]]; then
+        echo $check_result | jq
+        break
+    fi
+    sleep 1
+done
+```
+`echo '{"iso": [{"name": "Ubuntu", "size": 4253212899}, {"name": "Debian", "size": 3221225472}]}' | jq '.iso[] | {name: .name, size: (.size / 1024 / 1024 / 1024 | tonumber * 100 | floor / 100 | tostring + " GB")}'` получить ГБ из байт и округлить вывод до 2 символом после запятой
 `echo '{"iso": [{"name": "Ubuntu", "progress": 0.333}]}' | jq '.iso[] | {name: .name, progress: (.progress * 100 | floor / 100 * 100 | tostring + " %")}'` получить процент из дробной части (33%)
 `echo '[{"name": "Ubuntu", "added_on": 1625072400}, {"name": "Debian", "added_on": 1625158800}]' | jq '.[] | {name: .name, date: (.added_on + 3 * 3600 | strftime("%H:%M:%S %d.%m.%Y"))}'` получить дату
 
@@ -240,6 +261,7 @@ curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,s
 
 `brew install noahgorstein/tap/jqp` установить jqp (https://github.com/noahgorstein/jqp) TUI интерфейс для отображения jq запросов на GoLang
 `curl -s https://api.github.com/repos/Lifailon/PS-Commands/contents | jqp` слева отображается исходный файл, справа отфильтрованный вывод
+`curl -s https://check-host.net/nodes/hosts | jqp` # пример для фильтрации: `.nodes | to_entries[] | select(.value.location[0] == "ru") | .key`
 
 ### xmllint
 
