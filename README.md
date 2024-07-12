@@ -143,6 +143,7 @@
 - [VideoCDN](#videocdn)
 - [Telegram](#telegram)
 - [Discord](#discord)
+- [Torrent](#torrent)
 - [oh-my-posh](#oh-my-posh)
 - [Windows-Terminal](#windows-terminal)
 - [Pandoc](#pandoc)
@@ -9426,6 +9427,63 @@ $Client.ConnectionState
 $Client.LogoutAsync().GetAwaiter().GetResult()
 $Client.Dispose()
 ```
+# Torrent
+
+### Jackett
+
+[Source](https://github.com/Jackett/Jackett)
+
+`mkdir /jackett` \
+`docker-compose.yml`
+```yaml
+---
+services:
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /jackett/data:/config
+      - /jackett/blackhole:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+```
+`docker-compose up -d jackett` \
+`docker exec -it jackett /bin/bash` доступ к оболочке во время работы контейнера \
+`docker logs -f jackett` мониторинг журналов контейнера
+
+`/jackett/data/Jackett/ServerConfig.json` место хранения конфигурации сервера \
+`/jackett/data/Jackett/Indexers/*.json` место хранения конфигурации индексаторов
+
+`$API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"` \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/rutor/results/torznab/api?apikey=$API_KEY"` Прочитать RSS ленту RuTor \
+`$query = "the+rookie"` \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/rutor/results/torznab/api?apikey=$API_KEY&t=search&cat=&q=$query"` поиск в RuTor \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/kinozal/results/torznab/api?apikey=$API_KEY&t=search&q=$query"` поиск в кинозал \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/kinozal/results/torznab/api?apikey=$API_KEY&t=search&q=$query&cat=5000"` отфильтровать вывод по сериалам (Capabilities: 5000) \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=search&q=riverdale"` поиск во всех индексаторах \
+`$(Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=indexers&configured=true").indexers.indexer` cписок всех настроенных индексаторов (трекеров)
+
+### Jellyfin
+
+[Source](https://github.com/jellyfin/jellyfin) \
+[API Docs](https://api.jellyfin.org)
+
+`$API_TOKEN "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"` \
+`Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Users` список пользователей и их id \
+`$Users = Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Users` \
+`$UserId = $($Users | Where-Object Name -match "Lifailon").Id` забрать id пользователя \
+`Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/System/Info` информация о системе \
+`$(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Items).Items` список добавленных объектов директорий \
+`$ItemId = $(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Items).Items[-1].Id` забрать id директории \
+`$Data = $(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} "http://localhost:8096/Users/$UserId/Items?ParentId=$ItemId").Items` получить содержимое корневой директории по Id из Items \
+`$TvId = $($data | Where-Object Name -match "Rookie").Id` найти сериал или фильм по имени и забрать его Id \
+`$(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} "http://localhost:8096/Users/$UserId/Items?ParentId=$TvId").Items` получить содержимое дочерней директории по Id ее родительской директории
+
 # oh-my-posh
 
 [Install](https://ohmyposh.dev/docs/installation/windows)
