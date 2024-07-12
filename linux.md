@@ -2,8 +2,7 @@
 
 - [filesystem](#filesystem)
 - [curl](#curl)
-- [wget](#wget)
-- [data](#data)
+- [json](#json)
 - [grep](#grep)
 - [sed](#sed)
 - [awk](#awk)
@@ -134,17 +133,10 @@
 `curl -IL https://github.com/Lifailon/hwstat/archive/refs/tags/hwstat-0.0.8.zip` получить информацию о файле перед скачиванием (--head/--location)
 `curl -O https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh` скачать файл
 `curl -o /tmp/hwstat.sh https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh` указать путь
-`curl -o /usr/bin/nettraffic https://raw.githubusercontent.com/marssantoso/nettraffic/master/nettraffic; sudo chmod 755 /usr/bin/nettraffic; ls /usr/bin/nettraffic`
-`curl -I https://losst.pro` забрать заголовки страницы (server, last-modified)
 `curl -Ik https://192.168.3.104:9443/` игнорировать ошибку самоподписанного сертификата SSL (--insecure)
-`curl -X POST -H 'ServiceName: PingTo-InfluxDB' -d '' http://192.168.3.99:8080/stop-service` -H (--header) и -d (Body/--data)
-`curl -X POST -H 'Content-Type: application/json' --data '{"param1":"test1","param2":"test2"}' http://test.com` получить данные в формате JSON
 `curl -u <user:password> https://test.com/endpoint` авторизация
-`curl --insecure --ssl-reqd "smtps://smtp.yandex.ru" --mail-from "src@yandex.ru" --mail-rcpt "dst@yandex.ru" --user "src@yandex.ru" --upload-file out.txt` отправка email через SMTPS (SMTP over SSL/TLS) сервер 
 `curl -x "http://Proxy:Proxy@192.168.3.100:9090" "https://kinozal.tv/rss.xml"` использовать Proxy-сервер
-`--data-raw '{"key":"value"}'` отправляет данные без кодирования (например, в JSON), в загаловке запроса указывается тип данных (-H "Content-Type: application/json")
-`--data-urlencode "key=value"` применяет URL-кодирование к данным
-`-L` следить за перенаправлениями (в случае, если URL перенаправляет на другое место)
+`curl --insecure --ssl-reqd "smtps://smtp.yandex.ru" --mail-from "src@yandex.ru" --mail-rcpt "dst@yandex.ru" --user "src@yandex.ru" --upload-file out.txt` отправка email через SMTPS (SMTP over SSL/TLS) сервер 
 
 ### influxdb
 ```bash
@@ -165,14 +157,14 @@ else
 fi
 curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,server=$server status=$status,rtt=$rtt $date"
 ```
-## wget
+### wget
 
 `wget --spider https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2` проверить (--spider) работоспособность URL и узнать размер файла (Length)
 `wget -O nextcloud.tar.bz2 https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2` скачать с указанным именем (-O) 
 `wget -P /tmp https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2` скачать в указанную директорию (-P)
 `wget -b -o ~/wget.log https://download.nextcloud.com/server/releases/nextcloud-21.0.1.tar.bz2` загрузить в фоновом режиме (-b) и записать вывод в лог-файл (-o)
 
-## data
+## json
 
 ### jq
 
@@ -1626,6 +1618,8 @@ done
 `cat /etc/apt/sources.list | grep -Ev "^#"` список источников
 `apt list --upgradable` отобразить список, для каких пакетов доступны обновления
 `apt list --upgradable -a` upgradable from, installed и все доступные версии
+`apt install --only-upgrade powershell` обновить один выбранный пакет
+`apt --fix-broken install` исправить проблемы и ошибки с зависимостями
 `apt full-upgrade` обновляет все пакеты, которые уже установлены в системе, доставляет новые пакеты зависимости и удаляет пакеты, которые устанавливались в систему и уже не используются
 `apt install net-tools` установить пакет
 `apt download net-tools` скачать пакет без установки
