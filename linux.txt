@@ -221,6 +221,7 @@ echo '[{"name": "Ubuntu", "added_on": 1625072400}, {"name": "Debian", "added_on"
 
 sudo curl -s https://raw.githubusercontent.com/Lifailon/Check-Host/rsa/netcheck/netcheck.sh -o /usr/bin/netcheck
 sudo chmod +x /usr/bin/netcheck
+
 netcheck -t ping yandex.ru
 netcheck -n
 netcheck -t ping yandex.ru ru1.node.check-host.net
@@ -1125,7 +1126,7 @@ netplan get # прочитать конфигурацию
 
 nano /etc/netplan/*.yaml
 
-Динамический адрес (использовать два сетевых интерфейса):
+- Динамический адрес (использовать два сетевых интерфейса):
 
 network:
   version: 2
@@ -1135,7 +1136,7 @@ network:
     ens36:
       dhcp4: yes
 
-Статический адрес:
+- Статический адрес:
 
 network:
   version: 2
@@ -1155,7 +1156,7 @@ renderer указывает, кому передать управление се
 
 netplan status в релизе netplan 0.106 от февраля 2023 (Ubuntu 23.04) может получить статус используемого renderer
 
-MAC и MTU:
+- MAC и MTU:
 
 network:
   ethernets:
@@ -1165,7 +1166,7 @@ network:
         macaddress: 54:43:32:21:10:09
         mtu: 1500
 
-Подключение к WiFi:
+- Подключение к WiFi:
 
 network:
   version: 2
@@ -1179,7 +1180,7 @@ network:
         "wifi-ssid":
           password: "12345678"
 
-Bonding для объединения физических сетевых интерфейсов в один логический
+- Bonding для объединения физических сетевых интерфейсов в один логический
 
 network:
   version: 2
