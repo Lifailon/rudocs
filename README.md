@@ -8359,7 +8359,7 @@ curl --silent -XGET http://192.168.3.102:2375/version | jq .
 
 ### ctop
 
-`scoop install ctop` установка в Windows
+`scoop install ctop` установка в Windows (https://github.com/bcicen/ctop)
 ```bash
 wget https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64 -O /usr/local/bin/ctop
 chmod +x /usr/local/bin/ctop
@@ -8375,7 +8375,7 @@ chmod +x /usr/local/bin/ctop
 
 ### LazyDocker
 
-`scoop install lazydocker || choco install lazydocker` установка в Windows
+`scoop install lazydocker || choco install lazydocker` установка в Windows (https://github.com/jesseduffield/lazydocker)
 ```bash
 wget https://github.com/jesseduffield/lazydocker/releases/download/v0.23.1/lazydocker_0.23.1_Linux_x86.tar.gz -O ~/lazydocker.tar.gz
 tar -xzf ~/lazydocker.tar.gz lazydocker
@@ -8630,16 +8630,16 @@ $client.Containers.StartContainerAsync($kuma_id, $StartParameters)
 
 [Developers chat](https://developers.sber.ru/gigachat/login)
 
-### 1. Установка сертификатов:
+- Установка сертификатов:
 
 `Invoke-WebRequest "https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt" -OutFile "$home\Downloads\russian_trusted_root_ca.cer"` скачать сертификат минцифры \
 `Invoke-WebRequest "https://gu-st.ru/content/lending/russian_trusted_sub_ca_pem.crt" -OutFile "$home\Downloads\russian_trusted_sub_ca.cer"` \
 `Import-Certificate -FilePath "$home\Downloads\russian_trusted_root_ca.cer" -CertStoreLocation "Cert:\CurrentUser\Root"` установить сертификат минцифры \
 `Import-Certificate -FilePath "$home\Downloads\russian_trusted_sub_ca.cer" -CertStoreLocation "Cert:\CurrentUser\CA"`
 
-### 2. Авторизация по Sber ID и генерация новых авторизационных данных для получения токена: [Developers](https://developers.sber.ru/studio) (время жизни 30 минут)
+- 2. Авторизация по Sber ID и генерация новых авторизационных данных для получения токена: [Developers](https://developers.sber.ru/studio) (время жизни 30 минут)
 
-### 3. Формирование авторизационных данных в формате Base64 из Client ID и Client Secret:
+- 3. Формирование авторизационных данных в формате Base64 из Client ID и Client Secret:
 ```PowerShell
 $Client_ID     = "7e6d2f9f-825e-49b7-98f4-62fbb7506427" # [System.Guid]::Parse("7e6d2f9f-825e-49b7-98f4-62fbb7506427")
 $Client_Secret = "c35113ee-6757-47ba-9853-ea1d0d9db1ef" # [System.Guid]::Parse("c35113ee-6757-47ba-9853-ea1d0d9db1ef")
@@ -8647,7 +8647,7 @@ $Client_Join   = $Client_ID+":"+$Client_Secret # объединяем два UUI
 $Bytes         = [System.Text.Encoding]::UTF8.GetBytes($Client_Join) # преобразуем строку в массив байт
 $Cred_Base64   = [Convert]::ToBase64String($Bytes) # кодируем байты в строку Base64
 ```
-### 4. Получение токена:
+- 4. Получение токена:
 
 `$Cred_Base64   = "N2U2ZDJmOWYtODI1ZS00OWI3LTk4ZjQtNjJmYmI3NTA2NDI3OmIyYzgwZmZmLTEzOGUtNDg1Mi05MjgwLWE2MGI4NTc0YTM2MQ=="` \
 `$UUID = [System.Guid]::NewGuid()` генерируем UUID для журналирования входящих вызовов и разбора инцидентов
@@ -8663,7 +8663,7 @@ $body = @{
 }
 $GIGA_TOKEN = $(Invoke-RestMethod -Uri $url -Method POST -Headers $headers -Body $body).access_token
 ```
-### 5. Параметры:
+- 5. Параметры:
 ```PowerShell
 [string]$content = "Посчитай сумму чисел: 22+33"
 [string]$role = "user" # роль автора сообщения (user/assistant/system)
@@ -8673,7 +8673,7 @@ $GIGA_TOKEN = $(Invoke-RestMethod -Uri $url -Method POST -Headers $headers -Body
 [int64]$max_tokens = 512 # максимальное количество токенов, которые будут использованы для создания ответов
 [boolean]$stream = $false # передавать сообщения по частям в потоке
 ```
-### 6. Составление запросов:
+- 6. Составление запросов:
 ```PowerShell
 $url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 $headers = @{
