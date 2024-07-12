@@ -274,6 +274,7 @@ curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xmllint
 brew install dasel # установить dasel (https://github.com/TomWright/dasel) для обработки JSON, YAML, TOML, XML и CSV (поддерживает преобразование между форматами) на GoLang
 echo '{"name": "Tom"}' | dasel -r json 'name'
 echo '{"name": "Tom"}' | dasel -r json -w yaml # конвертировать json в yaml
+echo '{"name": "Tom"}' | dasel -r json -w xml # конвертировать json в xml
 echo '{"name": "Tom"}' | dasel put -r json -t string -v 'contact@tomwright.me' 'email' # добавить свойство
 echo '{"email": "contact@tomwright.me","name": "Tom"}' | dasel delete -r json '.email' # удалить свойство
 
@@ -354,7 +355,8 @@ yamllint /etc/netplan/*.yaml
 
 ### jsonlint
 
-npm install jsonlint -g
+apt-get install -y nodejs # установить Node.js
+npm install jsonlint -g # установить jsonlint (https://github.com/zaach/jsonlint) для проверки синтаксических ошибок JSON
 echo '{"name":"example","value":"test",}' | jsonlint
 echo '{"name":"example","value":"test"}' | jsonlint
 
@@ -367,8 +369,8 @@ csvlens process.csv
 ### sttr
 
 snap install sttr # установить sttr (https://github.com/abhimanyu003/sttr) для конвертации и работы данными на GoLang
-curl -s https://api.github.com/repos/Lifailon/PS-Commands/contents | sttr json-yaml # конвертировать JSON в YAML
-cat /etc/netplan/*.yaml | sttr yaml-json # конвертировать YAML в JSON
+curl -s curl -s -H "Accept: application/json" https://check-host.net/nodes/hosts | sttr json-yaml # конвертировать JSON в YAML
+cat /etc/netplan/*.yaml | sttr yaml-json | jq # конвертировать YAML в JSON
 curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/README.md | sttr markdown-html # конвертировать Markdown в HTML
 echo "test" | sttr hex-encode # кодировать в HEX формат
 echo "74657374" | sttr hex-decode # декодировать HEX
