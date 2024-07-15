@@ -719,7 +719,7 @@ systemctl edit --full ssh # открыть для редактирования �
 systemctl list-dependencies ssh # дерево зависимостей
 systemctl list-dependencies ssh --reverse # зависящие сервисы от указанного юнита
 systemctl list-units --type service --all # отображение статуса всех сервисов
-systemctl list-unit-files | sed "1d;$ d" | sed "$ d" | wc # отобразить кол-во всех файлов конфигурации сервисов на диске;
+systemctl list-unit-files | sed "1d;$ d" | sed "$ d" | wc # отобразить кол-во всех файлов конфигурации сервисов на диске
 systemctl list-unit-files | grep zabbix # отфильтровать по имени
 systemctl list-unit-files --type=service # список всех сервисов
 systemctl list-unit-files --type=service --state=enabled # список сервисов, добавленных в автозагрузку

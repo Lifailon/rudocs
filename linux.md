@@ -639,7 +639,7 @@ EOF
 
 ### locate
 
-`cargo install locate \
+`cargo install locate` \
 `updatedb` обновить индексы базы данных \
 `locate filename.txt` найти по имени файла \
 `locate -i filename.txt` игнорировать регистр \
@@ -719,7 +719,7 @@ fi
 `systemctl list-dependencies ssh` дерево зависимостей \
 `systemctl list-dependencies ssh --reverse` зависящие сервисы от указанного юнита \
 `systemctl list-units --type service --all` отображение статуса всех сервисов \
-`systemctl list-unit-files | sed "1d;$ d" | sed "$ d" | wc` отобразить кол-во всех файлов конфигурации сервисов на диске; \
+`systemctl list-unit-files | sed "1d;$ d" | sed "$ d" | wc` отобразить кол-во всех файлов конфигурации сервисов на диске \
 `systemctl list-unit-files | grep zabbix` отфильтровать по имени \
 `systemctl list-unit-files --type=service` список всех сервисов \
 `systemctl list-unit-files --type=service --state=enabled` список сервисов, добавленных в автозагрузку \

@@ -8,15 +8,16 @@
     <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
 </p>
 <p align="center">
-    <a href="https://lifailon.github.io"><img title="GitHub top language"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
-    <a href="posh.pdf"><img title="GitHub top language"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
+    <a href="https://lifailon.github.io"><img title="Web version"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
+    <a href="posh.pdf"><img title="PDF version"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
+    <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
 </p>
 
 <p align="center"> Большая база заметок <img src="Logo/PowerShell-Logo.png" width="14" /> PowerShell на русском языке.</p>
 
 Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
 
-В дополнение добавлены заметки по работе с системными командами и консольными утилитами 🐧 [Linux](linux.md)
+> Добавлены заметки по работе с системными командами и консольными утилитами 🐧 [Linux](linux.md)
 
 ---
 
