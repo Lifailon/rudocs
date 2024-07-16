@@ -2,22 +2,52 @@
 
 <p align="center"> Заметки по работе с системными командами и консольными утилитами 🐧 <b>Linux</b>. </p>
 
+---
+
 - [filesystem](#filesystem)
+  - [ln](#ln)
+  - [zip](#zip)
+  - [gpg](#gpg)
 - [curl](#curl)
+  - [influxdb](#influxdb)
+  - [wget](#wget)
 - [json](#json)
+  - [jq](#jq)
+  - [netcheck](#netcheck)
+  - [brew](#brew)
+  - [fx](#fx)
+  - [jid](#jid)
+  - [jqp](#jqp)
+  - [xmllint](#xmllint)
+  - [dasel](#dasel)
+  - [xq](#xq)
+  - [htmlq](#htmlq)
+  - [yq](#yq)
+  - [yamllint](#yamllint)
+  - [jsonlint](#jsonlint)
+  - [csv](#csv)
+  - [sttr](#sttr)
 - [grep](#grep)
+  - [sig](#sig)
 - [sed](#sed)
 - [awk](#awk)
 - [printf](#printf)
 - [cut](#cut)
+  - [rev](#rev)
 - [tr](#tr)
 - [man](#man)
+  - [cheat.sh](#cheatsh)
+  - [tldr](#tldr)
 - [debug](#debug)
 - [tools](#tools)
 - [find](#find)
+  - [exec](#exec)
+  - [locate](#locate)
 - [cron](#cron)
 - [systemctl](#systemctl)
+  - [unit](#unit)
 - [journalctl](#journalctl)
+  - [dmesg](#dmesg)
 - [hardware](#hardware)
 - [sysctl](#sysctl)
 - [limits](#limits)
@@ -27,48 +57,127 @@
 - [networking](#networking)
 - [netplan](#netplan)
 - [ip](#ip)
+  - [net-tools](#net-tools)
+  - [networkd](#networkd)
 - [ss](#ss)
 - [dns](#dns)
+  - [resolv](#resolv)
+  - [resolved](#resolved)
+  - [dig](#dig)
+  - [mtr](#mtr)
 - [vnstat](#vnstat)
 - [netcat](#netcat)
+  - [api](#api)
+  - [proxy](#proxy)
 - [nmap](#nmap)
+  - [rustscan](#rustscan)
 - [tcpdump](#tcpdump)
 - [tshark](#tshark)
 - [ping](#ping)
+  - [fping](#fping)
+  - [netping](#netping)
 - [firewall](#firewall)
+  - [ufw](#ufw)
+  - [show](#show)
+  - [firewalld](#firewalld)
+  - [iptables](#iptables)
+  - [nftables](#nftables)
 - [ssh](#ssh)
-- [sudoers](#ssh)
+  - [keygen](#keygen)
+  - [x11](#x11)
+  - [scp](#scp)
+  - [sshpass](#sshpass)
+- [sudoers](#sudoers)
 - [strace](#strace)
 - [apt](#apt)
 - [snap](#snap)
 - [dpkg](#dpkg)
 - [ntp](#ntp)
+  - [time](#time)
+  - [language](#language)
+  - [timesyncd](#timesyncd)
+  - [ntpd](#ntpd)
 - [top](#top)
+  - [htop](#htop)
+  - [bpytop](#bpytop)
+  - [atop](#atop)
+  - [iftop](#iftop)
+  - [iotop](#iotop)
 - [ps](#ps)
+  - [kill](#kill)
 - [jobs](#jobs)
 - [mem](#mem)
+  - [fincore](#fincore)
+  - [lspage](#lspage)
 - [lsof](#lsof)
+  - [descriptor](#descriptor)
 - [vmstat](#vmstat)
 - [sysstat](#sysstat)
+  - [iostat](#iostat)
+  - [mpstat](#mpstat)
+  - [pidstat](#pidstat)
 - [stress](#stress)
+  - [stress-ng](#stress-ng)
 - [smart](#smart)
+  - [smartmontools](#smartmontools)
+  - [sensors](#sensors)
+  - [badblocks](#badblocks)
+  - [hdparm](#hdparm)
 - [disk](#disk)
+  - [parted](#parted)
+  - [fdisk](#fdisk)
+  - [sfdisk](#sfdisk)
+  - [swap](#swap)
 - [lvm](#lvm)
 - [md](#md)
 - [tgt](#tgt)
 - [dd](#dd)
+  - [backup](#backup)
+  - [iso](#iso)
+  - [rdiff](#rdiff)
 - [users](#users)
+  - [passwd](#passwd)
+  - [chage](#chage)
+  - [id](#id)
+  - [usermod](#usermod)
+  - [profile](#profile)
+  - [bashrc](#bashrc)
+  - [useradd](#useradd)
+  - [adduser](#adduser)
 - [chmod](#chmod)
+  - [chown](#chown)
+  - [groups](#groups)
+  - [usermod](#usermod-1)
 - [domain](#domain)
+  - [realmd](#realmd)
+  - [sssd](#sssd)
 - [syslog](#syslog)
+  - [server](#server)
+  - [client](#client)
+  - [zabbix-agent](#zabbix-agent)
+  - [ommail](#ommail)
 - [logrotate](#logrotate)
 - [smb](#smb)
+  - [cifs](#cifs)
+  - [samba](#samba)
+  - [client cifs](#client-cifs)
+  - [client samba-client](#client-samba-client)
+  - [recycle](#recycle)
 - [nfs](#nfs)
+  - [server](#server-1)
+  - [client](#client-1)
 - [ftp](#ftp)
+  - [ftp client](#ftp-client)
+  - [ftps](#ftps)
 - [rsync](#rsync)
 - [apache](#apache)
+  - [api](#api-1)
+  - [status](#status)
+  - [webdav](#webdav)
 - [haproxy](#haproxy)
 - [keepalive](#keepalive)
+
+---
 
 ## filesystem
 
@@ -329,11 +438,19 @@ EOF
 ### xq
 
 `apt-get install xq || brew install xq` установить xq (https://github.com/sibprogrammer/xq) для XML и HTML на GoLang \
+`curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xq -nx /rss/channel/item` вывод содержимого дочерних элементов с тегами \
+`curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xq -x /rss/channel/item/link` вывести только содержимое (массив ссылок) \
 `curl -s https://kinozal.tv -x kinozal:proxy@192.168.3.100:9090 | xq -nq "head"` вывести блок head целиком (с тегами) \
 `curl -s https://kinozal.tv -x kinozal:proxy@192.168.3.100:9090 | xq -q "head"` вывести только текст из дочерних элементов выбранного тега (содержимое title) \
 `curl -s https://kinozal.tv/browse.php?s=the+rookie -x kinozal:proxy@192.168.3.100:9090 | xq -nq "body > div > div > div > div > table > tbody > tr > td"` \
-`curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xq -nx /rss/channel/item` вывод содержимого дочерних элементов с тегами \
-`curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | xq -x /rss/channel/item/link` вывести только содержимое (массив ссылок)
+`curl -s -X POST -u "Login:Password" "http://localhost:9091/transmission/rpc" | xq -q a -a href` забрать X-Transmission-Session-Id для дальнейших запросов к API (обратиться к тэгу a и атрибуту href)
+
+### htmlq
+
+`brew install htmlq` установить htmlq (https://github.com/mgdm/htmlq) like jq for HTML \
+`curl -s https://kinozal.tv/browse.php?s=the+rookie -x kinozal:proxy@192.168.3.100:9090 | htmlq table tr td a -t` получить содержимое таблицы (вывести только текст содержимого) \
+`curl -s https://kinozal.tv/browse.php?s=the+rookie -x kinozal:proxy@192.168.3.100:9090 | htmlq table tr td a -a href` получить только ссылки \
+`curl -s -X POST -u "Login:Password" "http://localhost:9091/transmission/rpc" | htmlq a -a href` забрать X-Transmission-Session-Id для дальнейших запросов к API (обратиться к тэгу a и атрибуту href)
 
 ### yq
 
@@ -1741,6 +1858,17 @@ done
 `Z` [zombie] завершенный процесс, ожидающий пока родительский процесс примет результат \
 `T` остановленный сигналом SIGSTOP (-19/CTRL+Z) \
 `X` мертвый (не должен показываться)
+
+### bpytop
+
+`sudo apt install bpytop` \
+`pip3 list | grep psutil` проверить пакет \
+`pip3 install psutil --break-system-packages` установить пакет в обход ограничений \
+`python3 -m venv myenv` создать виртуальное окружение \
+`source myenv/bin/activate` активировать виртуальное окружение \
+`pip install psutil` установить библиотеку для получения информации о системе \
+`bpytop` \
+`deactivate`
 
 ### atop
 

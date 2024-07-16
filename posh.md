@@ -13,7 +13,7 @@
     <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
 </p>
 
-<p align="center"> Большая база заметок <img src="Logo/PowerShell-Logo.png" width="14" /> PowerShell на русском языке.</p>
+<p align="center"> Большая база заметок <b>PowerShell</b> на русском языке.</p>
 
 Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
 
@@ -9469,6 +9469,48 @@ services:
 `Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/kinozal/results/torznab/api?apikey=$API_KEY&t=search&q=$query&cat=5000"` отфильтровать вывод по сериалам (Capabilities: 5000) \
 `Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=search&q=riverdale"` поиск во всех индексаторах \
 `$(Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=indexers&configured=true").indexers.indexer` cписок всех настроенных индексаторов (трекеров)
+
+### Torrent-API-py
+
+[Source](https://github.com/Ryuk-me/Torrent-Api-py) \
+[Documentation](https://torrent-api-py-nx0x.onrender.com/docs#/default/health_route_health_get)
+```
+git clone https://github.com/Ryuk-me/Torrent-Api-py
+cd Torrent-Api-py
+pip install virtualenv
+py -3 -m venv api-py
+# Активировать виртуальную среду для Windows
+.\api-py\Scripts\activate
+# Активировать виртуальную среду для Linux
+# $ source api-py/bin/activate
+# Установить зависимости и запустить
+pip install -r requirements.txt
+python main.py
+# Proxy: https://github.com/dperson/torproxy
+# export HTTP_PROXY="http://proxy-host:proxy-port"
+```
+`$srv = "http://localhost:8009"` local \
+`$srv = "https://torrent-api-py-nx0x.onrender.com"` public \
+`Invoke-RestMethod $srv/api/v1/sites` список доступных трекеров \
+`Invoke-RestMethod "$srv/api/v1/search/?site=torlock&query=the+rookie&limit=0&page=1"` поиск в выбранном трекере \
+`Invoke-RestMethod "$srv/api/v1/all/search?query=the+rookie&limit=0"` поиск по названию во всех трекерах
+
+### Plex
+
+`$API_TOKEN = "XXXXXXXXXXXXXXXXXXXX"`
+```
+$headers = @{
+    "X-Plex-Token" = $API_TOKEN
+    "accept" = "application/json"
+}
+```
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/servers).MediaContainer.Server` версия сервера \
+`Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/diagnostics/logs -OutFile log.zip` выгруить лог с сервера \
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections).MediaContainer.Directory` список секций добавленных на сервер \
+`$section_key = $(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections).MediaContainer.Directory.key[0]` \
+`Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/$section_key/refresh` синхронизация указанной секции в Plex по ключу \
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/2/folder).MediaContainer.Metadata` получить список директорий и файлов в корне выбранной секции \
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/2/folder?parent=204).MediaContainer.Metadata` получить список всех файлов в указанной директории через ключ (MediaContainer.Metadata.key) конечной точки
 
 ### Jellyfin
 

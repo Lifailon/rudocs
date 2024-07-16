@@ -13,7 +13,7 @@
     <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
 </p>
 
-<p align="center"> Большая база заметок <img src="Logo/PowerShell-Logo.png" width="14" /> PowerShell на русском языке.</p>
+<p align="center"> Большая база заметок <b>PowerShell</b> на русском языке.</p>
 
 Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
 
