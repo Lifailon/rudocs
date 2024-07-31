@@ -7464,6 +7464,51 @@ jobs:
         # Отправляем коммит в удаленный репозиторий
         git push
 ```
+### CI
+```yaml
+name: Docker Build and Push Image
+
+on:
+  # Запусать при git push в ветку main
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Клонируем репозиторий
+      uses: actions/checkout@v2
+
+    - name: Авторизация в Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Сборка образа и отправка в Docker Hub
+      run: |
+        docker build -t lifailon/torapi:latest .
+        docker push lifailon/torapi:latest
+```
+### Logs
+
+$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).total_count # получить количество запусков всех рабочих процессов \
+$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows # подробная информации о запускаемых рабочих процессах \
+$actions_last_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows[-1].id # получить идентификатор последнего события \
+$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs # подробная информация о последней сборке \
+$run_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs.id # получить идентификатор запуска рабочего процесса \
+$(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs.steps # подробная информация для всех шагов выполнения (время работы и статус выполнения) \
+$jobs_id = $(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs[0].id # получить идентификатор последнего задания указанного рабочего процесса
+```PowerShell
+$url = "https://api.github.com/repos/Lifailon/TorAPI/actions/jobs/$jobs_id/logs"
+$headers = @{
+    Authorization = "token ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+}
+Invoke-RestMethod -Uri $url -Headers $headers # получить логи задания
+```
 # Pester
 
 [Source](https://github.com/pester/Pester)
@@ -8388,6 +8433,24 @@ chmod +x /usr/local/bin/lazydocker
 lazydocker
 
 ### Dockerfile
+
+`FROM` указывает базовый образ, на основе которого будет создаваться новый образ \
+`LABEL` добавляет метаданные к образу в формате ключ-значение \
+`ENV` устанавливает переменные окружения, которые будут доступны внутри контейнера \
+`RUN` выполняет команды в контейнере во время сборки образа \
+`COPY` копирует файлы и каталоги из указанного источника на локальной машине в файловую систему контейнера \
+`ADD` копирует файлы и каталоги в контейнер, поддерживает URL и автоматическое извлечение архивов \
+`CMD` определяет команду, которая будет выполняться при запуске контейнера, может быть переопределена при запуске \
+`ENTRYPOINT` задает основную команду, которая будет выполняться при запуске контейнера \
+`WORKDIR` устанавливает рабочий каталог внутри контейнера для последующих команд \
+`ARG` определяет переменные, которые могут быть переданы на этапе сборки образа \
+`VOLUME` создает точку монтирования для хранения данных, сохраняемых вне контейнера \
+`EXPOSE` указывает, какие порты контейнера будут доступны извне \
+`USER` устанавливает пользователя, от имени которого будут выполняться следующие команды \
+`HEALTHCHECK` определяет команду для проверки состояния работающего контейнера \
+`ONBUILD` задает команды, которые будут автоматически выполнены при сборке дочерних образов \
+`STOPSIGNAL` определяет сигнал, который будет отправлен контейнеру для его остановки \
+`SHELL` задает командную оболочку, которая будет использоваться для исполнения команд RUN, CMD, ENTRYPOINT и т.д.
 
 `git clone https://github.com/Lifailon/TorAPI` \
 `cd TorAPI` \
