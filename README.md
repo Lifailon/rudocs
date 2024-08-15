@@ -121,6 +121,8 @@
 - [Git](posh.md/#git)
 - [GitHub-api](posh.md/#github-api)
 - [GitHub-Actions](posh.md/#github-actions)
+- [Vercel](posh.md/#vercel)
+- [Jenkins](posh.md/#jenkins)
 - [Pester](posh.md/#pester)
 - [PSAppDeployToolkit](posh.md/#psappdeploytoolkit)
 - [DSC](posh.md/#dsc)
