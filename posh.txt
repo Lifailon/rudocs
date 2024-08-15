@@ -121,6 +121,8 @@ PowerShell Commands
 # Git
 # GitHub-api
 # GitHub-Actions
+# Vercel
+# Jenkins
 # Pester
 # PSAppDeployToolkit
 # DSC
@@ -7355,6 +7357,7 @@ git commit -m "update powershell commands" # сохранить изменени
 git push # синхронизировать локальные изменения с репозиторием на сервере
 git push origin mkdocs-material # отправить в конкретную ветку
 git push origin --delete mkdocs # удалить ветку на удаленном сервере
+git commit --amend # изменить комментарий в последнем коммите (до push)
 git branch -a # отобразить все ветки (в том числе удаленные remotes/origin)
 git branch hugo # создать новую ветку
 git branch -m hugo-public # переименовать текущую ветку
@@ -7508,6 +7511,184 @@ $headers = @{
     Authorization = "token ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 }
 Invoke-RestMethod -Uri $url -Headers $headers # получить логи задания
+
+# Vercel
+
+npm i -g vercel # установить глобально в систему Vercel CLI
+vercel --version # выводит текущую версию установленного Vercel CLI
+vercel login # выполняет вход в аккаунт Vercel (> Continue with GitHub)
+vercel logout # выполняет выход из аккаунта Vercel
+vercel init # инициализирует новый проект в текущей директории (создает файл конфигурации vercel.json и другие файлы, необходимые для проекта)
+vercel dev # запускает локальный сервер для проверки работоспособности (http://localhost:3000)
+vercel deploy # загружает проект на серверы Vercel и развертывает его
+vercel link # привязывает текущую директорию к существующему проекту на сервере Vercel (выбрать из списка)
+vercel unlink # отменяет привязку текущей директории от проекта Vercel
+vercel env # управляет переменными окружения для проекта
+vercel env pull # подтягивает переменные окружения с Vercel в локальный .env файл
+vercel env ls # показывает список всех переменных окружения для проекта
+vercel env add <key> <environment> # добавляет новую переменную окружения для указанного окружения (production, preview, development)
+vercel env rm <key> <environment> # удаляет переменную окружения из указанного окружения
+vercel projects # управляет проектами Vercel
+vercel projects ls # показывает список всех проектов
+vercel projects add # добавляет новый проект
+vercel projects rm <project> # удаляет указанный проект
+vercel pull # подтягивает последние настройки окружения с Vercel
+vercel alias # управляет алиасами доменов для проектов
+vercel alias ls # показывает список всех алиасов для текущего проекта
+vercel alias set <alias> # устанавливает алиас для указанного проекта
+vercel alias rm <alias> # удаляет указанный алиас
+vercel domains # управляет доменами, привязанными к проекту
+vercel domains ls # показывает список всех доменов
+vercel domains add <domain> # добавляет новый домен к проекту
+vercel domains rm <domain> # удаляет указанный домен
+vercel teams # управляет командами и членами команд на Vercel
+vercel teams ls # показывает список всех команд
+vercel teams add <team> # добавляет новую команду
+vercel teams rm <team> # удаляет указанную команду
+vercel logs <deployment> # выводит логи для указанного деплоя
+vercel secrets # управляет секретами, используемыми в проектах
+vercel secrets add <name> <value> # добавляет новый секрет
+vercel secrets rm <name> # удаляет указанный секрет
+vercel secrets ls # показывает список всех секретов
+vercel switch <team> # переключается между командами и аккаунтами Vercel
+
+### CD
+
+name: Deploy to Vercel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Clone repository
+      uses: actions/checkout@v2
+
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest
+
+    - name: Deploy to Vercel
+      run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+
+# Jenkins
+
+docker run -d --name=jenkins -p 8080:8080 --restart=always -v jenkins_home:/var/jenkins_home jenkins/jenkins:latest
+ls /var/lib/docker/volumes/jenkins_home/_data/jobs # директория хранящая историю сборок в хостовой системе
+docker exec -it jenkins /bin/bash # подключиться к контейнеру
+cat /var/jenkins_home/secrets/initialAdminPassword # получить токен инициализации
+
+http://127.0.0.1:8080/manage/cli
+apt install openjdk-17-jre-headless
+wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -P /usr/local/bin/ # скачать jenkins-cli
+java -jar /usr/local/bin/jenkins-cli.jar -auth lifailon:password -s http://127.0.0.1:8080 -webSocket help # получить список команд
+
+### SSH
+
+Manage > Credentials > Global > New credentials > Kind: Username with password
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'Count', defaultValue: '100', description: 'Number of lines from log')
+        choice(name: "Mode", choices: ["Log","Stats"], description: "Select mode")
+        // booleanParam(name: "State", defaultValue: false)
+    }
+    stages {
+        stage('Remote SSH') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: '91a9b0bb-bde9-4e06-ba19-9eb5bfd61612', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
+                        sshCommand remote: [
+                            name: '192.168.3.101',
+                            host: '192.168.3.101',
+                            port: 2121,
+                            user: env.SSH_USER,
+                            password: env.SSH_PASS,
+                            allowAnyHosts: true
+                        ], command: """
+                            if [[ "${params.Mode}" == "Log" ]]; then
+                                bash kinozal-bot/kinozal-bot-0.4.5.sh log bot ${params.Count}
+                            elif [[ "${params.Mode}" == "Stats" ]]; then
+                                curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash
+                            fi
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
+
+### HttpURLConnection
+
+Script Console: http://127.0.0.1:8080/manage/script
+
+pipeline {
+    agent any
+    stages {
+        stage('Call REST API') {
+            steps {
+                script {
+                    def url = new URL("https://jsonplaceholder.typicode.com/posts")
+                    def connection = url.openConnection()
+                    connection.setRequestMethod("GET")
+                    connection.setRequestProperty("Accept", "application/json")
+                    def responseCode = connection.getResponseCode()
+                    if (responseCode == 200) {
+                        def response = connection.getInputStream().getText()
+                        println("Response: " + response)
+                    } else {
+                        error("Failed to call API, response code: ${responseCode}")
+                    }
+                    connection.disconnect()
+                }
+            }
+        }
+    }
+}
+
+### Active Choices Parameter
+
+Plugin: https://plugins.jenkins.io/uno-choice
+
+Name: selectedVersion
+
+Groovy Script:
+
+import groovy.json.JsonSlurper
+def apiUrl = "https://api.github.com/repos/PowerShell/PowerShell/tags"
+def conn = new URL(apiUrl).openConnection()
+conn.setRequestProperty("User-Agent", "Jenkins")
+def response = conn.getInputStream().getText()
+def json = new JsonSlurper().parseText(response)
+def versions = json.collect { it.name }
+return versions
+
+Pipeline script:
+
+pipeline {
+    agent any
+    stages {
+        stage('Display Selected Version') {
+            steps {
+                script {
+                    echo "Selected PowerShell version: ${params.selectedVersion}"
+                }
+            }
+        }
+    }
+}
 
 # Pester
 
