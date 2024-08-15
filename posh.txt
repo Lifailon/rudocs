@@ -7588,12 +7588,12 @@ ls /var/lib/docker/volumes/jenkins_home/_data/jobs # директория хра
 docker exec -it jenkins /bin/bash # подключиться к контейнеру
 cat /var/jenkins_home/secrets/initialAdminPassword # получить токен инициализации
 
-http://127.0.0.1:8080/manage/cli
+Cli: http://127.0.0.1:8080/manage/cli
 apt install openjdk-17-jre-headless
 wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -P /usr/local/bin/ # скачать jenkins-cli
 java -jar /usr/local/bin/jenkins-cli.jar -auth lifailon:password -s http://127.0.0.1:8080 -webSocket help # получить список команд
 
-### SSH
+### SSH Steps
 
 Manage > Credentials > Global > New credentials > Kind: Username with password
 
