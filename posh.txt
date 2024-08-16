@@ -7693,7 +7693,7 @@ pipeline {
 # GitLab
 
 docker run --detach \
-    --hostname 192.168.3.100 \
+    --hostname 192.168.3.101 \
     --publish 443:443 --publish 80:80 --publish 2222:22 \
     --name gitlab \
     --restart always \
@@ -7708,7 +7708,7 @@ docker exec -it gitlab cat /etc/gitlab/gitlab.rb # конфигурация се
 
 Получить токен регистрации Runner: http://192.168.3.101/root/hwstat/-/settings/ci_cd#js-runners-settings
 
-curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64 # загрузить исполняемый файл Runner
 chmod +x /usr/local/bin/gitlab-runner
 
 docker run -d --name gitlab-runner --restart always \
@@ -7723,6 +7723,7 @@ gitlab-runner status # статус
 gitlab-runner unregister --all-runners # удалить все регистрации
 gitlab-runner install # установить службу
 gitlab-runner run # запустить с выводом в консоль
+
 gitlab-runner register
 Enter the GitLab instance URL (for example, https://gitlab.com/): http://192.168.3.101/
 Enter the registration token: GR1348941enqAxqQgm8AZJD_g7vme
@@ -7731,34 +7732,22 @@ cat /etc/gitlab-runner/config.toml # конфигурация
 
 Включить импорт проектов из GitHub: http://192.168.3.101/admin/application_settings/general#js-import-export-settings
 
-image: node:latest
+variables:
+  PORT: 2024
 
 stages:
-  - install
-  - start
   - test
-  - log
-
-install:
-  stage: install
-  script:
-    - npm install
-
-start:
-  stage: start
-  script:
-    - npm start -- --port 2024 &> torapi.log &
 
 test:
   stage: test
   script:
-    - curl -s https://localhost:2024/api/provider/list
-
-log:
-    stage: log
-    script:
-      - cat torapi.log
-
+    - pwsh -Command "
+        npm install;
+        Write-Output $PORT;
+        Start-Process -NoNewWindow -FilePath 'npm' -ArgumentList 'start -- --port $PORT' -RedirectStandardOutput 'torapi.log';
+        curl -s http://localhost:$PORT/api/provider/list;
+        Get-Content torapi.log"
+      
 # Pester
 
 Source: https://github.com/pester/Pester
