@@ -122,6 +122,7 @@
 - [GitHub-api](#github-api)
 - [GitHub-Actions](#github-actions)
 - [Vercel](#vercel)
+- [GitLab](#gitlab)
 - [Jenkins](#jenkins)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
@@ -7580,6 +7581,72 @@ jobs:
 
     - name: Deploy to Vercel
       run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+```
+# GitLab
+```
+docker run --detach \
+    --hostname 192.168.3.101 \
+    --publish 443:443 --publish 80:80 --publish 2222:22 \
+    --name gitlab \
+    --restart always \
+    --volume /srv/gitlab/config:/etc/gitlab \
+    --volume /srv/gitlab/logs:/var/log/gitlab \
+    --volume /srv/gitlab/data:/var/opt/gitlab \
+    gitlab/gitlab-ee:latest
+```
+`docker logs -f gitlab` логи контейнера \
+`docker exec -it gitlab cat /etc/gitlab/initial_root_password` получить пароль для root \
+`docker exec -it gitlab cat /etc/gitlab/gitlab.rb` конфигурация сервера
+
+Получить токен регистрации Runner: http://192.168.3.101/root/torapi/-/settings/ci_cd#js-runners-settings
+
+`curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64` загрузить исполняемый файл Runner
+`chmod +x /usr/local/bin/gitlab-runner`
+```
+docker run -d --name gitlab-runner --restart always \
+    -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+    gitlab/gitlab-runner:latest
+```
+`docker exec -it gitlab-runner bash` \
+`gitlab-runner list` список сборщиков \
+`gitlab-runner verify` проверка \
+`gitlab-runner restart` применить настройки \
+`gitlab-runner status` статус \
+`gitlab-runner unregister --all-runners` удалить все регистрации \
+`gitlab-runner install` установить службу \
+`gitlab-runner run` запустить с выводом в консоль
+
+`gitlab-runner register`
+```
+Enter the GitLab instance URL (for example, https://gitlab.com/): http://192.168.3.101/
+Enter the registration token: GR1348941enqAxqQgm8AZJD_g7vme
+Enter an executor: shell
+```
+`cat /etc/gitlab-runner/config.toml` конфигурация
+
+Включить импорт проектов из GitHub: http://192.168.3.101/admin/application_settings/general#js-import-export-settings
+```yaml
+variables:
+  PORT: 2024
+  TITLE: "The+Rookie"
+
+stages:
+  - test
+
+test:
+  stage: test
+  script:
+    - |
+        pwsh -Command "
+            Write-Host PORT - $env:PORT
+            Write-Host TITLE - $env:TITLE
+            npm install
+            Start-Process -NoNewWindow -FilePath 'npm' -ArgumentList 'start -- --port $env:PORT' -RedirectStandardOutput 'torapi.log'
+            Start-Sleep -Seconds 5
+            Invoke-RestMethod -Uri http://localhost:$env:PORT/api/search/title/all?query=$env:TITLE | Format-List
+            Get-Content torapi.log
+            Stop-Process -Name 'node' -Force -ErrorAction SilentlyContinue
+        "
 ```
 # Jenkins
 
