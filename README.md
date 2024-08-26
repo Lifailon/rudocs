@@ -134,6 +134,7 @@
 - [Docker-Compose](posh.md/#docker-compose)
 - [Swarm](posh.md/#swarm)
 - [Docker.DotNet](posh.md/#dockerdotnet)
+- [Graylog](posh.md/#graylog)
 - [GigaChat](posh.md/#GigaChat)
 - [YandexGPT](posh.md/#YandexGPT)
 - [SuperAGI](posh.md/#superagi)
