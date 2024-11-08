@@ -7504,13 +7504,13 @@ jobs:
 ```
 ### Logs
 
-$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).total_count # получить количество запусков всех рабочих процессов \
-$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows # подробная информации о запускаемых рабочих процессах \
-$actions_last_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows[-1].id # получить идентификатор последнего события \
-$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs # подробная информация о последней сборке \
-$run_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs.id # получить идентификатор запуска рабочего процесса \
-$(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs.steps # подробная информация для всех шагов выполнения (время работы и статус выполнения) \
-$jobs_id = $(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs[0].id # получить идентификатор последнего задания указанного рабочего процесса
+`$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).total_count` получить количество запусков всех рабочих процессов \
+`$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows` подробная информации о запускаемых рабочих процессах \
+`$actions_last_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows[-1].id` получить идентификатор последнего события \
+`$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs` подробная информация о последней сборке \
+`$run_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs.id` получить идентификатор запуска рабочего процесса \
+`$(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs.steps` подробная информация для всех шагов выполнения (время работы и статус выполнения) \
+`$jobs_id = $(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs[0].id` получить идентификатор последнего задания указанного рабочего процесса
 ```PowerShell
 $url = "https://api.github.com/repos/Lifailon/TorAPI/actions/jobs/$jobs_id/logs"
 $headers = @{
@@ -7571,24 +7571,26 @@ jobs:
     
     steps:
     - name: Clone repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Install Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
 
     - name: Install dependencies
       run: npm install
 
-    - name: Install Vercel CLI
-      run: npm install --global vercel@latest
-
     - name: Deploy to Vercel
-      run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
 ```
 # GitLab
-```
+```bash
 docker run --detach \
     --hostname 192.168.3.101 \
     --publish 443:443 --publish 80:80 --publish 2222:22 \
@@ -7607,7 +7609,7 @@ docker run --detach \
 
 `curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64` загрузить исполняемый файл Runner
 `chmod +x /usr/local/bin/gitlab-runner`
-```
+```bash
 docker run -d --name gitlab-runner --restart always \
     -v /srv/gitlab-runner/config:/etc/gitlab-runner \
     gitlab/gitlab-runner:latest

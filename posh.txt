@@ -10,7 +10,11 @@ PowerShell Commands
 -
     https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white
     https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white
-    https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black
+
+    https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white
+    https://img.shields.io/badge/Docker_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black
+    
+    https://img.shields.io/badge/Node.js_RuDocs-7ab65f?style=for-the-badge&logo=node.js&logoColor=white
 -
 
 Большая база заметок PowerShell на русском языке.
@@ -7567,21 +7571,23 @@ jobs:
     
     steps:
     - name: Clone repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Install Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
 
     - name: Install dependencies
       run: npm install
 
-    - name: Install Vercel CLI
-      run: npm install --global vercel@latest
-
     - name: Deploy to Vercel
-      run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
 
 # GitLab
 
