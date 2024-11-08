@@ -8,16 +8,20 @@
     <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
 </p>
 <p align="center">
-    <a href="https://lifailon.github.io"><img title="Web version"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
-    <a href="posh.pdf"><img title="PDF version"src="https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
-    <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
+        <a href="https://lifailon.github.io"><img title="Web version"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
+        <a href="posh.pdf"><img title="PDF version"src="https://img.shields.io/badge/pdf_version-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
+    <br>
+        <a href="#docker"><img title="Docker Commands"src="https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white"></a>
+        <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Docker_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
+    <br>
+        <a href="https://github.com/Lifailon/rudocs"><img title="Node.js syntax"src="https://img.shields.io/badge/Node.js_RuDocs-7ab65f?style=for-the-badge&logo=node.js&logoColor=white"></a>
 </p>
 
 <p align="center"> Большая база заметок <b>PowerShell</b> на русском языке.</p>
 
 Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
 
-> Добавлены заметки по работе с системными командами и консольными утилитами 🐧 [Linux](linux.md)
+💡 Добавлены заметки по работе с системными командами и консольными утилитами 🐧 [Linux](linux.md)
 
 ---
 
@@ -8008,7 +8012,7 @@ Configuration InstallPowerShellCore {
 `ansible --version` \
 `config file = None` \
 `nano /etc/ansible/ansible.cfg` файл конфигурации
-```
+```yaml
 [defaults]
 inventory = /etc/ansible/hosts
 # uncomment this to disable SSH key host checking
@@ -8018,7 +8022,7 @@ host_key_checking = False
 ### Hosts
 
 `nano /etc/ansible/hosts`
-```
+```yaml
 [us]
 pi-hole-01 ansible_host=192.168.3.101
 zabbix-01 ansible_host=192.168.3.102
@@ -8087,7 +8091,7 @@ ansible_shell_type=powershell
 ### win_shell (vars/debug)
 
 `nano /etc/ansible/PowerShell-Vars.yml`
-```
+```yaml
 - hosts: ws
  ` Указать коллекцию модулей
   collections:
@@ -8112,7 +8116,7 @@ ansible_shell_type=powershell
 ### win_powershell
 
 `nano /etc/ansible/powershell-param.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Run PowerShell script with parameters
@@ -8133,7 +8137,7 @@ ansible_shell_type=powershell
 ### win_chocolatey
 
 `nano /etc/ansible/setup-adobe-acrobat.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Install Acrobat Reader
@@ -8144,7 +8148,7 @@ ansible_shell_type=powershell
 `ansible-playbook /etc/ansible/setup-adobe-acrobat.yml`
 
 `nano /etc/ansible/setup-openssh.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: install the Win32-OpenSSH service
@@ -8158,7 +8162,7 @@ ansible_shell_type=powershell
 ### win_regedit
 
 `nano /etc/ansible/win-set-shell-ssh-ps7.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Set the default shell to PowerShell 7 for Windows OpenSSH
@@ -8175,7 +8179,7 @@ ansible_shell_type=powershell
 ### win_service
 
 `nano /etc/ansible/win-service.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Start service
@@ -8191,7 +8195,7 @@ ansible_shell_type=powershell
 ### win_service_info
 
 `nano /etc/ansible/get-service.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Get info for a single service
@@ -8207,7 +8211,7 @@ ansible_shell_type=powershell
 ### fetch/slurp
 
 `nano /etc/ansible/copy-from-win-to-local.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Retrieve remote file on a Windows host
@@ -8229,7 +8233,7 @@ ansible_shell_type=powershell
 
 `echo "Get-Service | where name -eq vss | Start-Service" > /home/lifailon/Start-Service-VSS.ps1` \
 `nano /etc/ansible/copy-file-to-win.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Copy file to win hosts
@@ -8241,7 +8245,7 @@ ansible_shell_type=powershell
 
 `curl -OL https://github.com/PowerShell/PowerShell/releases/download/v7.3.6/PowerShell-7.3.6-win-x64.msi` \
 `nano /etc/ansible/copy-file-to-win.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Copy file to win hosts
@@ -8254,7 +8258,7 @@ ansible_shell_type=powershell
 ### win_command
 
 `nano /etc/ansible/run-script-ps1.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Run PowerShell Script
@@ -8265,7 +8269,7 @@ ansible_shell_type=powershell
 ### win_package
 
 `nano /etc/ansible/setup-msi-package.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Install MSI Package
@@ -8282,7 +8286,7 @@ ansible_shell_type=powershell
 ### win_firewall_rule
 
 `nano /etc/ansible/win-fw-open.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Open RDP port
@@ -8300,7 +8304,7 @@ ansible_shell_type=powershell
 ### win_group
 
 `nano /etc/ansible/win-creat-group.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Create a new group
@@ -8314,7 +8318,7 @@ ansible_shell_type=powershell
 ### win_group_membership
 
 `nano /etc/ansible/add-user-to-group.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Add a local and domain user to a local group
@@ -8329,7 +8333,7 @@ ansible_shell_type=powershell
 ### win_user
 
 `nano /etc/ansible/creat-win-user.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Creat user
@@ -8343,7 +8347,7 @@ ansible_shell_type=powershell
 `ansible-playbook /etc/ansible/creat-win-user.yml`
 
 `nano /etc/ansible/delete-win-user.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Delete user
@@ -8356,7 +8360,7 @@ ansible_shell_type=powershell
 ### win_feature
 
 `nano /etc/ansible/install-feature.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Install Windows Feature
@@ -8369,7 +8373,7 @@ ansible_shell_type=powershell
 ### win_reboot
 
 `nano /etc/ansible/win-reboot.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Reboot a slow machine that might have lots of updates to apply
@@ -8381,7 +8385,7 @@ ansible_shell_type=powershell
 ### win_find
 
 `nano /etc/ansible/win-ls.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Find files in multiple paths
@@ -8405,7 +8409,7 @@ ansible_shell_type=powershell
 ### win_uri
 
 `nano /etc/ansible/rest-get.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: REST GET request to endpoint github
@@ -8421,7 +8425,7 @@ ansible_shell_type=powershell
 ### win_updates
 
 `nano /etc/ansible/win-update.yml`
-```
+```yaml
 - hosts: ws
   tasks:
   - name: Install only particular updates based on the KB numbers
@@ -8454,7 +8458,7 @@ ansible_shell_type=powershell
 [Install](https://chocolatey.org/install) \
 [API](https://community.chocolatey.org/api/v2/package/chocolatey) \
 [Deployment](https://docs.chocolatey.org/en-us/guides/organizations/organizational-deployment-guide)
-```
+```yaml
 - name: Ensure Chocolatey installed from internal repo
   win_chocolatey:
     name: chocolatey
@@ -8743,7 +8747,7 @@ chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 ```
 `nano docker-compose.yml`
-```yml
+```yaml
 version: "3.8"
 services:
   torapi:
@@ -8762,7 +8766,7 @@ volumes:
 ### Uptime-Kuma
 
 `nano docker-compose.yml`
-```yml
+```yaml
 version: "3.8"
 services:
   uptime-kuma:
@@ -8781,7 +8785,7 @@ volumes:
 ### Uptime-Kuma-Api
 
 `nano docker-compose.yml`
-```yml
+```yaml
 version: "3.9"
 services:
   kuma:
@@ -8829,7 +8833,7 @@ OpenAPI doc: http://192.168.3.102:8081/docs \
 `docker node rm u4u897mxb1oo39pbj5oezd3um` удалить node (со статусом Down) на manager node \
 `docker pull lifailon/torapi:latest` \
 `nano docker-compose-stack.yml`
-```yml
+```yaml
 version: "3.8"
 services:
   torapi:
@@ -8876,14 +8880,14 @@ http://192.168.3.102:9999
 
 `echo -n DozzleAdmin | shasum -a 256` получить пароль в формате sha-256 \
 `mkdir dozzle && nano ./dozzle/users.yml` создать авторизационный файл
-```yml
+```yaml
 users:
   admin:
     name: "admin"
     password: "a800c3ee4dac5102ed13ba673589077cf0a87a7ddaff59882bb3c08f275a516e"
 ```
 `nano docker-compose.yml`
-```yml
+```yaml
 version: "3.8"
 services:
   dozzle:
@@ -8945,17 +8949,17 @@ $client.Containers.StartContainerAsync($kuma_id, $StartParameters)
 [Graylog Docker Image](https://hub.docker.com/r/itzg/graylog)
 
 - Установка MongoDB:
-```shell
+```bash
 docker run --name mongo -d mongo:3
 ```
 - Используем прокси для установки Elassticsearch:
-```shell
+```bash
 docker run --name elasticsearch \
     -e "http.host=0.0.0.0" -e "xpack.security.enabled=false" \
     -d dockerhub.timeweb.cloud/library/elasticsearch:5.5.1
 ```
 - Указать статический IP адрес для подключения к API
-```shell
+```bash
 docker run --name Graylog \
     --link mongo \
     --link elasticsearch \
@@ -8966,7 +8970,7 @@ docker run --name Graylog \
 - Настройка syslog на клиенте Linux:
 
 `nano /etc/rsyslog.d/graylog.conf`
-```shell
+```bash
 *.* @@192.168.3.101:514;RSYSLOG_SyslogProtocol23Format
 ```
 `systemctl restart rsyslog`
@@ -8990,14 +8994,14 @@ cd $home\Documents\winlogbeat-8.15.0-windows-x86_64
 Добавить отправку в Logstash:
 
 `code winlogbeat.yml`
-```shell
+```bash
 output.logstash:
   hosts: ["192.168.3.101:5044"]
 ```
 И закомментировать отправку данных в Elasticsearch (output.elasticsearch)
 
 `.\winlogbeat.exe -c winlogbeat.yml` запустить агент с правами администратора в консоли
-```shell
+```bash
 .\install-service-winlogbeat.ps1 # установить службу
 Get-Service winlogbeat | Start-Service
 ```

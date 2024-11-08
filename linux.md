@@ -255,7 +255,7 @@
 `curl --insecure --ssl-reqd "smtps://smtp.yandex.ru" --mail-from "src@yandex.ru" --mail-rcpt "dst@yandex.ru" --user "src@yandex.ru" --upload-file out.txt` отправка email через SMTPS (SMTP over SSL/TLS) сервер 
 
 ### influxdb
-```shell
+```bash
 ip="192.168.3.104"
 db="dbash"
 table="icmp_metrics_table"
@@ -305,7 +305,7 @@ curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,s
 `echo $hosts | jq '.nodes | to_entries | map(select(.value.location[0] != "ru")) | length'` создать массив функцией map() (объеденяет отдельные объекты {}{} группируются в один массив [{},{}]) только из тех объектов, которые соответствуют условию select() и вывести количество найденных объектов \
 `echo $hosts | jq -r '.nodes | to_entries[] | select(.value.location[0] == "ru" or .value.location[0] == "tr") | .key'` проверить два условия через or или and (для проверяемого типа данных int кавычки не используются) \
 `echo $hosts | jq -r '.nodes | to_entries[] | select(.key | index("jp")) | .key'` вывести список хостов региона Japan, которые в названии ключа содержат ключевое слово jp (частичное совпадение в значении)
-```shell
+```bash
 host="yandex.ru"
 protocol="ping"
 host="yandex.ru:443"
@@ -334,7 +334,7 @@ done
 `echo '[{"name": "Ubuntu", "added_on": 1625072400}, {"name": "Debian", "added_on": 1625158800}]' | jq '.[] | {name: .name, date: (.added_on + 3 * 3600 | strftime("%H:%M:%S %d.%m.%Y"))}'` получить дату
 
 ### netcheck
-```shell
+```bash
 sudo curl -s https://raw.githubusercontent.com/Lifailon/Check-Host/rsa/netcheck/netcheck.sh -o /usr/bin/netcheck
 sudo chmod +x /usr/bin/netcheck
 ```
@@ -413,7 +413,7 @@ users:
 EOF
 ```
 `dasel -f users.yaml -r yaml ".users.[1].email"`
-```tomp
+```toml
 tee users.toml <<EOF
 [[users]]
 name = "Иван Иванов"
@@ -762,7 +762,7 @@ EOF
 `locate -n 10 .torrent` вывести 10 результатов \
 `locate -i Kinozal-Bot` игнорировать регистр \
 `locate -r "\.log$"` использовать регулярные выражения
-```shell
+```bash
 sudo curl -s https://github.com/pr4k/locate/releases/download/v0.1.1/locate-linux -o /usr/bin/locate -o /usr/bin/locate
 sudo chmod +x /usr/bin/locate
 ```
@@ -783,7 +783,7 @@ sudo chmod +x /usr/bin/locate
 ## bashrc
 
 `nano ~/.bashrc`
-```shell
+```bash
 alias ll='ls -lFh'
 alias la='ls -alFh'
 
@@ -807,7 +807,7 @@ fi
 `eval $(history | fzf | awk '{print $2}')` выполнить (eval) выбранную команду из списка (добавить в макрос) \
 `ls *.json | fzf | xargs cat | jq .` вывести содержимое выбранного json файла через fzf \
 `find / -name "*.yaml" | fzf | xargs cat` найти в системе все файлы yaml и запустить по ним поиск
-```shell
+```bash
 # Поиск по истории с помощью fzf и вызов выбранной команды
 if command -v fzf > /dev/null; then
     #alias h='eval $(cat ~/.bash_history | fzf)'
@@ -820,7 +820,7 @@ fi
 `sudo apt install hstr` установить hstr (https://github.com/dvorka/hstr) \
 `hstr -f` избранное (Ctrl+F добавить в избранное) \
 `hstr -n bash log` вывести на экран отфильтрованную историю
-```shell
+```bash
 if command -v hstr > /dev/null; then
     bind -x '"\C-r": hstr'
 fi
@@ -878,7 +878,7 @@ fi
 
 `journalctl -eu cron` \
 `cat /var/log/syslog | grep -i cron`
-```shell
+```bash
 #!/bin/bash
 addr="google.com"
 path="/var/log/icmp-test.log"
@@ -930,7 +930,7 @@ fi
 `ls /etc/systemd/system` юниты системного администратора
 
 ### unit
-```shell
+```bash
 #!/bin/bash
 while true; do
     addr="google.com"
@@ -1544,7 +1544,7 @@ nameserver 1.1.1.1
 `while true; do echo -e "HTTP/1.1 200 OK\n\n$(systemd-analyze plot)" | nc -l -w 1 -p 8085; done` HTTP-сервер с выводом анализа загрузки системы
 
 ### api
-```shell
+```bash
 port=8085
 while true
 do
@@ -1780,7 +1780,7 @@ curl -s http://192.168.3.101:8085/api/disk | jq .blockdevices[]
 `scp -P 2121 -r kup@192.168.3.105:/home/lifailon/downaload /home/lifailon/files/` скачать (-r) данные с удаленного сервера на локальный
 
 ### sshpass
-```shell
+```bash
 hosts=(192.168.3.101 192.168.3.102 192.168.3.103 192.168.3.104)
 username="lifailon"
 port=2121
@@ -3213,7 +3213,7 @@ read only = false
 `curl -s "https://raw.githubusercontent.com/Lifailon/bash-api-server/rsa/www/api/api.sh" > /var/www/api/api.sh` установить пример с шаблоном сервера api
 
 `nano /var/www/api/api.sh`
-```shell
+```bash
 #!/bin/bash
 if [ "$REQUEST_METHOD" == "GET" ]
     then
