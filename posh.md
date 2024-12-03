@@ -1,27 +1,27 @@
 <p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
 
 <p align="center">
-    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
     <a href="https://lifailon.github.io"><img title="GitHub page"src="https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page"></a>
-    <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
     <a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
+    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
+    <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
     <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
 </p>
 <p align="center">
         <a href="https://lifailon.github.io"><img title="Web version"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
         <a href="posh.pdf"><img title="PDF version"src="https://img.shields.io/badge/pdf_version-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
     <br>
-        <a href="#docker"><img title="Docker Commands"src="https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white"></a>
-        <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Docker_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
+        <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
+        <a href="posh.md/#docker"><img title="Docker Commands"src="https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white"></a>
     <br>
         <a href="https://github.com/Lifailon/rudocs"><img title="Node.js syntax"src="https://img.shields.io/badge/Node.js_RuDocs-7ab65f?style=for-the-badge&logo=node.js&logoColor=white"></a>
 </p>
 
-<p align="center"> Большая база заметок <b>PowerShell</b> на русском языке.</p>
+<p align="center"> Большая база заметок <b>PowerShell</b>, а также по работе с системными командами и консольными утилитами 🐧 <b><a href="Linux.md">Linux</a></b> на русском языке.</p>
+
+Структура языка, синтаксис командлетов и модулей, работа с объектами, данными, файловой системой, сетевыми утилитами, базами данных, `API`, классами и методами платформы `.NET`, системами мониторинга и системного администрирования (Active Directory, MS Exchange, Hyper-V, VMWare).
 
 Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
-
-💡 Добавлены заметки по работе с системными командами и консольными утилитами 🐧 [Linux](linux.md)
 
 ---
 
@@ -6138,15 +6138,17 @@ $results2
 ```
 # Zabbix
 
-### Zabbix Agent Deploy
+### Zabbix Agent
+
+**Zabbix Agent Deploy:**
 ```PowerShell
 $url = "https://cdn.zabbix.com/zabbix/binaries/stable/6.4/6.4.5/zabbix_agent2-6.4.5-windows-amd64-static.zip"
 $path = "$home\Downloads\zabbix-agent2-6.4.5.zip"
 $WebClient = New-Object System.Net.WebClient
-$WebClient.DownloadFile($url, $path)` скачать файл
-Expand-Archive $path -DestinationPath "C:\zabbix-agent2-6.4.5\"` разархивировать
-Remove-Item $path` удалить архив
-New-NetFirewallRule -DisplayName "Zabbix-Agent" -Profile Any -Direction Inbound -Action Allow -Protocol TCP -LocalPort 10050,10051` открыть порты в FW
+$WebClient.DownloadFile($url, $path) # скачать файл
+Expand-Archive $path -DestinationPath "C:\zabbix-agent2-6.4.5\" # разархивировать
+Remove-Item $path # удалить архив
+New-NetFirewallRule -DisplayName "Zabbix-Agent" -Profile Any -Direction Inbound -Action Allow -Protocol TCP -LocalPort 10050,10051 # открыть порты в FW
 
 $Zabbix_Server = "192.168.3.102"
 $conf = "C:\zabbix-agent2-6.4.5\conf\zabbix_agent2.conf"
@@ -6156,28 +6158,62 @@ $rep | Select-String Server=
 $rep > $conf
 
 $exe = "C:\zabbix-agent2-6.4.5\bin\zabbix_agent2.exe"
-.$exe --config $conf --install` установить службу
-Get-Service *Zabbix*Agent* | Start-Service` запустить службу
-#.$exe --config $conf --uninstall` удалить службу
+.$exe --config $conf --install # установить службу
+Get-Service *Zabbix*Agent* | Start-Service # запустить службу
+#.$exe --config $conf --uninstall # удалить службу
 ```
-### zabbix_sender
+**zabbix_agent2.conf**
+```conf
+# Агент может работать в пассивном (сервер забирает сам информацию) и активном режиме (агент сам отправляет):
+Server=192.168.3.102
+ServerActive=192.168.3.102
+# Требуется указать hostname для ServerActive:
+Hostname=huawei-book-01
+# Если не указано, используется для генерации имени хоста (игнорируется, если имя хоста определено):
+# HostnameItem=system.hostname
+# Как часто обновляется список активных проверок, в секундах (Range: 60-3600):
+RefreshActiveChecks=120
+# IP-адрес источника для исходящих соединений:
+# SourceIP=
+# Агент будет слушать на этом порту соединения с сервером (Range: 1024-32767):
+# ListenPort=10050
+# Список IP-адресов, которые агент должен прослушивать через запятую
+# ListenIP=0.0.0.0
+# Агент будет прослушивать этот порт для запросов статуса HTTP (Range: 1024-32767):
+# StatusPort=
+ControlSocket=\\.\pipe\agent.sock
+# Куда вести журнал (file/syslog/console):
+LogType=file
+LogFile=C:\zabbix-agent2-6.4.5\zabbix_agent2.log
+# Размер лога от 0-1024 MB (0 - отключить автоматическую ротацию логов)
+LogFileSize=100
+# Уровень логирования. 4 - для отладки (выдает много информации)
+DebugLevel=4
+```
+### Zabbix Sender
 
-Создать host - задать произвольное имя (powershell-host) и добавить в группу \
-Создать Items: \
-Name: Service Count \
-Type: Zabbix trapper \
-Key: service.count \
-Type of Information: Numeric
+Используется для отправки данных на сервер
+
+Создать host - задать произвольное имя (powershell-host) и добавить в группу на сервере
+
+Создать Items вручную:
+
+`Name`: Service Count \
+`Type`: Zabbix trapper \
+`Key`: service.count \
+`Type of Information`: Numeric
 ```PowerShell
 $path = "C:\zabbix-agent2-6.4.5\bin"
 $scount = (Get-Service).Count
-.$path\zabbix_sender.exe -z 192.168.3.102 -s "powershell-host" -k service.count -o $scount
+.$path\zabbix_sender.exe -z 192.168.3.102 -s "powershell-host" -k service.count -o $scount # отправить данные на сервер
 ```
-### zabbix_get
+### Zabbix Get
+
+Используется для получения данных с агента (как их запрашивает сервер)
 
 `apt install zabbix-get` \
 `nano /etc/zabbix/zabbix_agentd.conf` \
-`Server=127.0.0.1,192.168.3.102,192.168.3.99` добавить сервера для получения данных zabbix_get с агента (как их запрашивает сервер)
+`Server=127.0.0.1,192.168.3.102,192.168.3.99` добавить сервера для получения данных через zabbix_get с агента (как их запрашивает сервер)
 
 `.$path\zabbix_get -s 192.168.3.101 -p 10050 -k agent.version` проверить версию агента \
 `.$path\zabbix_get -s 192.168.3.101 -p 10050 -k agent.ping` 1 - ok \
@@ -6187,40 +6223,46 @@ $scount = (Get-Service).Count
 
 ### UserParameter
 
+Пользовательские параметры
+
 `UserParameter=process.count,powershell -Command "(Get-Process).Count"` \
 `UserParameter=process.vm[*],powershell -Command "(Get-Process $1).ws"`
 
-Test: \
+Получение данных:
+
 `C:\zabbix-agent2-6.4.5\bin\zabbix_get.exe -s 127.0.0.1 -p 10050 -k process.count` \
 `C:\zabbix-agent2-6.4.5\bin\zabbix_get.exe -s 127.0.0.1 -p 10050 -k process.vm[zabbix_agent2] `\
 `C:\zabbix-agent2-6.4.5\bin\zabbix_get.exe -s 127.0.0.1 -p 10050 -k process.vm[powershell]`
 
-Создать новые Items: \
+Создать новые Items на сервере:
+
 key: `process.count` \
 key: `process.vm[zabbix_agent2]`
 
-### Include
+### Include Plugins
 
 - Добавить параметр Include для включения конфигурационных файлов подключаемых плагинов
+
 `'Include=.\zabbix_agent2.d\plugins.d\*.conf' >> C:\zabbix-agent2-6.4.5\conf\zabbix_agent2.conf`
 
-- Создать конфигурационный файл с пользовательскими параметрами в каталоге, путь к которому указан в zabbix_agentd.conf \
+- Создать конфигурационный файл с пользовательскими параметрами в каталоге, путь к которому указан в zabbix_agentd.conf
+
 `'UserParameter=Get-Query-Param[*],powershell.exe -noprofile -executionpolicy bypass -File C:\zabbix-agent2-6.4.5\conf\zabbix_agent2.d\scripts\User-Sessions\Get-Query-Param.ps1 $1' > C:\zabbix-agent2-6.4.5\conf\zabbix_agent2.d\plugins.d\User-Sessions.conf`
 
 - Поместить скрипт Get-Query-Param.ps1 в каталог, путь к которому указан в User-Sessions.conf. Скрипт содержим пользовательские параметры, которые он принимает от Zabbix сервера для передачи их в функции скрипта.
 ```PowerShell
 Param([string]$select)
 if ($select -eq "ACTIVEUSER") {
-(Get-Query | where status -match "Active").User
+    (Get-Query | where status -match "Active").User
 }
 if ($select -eq "INACTIVEUSER") {
-(Get-Query | where status -match "Disconnect").User
+    (Get-Query | where status -match "Disconnect").User
 }
 if ($select -eq "ACTIVECOUNT") {
-(Get-Query | where status -match "Active").Status.Count
+    (Get-Query | where status -match "Active").Status.Count
 }
 if ($select -eq "INACTIVECOUNT") {
-(Get-Query | where status -match "Disconnect").Status.Count
+    (Get-Query | where status -match "Disconnect").Status.Count
 }
 ```
 - Проверить работу скрипта:
@@ -6248,46 +6290,20 @@ if ($select -eq "INACTIVECOUNT") {
 `last(/Windows-User-Sessions/Get-Query-Param[ACTIVECOUNT])>{$ACTIVEMAX}` \
 `min(/Windows-User-Sessions/Get-Query-Param[ACTIVECOUNT],24h)={$ACTIVEMIN}`
 
-### zabbix_agent2.conf
-```
-# Агент может работать в пассивном (сервер забирает сам информацию) и активном режиме (агент сам отправляет):
-Server=192.168.3.102
-ServerActive=192.168.3.102
-# Требуется указать hostname для ServerActive:
-Hostname=huawei-book-01
-# Если не указано, используется для генерации имени хоста (игнорируется, если имя хоста определено):
-# HostnameItem=system.hostname
-# Как часто обновляется список активных проверок, в секундах (Range: 60-3600):
-RefreshActiveChecks=120
-# IP-адрес источника для исходящих соединений:
-# SourceIP=
-# Агент будет слушать на этом порту соединения с сервером (Range: 1024-32767):
-# ListenPort=10050
-# Список IP-адресов, которые агент должен прослушивать через запятую
-# ListenIP=0.0.0.0
-# Агент будет прослушивать этот порт для запросов статуса HTTP (Range: 1024-32767):
-# StatusPort=
-ControlSocket=\\.\pipe\agent.sock
-# Куда вести журнал (file/syslog/console):
-LogType=file
-LogFile=C:\zabbix-agent2-6.4.5\zabbix_agent2.log
-# Размер лога от 0-1024 MB (0 - отключить автоматическую ротацию логов)
-LogFileSize=100
-# Уровень логирования. 4 - для отладки (выдает много информации)
-DebugLevel=4
-```
-### API Token
+### Zabbix API
 
 [Documentation](https://www.zabbix.com/documentation/current/en/manual/api/reference)
 
 `$ip = "192.168.3.102"` \
 `$url = "http://$ip/zabbix/api_jsonrpc.php"`
+
+Получение токена доступа:
 ```PowerShell
 $data = @{
     "jsonrpc"="2.0";
     "method"="user.login";
     "params"=@{
-        "username"="Admin";` в версии до 6.4 параметр "user"
+        "username"="Admin"; # в версии до 6.4 параметр "user"
         "password"="zabbix";
     };
     "id"=1;
@@ -6296,7 +6312,7 @@ $token = (Invoke-RestMethod -Method POST -Uri $url -Body ($data | ConvertTo-Json
 ```
 `$token = "2eefd25fdf1590ebcdb7978b5bcea1fff755c65b255da8cbd723181b639bb789"` сгенерировать токен в UI (http://192.168.3.102/zabbix/zabbix.php?action=token.list)
 
-### user.get
+- user.get method
 ```PowerShell
 $data = @{
     "jsonrpc"="2.0";
@@ -6308,7 +6324,7 @@ $data = @{
 }
 $users = (Invoke-RestMethod -Method POST -Uri $url -Body ($data | ConvertTo-Json) -ContentType "application/json").Result
 ```
-### problem.get
+- problem.get method
 ```PowerShell
 $data = @{
     "jsonrpc"="2.0";
@@ -6320,25 +6336,25 @@ $data = @{
 }
 (Invoke-RestMethod -Method POST -Uri $url -Body ($data | ConvertTo-Json) -ContentType "application/json").Result
 ```
-### host.get
+- host.get method
 
 Получить список всех хостов (имя и id)
 
-[Endpoint host](https://www.zabbix.com/documentation/current/en/manual/api/reference/host)
+[Endpoint host documentation](https://www.zabbix.com/documentation/current/en/manual/api/reference/host)
 
-host.create - creating new hosts \
-host.delete - deleting hosts \
-host.get - retrieving hosts \
-host.massadd - adding related objects to hosts \
-host.massremove - removing related objects from hosts \
-host.massupdate - replacing or removing related objects from hosts \
-host.update - updating hosts
+**host.create** — создание новых хостов \
+**host.delete** — удаление хостов \
+**host.get** — получить список хостов \
+**host.massadd** - добавление (привязка) объектов на хосты \
+**host.massremove** - удаление объектов \
+**host.massupdate** - замена или обновление объектов \
+**host.update** - обновление хостов
 ```PowerShell
 $data = @{
     "jsonrpc"="2.0";
     "method"="host.get";
     "params"=@{
-        "output"=@(` отфильтровать вывод
+        "output"=@( # отфильтровать вывод
             "hostid";
             "host";
         );
@@ -6347,9 +6363,9 @@ $data = @{
     "auth"=$token;
 }
 $hosts = (Invoke-RestMethod -Method POST -Uri $url -Body ($data | ConvertTo-Json) -ContentType "application/json").Result
-$host_id = $hosts[3].hostid` забрать id хоста по индексу
+$host_id = $hosts[3].hostid # забрать id хоста по индексу
 ```
-### item.get
+- item.get
 
 Получить id элементов данных по наименованию ключа для конкретного хоста
 ```PowerShell
@@ -6357,15 +6373,15 @@ $data = @{
     "jsonrpc"="2.0";
     "method"="item.get";
     "params"=@{
-        "hostids"=@($host_id);` отфильтровать по хосту
+        "hostids"=@($host_id); # отфильтровать по хосту
     };
     "auth"=$token;
     "id"=1;
 }
 $items = (Invoke-RestMethod -Method POST -Uri $url -Body ($data | ConvertTo-Json) -ContentType "application/json").Result
-$items_id = ($items | where key_ -match system.uptime).itemid` забрать id элемента данных
+$items_id = ($items | where key_ -match system.uptime).itemid # забрать id элемента данных
 ```
-### history.get
+- history.get
 
 Получить всю историю элемента данных по его id
 ```PowerShell
@@ -6373,15 +6389,15 @@ $data = @{
     "jsonrpc"="2.0";
     "method"="history.get";
     "params"=@{
-        "hostids"=@($host_id); ` фильтрация по хосту
-        "itemids"=@($items_id);` фильтрация по элементу данных
+        "hostids"=@($host_id);  # фильтрация по хосту
+        "itemids"=@($items_id); # фильтрация по элементу данных
     };
     "auth"=$token;
     "id"=1;
 }
-$items_data_uptime = (Invoke-RestMethod -Method POST -Uri $url -Body ($data | ConvertTo-Json) -ContentType "application/json").Result` получить все данные по ключу у конкретного хоста
+$items_data_uptime = (Invoke-RestMethod -Method POST -Uri $url -Body ($data | ConvertTo-Json) -ContentType "application/json").Result # получить все данные по ключу у конкретного хоста
 ```
-### Convert Secconds To TimeSpan and DateTime
+Ковенртация секунд в `TimeSpan`:
 
 `$sec = $items_data_uptime.value`
 ```PowerShell
@@ -6395,7 +6411,7 @@ function ConvertSecondsTo-TimeSpan {
 ```
 `$UpTime = ConvertSecondsTo-TimeSpan $sec[-1]`
 
-### Convert From Unix Time
+Конвертация из времени `Unix`:
 
 `$time = $items_data_uptime.clock`
 ```PowerShell
@@ -7364,6 +7380,7 @@ Remove-Item "$home\Downloads\Bitbucket*" -Recurse -Force
 `git push origin mkdocs-material` отправить в конкретную ветку \
 `git push origin --delete mkdocs` удалить ветку на удаленном сервере \
 `git commit --amend` изменить комментарий в последнем коммите (до push) \
+`git commit --amend --no-edit --date="Sun Oct 27 23:20:00 2024 +0300"` изменить дату последнего коммита \
 `git branch -a` отобразить все ветки (в том числе удаленные remotes/origin) \
 `git branch hugo` создать новую ветку \
 `git branch -m hugo-public` переименовать текущую ветку \
