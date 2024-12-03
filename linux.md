@@ -1274,8 +1274,8 @@ WantedBy=multi-user.target
 
 `journalctl --fields` вывести список всех используемых полей (UNIT, USER_UNIT, _SYSTEMD_UNIT, _SYSTEMD_USER_UNIT и т.д.)
 
-`journalctl --field=UNIT > system_units.log` вывести список всех унитов в системе \
-`journalctl --field=USER_UNIT > user_units.log` вывести список всех пользовательских унитов в системе \
+`journalctl --field=UNIT > system_units.log` вывести список всех юнитов в системе \
+`journalctl --field=USER_UNIT > user_units.log` вывести список всех пользовательских юнитов в системе \
 `comm -12 <(sort system_units.log) <(sort user_units.log)` построчное сравнение двух отсортированных файлов со списком журналов без вывода общих строк в 1 и 2 файлах (-12)
 
 `journalctl --disk-usage` вывести общее использование диска всеми файлами журнала (Archived and active journals take up 2.3G in the file system) \
