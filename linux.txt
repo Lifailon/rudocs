@@ -69,6 +69,7 @@
 - sysctl
 - limits
 - quota
+- fetch
 - networkmanager
 - wireless
 - networking
@@ -129,6 +130,7 @@
   - kill
   - procs
 - jobs
+  - nohub
 - mem
   - fincore
   - lspage
@@ -180,6 +182,7 @@
   - zabbix-agent
   - ommail
 - logrotate
+- log
 - smb
   - cifs
   - samba
@@ -971,6 +974,8 @@ du -a /var/log | awk '{print $2}' | xargs fincore # передать вывод 
 split -l 100 input_file.txt output_prefix # разделить файл на части по 100 строк в каждой
 split -b 10M input_file.txt output_prefix # разделить файл на части по указанному размеру (например, 10MB)
 
+yes # предназначена для автоматического вывода строки или символа, повторяющегося бесконечно (для нагрузки системы), либо для автоматического подтверждения запросов в других командах
+
 ## dust
 
 snap install dust # аналог du на Rust (https://github.com/bootandy/dust)
@@ -1610,6 +1615,16 @@ ls -lh /tmp/test.file
 
 -rw-rw-r-- 1 lifailon lifailon 113M Sep 26 14:37 /tmp/test.file
 
+## fetch
+
+Набор скриптов, для быстрого получения информации о системе без установки:
+
+curl -s https://raw.githubusercontent.com/dylanaraps/neofetch/refs/heads/master/neofetch | bash
+curl -s https://raw.githubusercontent.com/dylanaraps/pfetch/refs/heads/master/pfetch | bash
+curl -s https://raw.githubusercontent.com/KittyKatt/screenFetch/refs/heads/master/screenfetch-dev | bash
+curl -s https://raw.githubusercontent.com/ThatOneCalculator/NerdFetch/refs/heads/main/nerdfetch | bash
+curl -s https://raw.githubusercontent.com/Lifailon/hwstat/refs/heads/rsa/hwstat.sh | bash
+
 ## networkmanager
 
 apt install network-manager
@@ -2199,6 +2214,7 @@ chmod 644 /etc/sudoers.d/lifailon
 lifailon ALL=NOPASSWD: /usr/bin/service memcahched restart, /usr/bin/apt-get update, /usr/bin/apt-get upgrade # разрешить перезапуск определенного сервиса, обновление списка пакетов и установку обновлений системы
 %powerusers ALL=NOPASSWD: /usr/bin/service memcahched restart # доступ на группу
 visudo --check # проверка синтаксиса и всех прав доступа (0440)
+sudo -l # проверка прав доступа (выводит список команд, которые текущий пользователь может выполнять с использованием sudo)
 
 ## strace
 
@@ -2461,6 +2477,12 @@ fg 1 # открыть задачу по номеру
 disown # завершить все фоновые задачи (удалить/очистить всю очередь заданий)
 disown %1 # завершить последнию (если она первая) запущенную задачу
 kill %1 # завершить последнию запущенную задачу
+
+### nohub
+
+nohup ping ya.ru > ping.log & # используется для запуска процесса, который продолжает работать, даже если пользователь выйдет из сеанса (например, при закрытии терминала)
+ps -ef | grep "ping ya.ru" # найти процесс
+kill $(pgrep ping) # завершить процесс
 
 ## mem
 
@@ -3327,6 +3349,24 @@ cat /etc/cron.daily/logrotate # задание на автоматический
 which logrotate # узнать путь до исполняемого файла
 crontab -e
 00 3 * * * /usr/sbin/logrotate -f /etc/logrotate.d/logrotate_remote.conf # настроить собственное ручное расписание с ежедневным запусков в 3:00
+
+## log
+
+Терминальный пользовательский интерфейс для journalctl, журналов файловой системы, а также контейнеров Docker и Podman для быстрого просмотра и фильтрации с поддержкой нечеткого поиска и регулярных выражений:
+
+curl https://raw.githubusercontent.com/Lifailon/lazyjournal/main/install.sh | bash
+lazyjournal
+
+Терминальный пользовательский интерфейс для логов файловой системы с таймстампами, возможностью поиска и подсветкой:
+
+apt install lnav
+journalctl -f -a -xe -o json | lnav
+ssh playground@demo.lnav.org
+
+Вывод с подсветкой, которая будет работать одинаково стабильно для разных лог-файлов:
+
+apt install tailspin
+cat /var/log/syslog | tailspin
 
 ## smb
 
