@@ -14,10 +14,10 @@
         <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
         <a href="posh.md/#docker"><img title="Docker Commands"src="https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white"></a>
     <br>
-        <a href="https://github.com/Lifailon/rudocs"><img title="Node.js syntax"src="https://img.shields.io/badge/Node.js_RuDocs-7ab65f?style=for-the-badge&logo=node.js&logoColor=white"></a>
+        <a href="https://github.com/Lifailon/rudocs"><img title="Node.js syntax"src="https://img.shields.io/badge/Node.js/go_RuDocs-7ab65f?style=for-the-badge&logo=node.js&logoColor=white"></a>
 </p>
 
-<p align="center"> Большая база заметок <b>PowerShell</b>, а также по системными командами и консольными утилитами 🐧 <b><a href="Linux.md">Linux</a></b> на русском языке.</p>
+<p align="center"> Большая база заметок <b>PowerShell</b>, а также по системным командам и консольным утилитам 🐧 <b><a href="Linux.md">Linux</a></b> на русском языке.</p>
 
 Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
 
