@@ -1,164 +1,533 @@
-PowerShell Commands
-
--
-    https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell
-    https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page
-    https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count
-    https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green
-    https://img.shields.io/github/stars/Lifailon/PS-Commands
--
--
-    https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white
-    https://img.shields.io/badge/pdf-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white
-
-    https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black
-    https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white
-    
-    https://img.shields.io/badge/Node.js_RuDocs-7ab65f?style=for-the-badge&logo=node.js&logoColor=white
--
-
-Большая база заметок <b>PowerShell</b>, а также по работе с системными командами и консольными утилитами Linux.
-
-Репозиторий содержит набор полезных скриптов и модулей (https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также тестовый стенд WinForms (https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms/WinForms-Test-Stend.ps1) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
+Большая база заметок **PowerShell** на русском языке
 
 ---
 
-# Cheat-Sheet
-# Help
-# Object
-# Error
-# DateTime
-# Regex
-# DataType
-# Function
-# Bit
-# Cycle
-# Files
-# Archive
-# Handle
-# Console-Menu
-# Credential
-# WinEvent
-# Firewall
-# Defender
-# DISM
-# Scheduled
-# Network
-# iPerf
-# RDP
-# Shutdown
-# LocalAccounts
-# SMB
-# WSUS
-# ActiveDirectory
-# repadmin
-# dcdiag
-# ntdsutil
-# GPO
-# ServerManager
-# DNS
-# DHCP
-# DFS
-# StorageReplica
-# PS2EXE
-# NSSM
-# Jobs
-# SMTP
-# VMWare/PowerCLI
-# Hyper-V
-# Azure
-# Exchange/EMShell
-# TrueNAS
-# Veeam
-# REST API
-# Pode
-# Selenium
-# IE
-# COM
-# dotNET
-# Console API
-# Drawing
-# ObjectEvent
-# Sockets
-# Base64
-# Excel
-# CSV
-# XML
-# JSON
-# YAML
-# TOML
-# Markdown
-# HTML
-# HtmlAgilityPack
-# SQLite
-# MySQL
-# MSSQL
-# InfluxDB
-# InfluxDB-api
-# Telegraf
-# Elasticsearch
-# CData
-# ODBC
-# PostgreSQL
-# WMI
-# Regedit
-# Performance
-# SNMP
-# Zabbix
-# pki
-# OpenSSL
-# OpenVPN
-# Route
-# NAT
-# WireGuard
-# VpnClient
-# ProxyClient
-# netsh
-# OpenSSH
-# WinRM
-# PackageManagement
-# NuGet
-# Modules
-# Atlassian
-# Git
-# GitHub-api
-# GitHub-Actions
-# Vercel
-# GitLab
-# Jenkins
-# Pester
-# PSAppDeployToolkit
-# DSC
-# Ansible
-# Win_Modules
-# Docker
-# Dockerfile
-# Docker-Compose
-# Swarm
-# Docker.DotNet
-# Graylog
-# GigaChat
-# YandexGPT
-# SuperAGI
-# Replicate
-# Google-Filter
-# Google-API
-# RapidAPI
-# TMDB
-# OMDb
-# ivi
-# Kinopoisk
-# VideoCDN
-# Telegram
-# Discord
-# Torrent
-# oh-my-posh
-# Windows-Terminal
-# Pandoc
-# FFmpeg
-# HandBrake
-# ImageMagick
-# YouTube
+Оглавление:
+
+- [Cheat-Sheet](#cheat-sheet)
+- [Help](#help)
+- [Object](#object)
+    - [Variable](#variable)
+    - [ENV](#env)
+    - [History](#history)
+    - [Clipboard](#clipboard)
+    - [Write-Host](#write-host)
+    - [Write-Progress](#write-progress)
+    - [for](#for)
+    - [Array](#array)
+    - [Index](#index)
+    - [HashTable](#hashtable)
+    - [Collections/List](#collectionslist)
+    - [PSCustomObject](#pscustomobject)
+    - [Add and Remove Property](#add-and-remove-property)
+    - [Add Method](#add-method)
+    - [Class](#class)
+    - [Pipeline](#pipeline)
+    - [Select-Object](#select-object)
+    - [Expression](#expression)
+    - [Select-String](#select-string)
+    - [Format-List/Format-Table](#format-listformat-table)
+    - [Measure-Object](#measure-object)
+    - [Compare-Object](#compare-object)
+    - [Where-Object (?)](#where-object-)
+    - [Sort-Object](#sort-object)
+    - [Last/First](#lastfirst)
+    - [Group-Object](#group-object)
+    - [Property](#property)
+    - [Method](#method)
+- [Error](#error)
+    - [ExecutionStatus](#executionstatus)
+    - [Measure-Command](#measure-command)
+- [DateTime](#datetime)
+- [TimeSpan](#timespan)
+    - [Format](#format)
+    - [Timer](#timer)
+- [Regex](#regex)
+    - [Якори](#якори)
+    - [Группы захвата](#группы-захвата)
+    - [Matches](#matches)
+    - [Форматирование (.NET method format)](#форматирование-net-method-format)
+    - [Условный оператор](#условный-оператор)
+    - [Логические операторы сравнения](#логические-операторы-сравнения)
+    - [Pipeline Operators](#pipeline-operators)
+    - [Invocation Operator](#invocation-operator)
+- [DataType](#datatype)
+    - [Math](#math)
+    - [Round](#round)
+    - [ToString](#tostring)
+    - [Char](#char)
+- [Function](#function)
+    - [Switch function](#switch-function)
+    - [Switch param](#switch-param)
+    - [psm1 (module file and parameters)](#psm1-module-file-and-parameters)
+    - [psd1 (module description file)](#psd1-module-description-file)
+- [Bit](#bit)
+    - [Bit Convertor](#bit-convertor)
+- [Cycle](#cycle)
+    - [Foreach](#foreach)
+    - [ForEach-Object (%)](#foreach-object-)
+    - [While](#while)
+    - [Try-Catch-Finally](#try-catch-finally)
+- [Files](#files)
+    - [Clear-env-Temp-14-days](#clear-env-temp-14-days)
+    - [System.IO.File](#systemiofile)
+    - [Read/Write Bytes](#readwrite-bytes)
+- [Archive](#archive)
+    - [Microsoft.PowerShell.Archive](#microsoftpowershellarchive)
+    - [System.IO.Compression.FileSystem](#systemiocompressionfilesystem)
+    - [WinRAR](#winrar)
+- [Handle](#handle)
+- [Console-Menu](#console-menu)
+- [Credential](#credential)
+    - [Out-Gridview](#out-gridview)
+    - [Out-File](#out-file)
+    - [Get-Content (gc/cat/type)](#get-content-gccattype)
+    - [AES Key](#aes-key)
+- [WinEvent](#winevent)
+    - [Filter XPath/Hashtable](#filter-xpathhashtable)
+    - [Reboot](#reboot)
+    - [Logon](#logon)
+    - [EventLog](#eventlog)
+- [Firewall](#firewall)
+    - [Firewall-Manager](#firewall-manager)
+- [Defender](#defender)
+- [DISM](#dism)
+- [Scheduled](#scheduled)
+- [Network](#network)
+    - [ping](#ping)
+    - [dhcp](#dhcp)
+    - [port](#port)
+    - [netstat](#netstat)
+    - [nslookup](#nslookup)
+    - [ipconfig](#ipconfig)
+    - [Adapter](#adapter)
+    - [DNSClient](#dnsclient)
+    - [DNSCache](#dnscache)
+    - [Binding](#binding)
+    - [TCPSetting](#tcpsetting)
+    - [hostname](#hostname)
+    - [arp](#arp)
+    - [Network Adapter Statistics](#network-adapter-statistics)
+    - [SpeedTest](#speedtest)
+- [iPerf](#iperf)
+    - [Install](#install)
+    - [Env-Update-Exec-Path](#env-update-exec-path)
+    - [iPerf-GUI](#iperf-gui)
+    - [iPerf-Docker](#iperf-docker)
+    - [Server](#server)
+    - [Client](#client)
+    - [Output](#output)
+    - [PS-iPerf](#ps-iperf)
+- [RDP](#rdp)
+    - [IPBan](#ipban)
+- [shutdown](#shutdown)
+- [LocalAccounts](#localaccounts)
+- [SMB](#smb)
+    - [Get-Acl](#get-acl)
+    - [NTFSSecurity](#ntfssecurity)
+    - [Storage](#storage)
+    - [iSCSI](#iscsi)
+- [WSUS](#wsus)
+    - [WindowsUpdate](#windowsupdate)
+    - [PSWindowsUpdate](#pswindowsupdate)
+    - [UpdateServices](#updateservices)
+    - [PoshWSUS](#poshwsus)
+- [ActiveDirectory](#activedirectory)
+    - [RSAT (Remote Server Administration Tools)](#rsat-remote-server-administration-tools)
+    - [Import-Module ActiveDirectory](#import-module-activedirectory)
+    - [ADSI (Active Directory Service Interface)](#adsi-active-directory-service-interface)
+    - [LDAP (Lightweight Directory Access Protocol)](#ldap-lightweight-directory-access-protocol)
+    - [LAPS (Local Admin Password Management)](#laps-local-admin-password-management)
+    - [Recycle Bin](#recycle-bin)
+    - [thumbnailPhoto](#thumbnailphoto)
+    - [ADDomainController](#addomaincontroller)
+    - [ADComputer](#adcomputer)
+    - [ADUser](#aduser)
+    - [ADGroupMember](#adgroupmember)
+    - [ADReplication](#adreplication)
+- [repadmin](#repadmin)
+- [dcdiag](#dcdiag)
+- [ntdsutil](#ntdsutil)
+- [GPO](#gpo)
+- [ServerManager](#servermanager)
+    - [PSWA](#pswa)
+    - [WSB (Windows Server Backup)](#wsb-windows-server-backup)
+    - [RDS](#rds)
+- [DNSServer](#dnsserver)
+- [DHCPServer](#dhcpserver)
+- [DFS](#dfs)
+- [StorageReplica](#storagereplica)
+- [PS2EXE](#ps2exe)
+- [NSSM](#nssm)
+- [Jobs](#jobs)
+    - [ThreadJob](#threadjob)
+    - [PoshRSJob](#poshrsjob)
+    - [Invoke-Parallel](#invoke-parallel)
+    - [ForEach-Object-Parallel](#foreach-object-parallel)
+- [SMTP](#smtp)
+- [VMWare/PowerCLI](#vmwarepowercli)
+- [Hyper-V](#hyper-v)
+    - [VMConnect via RDCMan](#vmconnect-via-rdcman)
+- [Azure](#azure)
+    - [Manage-VM](#manage-vm)
+    - [Manage-Disk](#manage-disk)
+- [Exchange/EMShell](#exchangeemshell)
+    - [Roles](#roles)
+    - [MessageTrackingLog](#messagetrackinglog)
+    - [Mailbox](#mailbox)
+    - [MoveRequest](#moverequest)
+    - [Archive](#archive-1)
+    - [Quota](#quota)
+    - [Database](#database)
+    - [MailboxRepairRequest](#mailboxrepairrequest)
+    - [eseutil](#eseutil)
+    - [Dial Tone Recovery](#dial-tone-recovery)
+    - [Recovery database (RDB)](#recovery-database-rdb)
+    - [Transport](#transport)
+    - [Connector](#connector)
+    - [PST](#pst)
+    - [DistributionGroup](#distributiongroup)
+    - [Search](#search)
+    - [AuditLog](#auditlog)
+    - [Test](#test)
+    - [Queue](#queue)
+    - [Defrag](#defrag)
+    - [DAG (Database Availability Group)](#dag-database-availability-group)
+    - [Index](#index-1)
+- [NAS](#nas)
+    - [TrueNAS](#truenas)
+    - [Synology](#synology)
+- [Veeam](#veeam)
+    - [Get-VBRCommand](#get-vbrcommand)
+    - [Veeam-REStat](#veeam-restat)
+- [REST API](#rest-api)
+    - [Methods](#methods)
+    - [Download Image](#download-image)
+    - [Token](#token)
+    - [GET](#get)
+    - [Cookie](#cookie)
+- [Pode](#pode)
+- [Selenium](#selenium)
+    - [Selenium modules](#selenium-modules)
+- [IE](#ie)
+- [COM](#com)
+    - [Wscript.Shell.SendKeys](#wscriptshellsendkeys)
+    - [Wscript.Shell.Popup](#wscriptshellpopup)
+    - [WScript.Network](#wscriptnetwork)
+    - [Shell.Application](#shellapplication)
+    - [Outlook](#outlook)
+    - [Microsoft.Update](#microsoftupdate)
+- [dotNET](#dotnet)
+    - [Match](#match)
+    - [GeneratePassword](#generatepassword)
+    - [SoundPlayer](#soundplayer)
+    - [Static Class](#static-class)
+    - [Clicker](#clicker)
+    - [Audio](#audio)
+    - [NetSessionEnum](#netsessionenum)
+    - [CopyFile](#copyfile)
+    - [ShowWindowAsync](#showwindowasync)
+    - [GetAsyncKeyState](#getasynckeystate)
+- [Console API](#console-api)
+- [Drawing](#drawing)
+- [ObjectEvent](#objectevent)
+- [Sockets](#sockets)
+    - [UDP-Socket](#udp-socket)
+    - [Test-NetUDPConnection](#test-netudpconnection)
+    - [TCP-Socket](#tcp-socket)
+    - [WakeOnLan](#wakeonlan)
+    - [HTTPListener](#httplistener)
+    - [WebClient](#webclient)
+    - [HttpClient](#httpclient)
+    - [Certificate](#certificate)
+- [Base64](#base64)
+    - [UTF8](#utf8)
+    - [Unicode](#unicode)
+    - [Image](#image)
+- [Excel](#excel)
+    - [Excel.Application.Open](#excelapplicationopen)
+    - [ImportExcel](#importexcel)
+- [CSV](#csv)
+    - [ConvertFrom-String](#convertfrom-string)
+    - [ConvertFrom-StringData](#convertfrom-stringdata)
+- [XML](#xml)
+    - [Get-CredToXML](#get-credtoxml)
+    - [XmlWriter (Extensible Markup Language)](#xmlwriter-extensible-markup-language)
+    - [CreateElement](#createelement)
+- [JSON](#json)
+- [YAML](#yaml)
+- [TOML](#toml)
+- [Markdown](#markdown)
+    - [Convert Markdown to HTML](#convert-markdown-to-html)
+    - [PSMarkdown](#psmarkdown)
+    - [ConvertFrom-MarkdownV2](#convertfrom-markdownv2)
+- [ConvertTo-Markdown](#convertto-markdown)
+- [HTML](#html)
+    - [ConvertFrom-Html](#convertfrom-html)
+    - [ConvertTo-Html](#convertto-html)
+    - [PSWriteHTML](#pswritehtml)
+    - [HtmlReport](#htmlreport)
+- [HtmlAgilityPack](#htmlagilitypack)
+- [SQLite](#sqlite)
+    - [Database password](#database-password)
+- [MySQL](#mysql)
+    - [DATA TYPE](#data-type)
+    - [DATABASE](#database-1)
+    - [USER](#user)
+    - [TABLE](#table)
+    - [COLUMN](#column)
+    - [INSERT](#insert)
+    - [SELECT](#select)
+    - [WHERE](#where)
+    - [DELETE](#delete)
+    - [UPDATE](#update)
+    - [CHECK](#check)
+    - [DUMP](#dump)
+    - [innodb\_force\_recovery](#innodb_force_recovery)
+    - [MySQL Connector NET](#mysql-connector-net)
+    - [Add-ADUser](#add-aduser)
+    - [Get-ADUser](#get-aduser)
+- [MSSQL](#mssql)
+    - [System.Data.SqlClient](#systemdatasqlclient)
+    - [SqlClient INSERT](#sqlclient-insert)
+    - [SSMS INSERT](#ssms-insert)
+    - [T-SQL](#t-sql)
+    - [Тип резервной копии](#тип-резервной-копии)
+    - [Модели восстановления](#модели-восстановления)
+    - [Системные БД](#системные-бд)
+    - [Регламентные операции](#регламентные-операции)
+- [InfluxDB](#influxdb)
+    - [Install Windows](#install-windows)
+    - [Install Ubuntu](#install-ubuntu)
+    - [API](#api)
+    - [Chronograf](#chronograf)
+    - [Grafana](#grafana)
+    - [CLI Client](#cli-client)
+    - [USERS](#users)
+    - [DATABASE](#database-2)
+    - [MEASUREMENT](#measurement)
+    - [SELECT/WHERE](#selectwhere)
+    - [REGEX](#regex-1)
+    - [GROUP BY tag\_key](#group-by-tag_key)
+    - [Functions(field\_key)](#functionsfield_key)
+    - [POLICY](#policy)
+- [InfluxDB-api](#influxdb-api)
+    - [API POST](#api-post)
+    - [API GET](#api-get)
+    - [Endpoints](#endpoints)
+    - [PingTo-InfluxDB](#pingto-influxdb)
+    - [PerformanceTo-InfluxDB](#performanceto-influxdb)
+    - [Service](#service)
+    - [PSInfluxDB](#psinfluxdb)
+- [Telegraf](#telegraf)
+- [Elasticsearch](#elasticsearch)
+- [CData](#cdata)
+    - [ADO.NET Assembly](#adonet-assembly)
+    - [UPDATE](#update-1)
+    - [INSERT](#insert-1)
+    - [DELETE](#delete-1)
+- [ODBC](#odbc)
+- [PostgreSQL](#postgresql)
+    - [ODBC Driver](#odbc-driver)
+    - [npgsql](#npgsql)
+- [WMI](#wmi)
+    - [WMI/CIM (Windows Management Instrumentation/Common Information Model)](#wmicim-windows-management-instrumentationcommon-information-model)
+    - [NLA (Network Level Authentication)](#nla-network-level-authentication)
+- [Regedit](#regedit)
+- [Performance](#performance)
+- [SNMP](#snmp)
+    - [Setup SNMP Service](#setup-snmp-service)
+    - [Setting SNMP Service via Regedit](#setting-snmp-service-via-regedit)
+    - [snmpwalk](#snmpwalk)
+    - [SNMP Modules](#snmp-modules)
+    - [Lextm.SharpSnmpLib](#lextmsharpsnmplib)
+    - [Walk](#walk)
+- [Zabbix](#zabbix)
+    - [Zabbix Agent](#zabbix-agent)
+    - [Zabbix Sender](#zabbix-sender)
+    - [Zabbix Get](#zabbix-get)
+    - [UserParameter](#userparameter)
+    - [Include Plugins](#include-plugins)
+    - [Zabbix API](#zabbix-api)
+- [pki](#pki)
+- [OpenSSL](#openssl)
+- [OpenVPN](#openvpn)
+    - [server.ovpn](#serverovpn)
+    - [client.ovpn](#clientovpn)
+    - [Client](#client-1)
+- [Route](#route)
+- [NAT](#nat)
+- [WireGuard](#wireguard)
+- [VpnClient](#vpnclient)
+- [ProxyClient](#proxyclient)
+- [netsh](#netsh)
+    - [Reverse Proxy](#reverse-proxy)
+    - [Wlan](#wlan)
+    - [Firewall](#firewall-1)
+- [OpenSSH](#openssh)
+    - [PSRemoting over SSH](#psremoting-over-ssh)
+- [WinRM](#winrm)
+    - [Windows Remote Management Configuration](#windows-remote-management-configuration)
+    - [Kerberos](#kerberos)
+- [PackageManagement](#packagemanagement)
+    - [winget](#winget)
+    - [jqlang](#jqlang)
+    - [Scoop](#scoop)
+    - [Chocolatey](#chocolatey)
+- [NuGet](#nuget)
+- [Modules](#modules)
+    - [Get-Query](#get-query)
+    - [Console-Translate](#console-translate)
+    - [Console-Download](#console-download)
+    - [PSEverything](#pseverything)
+    - [HardwareMonitor](#hardwaremonitor)
+    - [CrystalDisk-Cli](#crystaldisk-cli)
+    - [PS-Pi-Hole](#ps-pi-hole)
+    - [Check-Host](#check-host)
+    - [PSDomainTest](#psdomaintest)
+    - [WinAPI](#winapi)
+    - [pSyslog](#psyslog)
+    - [Syslog source message](#syslog-source-message)
+    - [Syslog type message](#syslog-type-message)
+- [Atlassian](#atlassian)
+    - [Bitbucket](#bitbucket)
+    - [Jira](#jira)
+    - [Confluence](#confluence)
+- [Git](#git)
+- [GitHub-api](#github-api)
+- [GitHub-Actions](#github-actions)
+    - [Runner (Agent)](#runner-agent)
+    - [Build (Pipeline)](#build-pipeline)
+    - [CI](#ci)
+    - [Logs](#logs)
+- [Vercel](#vercel)
+    - [CD](#cd)
+- [GitLab](#gitlab)
+- [Jenkins](#jenkins)
+    - [SSH Steps](#ssh-steps)
+    - [HttpURLConnection](#httpurlconnection)
+    - [Active Choices Parameter](#active-choices-parameter)
+- [Pester](#pester)
+- [PSAppDeployToolkit](#psappdeploytoolkit)
+    - [Install-DeployToolkit](#install-deploytoolkit)
+    - [Deploy-Notepad-Plus-Plus](#deploy-notepad-plus-plus)
+    - [Uninstall-Notepad-Plus-Plus](#uninstall-notepad-plus-plus)
+    - [Deploy-WinSCP](#deploy-winscp)
+- [DSC](#dsc)
+- [Ansible](#ansible)
+    - [Hosts](#hosts)
+- [Win\_Modules](#win_modules)
+    - [win\_shell (vars/debug)](#win_shell-varsdebug)
+    - [win\_powershell](#win_powershell)
+    - [win\_chocolatey](#win_chocolatey)
+    - [win\_regedit](#win_regedit)
+    - [win\_service](#win_service)
+    - [win\_service\_info](#win_service_info)
+    - [fetch/slurp](#fetchslurp)
+    - [win\_copy](#win_copy)
+    - [win\_command](#win_command)
+    - [win\_package](#win_package)
+    - [win\_firewall\_rule](#win_firewall_rule)
+    - [win\_group](#win_group)
+    - [win\_group\_membership](#win_group_membership)
+    - [win\_user](#win_user)
+    - [win\_feature](#win_feature)
+    - [win\_reboot](#win_reboot)
+    - [win\_find](#win_find)
+    - [win\_uri](#win_uri)
+    - [win\_updates](#win_updates)
+    - [win\_chocolatey](#win_chocolatey-1)
+- [Docker](#docker)
+    - [WSL](#wsl)
+    - [Install](#install-1)
+    - [Mirror](#mirror)
+    - [Proxy](#proxy)
+    - [Run](#run)
+    - [Update](#update-2)
+    - [Stats](#stats)
+    - [Logs](#logs-1)
+    - [Volume](#volume)
+    - [Network](#network-1)
+    - [Inspect](#inspect)
+    - [Exec](#exec)
+    - [Prune](#prune)
+    - [Remove](#remove)
+    - [Docker Socket API](#docker-socket-api)
+    - [Docker TCP API](#docker-tcp-api)
+    - [Context](#context)
+    - [ctop](#ctop)
+    - [Dockly](#dockly)
+    - [LazyDocker](#lazydocker)
+    - [Lazyjournal](#lazyjournal)
+    - [Dockerfile](#dockerfile)
+    - [Push](#push)
+    - [ADD](#add)
+    - [Docker-Compose](#docker-compose)
+    - [Uptime-Kuma](#uptime-kuma)
+    - [Uptime-Kuma-Api](#uptime-kuma-api)
+    - [Swarm](#swarm)
+    - [Dozzle](#dozzle)
+    - [Dozzle-Auth](#dozzle-auth)
+    - [Portainer](#portainer)
+- [Docker.DotNet](#dockerdotnet)
+- [Graylog](#graylog)
+- [Secret Management](#secret-management)
+    - [Bitwarden](#bitwarden)
+    - [Infisical](#infisical)
+- [GigaChat](#gigachat)
+  - [Curl](#curl)
+    - [Установка сертификатов в Ubuntu:](#установка-сертификатов-в-ubuntu)
+    - [Получение токена:](#получение-токена)
+    - [Составление запроса:](#составление-запроса)
+- [YandexGPT](#yandexgpt)
+  - [Получить OAuth-Token:](#получить-oauth-token)
+  - [Обменять OAuth-Token на IAM-Token:](#обменять-oauth-token-на-iam-token)
+  - [Получить FOLDER\_ID:](#получить-folder_id)
+    - [Составление запроса:](#составление-запроса-1)
+- [SuperAGI](#superagi)
+- [Replicate](#replicate)
+- [Google-Filter](#google-filter)
+- [Google-API](#google-api)
+    - [Google-Translate](#google-translate)
+    - [Google-Search](#google-search)
+- [RapidAPI](#rapidapi)
+    - [IMDb](#imdb)
+    - [MoviesDatabase](#moviesdatabase)
+- [TMDB](#tmdb)
+- [OMDb](#omdb)
+- [ivi](#ivi)
+- [Kinopoisk](#kinopoisk)
+    - [kinopoisk.dev](#kinopoiskdev)
+    - [UrlCode](#urlcode)
+    - [KinopoiskApiUnofficial](#kinopoiskapiunofficial)
+    - [Kinobox](#kinobox)
+- [VideoCDN](#videocdn)
+- [Telegram](#telegram)
+    - [Button](#button)
+    - [Send-ToTelegramFile](#send-totelegramfile)
+- [Discord](#discord)
+    - [Send to Discord](#send-to-discord)
+    - [Read from Discord](#read-from-discord)
+    - [HttpClient](#httpclient-1)
+    - [Button](#button-1)
+    - [Discord.Net.Webhook](#discordnetwebhook)
+    - [Discord.Net.WebSocket](#discordnetwebsocket)
+- [Torrent](#torrent)
+    - [Jackett](#jackett)
+    - [Torrent-API-py](#torrent-api-py)
+    - [Plex](#plex)
+    - [Jellyfin](#jellyfin)
+- [oh-my-posh](#oh-my-posh)
+    - [themes-performance](#themes-performance)
+- [Windows-Terminal](#windows-terminal)
+    - [Terminal-Icons](#terminal-icons)
+    - [Custom Actions](#custom-actions)
+- [Pandoc](#pandoc)
+    - [Convert Excel to Markdown](#convert-excel-to-markdown)
+- [FFmpeg](#ffmpeg)
+- [HandBrake](#handbrake)
+- [ImageMagick](#imagemagick)
+- [YouTube](#youtube)
 
 ---
 
@@ -8581,6 +8950,16 @@ docker system df # отобразить сводную информацию за
 du -h --max-depth=1 /var/lib/docker
 du -h --max-depth=2 /var/lib/docker/containers
 
+docker run \
+  --log-driver json-file \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  container_name
+
+--log-driver json-file # стандартный драйвер логов Docker
+--log-opt max-size=10m # устанавливаем максимальный размер каждого лог-файла в 10МБайт
+--log-opt max-file=3 # сохраняем только 3 файла с логами (текущий и два предыдущих). Когда лимит будет превышен, Docker автоматически удалит старые логи.
+
 ### Volume
 
 docker volume ls # показывает список томов и место хранения (механизмы хранения постояннымх данных контейнера на хостовой машине, которые сохраняются между перезапусками или пересозданиями контейнеров)
@@ -8690,6 +9069,12 @@ p - pause/unpause
 r - restart
 e - exec shell
 
+### Dockly
+
+npm install -g dockly # TUI интерфейс на базе Node.js и Blessed.js
+docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock lirantal/dockly # запуск в Docker
+dockly
+
 ### LazyDocker
 
 scoop install lazydocker || choco install lazydocker # установка в Windows (https://github.com/jesseduffield/lazydocker)
@@ -8702,6 +9087,14 @@ chmod +x /usr/local/bin/lazydocker
 
 lazydocker
 
+### Lazyjournal
+
+curl -sS https://raw.githubusercontent.com/Lifailon/lazyjournal/main/install.sh | bash # установка в Unix
+Invoke-RestMethod https://raw.githubusercontent.com/Lifailon/lazyjournal/main/install.ps1 | Invoke-Expression # установка в Windows
+lazyjournal
+lazyjournal --help
+lazyjournal --version
+
 # Dockerfile
 
 FROM # указывает базовый образ, на основе которого будет создаваться новый образ
@@ -8709,7 +9102,7 @@ LABEL # добавляет метаданные к образу в формат�
 ENV # устанавливает переменные окружения, которые будут доступны внутри контейнера
 RUN # выполняет команды в контейнере во время сборки образа
 COPY # копирует файлы и каталоги из указанного источника на локальной машине в файловую систему контейнера
-ADD # копирует файлы и каталоги в контейнер, поддерживает URL и автоматическое извлечение архивов
+ADD # копирует файлы и каталоги в контейнер, поддерживает загрузку файлов из URL и автоматическое извлечение архивов
 CMD # определяет команду, которая будет выполняться при запуске контейнера, может быть переопределена при запуске
 ENTRYPOINT # задает основную команду, которая будет выполняться при запуске контейнера
 WORKDIR # устанавливает рабочий каталог внутри контейнера для последующих команд
@@ -8756,6 +9149,16 @@ docker push lifailon/torapi # загрузить образ на Docker Hub
 
 docker pull lifailon/torapi:latest # загрузить образ из Docker Hub
 docker run -d --name TorAPI -p 8443:8443 lifailon/torapi:latest # загрузить образ и создать контейнер
+
+### ADD
+
+FROM alpine:latest
+# Загрузка и распаковка архива напрямую из GitHub
+ADD https://github.com/<username>/<repository>/archive/refs/heads/main.zip /app/
+# Установка инструмента для работы с архивами
+RUN apk add --no-cache unzip && \
+    unzip /app/main.zip -d /app/ && \
+    rm /app/main.zip
 
 # Docker-Compose
 
@@ -9023,6 +9426,76 @@ output.logstash:
 Get-Service winlogbeat | Start-Service
 
 - Настроить Inputs для приема Beats на порту 5044
+
+# Secret Management
+
+## Bitwarden
+
+choco install bitwarden-cli || npm install -g @bitwarden/cli || sudo snap install bw # установить bitwarden cli
+bw login <email> --apikey # авторизвация в хранилище, используя client_id и client_secret
+$session = bw unlock --raw # получить токен сессии
+$items = bw list items --session $session | ConvertFrom-Json # получение всех элементов в хранилище с использованием мастер-пароля
+echo "master_password" | bw get item GitHub bw get password $items[0].name # получить пароль по названию секрета
+bw lock # завершить сессию
+
+# Авторизация в организации
+$client_id = "organization.ClientId"
+$client_secret = "client_secret"
+$deviceIdentifier = [guid]::NewGuid().ToString()
+$deviceName = "PowerShell-Client"
+$response = Invoke-RestMethod -Uri "https://identity.bitwarden.com/connect/token" -Method POST `
+    -Headers @{ "Content-Type" = "application/x-www-form-urlencoded" } `
+    -Body @{
+        grant_type = "client_credentials"
+        scope = "api.organization"
+        client_id = $client_id
+        client_secret = $client_secret
+        deviceIdentifier = $deviceIdentifier
+        deviceName = $deviceName
+    }
+# Получение токена доступа
+$accessToken = $response.access_token
+# Название элемента в хранилище
+$itemName = "GitHub"
+# Поиск элемента в хранилище
+$itemResponse = Invoke-RestMethod -Uri "https://api.bitwarden.com/v1/objects?search=$itemName" -Method GET `
+    -Headers @{ "Authorization" = "Bearer $accessToken" }
+$item = $itemResponse.data[0]
+# Получение информации об элементе
+$detailsResponse = Invoke-RestMethod -Uri "https://api.bitwarden.com/v1/objects/$($item.id)" -Method GET `
+    -Headers @{ "Authorization" = "Bearer $accessToken" }
+# Получение логина и пароля
+$login = $detailsResponse.login.username
+$password = $detailsResponse.login.password
+
+## Infisical
+
+npm install -g @infisical/cli
+infisical login # авторизоваться в хранилище (cloud или Self-Hosting)
+infisical init # инициализировать - выбрать организацию и проект
+infisical secrets # получить список секретов и их SECRET VALUE из добавленных групп Environments (Development, Staging, Production)
+
+$clientId = "<client_id>" # создать организацию и клиент в Organization Access Control - Identities и предоставить права на Projects (Secret Management)
+$clientSecret = "<client_secret>" # на той же вкладке вкладке в Authentication сгенерировать секрет (Create Client Secret)
+$body = @{
+    clientId     = $clientId
+    clientSecret = $clientSecret
+}
+$response = Invoke-RestMethod -Uri "https://app.infisical.com/api/v1/auth/universal-auth/login" `
+    -Method POST `
+    -ContentType "application/x-www-form-urlencoded" `
+    -Body $body
+$TOKEN = $response.accessToken # получить токен доступа
+# Получить содержимое секрета
+$secretName = "FOO" # название секрета
+$workspaceId = "82488c0a-6d3a-4220-9d69-19889f09c8c8" # можно взять из url проекта Secret Management
+$environment = "dev" # группа
+$headers = @{
+    Authorization = "Bearer $TOKEN"
+}
+$secrets = Invoke-RestMethod -Uri "https://app.infisical.com/api/v3/secrets/raw/${secretName}?workspaceId=${workspaceId}&environment=${environment}" -Method GET -Headers $headers
+$secrets.secret.secretKey
+$secrets.secret.secretValue
 
 # GigaChat
 
