@@ -3,9 +3,10 @@
 <p align="center">
     <a href="https://lifailon.github.io"><img title="GitHub page"src="https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page"></a>
     <a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
-    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
+    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
+    <br>
     <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
-    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
+    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
 </p>
 <p align="center">
         <a href="https://lifailon.github.io"><img title="Web version"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
@@ -13,15 +14,22 @@
     <br>
         <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
         <a href="posh.md/#docker"><img title="Docker Commands"src="https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white"></a>
-    <br>
-        <a href="https://github.com/Lifailon/rudocs"><img title="Node.js and Go syntax"src="https://img.shields.io/badge/RuDocs_(Node.js/Go)-7ab65f?style=for-the-badge&logo=markdown&logoColor=white"></a>
 </p>
 
-<p align="center"> Большая база заметок <b>PowerShell</b>, а также системным командам и консольным утилитам 🐧 <b><a href="Linux.md">Linux</a></b> на русском языке.</p>
+Большая база заметок **PowerShell**, а также системным командам и консольным утилитам 🐧 [Linux](linux.md) на русском языке
 
-Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (DataGridView, Button, Checkbox и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
+Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (`DataGridView`, `Button`, `Checkbox` и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
 
----
+Вы также можете ознакомиться с другими шпаргалками для языков `Go` и `JavaScript`:
+
+<p align="left">
+    <a href="https://github.com/Lifailon/golang-cheat-sheet-ru"><img title="GoLang Cheat Sheet"src="https://img.shields.io/badge/golang_cheat_sheet-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white"></a>
+    <a href="https://github.com/Lifailon/node.js-cheat-sheet-ru"><img title="Node.js Cheat Sheet"src="https://img.shields.io/badge/node.js_cheat_sheet-6DA55F?style=for-the-badge&logo=node.js&logoColor=white"></a>
+</p>
+
+<h2 align="left">
+    Навигация:
+</h2>
 
 - [Cheat-Sheet](posh.md/#cheat-sheet)
 - [Help](posh.md/#help)
@@ -137,6 +145,7 @@
 - [Swarm](posh.md/#swarm)
 - [Docker.DotNet](posh.md/#dockerdotnet)
 - [Graylog](posh.md/#graylog)
+- [Secret Management](posh.md/#secret-management)
 - [GigaChat](posh.md/#GigaChat)
 - [YandexGPT](posh.md/#YandexGPT)
 - [SuperAGI](posh.md/#superagi)
