@@ -1,8 +1,14 @@
-Большая база заметок **PowerShell** на русском языке
+<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
+
+<p align="center">
+    Большая база заметок <b>PowerShell</b> на русском языке.
+</p>
 
 ---
 
-Оглавление:
+<h2 align="left">
+    Навигация:
+</h2>
 
 - [Cheat-Sheet](#cheat-sheet)
 - [Help](#help)
