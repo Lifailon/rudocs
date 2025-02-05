@@ -477,37 +477,43 @@
     - [Portainer](#portainer)
 - [Docker.DotNet](#dockerdotnet)
 - [Graylog](#graylog)
-- [Secret Management](#secret-management)
+- [Secret Manager](#secret-manager)
     - [Bitwarden](#bitwarden)
     - [Infisical](#infisical)
-- [GigaChat](#gigachat)
-  - [Curl](#curl)
-    - [Установка сертификатов в Ubuntu:](#установка-сертификатов-в-ubuntu)
-    - [Получение токена:](#получение-токена)
-    - [Составление запроса:](#составление-запроса)
-- [YandexGPT](#yandexgpt)
-  - [Получить OAuth-Token:](#получить-oauth-token)
-  - [Обменять OAuth-Token на IAM-Token:](#обменять-oauth-token-на-iam-token)
-  - [Получить FOLDER\_ID:](#получить-folder_id)
-    - [Составление запроса:](#составление-запроса-1)
-- [SuperAGI](#superagi)
-- [Replicate](#replicate)
-- [Google-Filter](#google-filter)
-- [Google-API](#google-api)
-    - [Google-Translate](#google-translate)
-    - [Google-Search](#google-search)
-- [RapidAPI](#rapidapi)
-    - [IMDb](#imdb)
-    - [MoviesDatabase](#moviesdatabase)
-- [TMDB](#tmdb)
-- [OMDb](#omdb)
-- [ivi](#ivi)
-- [Kinopoisk](#kinopoisk)
+    - [HashiCorp](#hashicorp)
+- [LLM](#llm)
+  - [OpenAI](#openai)
+  - [Mock](#mock)
+  - [LM Studio](#lm-studio)
+  - [Ollama](#ollama)
+  - [GigaChat](#gigachat)
+    - [Windows](#windows)
+    - [Linux](#linux)
+  - [YandexGPT](#yandexgpt)
+  - [SuperAGI](#superagi)
+  - [Replicate](#replicate)
+- [Google API](#google-api)
+    - [Google Translate](#google-translate)
+    - [Google Search](#google-search)
+    - [Google Search via RapidAPI](#google-search-via-rapidapi)
+    - [Google Filter](#google-filter)
+- [Media API](#media-api)
+  - [IMDb](#imdb)
+  - [MoviesDatabase](#moviesdatabase)
+  - [TMDB](#tmdb)
+  - [OMDb](#omdb)
+  - [ivi](#ivi)
+  - [Kinopoisk](#kinopoisk)
     - [kinopoisk.dev](#kinopoiskdev)
     - [UrlCode](#urlcode)
     - [KinopoiskApiUnofficial](#kinopoiskapiunofficial)
-    - [Kinobox](#kinobox)
-- [VideoCDN](#videocdn)
+  - [Kinobox](#kinobox)
+  - [VideoCDN](#videocdn)
+- [Torrent](#torrent)
+    - [Jackett](#jackett)
+    - [Torrent-API-py](#torrent-api-py)
+    - [Plex](#plex)
+    - [Jellyfin](#jellyfin)
 - [Telegram](#telegram)
     - [Button](#button)
     - [Send-ToTelegramFile](#send-totelegramfile)
@@ -518,11 +524,6 @@
     - [Button](#button-1)
     - [Discord.Net.Webhook](#discordnetwebhook)
     - [Discord.Net.WebSocket](#discordnetwebsocket)
-- [Torrent](#torrent)
-    - [Jackett](#jackett)
-    - [Torrent-API-py](#torrent-api-py)
-    - [Plex](#plex)
-    - [Jellyfin](#jellyfin)
 - [oh-my-posh](#oh-my-posh)
     - [themes-performance](#themes-performance)
 - [Windows-Terminal](#windows-terminal)
@@ -3859,6 +3860,8 @@ function Get-KinozalTorrentHash {
 `Get-KinozalTorrentHash $id $cookies`
 
 # Pode
+
+[PowerShell Web framework](https://github.com/Badgerati/Pode) для создания `REST API`, Веб-сайтов, `TCP` и `SMTP` серверов.
 ```PowerShell
 Start-PodeServer {
     Add-PodeEndpoint -Address localhost -Port "8080" -Protocol "HTTP"
@@ -3916,7 +3919,7 @@ Start-PodeServer {
 # Selenium
 
 `Invoke-Expression(New-Object Net.WebClient).DownloadString("https://raw.githubusercontent.com/Lifailon/Deploy-Selenium/rsa/Deploy-Selenium-Drivers.ps1")` установка всех драйверов и Chromium соответствующий версии для драйвера
-```
+```PowerShell
 $path = "$home\Documents\Selenium\"
 $log = "$path\ChromeDriver.log"
 $ChromeDriver = "$path\ChromeDriver.exe"
@@ -8879,7 +8882,11 @@ ansible_shell_type=powershell
 `systemctl enable docker` \
 `iptables -t nat -N DOCKER` \
 `docker -v` \
-`docker -h` \
+`docker -h`
+
+`sudo usermod -aG docker lifailon` добавить пльзователя в группу docker \
+`newgrp docker` применить изменения в группах
+
 `curl https://registry-1.docker.io/v2/` проверить доступ к Docker Hub \
 `curl -s -X POST -H "Content-Type: application/json" -d '{"username": "lifailon", "password": "password"}' https://hub.docker.com/v2/users/login | jq -r .token > dockerToken.txt` получить временный токен доступа для авторизации \
 `sudo docker login` вход в реестр репозитория hub.docker.com \
@@ -8931,6 +8938,7 @@ Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/k
 `docker kill $(docker ps -q)` остановить все контейнеры \
 `docker rm speedtest-2` удалить контейнер \
 `docker rmi adolfintel/speedtest` удалить образ \
+`docker run -p 8443:8443 -it --entrypoint /bin/sh container_name` запустить контейнер и подключиться к нему (даже если контейнер уходит в ошибку при запуске)  \
 `docker run -d --restart=unless-stopped --name openspeedtest -p 3000:3000 -p 3001:3001 openspeedtest/latest` загрузить образ OpenSpeedTest (https://hub.docker.com/r/openspeedtest/latest), создать контейнер и запустить в одну команду в фоновом режиме (-d/--detach, терминал возвращает контроль сразу после запуска контейнера, если не используется, можно видеть логи, но придется остановить контейнер для выхода) \
 `docker rm openspeedtest && docker rmi openspeedtest/latest` удаляем контейнер и образ в одну команду \
 `docker run --name pg1 -p 5433:5432 -e POSTGRES_PASSWORD=PassWord -d postgres` создать контейнер postgres (https://hub.docker.com/_/postgres) с параметрами (-e) \
@@ -9433,7 +9441,7 @@ Get-Service winlogbeat | Start-Service
 ```
 - Настроить Inputs для приема Beats на порту 5044
 
-# Secret Management
+# Secret Manager
 
 ### Bitwarden
 
@@ -9503,7 +9511,186 @@ $secrets = Invoke-RestMethod -Uri "https://app.infisical.com/api/v3/secrets/raw/
 $secrets.secret.secretKey
 $secrets.secret.secretValue
 ```
-# GigaChat
+### HashiCorp
+```bash
+docker run --cap-add=IPC_LOCK -d --name=dev-vault -p 8200:8200 hashicorp/vault
+
+2025-01-26 20:06:14 Api Address: http://0.0.0.0:8200
+2025-01-26 20:06:14 Unseal Key: XOD8uWWSL7LAAUwPqBTvryr3U6l9J3Q7CDVc+YmTET8=
+2025-01-26 20:06:14 Root Token: hvs.aYaGulrLe2pySPTDbZhOQCar
+```
+Secrets Engines -> Enable new engine + KV \
+API Swagger: http://192.168.3.100:8200/ui/vault/tools/api-explorer
+```PowerShell
+$TOKEN = "hvs.aYaGulrLe2pySPTDbZhOQCar"
+$Headers = @{
+    "X-Vault-Token" = $TOKEN
+}
+# Указать путь до секретов (создается в корне kv)
+$path = "main-path"
+$url = "http://192.168.3.100:8200/v1/kv/data/$path"
+$data = Invoke-RestMethod -Uri $url -Method GET -Headers $Headers
+# Получить содержимое ключа по его названию
+$data.data.data.key_name # secret_value
+
+# Перезаписать все секреты
+$Headers = @{
+    "X-Vault-Token" = $TOKEN
+}
+$Body = @{
+    data = @{
+        key_name_1 = "key_value_1"
+        key_name_2 = "key_value_2"
+    }
+    options = @{}
+    version = 0
+} | ConvertTo-Json
+$urlUpdate = "http://192.168.3.100:8200/v1/kv/data/main-path"
+Invoke-RestMethod -Uri $urlUpdate -Method POST -Headers $Headers -Body $Body
+
+# Удалить все секреты
+Invoke-RestMethod -Uri "http://192.168.3.100:8200/v1/kv/data/main-path" -Method DELETE -Headers $Headers
+```
+Vault client:
+```bash
+# Установить клиент в Linux (debian):
+wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install vault
+# Включить механизм секретов KV
+vault secrets enable -version=1 kv 
+# Создать секрет
+vault kv put kv/main-path key_name=secret_value
+# Список секретов
+vault kv list kv/
+# Получить содержимое секрета
+vault kv get -mount="kv" "main-path"
+# Удалить секреты
+vault kv delete kv/my-secret
+```
+# LLM
+
+## OpenAI
+
+Пример запроса для перевода текста
+```PowerShell
+$text = "The OpenAI API uses API keys for authentication. You can create API keys at a user or service account level." # https://platform.openai.com/docs/api-reference/authentication
+$toLang = "Russian"
+$presetPrompt = "Translate the following text into $toLang :
+$text
+Respond ONLY with the translated text. Do not include any other explanations, context, or comments.
+"
+$apiKey = "sk-proj-XXXXXXXXXX"
+$apiUrl = "https://api.openai.com/v1/chat/completions"
+
+$body = @{
+    model = "gpt-4o-mini"
+    messages = @(@{
+        role = "user";
+        content = $presetPrompt
+    })
+    temperature = 0.7
+} | ConvertTo-Json -Depth 10 -Compress
+
+$response = Invoke-RestMethod -Uri $apiUrl -Method Post -Headers @{
+    "Content-Type" = "application/json"
+    "Authorization" = "Bearer $apiKey"
+} -Body $body
+
+$response.choices.message.content
+```
+## Mock
+
+Создаем серверную заглушку для `API` OpenAI через [JSON Server](https://github.com/typicode/json-server)
+
+`npm install -g json-server@0.17.4`
+
+Конфигурация ответов в файле `openai.json`
+```json
+{
+  "completions": {
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "message": {
+          "role": "assistant",
+          "content": "Response from JSON Server",
+        },
+        "finish_reason": "stop"
+      }
+    ]
+  }
+}
+```
+Настройка маршрутизации в файле `routes.json`
+```json
+{
+    "/v1/chat/completions": "/completions"
+}
+```
+Конфигурация сервера в файле `json-server.json`
+```json
+{
+    "port": 3001
+}
+```
+Запускаем сервер:
+
+`json-server --watch openai.json --routes routes.json`
+
+Делаем запрос:
+
+`$(Invoke-RestMethod -Uri "http://localhost:3001/v1/chat/completions").choices.message.content`
+
+## LM Studio
+
+`API` в [LM Studio](https://lmstudio.ai) совместим с OpenAI
+
+Получить список моделей:
+```PowerShell
+$(Invoke-RestMethod -Uri "http://127.0.0.1:1234/v1/models/").data.id
+deepseek-r1-distill-llama-8b
+llama-3.2-3b-instruct
+text-embedding-nomic-embed-text-v1.5
+```
+Режим чата (когда `stream` установлен в `True`, ответ приходит по частям):
+```bash
+curl http://127.0.0.1:1234/v1/chat/completions `
+    -H "Content-Type: application/json" `
+    -d '{
+    "model": "deepseek-r1-distill-llama-8b",
+    "messages": [ 
+        { "role": "system", "content": "Только переводишь текст на англйский язык, не анализируешь ответ и не пишешь ничего дополнительного." },
+        { "role": "user", "content": "Привет! Я перевожу текст на англйский язык!" }
+    ], 
+    "temperature": 0.7, 
+    "max_tokens": -1,
+    "stream": false
+}'
+```
+## Ollama
+```PowerShell
+cd $home\Downloads
+$versionLatest = $(Invoke-RestMethod "https://api.github.com/repos/ollama/ollama/releases/latest").tag_name
+irm https://github.com/ollama/ollama/releases/download/${versionLatest}/ollama-windows-amd64.zip -OutFile ollama.zip
+Expand-Archive -Path ollama.zip -OutputPath ".\ollama" # -DestinationPath for Windows PowerShell 5.1
+Remove-Item ollama.zip; cd ollama
+```
+`.\ollama serve` запускаем сервер \
+`.\ollama pull mistral:7b-instruct` загружаем модель (https://ollama.com/library/mistral) \
+`.\ollama run mistral` запустить консоль для общения с LLM в режиме чата
+```PowerShell
+# Отправляем API запрос
+$data = curl -sS -X POST http://localhost:11434/api/generate -d '{
+  "model": "mistral",
+  "prompt":"Return only the word test in the answer"
+}'
+# Собираем ответ из частей response
+[string]$($data | ConvertFrom-Json).response.trim()
+```
+## GigaChat
+
+### Windows
 
 [Developers chat](https://developers.sber.ru/gigachat/login)
 
@@ -9576,9 +9763,9 @@ $body = @{
 $Request = Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $body
 $Request.choices.message.content
 ```
-## Curl
+### Linux
 
-### Установка сертификатов в Ubuntu:
+- Установка сертификатов в Ubuntu:
 
 `wget https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt` \
 `wget https://gu-st.ru/content/lending/russian_trusted_sub_ca_pem.crt` \
@@ -9587,7 +9774,7 @@ $Request.choices.message.content
 `update-ca-certificates -v` \
 `wget -qS --spider --max-redirect=0 https://www.sberbank.ru`
 
-### Получение токена:
+- Получение токена:
 ```Bash
 Cred_Base64="N2U2ZDJmOWYtODI1ZS00OWI3LTk4ZjQtNjJmYmI3NTA2NDI3OmIyYzgwZmZmLTEzOGUtNDg1Mi05MjgwLWE2MGI4NTc0YTM2MQ=="
 UUID=$(uuidgen)
@@ -9599,7 +9786,7 @@ GIGA_TOKEN=$(curl -s --location --request POST "https://ngw.devices.sberbank.ru:
 ```
 `curl -s --location "https://gigachat.devices.sberbank.ru/api/v1/models" --header "Authorization: Bearer $GIGA_TOKEN" | jq .` для проверки
 
-### Составление запроса:
+- Составление запроса:
 ```Bash
 request=$(curl -s https://gigachat.devices.sberbank.ru/api/v1/chat/completions \
   -H "Content-Type: application/json" \
@@ -9616,20 +9803,20 @@ request=$(curl -s https://gigachat.devices.sberbank.ru/api/v1/chat/completions \
 }')
 echo $request | jq -r .choices[].message.content
 ```
-# YandexGPT
+## YandexGPT
 
-## Получить OAuth-Token:
+- Получить OAuth-Token:
 
 [Create AIM Token](https://cloud.yandex.ru/ru/docs/iam/operations/iam-token/create) время жизни IAM-токена не больше 12 часов \
 `yandexPassportOauthToken="y0_AgAAAAAGaLFLAATuwQAAAAD3xtRLQE4hvlazQ5euKO43XXXXXXXXXXX"` для bash \
 `$yandexPassportOauthToken = "y0_AgAAAAAGaLFLAATuwQAAAAD3xtRLQE4hvlazQ5euKO43XXXXXXXXXXX"` для PowerShell
 
-## Обменять OAuth-Token на IAM-Token:
+- Обменять OAuth-Token на IAM-Token:
 
 `IAM_TOKEN=$(curl -s -d "{\"yandexPassportOauthToken\":\"$yandexPassportOauthToken\"}" "https://iam.api.cloud.yandex.net/iam/v1/tokens" | jq -r .iamToken)` \
 `$IAM_TOKEN = $(Invoke-RestMethod -Method POST -Uri "https://iam.api.cloud.yandex.net/iam/v1/tokens" -Body $(@{yandexPassportOauthToken = "$yandexPassportOauthToken"} | ConvertTo-Json -Compress)).iamToken`
 
-## Получить FOLDER_ID:
+- Получить FOLDER_ID:
 ```Bash
 CLOUD_ID=$(curl -s -H "Authorization: Bearer $IAM_TOKEN" https://resource-manager.api.cloud.yandex.net/resource-manager/v1/clouds | jq -r .clouds[].id) # получить cloud id
 curl -s --request GET -H "Authorization: Bearer $IAM_TOKEN" https://resource-manager.api.cloud.yandex.net/resource-manager/v1/folders -d "{\"cloudId\": \"$CLOUD_ID\"}" # получить список директорий в облаке
@@ -9640,7 +9827,7 @@ FOLDER_ID=$(curl -s --request GET -H "Authorization: Bearer $IAM_TOKEN" https://
 $CLOUD_ID = $(Invoke-RestMethod -Method Get -Uri "https://resource-manager.api.cloud.yandex.net/resource-manager/v1/clouds" -Headers @{"Authorization"="Bearer $IAM_TOKEN"; "Content-Type"="application/json"}).clouds.id
 $FOLDER_ID = $(Invoke-RestMethod -Method Get -Uri "https://resource-manager.api.cloud.yandex.net/resource-manager/v1/folders" -Headers @{"Authorization"="Bearer $IAM_TOKEN"; "Content-Type"="application/json"} -Body (@{"cloudId"= $CLOUD_ID} | ConvertTo-Json)).folders | Where-Object name -eq test | Select-Object -ExpandProperty id
 ```
-### Составление запроса:
+- Составление запроса:
 ```Bash
 model="gpt://$FOLDER_ID/yandexgpt/latest" # https://cloud.yandex.ru/ru/docs/yandexgpt/concepts/models
 body=$(cat <<EOF
@@ -9686,7 +9873,7 @@ $body = @"
 "@
 Invoke-RestMethod -Method POST -Uri "https://llm.api.cloud.yandex.net/foundationModels/v1/completion" -Headers @{"Content-Type"="application/json"; "Authorization"="Bearer $IAM_TOKEN"; "x-folder-id"="$FOLDER_ID"} -Body $body
 ```
-# SuperAGI
+## SuperAGI
 
 [Source](https://github.com/TransformerOptimus/SuperAGI) \
 [Playground generate](https://models.superagi.com/playground/generate) \
@@ -9727,7 +9914,7 @@ $request = Invoke-RestMethod -Method Post -Uri 'https://api.superagi.com/v1/gene
 } | ConvertTo-Json)
 $($request -replace "^data: " | ConvertFrom-Json).choices.text
 ```
-# Replicate
+## Replicate
 
 [API curl examples](https://replicate.com/stability-ai/stable-diffusion/examples?input=http)
 ```Bash
@@ -9770,27 +9957,9 @@ while ($response.status -ne "succeeded") {
 }
 $response.output
 ```
-# Google-Filter
+# Google API
 
-`https://www.google.com/search?q=the+rookie+2018+imdb` формат url-запроса поиска с пробелами \
-`https://www.google.com/search?q=the+rookie+2018+site:imdb.com` поиск по сайту \
-`https://www.google.com/search?q=the+rookie+intitle:index.of+"last modified"+(mkv|avi)` искать страницы, на которых указано "last modified" (последние изменения), заголовок страницы через расширенный оператор поиска (все перечисленные слова должны встречаться в заголовке) содержит слово "index.of" (указывает на директорию на веб-сервере, которая содержит список файлов) и искать файлы с расширениями .mkv или (|) .avi \
-`https://www.google.com/search?q=the+rookie+2018+filetype:torrent` \
-`инструкция gopro hero 11 filetype:pdf` искать сразу документ (на странице .pdf или загрузка) \
-`"действия/глаголы, утвержденные для использования в командлетах"` искать по фразе целиком, без разбиения на отдельные слова \
-`"ягуар скорость -животное -xe -xj"` узнаем скорость Ягуара, исключаем животное и модели автомобиля \
-`"intitle:лучшие фильмы 2023"` запрос ищет страницы, заголовки (title HTML документа) которых содержат слова "лучшие", "фильмы" и "2023" (все слова должны быть в заголовке) \
-`"allintitle:лучшие фильмы 2023"` запрос ищет страницы, заголовки (title HTML документа) которых содержат слова "лучшие", "фильмы" или "2023" (одно из) \
-`"intext:telegram бот powershell"` поиск страниц, содержащих указанное ключевое слово в тексте страницы (а не только в заголовке) \
-`"inurl:lifailon"` поиск страниц, в URL которых содержится указанное ключевое слово \
-`intitle:index.of "game of thrones" mkv daterange:2010..2015` фильтрация по дате изменения, оператор позволяет задать диапазон дат в формате YYYYMMDD..YYYYMMDD \
-`intitle:index.of "game of thrones" mkv after:2015` ограничить результаты поиска файлов, измененных до (before) или после (after) указанной даты \
-`intitle:index.of "game of thrones" mkv from:2010 to:2015` фильтрация по диапазону дат \
-`https://www.google.com/search?q=the-rookie-2018+site:imdb.com&btnI` редирект на первый url
-
-# Google-API
-
-### Google-Translate
+### Google Translate
 ```PowerShell
 $Key = "<TOKEN_API>" # получить токен: https://console.cloud.google.com/apis/credentials
 $Text = "You can see in the right corner how long each translation request takes (this does not depend on the amount of text being transferred)."
@@ -9812,7 +9981,7 @@ foreach ($key in $Header.Keys) {
 $Response = $WebClient.UploadString($url, "POST", $Body) | ConvertFrom-Json
 $Response.data.translations.translatedText
 ```
-### Google-Search
+### Google Search
 ```PowerShell
 $Key = "<TOKEN_API>" # получить токен: https://developers.google.com/custom-search/v1/overview?hl=ru (пользовательский поиск JSON API предоставляет 100 поисковых запросов в день бесплатно)
 $cx = "35c78340f49eb474a" # создать поисковую систему https://programmablesearchengine.google.com/controlpanel/all
@@ -9823,7 +9992,7 @@ $Start = 0
 $response = Invoke-RestMethod "https://www.googleapis.com/customsearch/v1?q=$Query&key=$Key&cx=$cx&lr=lang_$Lang&num=$Num&$start=$Start"
 $response.items | Select-Object title,snippet,displayLink,link | Format-List
 ```
-# RapidAPI
+### Google Search via RapidAPI
 
 [Google-Search72](https://rapidapi.com/ru/neoscrap-net/api/google-search72)
 ```PowerShell
@@ -9835,7 +10004,27 @@ $query = "как создать бота discord"
 $response = Invoke-RestMethod "https://google-search72.p.rapidapi.com/search?q=$query%20gitgub&gl=us&lr=lang_ru&num=20&start=0" -Method GET -Headers $headers
 $response.items | Select-Object title,snippet,displayLink,link | Format-List
 ```
-### IMDb
+### Google Filter
+
+`https://www.google.com/search?q=the+rookie+2018+imdb` формат url-запроса поиска с пробелами \
+`https://www.google.com/search?q=the+rookie+2018+site:imdb.com` поиск по сайту \
+`https://www.google.com/search?q=the+rookie+intitle:index.of+"last modified"+(mkv|avi)` искать страницы, на которых указано "last modified" (последние изменения), заголовок страницы через расширенный оператор поиска (все перечисленные слова должны встречаться в заголовке) содержит слово "index.of" (указывает на директорию на веб-сервере, которая содержит список файлов) и искать файлы с расширениями .mkv или (|) .avi \
+`https://www.google.com/search?q=the+rookie+2018+filetype:torrent` \
+`инструкция gopro hero 11 filetype:pdf` искать сразу документ (на странице .pdf или загрузка) \
+`"действия/глаголы, утвержденные для использования в командлетах"` искать по фразе целиком, без разбиения на отдельные слова \
+`"ягуар скорость -животное -xe -xj"` узнаем скорость Ягуара, исключаем животное и модели автомобиля \
+`"intitle:лучшие фильмы 2023"` запрос ищет страницы, заголовки (title HTML документа) которых содержат слова "лучшие", "фильмы" и "2023" (все слова должны быть в заголовке) \
+`"allintitle:лучшие фильмы 2023"` запрос ищет страницы, заголовки (title HTML документа) которых содержат слова "лучшие", "фильмы" или "2023" (одно из) \
+`"intext:telegram бот powershell"` поиск страниц, содержащих указанное ключевое слово в тексте страницы (а не только в заголовке) \
+`"inurl:lifailon"` поиск страниц, в URL которых содержится указанное ключевое слово \
+`intitle:index.of "game of thrones" mkv daterange:2010..2015` фильтрация по дате изменения, оператор позволяет задать диапазон дат в формате YYYYMMDD..YYYYMMDD \
+`intitle:index.of "game of thrones" mkv after:2015` ограничить результаты поиска файлов, измененных до (before) или после (after) указанной даты \
+`intitle:index.of "game of thrones" mkv from:2010 to:2015` фильтрация по диапазону дат \
+`https://www.google.com/search?q=the-rookie-2018+site:imdb.com&btnI` редирект на первый url
+
+# Media API
+
+## IMDb
 
 [IMDb8](https://rapidapi.com/apidojo/api/imdb8)
 ```PowerShell
@@ -9850,7 +10039,7 @@ $response.results | select title,titletype,year,runningTimeInMinutes,id | Format
 $response.results.principals # актеры
 $response.results.image
 ```
-### MoviesDatabase
+## MoviesDatabase
 
 [MoviesDatabase](https://rapidapi.com/SAdrian/api/moviesdatabase)
 ```PowerShell
@@ -9862,7 +10051,7 @@ $headers.Add("X-RapidAPI-Host", "moviesdatabase.p.rapidapi.com")
 $response = Invoke-RestMethod "https://moviesdatabase.p.rapidapi.com/titles/$imdb_id" -Method GET -Headers $headers
 $response.results
 ```
-# TMDB
+## TMDB
 
 [Developer TMDB](https://developer.themoviedb.org/reference/intro/getting-started)
 ```PowerShell
@@ -9880,7 +10069,7 @@ $(Invoke-RestMethod -Uri $url -Method Get) # список сезонов (.seaso
 (Invoke-RestMethod -Uri "https://api.themoviedb.org/3/tv/$id/season/2?api_key=$Token" -Method Get).episodes # вывести 2 сезон
 Invoke-RestMethod -Uri "https://api.themoviedb.org/3/tv/$id/season/2/episode/8?api_key=$Token" -Method Get # вывести 8 эпизод
 ```
-# OMDb
+## OMDb
 
 Получение API ключа по [email](https://www.omdbapi.com)
 
@@ -9894,7 +10083,7 @@ Invoke-RestMethod -Uri "https://api.themoviedb.org/3/tv/$id/season/2/episode/8?a
 `Invoke-RestMethod "https://omdbapi.com/?apikey=$($API_KEY)&t=The Rookie&type=movie"` поиск только фильма (movie) или сериала (series) \
 `$(Invoke-RestMethod "https://omdbapi.com/?apikey=$($API_KEY)&s=The Rookie").Search` поиск всех совпадений (фильмы и сериалы)
 
-# ivi
+## ivi
 
 [ivi api doc](https://ask.ivi.ru/knowledge-bases/10/articles/51697-dokumentatsiya-dlya-api-ivi)
 
@@ -9909,7 +10098,7 @@ Invoke-RestMethod -Uri "https://api.themoviedb.org/3/tv/$id/season/2/episode/8?a
 `$id = (Invoke-RestMethod "https://api.ivi.ru/mobileapi/search/v7/?query=zimorodok").result.kp_id` получить id в Кинопоиск (5106881) \
 `id=$(curl -s https://api.ivi.ru/mobileapi/search/v7/?query=zimorodok | jq .result[].kp_id)` получить id в Кинопоиск
 
-# Kinopoisk
+## Kinopoisk
 ```Bash
 id=5106881
 get=$(curl -s https://www.kinopoisk.ru/film/$id/episodes/)
@@ -10016,7 +10205,7 @@ Invoke-RestMethod -Uri 'https://kinopoiskapiunofficial.tech/api/v2.2/films/11421
 ```
 `curl -s "https://kinopoiskapiunofficial.tech/api/v2.2/films/1142153" -H "accept: application/json" -H "X-API-KEY: $API_KEY" | jq .`
 
-### Kinobox
+## Kinobox
 
 `$url = "https://www.kinopoisk.ru/film/694051"` \
 `$kp_id = $url -replace ".+/"` \
@@ -10028,7 +10217,7 @@ Invoke-RestMethod -Uri 'https://kinopoiskapiunofficial.tech/api/v2.2/films/11421
 `curl -s -X GET "https://kinobox.tv/api/popular/films" -H "accept: application/json"` популярные фильмы \
 `curl -s -X GET "https://kinobox.tv/api/popular/series" -H "accept: application/json"` популярные сериалы
 
-# VideoCDN
+## VideoCDN
 
 [API](https://github.com/notssh/videocdn-api) \
 [Source](https://github.com/API-Movies/videocdn) \
@@ -10046,6 +10235,105 @@ ep="tv-series"
 curl -s "https://videocdn.tv/api/$ep?api_token=$token&field=kinopoisk_id&query=$kp_id" | jq ".data[].episodes | length" # количество серий
 curl -s "https://videocdn.tv/api/$ep?api_token=$token&field=kinopoisk_id&query=$kp_id" | jq ".data[].episodes[] | select(.season_num == 2) | {episode: .ru_title, voice: .media[].translation.title}" # отфильтровать параметры вывода
 ```
+# Torrent
+
+### Jackett
+
+[Source](https://github.com/Jackett/Jackett)
+
+`mkdir /jackett` \
+`docker-compose.yml`
+```yaml
+---
+services:
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /jackett/data:/config
+      - /jackett/blackhole:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+```
+`docker-compose up -d jackett` \
+`docker exec -it jackett /bin/bash` доступ к оболочке во время работы контейнера \
+`docker logs -f jackett` мониторинг журналов контейнера
+
+`/jackett/data/Jackett/ServerConfig.json` место хранения конфигурации сервера \
+`/jackett/data/Jackett/Indexers/*.json` место хранения конфигурации индексаторов
+
+`$API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"` \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/rutor/results/torznab/api?apikey=$API_KEY"` Прочитать RSS ленту RuTor \
+`$query = "the+rookie"` \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/rutor/results/torznab/api?apikey=$API_KEY&t=search&cat=&q=$query"` поиск в RuTor \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/kinozal/results/torznab/api?apikey=$API_KEY&t=search&q=$query"` поиск в кинозал \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/kinozal/results/torznab/api?apikey=$API_KEY&t=search&q=$query&cat=5000"` отфильтровать вывод по сериалам (Capabilities: 5000) \
+`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=search&q=riverdale"` поиск во всех индексаторах \
+`$(Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=indexers&configured=true").indexers.indexer` cписок всех настроенных индексаторов (трекеров)
+
+### Torrent-API-py
+
+[Source](https://github.com/Ryuk-me/Torrent-Api-py) \
+[Documentation](https://torrent-api-py-nx0x.onrender.com/docs#/default/health_route_health_get)
+```
+git clone https://github.com/Ryuk-me/Torrent-Api-py
+cd Torrent-Api-py
+pip install virtualenv
+py -3 -m venv api-py
+# Активировать виртуальную среду для Windows
+.\api-py\Scripts\activate
+# Активировать виртуальную среду для Linux
+# $ source api-py/bin/activate
+# Установить зависимости и запустить
+pip install -r requirements.txt
+python main.py
+# Proxy: https://github.com/dperson/torproxy
+# export HTTP_PROXY="http://proxy-host:proxy-port"
+```
+`$srv = "http://localhost:8009"` local \
+`$srv = "https://torrent-api-py-nx0x.onrender.com"` public \
+`Invoke-RestMethod $srv/api/v1/sites` список доступных трекеров \
+`Invoke-RestMethod "$srv/api/v1/search/?site=torlock&query=the+rookie&limit=0&page=1"` поиск в выбранном трекере \
+`Invoke-RestMethod "$srv/api/v1/all/search?query=the+rookie&limit=0"` поиск по названию во всех трекерах
+
+### Plex
+
+`$API_TOKEN = "XXXXXXXXXXXXXXXXXXXX"`
+```
+$headers = @{
+    "X-Plex-Token" = $API_TOKEN
+    "accept" = "application/json"
+}
+```
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/servers).MediaContainer.Server` версия сервера \
+`Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/diagnostics/logs -OutFile log.zip` выгруить лог с сервера \
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections).MediaContainer.Directory` список секций добавленных на сервер \
+`$section_key = $(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections).MediaContainer.Directory.key[0]` \
+`Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/$section_key/refresh` синхронизация указанной секции в Plex по ключу \
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/2/folder).MediaContainer.Metadata` получить список директорий и файлов в корне выбранной секции \
+`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/2/folder?parent=204).MediaContainer.Metadata` получить список всех файлов в указанной директории через ключ (MediaContainer.Metadata.key) конечной точки
+
+### Jellyfin
+
+[Source](https://github.com/jellyfin/jellyfin) \
+[API Docs](https://api.jellyfin.org)
+
+`$API_TOKEN "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"` \
+`Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Users` список пользователей и их id \
+`$Users = Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Users` \
+`$UserId = $($Users | Where-Object Name -match "Lifailon").Id` забрать id пользователя \
+`Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/System/Info` информация о системе \
+`$(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Items).Items` список добавленных объектов директорий \
+`$ItemId = $(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Items).Items[-1].Id` забрать id директории \
+`$Data = $(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} "http://localhost:8096/Users/$UserId/Items?ParentId=$ItemId").Items` получить содержимое корневой директории по Id из Items \
+`$TvId = $($data | Where-Object Name -match "Rookie").Id` найти сериал или фильм по имени и забрать его Id \
+`$(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} "http://localhost:8096/Users/$UserId/Items?ParentId=$TvId").Items` получить содержимое дочерней директории по Id ее родительской директории
+
 # Telegram
 
 @BotFather (https://t.me/BotFather) /newbot
@@ -10304,105 +10592,6 @@ $Client.ConnectionState
 $Client.LogoutAsync().GetAwaiter().GetResult()
 $Client.Dispose()
 ```
-# Torrent
-
-### Jackett
-
-[Source](https://github.com/Jackett/Jackett)
-
-`mkdir /jackett` \
-`docker-compose.yml`
-```yaml
----
-services:
-  jackett:
-    image: lscr.io/linuxserver/jackett:latest
-    container_name: jackett
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-    volumes:
-      - /jackett/data:/config
-      - /jackett/blackhole:/downloads
-    ports:
-      - 9117:9117
-    restart: unless-stopped
-```
-`docker-compose up -d jackett` \
-`docker exec -it jackett /bin/bash` доступ к оболочке во время работы контейнера \
-`docker logs -f jackett` мониторинг журналов контейнера
-
-`/jackett/data/Jackett/ServerConfig.json` место хранения конфигурации сервера \
-`/jackett/data/Jackett/Indexers/*.json` место хранения конфигурации индексаторов
-
-`$API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"` \
-`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/rutor/results/torznab/api?apikey=$API_KEY"` Прочитать RSS ленту RuTor \
-`$query = "the+rookie"` \
-`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/rutor/results/torznab/api?apikey=$API_KEY&t=search&cat=&q=$query"` поиск в RuTor \
-`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/kinozal/results/torznab/api?apikey=$API_KEY&t=search&q=$query"` поиск в кинозал \
-`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/kinozal/results/torznab/api?apikey=$API_KEY&t=search&q=$query&cat=5000"` отфильтровать вывод по сериалам (Capabilities: 5000) \
-`Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=search&q=riverdale"` поиск во всех индексаторах \
-`$(Invoke-RestMethod "http://127.0.0.1:9117/api/v2.0/indexers/all/results/torznab/api?apikey=$API_KEY&t=indexers&configured=true").indexers.indexer` cписок всех настроенных индексаторов (трекеров)
-
-### Torrent-API-py
-
-[Source](https://github.com/Ryuk-me/Torrent-Api-py) \
-[Documentation](https://torrent-api-py-nx0x.onrender.com/docs#/default/health_route_health_get)
-```
-git clone https://github.com/Ryuk-me/Torrent-Api-py
-cd Torrent-Api-py
-pip install virtualenv
-py -3 -m venv api-py
-# Активировать виртуальную среду для Windows
-.\api-py\Scripts\activate
-# Активировать виртуальную среду для Linux
-# $ source api-py/bin/activate
-# Установить зависимости и запустить
-pip install -r requirements.txt
-python main.py
-# Proxy: https://github.com/dperson/torproxy
-# export HTTP_PROXY="http://proxy-host:proxy-port"
-```
-`$srv = "http://localhost:8009"` local \
-`$srv = "https://torrent-api-py-nx0x.onrender.com"` public \
-`Invoke-RestMethod $srv/api/v1/sites` список доступных трекеров \
-`Invoke-RestMethod "$srv/api/v1/search/?site=torlock&query=the+rookie&limit=0&page=1"` поиск в выбранном трекере \
-`Invoke-RestMethod "$srv/api/v1/all/search?query=the+rookie&limit=0"` поиск по названию во всех трекерах
-
-### Plex
-
-`$API_TOKEN = "XXXXXXXXXXXXXXXXXXXX"`
-```
-$headers = @{
-    "X-Plex-Token" = $API_TOKEN
-    "accept" = "application/json"
-}
-```
-`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/servers).MediaContainer.Server` версия сервера \
-`Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/diagnostics/logs -OutFile log.zip` выгруить лог с сервера \
-`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections).MediaContainer.Directory` список секций добавленных на сервер \
-`$section_key = $(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections).MediaContainer.Directory.key[0]` \
-`Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/$section_key/refresh` синхронизация указанной секции в Plex по ключу \
-`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/2/folder).MediaContainer.Metadata` получить список директорий и файлов в корне выбранной секции \
-`$(Invoke-RestMethod -Headers $headers -Uri http://localhost:32400/library/sections/2/folder?parent=204).MediaContainer.Metadata` получить список всех файлов в указанной директории через ключ (MediaContainer.Metadata.key) конечной точки
-
-### Jellyfin
-
-[Source](https://github.com/jellyfin/jellyfin) \
-[API Docs](https://api.jellyfin.org)
-
-`$API_TOKEN "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"` \
-`Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Users` список пользователей и их id \
-`$Users = Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Users` \
-`$UserId = $($Users | Where-Object Name -match "Lifailon").Id` забрать id пользователя \
-`Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/System/Info` информация о системе \
-`$(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Items).Items` список добавленных объектов директорий \
-`$ItemId = $(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Items).Items[-1].Id` забрать id директории \
-`$Data = $(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} "http://localhost:8096/Users/$UserId/Items?ParentId=$ItemId").Items` получить содержимое корневой директории по Id из Items \
-`$TvId = $($data | Where-Object Name -match "Rookie").Id` найти сериал или фильм по имени и забрать его Id \
-`$(Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} "http://localhost:8096/Users/$UserId/Items?ParentId=$TvId").Items` получить содержимое дочерней директории по Id ее родительской директории
-
 # oh-my-posh
 
 [Install](https://ohmyposh.dev/docs/installation/windows)
