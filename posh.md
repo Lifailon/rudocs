@@ -414,9 +414,9 @@
     - [CD](#cd)
 - [GitLab](#gitlab)
 - [Jenkins](#jenkins)
-    - [SSH Steps](#ssh-steps)
-    - [HttpURLConnection](#httpurlconnection)
-    - [Active Choices Parameter](#active-choices-parameter)
+    - [API](#api-1)
+    - [SSH Steps and Artifacts](#ssh-steps-and-artifacts)
+    - [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
     - [Install-DeployToolkit](#install-deploytoolkit)
@@ -8159,110 +8159,242 @@ test:
 
 `docker run -d --name=jenkins -p 8080:8080 --restart=always -v jenkins_home:/var/jenkins_home jenkins/jenkins:latest` \
 `ls /var/lib/docker/volumes/jenkins_home/_data/jobs` директория хранящая историю сборок в хостовой системе \
-`docker exec -it jenkins /bin/bash` подключиться к контейнеру \
-`cat /var/jenkins_home/secrets/initialAdminPassword` получить токен инициализации
+`docker exec -u root -it jenkins /bin/bash` подключиться к контейнеру под root \
+`cat /var/jenkins_home/secrets/initialAdminPassword` получить токен инициализации \
+`apt-get update && apt-get install -y iputils-ping netcat-openbsd` установить ping и nc на машину сборщика (master slave)
 
-Cli: http://127.0.0.1:8080/manage/cli \
-`apt install openjdk-17-jre-headless` \
-`wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -P /usr/local/bin/` скачать jenkins-cli \
-`java -jar /usr/local/bin/jenkins-cli.jar -auth lifailon:password -s http://127.0.0.1:8080 -webSocket help` получить список команд
+`wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -P $HOME/` скачать jenkins-cli (http://127.0.0.1:8080/manage/cli) \
+`apt install openjdk-17-jre-headless` установить java runtime \
+`java -jar jenkins-cli.jar -auth lifailon:password -s http://127.0.0.1:8080 -webSocket help` получить список команд \
+`java -jar jenkins-cli.jar -auth lifailon:password -s http://127.0.0.1:8080 groovysh` запустить консоль Groovy \
+`java -jar jenkins-cli.jar -auth lifailon:password -s http://127.0.0.1:8080 install-plugin ssh-steps -deploy` устанавливаем плагин SSH Pipeline Steps
 
-### SSH Steps
+### API
+```PowerShell
+$username = "Lifailon"
+$password = "password"
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username,$password)))
+$headers = @{Authorization=("Basic {0}" -f $base64AuthInfo)}
+Invoke-RestMethod "http://192.168.3.101:8080/rssAll" -Headers $headers # RSS лента всех сборок и их статус в title
+Invoke-RestMethod "http://192.168.3.101:8080/rssFailed" -Headers $headers # RSS лента всех неудачных сборок
 
-Manage > Credentials > Global > New credentials > Kind: Username with password
+$jobs = Invoke-RestMethod "http://192.168.3.101:8080/api/json/job" -Headers $headers
+$jobs.jobs.name # список всех проектов
+$jobName = "Update SSH authorized_keys"
+$job = Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/api/json" -Headers $headers
+$job.builds # список всех сборок
+$buildNumber = $job.lastUnsuccessfulBuild.number # последняя неуспешная сборка
+Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${buildNumber}/consoleText" -Headers $headers # вывести лог указанной сборки
+
+$lastCompletedBuild = $job.lastCompletedBuild.number # последняя успешная сборка
+$crumb = $(Invoke-RestMethod "http://192.168.3.101:8080/crumbIssuer/api/json" -Headers $headers).crumb # получаем временный токен доступа (crumb)
+$headers["Jenkins-Crumb"] = $crumb # добавляем crumb в заголовки
+$body = @{".crumb" = $crumb} # добавляем crumb в тело запроса
+Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild}/rebuild" -Headers $headers -Method POST -Body $body # перезапустить сборку
+```
+### SSH Steps and Artifacts
+
+Устанавливаем плагин [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)
+
+Добавляем логин и `Private Key` для авторизации по ssh: `Manage (Settings)` => `Credentials` => `Global` => `Add credentials` => Kind: `SSH Username with private key`
+
+Сценарий проверяет доступность удаленной машины, подключается к ней по ssh, выполняет скрипт [hwstat](https://github.com/Lifailon/hwstat) для сбора метрик и выгружает json отчет в артефакты:
 ```groovy
+// Глобальный массив для хранения данных подключения по ssh 
+def remote = [:]
+
 pipeline {
     agent any
     parameters {
-        string(name: 'Count', defaultValue: '100', description: 'Number of lines from log')
-        choice(name: "Mode", choices: ["Log","Stats"], description: "Select mode")
-        // booleanParam(name: "State", defaultValue: false)
+        string(name: 'address', defaultValue: '192.168.3.101', description: 'Адрес удаленного сервера')
+        // choice(name: "addresses", choices: ["192.168.3.101","192.168.3.102"], description: "Выберите сервер из выпадающего списка")
+        string(name: 'port', defaultValue: '22', description: 'Порт ssh')
+        string(name: 'credentials', defaultValue: 'd5da50fc-5a98-44c4-8c55-d009081a861a', description: 'Идентификатор учетных данных из Jenkins')
+        booleanParam(name: "root", defaultValue: false, description: 'Запуск с повышенными привилегиями')
+        booleanParam(name: "report", defaultValue: true, description: 'Выгружать отчет в формате json')
+    }
+    triggers {
+        cron('H */6 * * 1-5') // выполнять запуск каждын 6 часов с понедельника по пятницу
+    }
+    options {
+        timeout(time: 5, unit: 'MINUTES') // период ожидания, после которого нужно прервать Pipeline
+        retry(2) // в случае неудачи повторить весь Pipeline указанное количество раз
+    }
+    environment {
+        // Переменная окружения для хранения пути временного файла с содержимым приватного ключа
+        SSH_KEY_FILE = "/tmp/ssh_key_${UUID.randomUUID().toString()}"
     }
     stages {
-        stage('Remote SSH') {
+        stage('Проверка доступности хоста (icmp и tcp)') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: '91a9b0bb-bde9-4e06-ba19-9eb5bfd61612', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
-                        sshCommand remote: [
-                            name: '192.168.3.101',
-                            host: '192.168.3.101',
-                            port: 2121,
-                            user: env.SSH_USER,
-                            password: env.SSH_PASS,
-                            allowAnyHosts: true
-                        ], command: """
-                            if [[ "${params.Mode}" == "Log" ]]; then
-                                bash kinozal-bot/kinozal-bot-0.4.5.sh log bot ${params.Count}
-                            elif [[ "${params.Mode}" == "Stats" ]]; then
-                                curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash
-                            fi
+                    def check = sh(
+                        script: """
+                            ping -c 1 ${params.address} > /dev/null || exit 1
+                            nc -z ${params.address} ${params.port} || exit 2
+                        """,
+                        returnStatus: true // исключить завершение Pipeline с ошибкой
+                    )
+                    if (check == 1) {
+                        error("Сервер ${params.address} недоступен (icmp ping)")
+                    } else if (check == 2) {
+                        error("Порт ${params.address} закрыт (tcp check)")
+                    } else {
+                        echo "Сервер ${params.address} доступен и порт ${params.port} открыт"
+                    }
+                }
+            }
+        }
+        stage('Извлечение данных для авторизации по ключу') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: params.credentials, usernameVariable: 'SSH_USER', keyFileVariable: 'SSH_KEY', passphraseVariable: '')]) {
+                        // Записываем содержимое приватного ключа во временный файл
+                        writeFile(file: env.SSH_KEY_FILE, text: readFile(SSH_KEY))
+                        sh "chmod 600 ${env.SSH_KEY_FILE}"
+                        remote.name = params.address
+                        remote.host = params.address
+                        remote.port = params.port.toInteger()
+                        remote.user = SSH_USER
+                        remote.identityFile = env.SSH_KEY_FILE
+                        remote.allowAnyHosts = true
+                    }
+                }
+            }
+        }
+        stage('Запуск скрипта через через ssh') {
+            steps {
+                script {
+                    def runCommand
+                    if (params.root) {
+                        runCommand = """
+                            curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | sudo bash -s -- "json" > "hwstat-report.json"
+                        """
+                    } else {
+                        runCommand = """
+                            curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash -s -- "json" > "hwstat-report.json"
                         """
                     }
-                }
-            }
-        }
-    }
-}
-```
-### HttpURLConnection
-
-Script Console: http://127.0.0.1:8080/manage/script
-```groovy
-pipeline {
-    agent any
-    stages {
-        stage('Call REST API') {
-            steps {
-                script {
-                    def url = new URL("https://jsonplaceholder.typicode.com/posts")
-                    def connection = url.openConnection()
-                    connection.setRequestMethod("GET")
-                    connection.setRequestProperty("Accept", "application/json")
-                    def responseCode = connection.getResponseCode()
-                    if (responseCode == 200) {
-                        def response = connection.getInputStream().getText()
-                        println("Response: " + response)
-                    } else {
-                        error("Failed to call API, response code: ${responseCode}")
+                    def jsonOutput = sshCommand remote: remote, command: runCommand
+                    if (params.report) {
+                        // Записать содержимое переменной в файл
+                        // writeFile file: 'hwstat-report.json', text: jsonOutput
+                        // Загрузить файл из удаленной машины
+                        sshGet remote: remote, from: "hwstat-report.json", into: "${env.WORKSPACE}/hwstat-report.json", override: true
                     }
-                    connection.disconnect()
+                    sshCommand remote: remote, command: "rm hwstat-report.json"
                 }
             }
         }
-    }
-}
-```
-### Active Choices Parameter
-
-[Plugin](https://plugins.jenkins.io/uno-choice)
-
-Name: `selectedVersion`
-
-Groovy Script:
-```groovy
-import groovy.json.JsonSlurper
-def apiUrl = "https://api.github.com/repos/PowerShell/PowerShell/tags"
-def conn = new URL(apiUrl).openConnection()
-conn.setRequestProperty("User-Agent", "Jenkins")
-def response = conn.getInputStream().getText()
-def json = new JsonSlurper().parseText(response)
-def versions = json.collect { it.name }
-return versions
-```
-Pipeline script:
-```groovy
-pipeline {
-    agent any
-    stages {
-        stage('Display Selected Version') {
+        stage('Загрузка json отчета в Jenkins') {
+            // Проверка условия перед выполнением шага (пропуск если false)
+            when {
+                expression { params.report }
+            }
             steps {
-                script {
-                    echo "Selected PowerShell version: ${params.selectedVersion}"
-                }
+                archiveArtifacts artifacts: 'hwstat-report.json', allowEmptyArchive: true
             }
         }
     }
+    post {
+        // Выполнять независимо от успеха или ошибки
+        always {
+            script {
+                sh "rm -f ${env.SSH_KEY_FILE}"
+            }
+        }
+        success   { echo "Сборка завершена успешно" }
+        failure   { echo "Сборка завершилась с ошибкой" }
+        unstable  { echo "Сборка завершилась с предупреждениями" }
+        changed   { echo "Текущий статус завершения изменился по сравнению с предыдущим запуском" }
+        fixed     { echo "Сборка завершена успешно по сравнению с предыдущим запуском" }
+        aborted   { echo "Запуск был прерван" }
+    }
 }
+```
+### Groovy
+
+Базовый синтаксис языка `Groovy`
+```groovy
+// Переменные
+javaString = 'java'
+javaString
+println javaString
+javaString.class    // class java.lang.String
+println 100.class   // class java.lang.Integer
+j = '${javaString}' // не принимает переменные в одинарных кавычках
+groovyString = "${javaString}"
+bigGroovyString = """
+    ${javaString}
+    ${j}
+    ${groovyString}
+    ${2 + 2}
+"""
+
+// java
+// ${javaString}
+// java
+// 4
+
+a = "a"   // a
+a + "123" // a123
+a * 5     // aaaaa
+
+// Массивы и списки
+list =[1,2,3]
+list[0]    // 1
+list[0..1] // [1, 2]
+range = "0123456789"
+range[1..5] // 12345
+map = [key1: true, key2: false]
+map["key1"] // true
+server = [:]
+server.ip = "192.168.3.1"
+server.port = 22
+println(server) // [ip:192.168.3.1, port:22]
+
+// Функции
+def sum(a,b) {
+    println a+b
+}
+sum(2,2) // 4
+
+// Условия
+def diff(x) {
+    if (x < 10) {
+        println("${x} < 10")
+    } else if (x == 10) {
+        println("${x} = 10")
+    } else {
+        println("${x} > 10")
+    }
+}
+diff(11) // 11 > 10
+
+// Циклы
+list.each { l ->
+    print l
+}
+// 123
+
+for (i in 0..5) { 
+    print i
+}
+// 012345
+
+for (int i = 0; i < 10; i++) {
+    print i
+}
+// 0123456789
+
+i = 0
+while (i < 3) {
+    println(i)
+    i++
+}
+// 0
+// 1
+// 2
 ```
 # Pester
 
