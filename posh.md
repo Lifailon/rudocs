@@ -171,6 +171,9 @@
     - [Invoke-Parallel](#invoke-parallel)
     - [ForEach-Object-Parallel](#foreach-object-parallel)
 - [SMTP](#smtp)
+    - [Net.Mail](#netmail)
+    - [SMTP over OpenSSL](#smtp-over-openssl)
+    - [Swaks](#swaks)
 - [VMWare/PowerCLI](#vmwarepowercli)
 - [Hyper-V](#hyper-v)
     - [VMConnect via RDCMan](#vmconnect-via-rdcman)
@@ -274,6 +277,7 @@
     - [PSWriteHTML](#pswritehtml)
     - [HtmlReport](#htmlreport)
 - [HtmlAgilityPack](#htmlagilitypack)
+- [KeePass](#keepass)
 - [SQLite](#sqlite)
     - [Database password](#database-password)
 - [MySQL](#mysql)
@@ -3005,6 +3009,8 @@ $(0..$($array_main.Count-1)) | ForEach-Object -Parallel {
 } -ThrottleLimit $($array_main.Count)
 ```
 # SMTP
+
+### Net.Mail
 ```PowerShell
 function Send-SMTP {
 param (
@@ -3016,7 +3022,7 @@ param (
     $to = "login2@yandex.ru" 
     $user = "login1"
     $pass = "password"
-    $subject = "Service status on Host: $hostname"
+    $subject = "PowerShell"
     $Message = New-Object System.Net.Mail.MailMessage
     $Message.From = $from
     $Message.To.Add($to) 
@@ -3029,8 +3035,46 @@ param (
     $smtp.Send($Message) 
 }
 ```
-`Send-SMTP $(Get-Service)`
+`Send-SMTP "This is a test email from PowerShell"`
 
+### SMTP over OpenSSL
+```Bash
+# Получить логин и пароль в формате Base64
+echo -n "fromUserName@yandex.ru" | base64 # ZnJvbVVzZXJOYW1lQHlhbmRleC5ydQ==
+echo -n "app-password" | base64 # YXBwLXBhc3N3b3Jk
+# Подключаемся к серверу через OpenSSL и авторизуемся
+openssl s_client -connect smtp.yandex.ru:465 -crlf -quiet
+# 220 Ok
+EHLO hv-dev-101
+AUTH LOGIN
+ZnJvbVVzZXJOYW1lQHlhbmRleC5ydQ==
+YXBwLXBhc3N3b3Jk
+# 235 Authentication successful
+# Отправляем письмо
+MAIL FROM:<fromUserName@yandex.ru>
+RCPT TO:<toUserName@yandex.ru>
+DATA
+Subject: OpenSSL
+# Отделить тему от тела письма пустой строкой
+This is a test email from OpenSSL
+.
+# 250 Ok
+```
+### Swaks
+
+[Swaks](https://github.com/jetmore/swaks) - SMTP клиент на Perl
+```bash
+swaks --from fromUserName@yandex.ru \
+    --to toUserName@yandex.ru \
+    --server smtp.yandex.ru \
+    --port 587 \
+    --auth LOGIN \
+    --auth-user fromUserName@yandex.ru \
+    --auth-password "app-password" \
+    --tls \
+    --header "Subject: Test Subject" \
+    --body "This is the body test from swaks"
+```
 # VMWare/PowerCLI
 
 `Install-Module -Name VMware.PowerCLI # -AllowClobber` установить модуль (PackageProvider: nuget) \
@@ -5199,6 +5243,69 @@ Title                                                                    Size   
 Новобранец (2 сезон: 1-20 серии из 20) (2019) WEBRip | BaibaKo           11.28 Gb http://fasts-torrent.net/download/364669/torrent/-2-1-20-20-2019-webrip-baibako/
 Новобранец (2 сезон: 1-20 серии из 20) (2019) WEBRip 1080p | Octopus     45.97 Gb http://fasts-torrent.net/download/364161/torrent/-2-1-20-20-2019-webrip-1080p-octopus/
 Новобранец (2 сезон: 1-20 серии из 20) (2019) WEB-DLRip | LostFilm       11.95 Gb http://fasts-torrent.net/download/364668/torrent/-2-1-20-20-2019-web-dlrip-lostfilm/
+```
+# KeePass
+```PowerShell
+# Определяем переменные до исполняемого файла, базы и пароль
+$KeePassExecPath = "C:\Program Files\KeePass Password Safe 2\KeePass.exe"
+$basePath = "$home\Documents\KeePass\base.kdbx"
+$basePass = "12345"
+
+# Загружаем сборку
+[System.Reflection.Assembly]::LoadFrom($KeePassExecPath) | Out-Null
+[KeePass.Program]::CommonInitialize()
+
+# Открываем базу
+$IOConnectionInfo = [KeePassLib.Serialization.IOConnectionInfo]::FromPath($basePath)
+$CompositeKey = New-Object KeePassLib.Keys.CompositeKey
+$KcpPassword = New-Object KeePassLib.Keys.KcpPassword @($basePass)
+$CompositeKey.AddUserKey($KcpPassword)
+$PwDatabase = New-Object KeePassLib.PwDatabase
+$PwDatabase.Open($IOConnectionInfo, $CompositeKey, $null)
+
+# Поиск в базе по частичному совпадению (фильтрация)
+$SearchParameters = New-Object KeePassLib.SearchParameters
+$SearchParameters.SearchString = 'test'
+$PwObjectList = New-Object KeePassLib.Collections.PwObjectList[KeePassLib.PwEntry]
+$PwDatabase.RootGroup.SearchEntries($SearchParameters, $PwObjectList)
+$ucount = $PwObjectList.UCount - 1
+if ($ucount -ne 0) {
+    foreach ($index in $(0..$ucount)) {
+        $PwObjectList.GetAt($index).Strings.ReadSafe([KeePassLib.PwDefs]::UserNameField)
+    }
+}
+
+# Получаем список групп
+$Groups = $PwDatabase.RootGroup.Groups
+$groupCollections = New-Object System.Collections.Generic.List[System.Object]
+# Проходим по группам
+foreach ($Group in $Groups) {
+    $entryCollections = New-Object System.Collections.Generic.List[System.Object]
+    # Проходим по записям группы и добавляем во временную коллекцию
+	foreach ($entry in $Group.Entries) {
+        $entryCollections.Add([PSCustomObject]@{
+            Title    = $entry.Strings.Get("Title").ReadString()
+            Login    = $entry.Strings.Get("UserName").ReadString()
+            Password = $entry.Strings.Get("Password").ReadString()
+            Url = $entry.Strings.Get("URL").ReadString()
+            Description = $entry.Strings.Get("Notes").ReadString()
+        })
+    }
+    # Добавляем запись в основную коллекцию групп (название группы используется как ключ)
+    $groupCollections += [PSCustomObject]@{
+        # ($Group.Name) = $entryCollections
+		Group = $Group.Name
+		Modification = $Group.LastAccessTime.ToString()
+        Entries = $entryCollections
+    }
+}
+
+# Преобразуем структуру в JSON
+$jsonData = $groupCollections | ConvertTo-Json -Depth 3
+$jsonData
+
+# Закрываем базу
+$PwDatabase.Close()
 ```
 # SQLite
 ```PowerShell
@@ -8963,7 +9070,7 @@ Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/k
 `docker system df` отобразить сводную информацию занятого пространства образами и контейнерами \
 `du -h --max-depth=1 /var/lib/docker` \
 `du -h --max-depth=2 /var/lib/docker/containers`
-```shell
+```bash
 docker run \
   --log-driver json-file \
   --log-opt max-size=10m \
@@ -9165,7 +9272,7 @@ CMD ["npm", "start"]
 `docker run -d --name TorAPI -p 8443:8443 lifailon/torapi:latest` загрузить образ и создать контейнер
 
 ### ADD
-```shell
+```bash
 FROM alpine:latest
 # Загрузка и распаковка архива напрямую из GitHub
 ADD https://github.com/<username>/<repository>/archive/refs/heads/main.zip /app/
