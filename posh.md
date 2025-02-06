@@ -416,6 +416,7 @@
 - [Jenkins](#jenkins)
     - [API](#api-1)
     - [SSH Steps and Artifacts](#ssh-steps-and-artifacts)
+    - [Update SSH authorized\_keys](#update-ssh-authorized_keys)
     - [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
@@ -8309,6 +8310,103 @@ pipeline {
         changed   { echo "Текущий статус завершения изменился по сравнению с предыдущим запуском" }
         fixed     { echo "Сборка завершена успешно по сравнению с предыдущим запуском" }
         aborted   { echo "Запуск был прерван" }
+    }
+}
+```
+### Update SSH authorized_keys
+
+Добавляем логин и пароль для авторизации по ssh: `Manage (Settings)` => `Credentials` => `Global` => `Add credentials` => Kind: `Username with password`
+
+Сценарий обновляет параметр со списком текущих пользователей на машине и добавляет или заменяет ssh ключ для выбранного пользователя:
+```groovy
+def remote = [:]
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'address', defaultValue: '192.168.3.101', description: 'Адрес удаленного сервера')
+        string(name: 'port', defaultValue: '22', description: 'Порт ssh')
+        string(name: 'credentials', defaultValue: '15d05be6-682a-472b-9c1d-cf5080e98170', description: 'Идентификатор учетных данных из Jenkins')
+        booleanParam(name: "getUsers", defaultValue: true, description: 'Получить список текущих пользователей системы')
+        string(name: 'sshKey', defaultValue: '', description: 'Открытый ssh ключ для добавления в authorized_keys')
+        booleanParam(name: "rewriteKey", defaultValue: false, description: 'Перезаписать текущие ключи в файле authorized_keys')
+    }
+    stages {
+        stage('Извлекаем параметры для авторизации по ssh') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: params.credentials, usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
+                        remote.name = params.address
+                        remote.host = params.address
+                        remote.port = params.port.toInteger()
+                        remote.user = env.SSH_USER
+                        remote.password = env.SSH_PASS
+                        remote.allowAnyHosts = true
+                    }
+                }
+            }
+        }
+        stage('Обновить список пользователей') {
+            when {
+                expression { params.getUsers }
+            }
+            steps {
+                script {
+                    def mainCommand = "echo \$(ls /home)"
+                    def users = sshCommand remote: remote, command: mainCommand
+                    def usersList = users.trim().split("\\s")
+                    usersList += 'root'
+                    def usersListChoice = usersList.toList()
+                    writeFile file: 'user_list.txt', text: usersList.join("\\s")
+                    properties([
+                        parameters([
+                            string(name: 'address', defaultValue: params.address, description: 'Адрес удаленного сервера'),
+                            string(name: 'port', defaultValue: params.port, description: 'Порт ssh'),
+                            string(name: 'credentials', defaultValue: params.credentials, description: 'Идентификатор учетных данных из Jenkins'),
+                            booleanParam(name: "getUsers", defaultValue: params.getUsers, description: 'Получить список текущих пользователей системы'),
+                            string(name: 'sshKey', defaultValue: '', description: 'Открытый ssh ключ для добавления в authorized_keys'),
+                            booleanParam(name: "rewriteKey", defaultValue: false, description: 'Перезаписать текущие ключи в файле authorized_keys'),
+                            choice(
+                                name: 'userList',
+                                choices: usersListChoice,
+                                description: 'Выбрать пользователя'
+                            )
+                        ])
+                    ])
+                }
+            }
+        }
+        stage('Добавить новый SSH ключ') {
+            when {
+                expression { !params.getUsers && params.sshKey }
+            }
+            steps {
+                script {
+                    def selectedUser = params.userList
+                    def sshKey = params.sshKey
+                    if (selectedUser == "root") {
+                        path = "/root/.ssh/authorized_keys"
+                    } else {
+                        path= "/home/${selectedUser}/.ssh/authorized_keys"
+                    }
+                    if (params.rewriteKey) {
+                        echo "Обновляем все SSH ключи для пользователя: ${selectedUser}"
+                        teeCommand = "tee"
+                    } else {
+                        echo "Добавляем новый SSH ключ для пользователя: ${selectedUser}"
+                        teeCommand = "tee -a"
+                    }
+                    def mainCommand = """
+                        checkFile=\$(ls $path 2> /dev/null || echo false)
+                        if [ \$checkFile == "false" ]; then
+                            mkdir -p \$(dirname $path) && touch $path
+                        fi
+                        echo $sshKey | $teeCommand $path > /dev/null
+                    """
+                    sshCommand remote: remote, command: mainCommand
+                }
+            }
+        }
     }
 }
 ```
