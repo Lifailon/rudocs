@@ -417,6 +417,8 @@
     - [API](#api-1)
     - [SSH Steps and Artifacts](#ssh-steps-and-artifacts)
     - [Update SSH authorized\_keys](#update-ssh-authorized_keys)
+    - [Upload File Parameter](#upload-file-parameter)
+    - [Input Text and File](#input-text-and-file)
     - [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
@@ -476,11 +478,11 @@
     - [Docker-Compose](#docker-compose)
     - [Uptime-Kuma](#uptime-kuma)
     - [Uptime-Kuma-Api](#uptime-kuma-api)
-    - [Swarm](#swarm)
     - [Dozzle](#dozzle)
     - [Dozzle-Auth](#dozzle-auth)
     - [Portainer](#portainer)
 - [Docker.DotNet](#dockerdotnet)
+    - [Swarm](#swarm)
 - [Graylog](#graylog)
 - [Secret Manager](#secret-manager)
     - [Bitwarden](#bitwarden)
@@ -7841,6 +7843,7 @@ Remove-Item "$home\Downloads\Bitbucket*" -Recurse -Force
 `git config --global user.name "Lifailon"` добавить имя для коммитов \
 `git config --global user.email "lifailon@yandex.ru"` \
 `git config --global --edit` \
+`git config --global core.editor "code --wait"` изменить редактор коммитов по умолчанию \
 `ssh-keygen -t rsa -b 4096` \
 `Get-Service | where name -match "ssh-agent" | Set-Service -StartupType Automatic` \
 `Get-Service | where name -match "ssh-agent" | Start-Service` \
@@ -8200,7 +8203,7 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 Добавляем логин и `Private Key` для авторизации по ssh: `Manage (Settings)` => `Credentials` => `Global` => `Add credentials` => Kind: `SSH Username with private key`
 
 Сценарий проверяет доступность удаленной машины, подключается к ней по ssh, выполняет скрипт [hwstat](https://github.com/Lifailon/hwstat) для сбора метрик и выгружает json отчет в артефакты:
-```groovy
+```Groovy
 // Глобальный массив для хранения данных подключения по ssh 
 def remote = [:]
 
@@ -8318,7 +8321,7 @@ pipeline {
 Добавляем логин и пароль для авторизации по ssh: `Manage (Settings)` => `Credentials` => `Global` => `Add credentials` => Kind: `Username with password`
 
 Сценарий обновляет параметр со списком текущих пользователей на машине и добавляет или заменяет ssh ключ для выбранного пользователя:
-```groovy
+```Groovy
 def remote = [:]
 
 pipeline {
@@ -8410,10 +8413,69 @@ pipeline {
     }
 }
 ```
+### Upload File Parameter
+
+Установить плагин [File Parameter](https://plugins.jenkins.io/file-parameters)
+
+Передача файла через параметр и чтение его содержимого:
+```Groovy
+pipeline {
+    agent any
+    parameters {
+        base64File 'UPLOAD_FILE'
+    }
+    stages {
+        stage('Читаем содержимое файла') {
+            steps {
+                // Переменная хранит содержимое файла в формате base64
+                // echo UPLOAD_FILE
+                // Декодируем base64
+                withFileParameter('UPLOAD_FILE') {
+                    sh """
+                        echo $UPLOAD_FILE # создается временный файл: /var/jenkins_home/workspace/UploadFile@tmp/UPLOAD_FILE16070415400310343819.tmp
+                        ls -lah "${WORKSPACE}" # загружается два файла: large и myFile.txt
+                        cat "${WORKSPACE}/large" # аналогично: cat $UPLOAD_FILE
+                    """
+                }
+            }
+        }
+    }
+}
+```
+### Input Text and File
+
+Останавливает выполнение `Pipeline` и заставляет пользователя передать текстовый параметр и файл:
+```Groovy
+pipeline {
+    agent any
+    stages {
+        stage('Input text') {
+            input {
+                message "Что бы продолжить, передайте текст в поле ввода"
+                ok "Передать"
+                parameters {
+                    string(name: 'TEXT', defaultValue: 'test', description: 'Введите текст')
+                }
+            }
+            steps {
+                echo "Переданный текст в параметре input: ${TEXT}"
+            }
+        }
+        stage('Input file') {
+            steps {
+                script {
+                    def fileBase64 = input message: "Передайте файл", parameters: [base64File('file')]
+                    sh "echo $fileBase64 | base64 -d"
+                }
+            }
+        }
+    }
+}
+```
 ### Groovy
 
 Базовый синтаксис языка `Groovy`
-```groovy
+```Groovy
 // Переменные
 javaString = 'java'
 javaString
@@ -9593,54 +9655,6 @@ OpenAPI doc: http://192.168.3.102:8081/docs \
 `curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors | jq .` \
 `curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors/1 | jq '.monitor | "\(.name) - \(.active)"'`
 
-### Swarm
-
-`docker swarm init` инициализировать manager node и получить токен для подключения worker node (сервер) \
-`docker swarm join-token manager` узнать токен подключения \
-`docker swarm join --token SWMTKN-1-1a078rm7vuenefp6me84t4swqtvdoveu6dh2pw34xjcf2gyw33-81f8r32jt3kkpk4dqnt0oort9 192.168.3.101:2377` подключение на worker node (клиент) \
-`docker node ls` отобразить список node на manager node \
-`docker node inspect u4u897mxb1oo39pbj5oezd3um` подробная информация (конфигурация) о node по id \
-`docker swarm leave --force` выйти из кластера на worker node (на manager node изменится статус с Ready на Down) \
-`docker node rm u4u897mxb1oo39pbj5oezd3um` удалить node (со статусом Down) на manager node \
-`docker pull lifailon/torapi:latest` \
-`nano docker-compose-stack.yml`
-```yaml
-version: "3.8"
-services:
-  torapi:
-    image: lifailon/torapi:latest
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-      update_config:
-        order: start-first
-      # Режим виртуального IP для балансировки нагрузки
-      endpoint_mode: vip
-    volumes:
-      - torapi:/rotapi
-    ports:
-      # Порт внутри контейнера
-      - target: 8443
-        published: 8443
-        protocol: tcp
-        # Режим балансировки нагрузки по умолчанию
-        mode: ingress
-volumes:
-  torapi:
-```
-`docker stack deploy -c docker-compose-stack.yml TorAPI` собрать стэк сервисов, определенных в docker-compose (на worker node появится контейнер TorAPI_torapi.1.ug5ngdlqkl76dt) \
-`docker stack ls` отобразить список стэков \
-`docker service ls` список сервисов всех стэков \
-`docker stack ps TorAPI` список задач в стеке \
-`docker stack services TorAPI` список сервисов внутри стэка указанного стэка по имени \
-`docker service ps TorAPI_torapi` подробная информация о сервисе по его имени (TorAPI имя стэка и _torapi имя сервиса) \
-`docker service inspect --pretty TorAPI_torapi` конфигурация сервиса \
-`docker service inspect TorAPI_torapi` конфигурация сервиса в формате JSON \
-`docker service logs TorAPI_torapi` журнала конкретного сервиса по всем серверам кластера \
-`docker service scale TorAPI_torapi=3` масштабирует сервис до указанного числа реплик \
-`docker stack rm TorAPI` удалить стэк (не требует остановки контейнеров)
-
 ### Dozzle
 
 `docker run -d --name dozzle -v /var/run/docker.sock:/var/run/docker.sock -p 9999:8080 amir20/dozzle:latest` \
@@ -9715,6 +9729,54 @@ $client.Containers.StopContainerAsync($kuma_id, $StopParameters)
 $StartParameters = [Docker.DotNet.Models.ContainerStartParameters]::new()
 $client.Containers.StartContainerAsync($kuma_id, $StartParameters)
 ```
+### Swarm
+
+`docker swarm init` инициализировать manager node и получить токен для подключения worker node (сервер) \
+`docker swarm join-token manager` узнать токен подключения \
+`docker swarm join --token SWMTKN-1-1a078rm7vuenefp6me84t4swqtvdoveu6dh2pw34xjcf2gyw33-81f8r32jt3kkpk4dqnt0oort9 192.168.3.101:2377` подключение на worker node (клиент) \
+`docker node ls` отобразить список node на manager node \
+`docker node inspect u4u897mxb1oo39pbj5oezd3um` подробная информация (конфигурация) о node по id \
+`docker swarm leave --force` выйти из кластера на worker node (на manager node изменится статус с Ready на Down) \
+`docker node rm u4u897mxb1oo39pbj5oezd3um` удалить node (со статусом Down) на manager node \
+`docker pull lifailon/torapi:latest` \
+`nano docker-compose-stack.yml`
+```yaml
+version: "3.8"
+services:
+  torapi:
+    image: lifailon/torapi:latest
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+      # Режим виртуального IP для балансировки нагрузки
+      endpoint_mode: vip
+    volumes:
+      - torapi:/rotapi
+    ports:
+      # Порт внутри контейнера
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        # Режим балансировки нагрузки по умолчанию
+        mode: ingress
+volumes:
+  torapi:
+```
+`docker stack deploy -c docker-compose-stack.yml TorAPI` собрать стэк сервисов, определенных в docker-compose (на worker node появится контейнер TorAPI_torapi.1.ug5ngdlqkl76dt) \
+`docker stack ls` отобразить список стэков \
+`docker service ls` список сервисов всех стэков \
+`docker stack ps TorAPI` список задач в стеке \
+`docker stack services TorAPI` список сервисов внутри стэка указанного стэка по имени \
+`docker service ps TorAPI_torapi` подробная информация о сервисе по его имени (TorAPI имя стэка и _torapi имя сервиса) \
+`docker service inspect --pretty TorAPI_torapi` конфигурация сервиса \
+`docker service inspect TorAPI_torapi` конфигурация сервиса в формате JSON \
+`docker service logs TorAPI_torapi` журнала конкретного сервиса по всем серверам кластера \
+`docker service scale TorAPI_torapi=3` масштабирует сервис до указанного числа реплик \
+`docker stack rm TorAPI` удалить стэк (не требует остановки контейнеров)
+
 # Graylog
 
 [Graylog Docker Image](https://hub.docker.com/r/itzg/graylog)
