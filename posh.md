@@ -419,6 +419,7 @@
     - [Update SSH authorized\_keys](#update-ssh-authorized_keys)
     - [Upload File Parameter](#upload-file-parameter)
     - [Input Text and File](#input-text-and-file)
+    - [HttpURLConnection](#httpurlconnection)
     - [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
@@ -8471,6 +8472,43 @@ pipeline {
         }
     }
 }
+```
+### HttpURLConnection
+
+Любой код Groovy возможно запустить и проверить через `Script Console` (http://127.0.0.1:8080/manage/script)
+
+Пример `API` запроса к репозиторию PowerShell на GitHub для получения последней версии и всех доступных версий:
+```Groovy
+import groovy.json.JsonSlurper
+def url = new URL("https://api.github.com/repos/PowerShell/PowerShell/tags")
+def connection = url.openConnection()
+connection.setRequestMethod("GET")
+connection.setRequestProperty("Accept", "application/json")
+def responseCode = connection.getResponseCode()
+if (responseCode == 200) {
+    // Получаем данные ответа
+    def response = connection.getInputStream().getText()
+    // Парсим JSON ответ
+    def jsonSlurper = new JsonSlurper()
+    def tags = jsonSlurper.parseText(response)
+    // Проверяем количество элементов в массиве
+    if (tags.size() > 0) {
+        // Забираем последний тег из списка
+        def latestTag = tags[0].name
+        println("Latest version: " + latestTag)
+        println()
+        // Проходимся по всем тегам
+        println("List of all versions:")
+        for (tag in tags) {
+            println(tag.name)
+        }
+    } else {
+        error("No tags found in the response")
+    }
+} else {
+    error("Failed to call API, response code: ${responseCode}")
+}
+connection.disconnect()
 ```
 ### Groovy
 
