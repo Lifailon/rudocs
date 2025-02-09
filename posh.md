@@ -420,6 +420,7 @@
     - [Upload File Parameter](#upload-file-parameter)
     - [Input Text and File](#input-text-and-file)
     - [HttpURLConnection](#httpurlconnection)
+    - [Active Choices Parameter](#active-choices-parameter)
     - [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
@@ -8509,6 +8510,88 @@ if (responseCode == 200) {
     error("Failed to call API, response code: ${responseCode}")
 }
 connection.disconnect()
+```
+### Active Choices Parameter
+
+Плагин [Active Choices](https://plugins.jenkins.io/uno-choice) позволяет динамически обновлять содержимое параметров.
+
+Пример выбора репозитория, получения списка доступных версий и содержимого файлов выбранного релиза.
+
+- 1. Active Choices Parameter
+
+Name: `Repos`
+
+Groovy Script:
+```Groovy
+return [
+    'Lifailon/lazyjournal',
+    'jesseduffield/lazydocker'
+]
+```
+- 2. Active Choices Reactive Parameter
+
+Name: `Versions`
+
+Groovy Script:
+```Groovy
+import groovy.json.JsonSlurper
+def selectedRepo = Repos
+def apiUrl = "https://api.github.com/repos/${selectedRepo}/tags"
+def conn = new URL(apiUrl).openConnection()
+conn.setRequestProperty("User-Agent", "Jenkins")
+def response = conn.getInputStream().getText()
+def json = new JsonSlurper().parseText(response)
+def versionsCount = json.size()
+def data = []
+for (int i = 0; i < versionsCount; i++) {
+    data += json.name[i]
+}
+return data
+```
+Настройки параметров:
+Choice Type: `Single Select`
+Привязать параметр `Repos` из `Active Choices` в `Reactive Parameter` через `Referenced parameters`
+Включить фильтрацию через `Enable filters`
+
+- 3. Active Choices Reactive Parameter
+
+Name: `Files`
+
+Groovy Script:
+```Groovy
+import groovy.json.JsonSlurper
+def selectedRepo = Repos
+def selectedVer = Versions
+def apiUrl = "https://api.github.com/repos/${selectedRepo}/releases/tags/${selectedVer}"
+def conn = new URL(apiUrl).openConnection()
+conn.setRequestProperty("User-Agent", "Jenkins")
+def response = conn.getInputStream().getText()
+def json = new JsonSlurper().parseText(response)
+def data = []
+for (file in json.assets) {
+    data += file.name
+}
+return data
+```
+Referenced parameters: `Repos,Versions`
+
+Pipeline script:
+```Groovy
+pipeline {
+    agent any
+    stages {
+        stage('Selected parameters') {
+            steps {
+                script {
+                    echo "Selected repository: https://github.com/${params.Repos}"
+                    echo "Selected version: ${params.Versions}"
+                    echo "Selected file: ${params.Files}"
+                    echo "Url for download: https://github.com/${params.Repos}/releases/download/${params.Versions}/${params.Files}"
+                }
+            }
+        }
+    }
+}
 ```
 ### Groovy
 
