@@ -421,6 +421,7 @@
     - [Input Text and File](#input-text-and-file)
     - [HttpURLConnection](#httpurlconnection)
     - [Active Choices Parameter](#active-choices-parameter)
+    - [Vault](#vault)
     - [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
@@ -8587,6 +8588,66 @@ pipeline {
                     echo "Selected version: ${params.Versions}"
                     echo "Selected file: ${params.Files}"
                     echo "Url for download: https://github.com/${params.Repos}/releases/download/${params.Versions}/${params.Files}"
+                }
+            }
+        }
+    }
+}
+```
+### Vault
+
+Интеграция [HashiCorp Vault](https://github.com/hashicorp/vault) в Jenkins Pipeline для получения содержимого секретов и использовая в последующих стадиях/этапах сборки:
+```Groovy
+def getVaultSecrets(
+    String address,
+    String path,
+    String token
+) {
+    def url = new URL("${address}/${path}")
+    
+    def connection = url.openConnection()
+    connection.setRequestMethod("GET")
+    connection.setRequestProperty("X-Vault-Token", token)
+    connection.setRequestProperty("Accept", "application/json")
+    
+    def response = new groovy.json.JsonSlurper().parse(connection.inputStream)
+    def user = response.data.data.user
+    def password = response.data.data.password
+    return [
+        user: user,
+        password: password
+    ]
+}
+
+def USER_NAME
+def USER_PASS
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'url', defaultValue: 'http://192.168.3.100:8200', description: 'Url адресс хранилища секретов')
+        string(name: 'path', defaultValue: 'v1/kv/data/ssh-auth', description: 'Путь для извлечения секретов')
+        password(name: 'token', defaultValue: 'hvs.tsIHLCcDEZ1lM1KiTdhqA0N3', description: 'Токен доступа к API HashiCorp Vault')
+    }
+    stages {
+        stage('Get vault secrets') {
+            steps {
+                script {
+                    def secrets = getVaultSecrets(
+                        "${params.url}",
+                        "${params.path}",
+                        "${params.token}"
+                    )
+                    USER_NAME = secrets.user
+                    USER_PASS = secrets.password
+                }
+            }
+        }
+        stage('Use secrets') {
+            steps {
+                script {
+                    echo "User: ${USER_NAME}"
+                    echo "Password: ${USER_PASS}"
                 }
             }
         }
