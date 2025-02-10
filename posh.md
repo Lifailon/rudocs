@@ -422,6 +422,8 @@
     - [HttpURLConnection](#httpurlconnection)
     - [Active Choices Parameter](#active-choices-parameter)
     - [Vault](#vault)
+    - [Email Extension](#email-extension)
+    - [Parallel](#parallel)
     - [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
@@ -8648,6 +8650,119 @@ pipeline {
                 script {
                     echo "User: ${USER_NAME}"
                     echo "Password: ${USER_PASS}"
+                }
+            }
+        }
+    }
+}
+```
+### Email Extension
+
+Установить расширение [Email Extension](https://plugins.jenkins.io/email-ext) для отправки на почту и настроить SMTP сервер в настройках Jenkins (`System` => `Extended E-mail Notification`)
+
+SMTP server: `smtp.yandex.ru`
+SMTP port: `587`
+Credentials: `Username with password` (`username@yandex.ru` и `app-password`)
+`Use TLS`
+Default Content Type: `HTML (text/html)`
+
+Настройка логирования в System Log: `emailDebug` + фильтр `hudson.plugins.emailext` и уровень `ALL`
+```Groovy
+pipeline {
+    agent any
+    parameters {
+        string(name: 'emailTo', defaultValue: 'test@yandex.ru', description: 'Почтовый адрес назначения')
+    }
+    stages {
+        stage('Вывод всех переменных окружения') {
+            steps {
+                script {
+                    env.getEnvironment().each { key, value ->
+                        echo "${key} = ${value}"
+                    }
+                }
+            }
+        }
+        stage('Отправка на почту') {
+            options {
+                timeout(time: 1, unit: 'MINUTES')
+            }
+            steps {
+                script {
+                    emailext (
+                        to:	"${params.emailTo}",
+                        subject: "${env.JOB_NAME} - ${BUILD_NUMBER}",
+                        mimeType: "text/html",
+                        body: """
+                            <html>
+                                <body>
+                                    <div style="padding-left: 30px; padding-bottom: 15px;" color="blue">
+                                    <font name="Arial" color="#906090" size="3" font-weight="normal">
+                                        <b> ${env.JOB_NAME} - ${env.BUILD_NUMBER} </b>
+                                    </font>
+                                    <br>
+                                    <div style="padding-left: 30px; padding-bottom: 15px;" color="black">
+                                    <br>
+                                    <font name="Arial" color="black" size="2" font-weight="normal"> 
+                                        <pre> Build url: ${env.BUILD_URL} </pre>
+                                    </font>	
+                                </body>
+                            </html>
+                        """
+                    )
+                }
+            }
+        }
+    }
+}
+```
+### Parallel
+```Groovy
+pipeline {
+    agent any
+    stages {
+        stage('Parallel sleeps') {
+            parallel {
+                stage('Task 1') {
+                    steps {
+                        script {
+                            def currentTime = new Date().format('yyyy-MM-dd HH:mm:ss')
+                            echo "[${currentTime}] Начало задачи 1"
+                            sh 'sleep 10'
+                            currentTime = new Date().format('yyyy-MM-dd HH:mm:ss')
+                            echo "[${currentTime}] Завершение задачи 1"
+                        }
+                    }
+                }
+                stage('Task 2') {
+                    steps {
+                        script {
+                            def currentTime = new Date().format('yyyy-MM-dd HH:mm:ss')
+                            echo "[${currentTime}] Начало задачи 2"
+                            sh 'sleep 5'
+                            currentTime = new Date().format('yyyy-MM-dd HH:mm:ss')
+                            echo "[${currentTime}] Завершение задачи 2"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Parallel tasks via loop') {
+            steps {
+                script {
+                    // Массив, где ключи содержит имя задачи, а значение содержит блоки кода для выполнения
+                    def tasks = [:]
+                    def taskNames = ['Task 1', 'Task 2', 'Task 3']
+                    taskNames.each { taskName ->
+                        tasks[taskName] = {
+                            def currentTime = new Date().format('yyyy-MM-dd HH:mm:ss')
+                            echo "[${currentTime}] Начало задачи: $taskName"
+                            sh "sleep ${taskName == 'Task 1' ? 10 : taskName == 'Task 2' ? 5 : 3}"
+                            currentTime = new Date().format('yyyy-MM-dd HH:mm:ss')
+                            echo "[${currentTime}] Завершение задачи: $taskName"
+                        }
+                    }
+                    parallel tasks
                 }
             }
         }
