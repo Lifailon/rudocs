@@ -8186,6 +8186,11 @@ test:
 `cat /var/jenkins_home/secrets/initialAdminPassword` получить токен инициализации \
 `apt-get update && apt-get install -y iputils-ping netcat-openbsd` установить ping и nc на машину сборщика (master slave)
 
+`jenkinsVolumePath=$(docker inspect jenkins | jq -r .[].Mounts.[].Source)` получить путь к директории Jenkins в хостовой системе \
+`sudo tar -czf $HOME/jenkins-backup.tar.gz -C $jenkinsVolumePath .` резервная копия всех файлов \
+`(crontab -l ; echo "0 23 * * * sudo tar -czf /home/lifailon/jenkins-backup.tar.gz -C /var/lib/docker/volumes/jenkins_home/_data .") | crontab -` \
+`sudo tar -xzf $HOME/jenkins-backup.tar.gz -C /var/lib/docker/volumes/jenkins_home/_data` восстановление
+
 `wget http://127.0.0.1:8080/jnlpJars/jenkins-cli.jar -P $HOME/` скачать jenkins-cli (http://127.0.0.1:8080/manage/cli) \
 `apt install openjdk-17-jre-headless` установить java runtime \
 `java -jar jenkins-cli.jar -auth lifailon:password -s http://127.0.0.1:8080 -webSocket help` получить список команд \
@@ -8434,7 +8439,7 @@ pipeline {
 ```
 ### Upload File Parameter
 
-Установить плагин [File Parameter](https://plugins.jenkins.io/file-parameters)
+Установить плагин [File Parameter](https://plugins.jenkins.io/file-parameters) и перезагрузить Jenkins для использования нового параметра.
 
 Передача файла через параметр и чтение его содержимого:
 ```Groovy
@@ -8451,9 +8456,8 @@ pipeline {
                 // Декодируем base64
                 withFileParameter('UPLOAD_FILE') {
                     sh """
-                        echo $UPLOAD_FILE # создается временный файл: /var/jenkins_home/workspace/UploadFile@tmp/UPLOAD_FILE16070415400310343819.tmp
-                        ls -lah "${WORKSPACE}" # загружается два файла: large и myFile.txt
-                        cat "${WORKSPACE}/large" # аналогично: cat $UPLOAD_FILE
+                        echo "$UPLOAD_FILE" # выводим путь к временному файлу с содержимым переданного файла
+                        cat "$UPLOAD_FILE"  # читаем содержимое файла
                     """
                 }
             }
@@ -8612,7 +8616,7 @@ pipeline {
 ```
 ### Vault
 
-Интеграция [HashiCorp Vault](https://github.com/hashicorp/vault) в Jenkins Pipeline для получения содержимого секретов и использовая в последующих стадиях/этапах сборки:
+Интеграция [HashiCorp Vault](https://github.com/hashicorp/vault) в Jenkins Pipeline через `REST API` для получения содержимого секретов и использовая в последующих стадиях/этапах сборки:
 ```Groovy
 def getVaultSecrets(
     String address,
@@ -8641,9 +8645,9 @@ def USER_PASS
 pipeline {
     agent any
     parameters {
-        string(name: 'url', defaultValue: 'http://192.168.3.100:8200', description: 'Url адресс хранилища секретов')
+        string(name: 'url', defaultValue: 'http://192.168.3.101:8200', description: 'Url адресс хранилища секретов')
         string(name: 'path', defaultValue: 'v1/kv/data/ssh-auth', description: 'Путь для извлечения секретов')
-        password(name: 'token', defaultValue: 'hvs.tsIHLCcDEZ1lM1KiTdhqA0N3', description: 'Токен доступа к API HashiCorp Vault')
+        password(name: 'token', defaultValue: 'hvs.bySybhyYOxSWEVk4FQDdcyyg', description: 'Токен доступа к API HashiCorp Vault')
     }
     stages {
         stage('Get vault secrets') {
