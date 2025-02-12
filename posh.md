@@ -492,12 +492,15 @@
     - [k3s](#k3s)
     - [Minikube](#minikube)
     - [kubectl](#kubectl)
-    - [Deployment and Service apply](#deployment-and-service-apply)
+    - [Deployment](#deployment)
     - [HPA](#hpa)
     - [Ingress](#ingress)
     - [Secrets](#secrets)
     - [Kompose](#kompose)
     - [k9s](#k9s)
+- [Load Testing](#load-testing)
+    - [Apache Benchmark](#apache-benchmark)
+    - [Locust](#locust)
 - [Graylog](#graylog)
 - [Secret Manager](#secret-manager)
     - [Bitwarden](#bitwarden)
@@ -10228,7 +10231,7 @@ mv minikube-windows-amd64.exe minikube.exe
 `kubectl get configmap` Получить все ConfigMap \
 `kubectl describe configmap kube-root-ca.crt` отобразить содержимое корневого сертифика
 
-### Deployment and Service apply
+### Deployment
 ```yaml
 echo '
 apiVersion: apps/v1
@@ -10443,6 +10446,89 @@ spec:
 
 `snap install k9s --devmode || wget https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.deb && apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb` \
 `winget install k9s || scoop install k9s || choco install k9s || curl.exe -A MS https://webinstall.dev/k9s | powershell`
+
+# Load Testing
+
+### Apache Benchmark
+```PowerShell
+$path = "$HOME\Downloads\apache"
+New-Item $path -Type Directory
+cd $path
+curl -L -o apache.zip "https://www.apachelounge.com/download/VS17/binaries/httpd-2.4.63-250207-win64-VS17.zip"
+Expand-Archive -Path apache.zip
+Copy-Item .\Apache24\bin\ $HOME\Documents\apache\ -Recurse
+cd .. && Remove-Item "$HOME\Downloads\apache" -Recurse
+```
+`$ab = "$HOME\Documents\apache\ab.exe"` \
+`. $ab -n 10000 -c 100 http://192.168.3.100:8444/api/provider/list`
+```
+Количество одновременных запросов:  100
+Время проведения тестов:            52,402 секунды
+Выполненные запросы:                10000
+Неудачные запросы:                  0
+Передано всего:                     6830000 байтов
+Передано HTML:                      3290000 байт
+RPS (Requests Per Second):          190,83 [#/sec] (среднее)
+Время одного запроса:               524.017 [MS] (среднее)
+Время одного запроса:               5.240 [MS] (среднее, во всех одновременных запросах)
+Скорость передачи:                  127,28 [Kbytes/Sec]
+```
+### Locust
+
+[Locust](https://github.com/locustio/locust) - это инструмент нагрузочного тестирования для `HTTP` и других протоколов на `Python`.
+
+`pip3 install locust`
+```Python
+echo '
+import os
+from locust import HttpUser, task, between
+class TorApiUser(HttpUser):
+    # Каждый виртуальный пользователь будет ждать от 2 до 5 секунд перед выполнением следующего @task
+    wait_time = between(2, 5)
+    # Определяем заголовки запросов
+    headers = {
+        "User-Agent": "Locust"
+    }
+    # Получаем параметры из переменных окружения или использовать значение по умолчанию
+    QUERY = os.getenv("QUERY", "test")
+    # GET запросы (вес приоритета задачи для частоты ее выполнения, чем выше, тем чаще выполнение)
+    @task(1)
+    def test_status(self):
+        self.client.get("/api/provider/list", headers=self.headers)
+    @task(2)
+    def test_search(self):
+        # Словарь параметров, который автоматически конвертируется в строку запроса (?key=value&key2=value2)
+        searchParams = {
+            "query": {self.QUERY},
+            "category": 0,
+            "page": 0
+        }
+        self.client.get("/api/search/title/rutracker", headers=self.headers, params=searchParams)
+    # POST запрос с телом запроса
+    # @task(3)
+    # def test_post_auth(self):
+    #     self.client.post("/api/auth", json={"username": "admin", "password": "password"})
+' > locustfile.py
+```
+`locust -f locustfile.py --host http://192.168.3.100:8444` \
+`$env:QUERY = "The+Rookie"` определяем переменную окружения для параметра запросов \
+`locust -f locustfile.py --host http://192.168.3.100:8444 -u 10 -r 2 -t 30s` количество виртуальных пользователей (VU), частота появления новых пользователей в секунду (10 пользователей будут созданы за 5 секунд) и длительность 30 секунд \
+`locust -f locustfile.py --host http://192.168.3.100:8444 -u 10 -r 2 -t 30s --headless --csv locustresult` запуск без веб-интерфейса с выгрузкой результатов в csv файлы
+
+Запуск Web-интерфейса в контейнере Docker:
+
+`mkdir locust && cd locust`
+```dockerfile
+FROM alpine:latest
+RUN apk add --no-cache python3 py3-pip gcc musl-dev linux-headers python3-dev
+RUN python3 -m venv /venv
+RUN /venv/bin/pip install --no-cache-dir locust
+ENV PATH="/venv/bin:$PATH"
+COPY locustfile.py .
+EXPOSE 8089
+CMD ["locust", "-f", "/locustfile.py"]
+```
+`sudo docker build -t locust-alpine-web . && sudo docker run -d --name locust -p 8089:8089 --restart=unless-stopped locust-alpine-web`
 
 # Graylog
 
