@@ -1,30 +1,28 @@
 <p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
 
 <p align="center">
-    <a href="https://lifailon.github.io"><img title="GitHub page"src="https://img.shields.io/website?url=https%3A%2F%2Flifailon.github.io%2F&logo=GitHub-Actions&label=GitHub%20Page"></a>
-    <a href="https://github.com/Lifailon/PS-Commands/commits"><img title="GitHub last commit"src="https://img.shields.io/github/last-commit/Lifailon/PS-Commands?logo=GitHub&label=Last%20update&color=green"></a>
-    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub repo stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
+        <a href="https://lifailon.github.io"><img title="GitHub Page"src="https://img.shields.io/website?url=https://lifailon.github.io&logo=GitHub&label=GitHub+Page+Status&color=green"></a>
+        <a href="https://github.com/Lifailon/lifailon.github.io/actions"><img title="GitHub Actions"src="https://img.shields.io/github/actions/workflow/status/Lifailon/lifailon.github.io/build-zola.yml?logo=GitHub-Actions&label=CI/CD+Actions"></a>
     <br>
-    <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub repo file count in path"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
-    <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub top language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
-</p>
-<p align="center">
+        <a href="https://github.com/PowerShell/PowerShell"><img title="GitHub Top Language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
+        <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub Repo file count in path Scripts"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
+    <br>
+        <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo Stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
+    <br>
+    <br>
         <a href="https://lifailon.github.io"><img title="Web version"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>
         <a href="posh.pdf"><img title="PDF version"src="https://img.shields.io/badge/pdf_version-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
-    <br>
-        <a href="linux.md"><img title="Linux Commands"src="https://img.shields.io/badge/Linux_Commands-FCC624?style=for-the-badge&logo=linux&logoColor=black"></a>
-        <a href="posh.md/#docker"><img title="Docker Commands"src="https://img.shields.io/badge/Docker_Commands-2094f3?style=for-the-badge&logo=docker&logoColor=white"></a>
 </p>
 
-Большая база заметок **PowerShell**, а также системным командам и консольным утилитам 🐧 [Linux](linux.md) на русском языке
+Большая база заметок **PowerShell** и командам 🐧 [Linux](linux.md) на русском языке.
 
-Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](https://github.com/Lifailon/PS-Commands/tree/rsa/WinForms) с примерами реализации большинства функционала (`DataGridView`, `Button`, `Checkbox` и т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом.
+Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](WinForms/WinForms-Test-Stend.ps1) с примерами реализации большинства функционала (`DataGridView`, `Button`, `Checkbox`, т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом и [REST API сервер](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных [KeePass](https://keepass.info) с поддержкой авторизации (без шифрования).
 
-Вы также можете ознакомиться с другими шпаргалками для языков `Go` и `JavaScript`:
+Вы можете ознакомиться с другими шпаргалками для языков `Go` и `JavaScript`:
 
 <p align="left">
-    <a href="https://github.com/Lifailon/golang-cheat-sheet-ru"><img title="GoLang Cheat Sheet"src="https://img.shields.io/badge/golang_cheat_sheet-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white"></a>
-    <a href="https://github.com/Lifailon/node.js-cheat-sheet-ru"><img title="Node.js Cheat Sheet"src="https://img.shields.io/badge/node.js_cheat_sheet-6DA55F?style=for-the-badge&logo=node.js&logoColor=white"></a>
+    <a href="https://github.com/Lifailon/golang-cheat-sheet-ru"><img title="GoLang Cheat Sheet"src="https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white"></a>
+    <a href="https://github.com/Lifailon/node.js-cheat-sheet-ru"><img title="Node.js Cheat Sheet"src="https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white"></a>
 </p>
 
 <h2 align="left">
@@ -36,6 +34,7 @@
 - [Object](posh.md/#object)
 - [Error](posh.md/#error)
 - [DateTime](posh.md/#datetime)
+- [TimeSpan](posh.md/#timespan)
 - [Regex](posh.md/#regex)
 - [DataType](posh.md/#datatype)
 - [Function](posh.md/#function)
@@ -54,7 +53,7 @@
 - [Network](posh.md/#network)
 - [iPerf](posh.md/#iperf)
 - [RDP](posh.md/#rdp)
-- [Shutdown](posh.md/#shutdown)
+- [shutdown](posh.md/#shutdown)
 - [LocalAccounts](posh.md/#localaccounts)
 - [SMB](posh.md/#smb)
 - [WSUS](posh.md/#wsus)
@@ -64,8 +63,8 @@
 - [ntdsutil](posh.md/#ntdsutil)
 - [GPO](posh.md/#gpo)
 - [ServerManager](posh.md/#servermanager)
-- [DNS](posh.md/#dnsserver)
-- [DHCP](posh.md/#dhcpserver)
+- [DNS Server](posh.md/#dnsserver)
+- [DHCP Server](posh.md/#dhcpserver)
 - [DFS](posh.md/#dfs)
 - [StorageReplica](posh.md/#storagereplica)
 - [PS2EXE](posh.md/#ps2exe)
@@ -98,6 +97,7 @@
 - [Markdown](posh.md/#markdown)
 - [HTML](posh.md/#html)
 - [HtmlAgilityPack](posh.md/#htmlagilitypack)
+- [KeePass](posh.md/#keepass)
 - [SQLite](posh.md/#sqlite)
 - [MySQL](posh.md/#mysql)
 - [MSSQL](posh.md/#mssql)
@@ -129,8 +129,8 @@
 - [Modules](posh.md/#modules)
 - [Atlassian](posh.md/#atlassian)
 - [Git](posh.md/#git)
-- [GitHub-api](posh.md/#github-api)
-- [GitHub-Actions](posh.md/#github-actions)
+- [GitHub api](posh.md/#github-api)
+- [GitHub Actions](posh.md/#github-actions)
 - [Vercel](posh.md/#vercel)
 - [GitLab](posh.md/#gitlab)
 - [Jenkins](posh.md/#jenkins)
@@ -138,29 +138,21 @@
 - [PSAppDeployToolkit](posh.md/#psappdeploytoolkit)
 - [DSC](posh.md/#dsc)
 - [Ansible](posh.md/#ansible)
-- [Win_Modules](posh.md/#win_modules)
+- [Win Modules](posh.md/#win_modules)
 - [Docker](posh.md/#docker)
-- [Dockerfile](posh.md/#dockerfile)
-- [Docker-Compose](posh.md/#docker-compose)
-- [Swarm](posh.md/#swarm)
+- [Compose](posh.md/#compose)
 - [Docker.DotNet](posh.md/#dockerdotnet)
+- [Swarm](posh.md/#swarm)
+- [Kubernetes](posh.md/#kubernetes)
+- [Load Testing](posh.md/#load-testing)
 - [Graylog](posh.md/#graylog)
-- [Secret Management](posh.md/#secret-management)
-- [GigaChat](posh.md/#GigaChat)
-- [YandexGPT](posh.md/#YandexGPT)
-- [SuperAGI](posh.md/#superagi)
-- [Replicate](posh.md/#replicate)
-- [Google-Filter](posh.md/#google-filter)
-- [Google-API](posh.md/#google-api)
-- [RapidAPI](posh.md/#rapidapi)
-- [TMDB](posh.md/#tmdb)
-- [OMDb](posh.md/#omdb)
-- [ivi](posh.md/#ivi)
-- [Kinopoisk](posh.md/#kinopoisk)
-- [VideoCDN](posh.md/#videocdn)
+- [Secret Manager](posh.md/#secret-manager)
+- [LLM](posh.md/#llm)
+- [Google API](posh.md/#google-api)
+- [Media API](posh.md/#media-api)
+- [Torrent](posh.md/#torrent)
 - [Telegram](posh.md/#telegram)
 - [Discord](posh.md/#discord)
-- [Torrent](posh.md/#torrent)
 - [oh-my-posh](posh.md/#oh-my-posh)
 - [Windows-Terminal](posh.md/#windows-terminal)
 - [Pandoc](posh.md/#pandoc)
