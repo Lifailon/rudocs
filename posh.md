@@ -480,14 +480,13 @@
     - [Dockerfile](#dockerfile)
     - [Push](#push)
     - [ADD](#add)
-    - [Docker-Compose](#docker-compose)
+- [Compose](#compose)
     - [Uptime-Kuma](#uptime-kuma)
-    - [Uptime-Kuma-Api](#uptime-kuma-api)
+    - [MeTube](#metube)
     - [Dozzle](#dozzle)
-    - [Dozzle-Auth](#dozzle-auth)
     - [Portainer](#portainer)
 - [Docker.DotNet](#dockerdotnet)
-    - [Swarm](#swarm)
+- [Swarm](#swarm)
 - [Graylog](#graylog)
 - [Secret Manager](#secret-manager)
     - [Bitwarden](#bitwarden)
@@ -496,6 +495,7 @@
 - [LLM](#llm)
   - [OpenAI](#openai)
   - [Mock](#mock)
+  - [OpenRouter](#openrouter)
   - [LM Studio](#lm-studio)
   - [Ollama](#ollama)
   - [GigaChat](#gigachat)
@@ -9870,98 +9870,113 @@ RUN apk add --no-cache unzip && \
     unzip /app/main.zip -d /app/ && \
     rm /app/main.zip
 ```
-### Docker-Compose
+# Compose
 ```bash
-curl -L "https://github.com/docker/compose/releases/download/1.27.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
+version=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
+curl -L "https://github.com/docker/compose/releases/download/$version/docker-compose-$(uname -s)-$(uname -m)" -o $HOME/.local/bin/docker-compose
+chmod +x $HOME/.local/bin/docker-compose
 docker-compose --version
 ```
-`nano docker-compose.yml`
-```yaml
-version: "3.8"
-services:
-  torapi:
-    image: lifailon/torapi:latest
-    container_name: TorAPI
-    volumes:
-      - torapi:/rotapi
-    ports:
-      - "8443:8443"
-    restart: unless-stopped
-volumes:
-  torapi:
-```
-`docker-compose up -d` при повторном запуске пересоздаст контейнер с изменениями
-
 ### Uptime-Kuma
 
+[Uptime-Kuma](https://github.com/louislam/uptime-kuma) - веб-интерфейс для мониторинга доступности хостов (ICMP), портов (TCP), веб-контент (HTTP/HTTPS запросы), gRPC, DNS, контейнеры Docker, базы данных и т.д с поддержкой уведомлений в Telegram.
+
 `nano docker-compose.yml`
 ```yaml
-version: "3.8"
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:latest
     container_name: uptime-kuma
     volumes:
       - uptime-kuma:/app/data
     ports:
-      - "8080:3001"
+      - "8081:3001"
     restart: unless-stopped
 volumes:
   uptime-kuma:
 ```
 `docker-compose up -d`
 
-### Uptime-Kuma-Api
+`kuma_db=$(docker inspect uptime-kuma-frontend | jq -r .[].Mounts.[].Source)` место хранения конфигураций в базе SQLite \
+`cp $kuma_db/kuma.db $HOME/uptime-kuma-backup.db`
 
-`nano docker-compose.yml`
+Сгенерировать API ключ: `http://192.168.3.101:8081/settings/api-keys` \
+`curl -u":uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t" http://192.168.3.101:8081/metrics`
+
+Пример конфигурации для Prometheus:
 ```yaml
-version: "3.9"
+- job_name: 'uptime'
+  scrape_interval: 30s
+  scheme: http
+  static_configs:
+    - targets: ['uptime.url']
+  basic_auth: 
+    password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
+```
+[Uptime-Kuma-Web-API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - оболочка API и Swagger документация написанная на Python с использованием FastAPI и [Uptime-Kuma-API](https://github.com/lucasheld/uptime-kuma-api).
+
+nano docker-compose.yml
+```yaml
 services:
-  kuma:
+  uptime-kuma-web:
     container_name: uptime-kuma-frontend
     image: louislam/uptime-kuma:latest
     ports:
-      - "8080:3001"
+      - "8081:3001"
     restart: unless-stopped
     volumes:
       - uptime-kuma:/app/data
-  api:
-    container_name: uptime-kuma-backend-api
+  uptime-kuma-api:
+    container_name: uptime-kuma-backend
     image: medaziz11/uptimekuma_restapi
     volumes:
-      - api:/db
+      - uptime-api:/db
     restart: unless-stopped
     environment:
-      - KUMA_SERVER=http://kuma:3001
+      - KUMA_SERVER=http://uptime-kuma-web:3001
       - KUMA_USERNAME=admin
       - KUMA_PASSWORD=KumaAdmin
       - ADMIN_PASSWORD=KumaApiAdmin
     depends_on:
-      - kuma
+      - uptime-kuma-web
     ports:
-      - "8081:8000"
+      - "8082:8000"
 volumes:
   uptime-kuma:
-  api:
+  uptime-api:
 ```
 `docker-compose up -d`
 
-OpenAPI doc: http://192.168.3.102:8081/docs \
-`TOKEN=$(curl -s -X POST http://192.168.3.102:8081/login/access-token --data "username=admin" --data "password=KumaApiAdmin" | jq -r .access_token)` \
-`curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors | jq .` \
-`curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8081/monitors/1 | jq '.monitor | "\(.name) - \(.active)"'`
+OpenAPI Docs (Swagger): http://192.168.3.101:8082/docs
+```bash
+TOKEN=$(curl -sS -X POST http://192.168.3.101:8082/login/access-token --data "username=admin" --data "password=KumaApiAdmin" | jq -r .access_token)
+curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://192.168.3.101:8082/monitors | jq .
+curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://192.168.3.101:8082/monitors/1 | jq '.monitor | "\(.name) - \(.active)"'
+```
+### MeTube
+
+[MeTube](https://github.com/alexta69/metube) - веб-интерфейс yt-dlp для загрузки YouTube
+
+`mkdir /home/lifailon/metube-downloads` директория для хранения загружаемого видео контента в хостовой системе 
+
+`nano docker-compose.yml`
+```yaml
+services:
+  metube:
+    image: ghcr.io/alexta69/metube
+    container_name: metube
+    restart: unless-stopped
+    ports:
+      - "8090:8081"
+    volumes:
+      - /home/lifailon/metube-downloads:/downloads
+```
+`docker-compose up -d`
 
 ### Dozzle
 
-`docker run -d --name dozzle -v /var/run/docker.sock:/var/run/docker.sock -p 9999:8080 amir20/dozzle:latest` \
-`docker run -d --name dozzle -v /var/run/docker.sock:/var/run/docker.sock -p 9999:8080 amir20/dozzle:latest --remote-host tcp://192.168.3.102:2375|mon-01` доступ к удаленному хосту через Docker-tcp-api \
-http://192.168.3.102:9999
-
-### Dozzle-Auth
-
 `echo -n DozzleAdmin | shasum -a 256` получить пароль в формате sha-256 \
-`mkdir dozzle && nano ./dozzle/users.yml` создать авторизационный файл
+`mkdir dozzle && nano ./dozzle/users.yml` создать файл с авторизационными данными
 ```yaml
 users:
   admin:
@@ -9970,20 +9985,20 @@ users:
 ```
 `nano docker-compose.yml`
 ```yaml
-version: "3.8"
 services:
   dozzle:
     image: amir20/dozzle:latest
     container_name: dozzle
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./dozzle:/data
     ports:
-      - 9999:8080
+      - 9090:8080
     environment:
       DOZZLE_AUTH_PROVIDER: simple
-      DOZZLE_HOSTNAME: dozzle
-      DOZZLE_REMOTE_HOST: tcp://192.168.3.102:2375|mon-01
+      # Доступ к удаленному хосту через Docker API (tcp socket)
+      # DOZZLE_REMOTE_HOST: tcp://192.168.3.102:2375|mon-01
 ```
 `docker-compose up -d`
 
@@ -10026,7 +10041,7 @@ $client.Containers.StopContainerAsync($kuma_id, $StopParameters)
 $StartParameters = [Docker.DotNet.Models.ContainerStartParameters]::new()
 $client.Containers.StartContainerAsync($kuma_id, $StartParameters)
 ```
-### Swarm
+# Swarm
 
 `docker swarm init` инициализировать manager node и получить токен для подключения worker node (сервер) \
 `docker swarm join-token manager` узнать токен подключения \
@@ -10035,7 +10050,8 @@ $client.Containers.StartContainerAsync($kuma_id, $StartParameters)
 `docker node inspect u4u897mxb1oo39pbj5oezd3um` подробная информация (конфигурация) о node по id \
 `docker swarm leave --force` выйти из кластера на worker node (на manager node изменится статус с Ready на Down) \
 `docker node rm u4u897mxb1oo39pbj5oezd3um` удалить node (со статусом Down) на manager node \
-`docker pull lifailon/torapi:latest` \
+`docker pull lifailon/torapi:latest`
+
 `nano docker-compose-stack.yml`
 ```yaml
 version: "3.8"
@@ -10062,17 +10078,18 @@ services:
 volumes:
   torapi:
 ```
-`docker stack deploy -c docker-compose-stack.yml TorAPI` собрать стэк сервисов, определенных в docker-compose (на worker node появится контейнер TorAPI_torapi.1.ug5ngdlqkl76dt) \
-`docker stack ls` отобразить список стэков \
-`docker service ls` список сервисов всех стэков \
+`docker stack deploy -c docker-compose-stack.yml TorAPI` собрать стек сервисов, определенных в docker-compose (на worker node появится контейнер TorAPI_torapi.1.ug5ngdlqkl76dt)
+
+`docker stack ls` отобразить список стеков \
+`docker service ls` список сервисов всех стеков \
 `docker stack ps TorAPI` список задач в стеке \
-`docker stack services TorAPI` список сервисов внутри стэка указанного стэка по имени \
-`docker service ps TorAPI_torapi` подробная информация о сервисе по его имени (TorAPI имя стэка и _torapi имя сервиса) \
+`docker stack services TorAPI` список сервисов внутри стека указанного стека по имени \
+`docker service ps TorAPI_torapi` подробная информация о сервисе по его имени (TorAPI имя стека и _torapi имя сервиса) \
 `docker service inspect --pretty TorAPI_torapi` конфигурация сервиса \
 `docker service inspect TorAPI_torapi` конфигурация сервиса в формате JSON \
 `docker service logs TorAPI_torapi` журнала конкретного сервиса по всем серверам кластера \
 `docker service scale TorAPI_torapi=3` масштабирует сервис до указанного числа реплик \
-`docker stack rm TorAPI` удалить стэк (не требует остановки контейнеров)
+`docker stack rm TorAPI` удалить стек (не требует остановки контейнеров)
 
 # Graylog
 
@@ -10338,6 +10355,32 @@ $response.choices.message.content
 
 `$(Invoke-RestMethod -Uri "http://localhost:3001/v1/chat/completions").choices.message.content`
 
+## OpenRouter
+
+Регестрируем аккаунт на [OpenRouter](https://openrouter.ai) через Google, выпускаем [api ключ](https://openrouter.ai/settings/keys) и выбираем [бесплатную модель](https://openrouter.ai/models?max_price=0).
+```PowerShell
+$OPENROUTER_API_KEY = "sk-or-v1-KEY"
+$OPENROUTER_MODEL = "deepseek/deepseek-r1:free"
+$headers = @{
+    "Content-Type"  = "application/json"
+    "Authorization" = "Bearer $OPENROUTER_API_KEY"
+}
+$body = @{
+    "model" = $OPENROUTER_MODEL
+    "messages" = @(
+        @{
+            "role"    = "system"
+            "content" = "Your role is a translator. You only translate the text into Russian and do not analyze the answer."
+        },
+        @{
+            "role"    = "user"
+            "content" = "Hello! I translate the text into English!"
+        }
+    )
+} | ConvertTo-Json -Depth 10 -Compress
+$response = Invoke-RestMethod -Uri "https://openrouter.ai/api/v1/chat/completions" -Method Post -Headers $headers -Body $body
+$response.choices.message.content
+```
 ## LM Studio
 
 `API` в [LM Studio](https://lmstudio.ai) совместим с OpenAI
@@ -10356,7 +10399,7 @@ curl http://127.0.0.1:1234/v1/chat/completions `
     -d '{
     "model": "deepseek-r1-distill-llama-8b",
     "messages": [ 
-        { "role": "system", "content": "Только переводишь текст на англйский язык, не анализируешь ответ и не пишешь ничего дополнительного." },
+        { "role": "system", "content": "Твоя роль переводчик. Ты только переводишь текст на русский язык и не анализируешь ответ." },
         { "role": "user", "content": "Привет! Я перевожу текст на англйский язык!" }
     ], 
     "temperature": 0.7, 
