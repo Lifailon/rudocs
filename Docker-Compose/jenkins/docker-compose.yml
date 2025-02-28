@@ -1,0 +1,30 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:latest
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # Веб-интерфейс и регистрации агентов
+      - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+  # Получить токен доступа:
+  # docker exec -u root -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+  jenkins-agent:
+    image: jenkins/inbound-agent:latest
+    container_name: jenkins-agent
+    restart: unless-stopped
+    depends_on:
+      - jenkins
+    environment:
+      - JENKINS_URL=http://jenkins:8080 # Подключить агент к контроллеру и указать каталог корневой директории /home/jenkins
+      - JENKINS_AGENT_NAME=local-agent
+      - JENKINS_SECRET=42743ee1a24ef14e2de556e195ddae0ddeea1a6e9d43ca7ec1e186d7ddde9347 # http://192.168.3.101:8080/manage/computer
+    volumes:
+      - ./jenkins_agent:/home/jenkins
+      # Предоставить права доступа на директорию для сборки:
+      # docker exec -u root -it jenkins-agent chown -R jenkins:jenkins /home/jenkins
+      # Установка пакетов ping и nc на агенте:
+      # docker exec -u root -it jenkins-agent bash
+      # apt-get update && apt-get install -y iputils-ping netcat-openbsd

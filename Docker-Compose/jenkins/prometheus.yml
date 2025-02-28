@@ -1,0 +1,7 @@
+scrape_configs:
+  - job_name: jenkins
+    metrics_path: /prometheus
+    bearer_token: 11122075fcd567b233ae63c7b14b375a00 # http://192.168.3.101:8080/user/lifailon/security
+    static_configs:
+      - targets:
+        - '192.168.3.101:8080'
