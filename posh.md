@@ -415,6 +415,7 @@
 - [GitLab](#gitlab)
 - [Jenkins](#jenkins)
     - [API](#api-1)
+    - [Plugins](#plugins)
     - [SSH Steps and Artifacts](#ssh-steps-and-artifacts)
     - [Update SSH authorized\_keys](#update-ssh-authorized_keys)
     - [Upload File Parameter](#upload-file-parameter)
@@ -482,8 +483,8 @@
     - [ADD](#add)
 - [Compose](#compose)
     - [Uptime-Kuma](#uptime-kuma)
-    - [MeTube](#metube)
     - [Dozzle](#dozzle)
+    - [Watchtower](#watchtower)
     - [Portainer](#portainer)
 - [Docker.DotNet](#dockerdotnet)
 - [Swarm](#swarm)
@@ -505,7 +506,8 @@
 - [Secret Manager](#secret-manager)
     - [Bitwarden](#bitwarden)
     - [Infisical](#infisical)
-    - [HashiCorp](#hashicorp)
+    - [HashiCorp/Vault](#hashicorpvault)
+    - [HashiCorp/Consul](#hashicorpconsul)
 - [LLM](#llm)
   - [OpenAI](#openai)
   - [Mock](#mock)
@@ -8180,11 +8182,26 @@ test:
 ```
 # Jenkins
 
-`docker run -d --name=jenkins -p 8080:8080 --restart=always -v jenkins_home:/var/jenkins_home jenkins/jenkins:latest` \
+`docker run -d --name=jenkins -p 8080:8080 -p 50000:50000 --restart=unless-stopped -v jenkins_home:/var/jenkins_home jenkins/jenkins:latest` \
 `ls /var/lib/docker/volumes/jenkins_home/_data/jobs` директория хранящая историю сборок в хостовой системе \
-`docker exec -u root -it jenkins /bin/bash` подключиться к контейнеру под root \
-`cat /var/jenkins_home/secrets/initialAdminPassword` получить токен инициализации \
-`apt-get update && apt-get install -y iputils-ping netcat-openbsd` установить ping и nc на машину сборщика (master slave)
+`docker exec -it jenkins /bin/bash` подключиться к контейнеру \
+`cat /var/jenkins_home/secrets/initialAdminPassword` получить токен инициализации
+```
+docker run -d \
+  --name jenkins-remote-agent-01 \
+  --restart unless-stopped \
+  -e JENKINS_URL=http://192.168.3.101:8080 \
+  -e JENKINS_AGENT_NAME=remote-agent-01 \
+  -e JENKINS_SECRET=3ad54fc9f914957da8205f8b4e88ff8df20d54751545f34f22f0e28c64b1fb29 \
+  -v jenkins_agent:/home/jenkins \
+  jenkins/inbound-agent:latest
+
+# Или ссылаться на локальный контейнер сервера по имени
+# --link jenkins:jenkins
+# -e JENKINS_URL=http://jenkins:8080
+```
+`docker exec -u root -it jenkins-remote-agent-01 /bin/bash` подключиться к slave агенту под root \
+`apt-get update && apt-get install -y iputils-ping netcat-openbsd` установить ping и nc на машину сборщика (slave)
 
 `jenkinsVolumePath=$(docker inspect jenkins | jq -r .[].Mounts.[].Source)` получить путь к директории Jenkins в хостовой системе \
 `sudo tar -czf $HOME/jenkins-backup.tar.gz -C $jenkinsVolumePath .` резервная копия всех файлов \
@@ -8220,9 +8237,18 @@ $headers["Jenkins-Crumb"] = $crumb # добавляем crumb в заголов�
 $body = @{".crumb" = $crumb} # добавляем crumb в тело запроса
 Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild}/rebuild" -Headers $headers -Method POST -Body $body # перезапустить сборку
 ```
-### SSH Steps and Artifacts
+### Plugins
 
-Устанавливаем плагин [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)
+| Плагин                | Ссылка                                        | Описание                                                                                              |
+| -                     | -                                             | -                                                                                                     |
+| Prometheus Metrics    | https://plugins.jenkins.io/prometheus         | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.        |
+| Web Monitoring        | https://plugins.jenkins.io/monitoring         | Конечная точка `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                   |
+| SSH Pipeline Steps    | https://plugins.jenkins.io/ssh-steps          | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                    |
+| Active Choices        | https://plugins.jenkins.io/uno-choice         | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                    |
+| File parameters       | https://plugins.jenkins.io/file-parameters    | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).  |
+| Email Extension       | https://plugins.jenkins.io/email-ext          | Плагин для отправки на почту из pipeline.                                                             |
+
+### SSH Steps and Artifacts
 
 Добавляем логин и `Private Key` для авторизации по ssh: `Manage (Settings)` => `Credentials` => `Global` => `Add credentials` => Kind: `SSH Username with private key`
 
@@ -8232,7 +8258,7 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 def remote = [:]
 
 pipeline {
-    agent any
+    agent any // { label 'remote-agent-01' }
     parameters {
         string(name: 'address', defaultValue: '192.168.3.101', description: 'Адрес удаленного сервера')
         // choice(name: "addresses", choices: ["192.168.3.101","192.168.3.102"], description: "Выберите сервер из выпадающего списка")
@@ -8439,8 +8465,6 @@ pipeline {
 ```
 ### Upload File Parameter
 
-Установить плагин [File Parameter](https://plugins.jenkins.io/file-parameters) и перезагрузить Jenkins для использования нового параметра.
-
 Передача файла через параметр и чтение его содержимого:
 ```Groovy
 pipeline {
@@ -8533,8 +8557,6 @@ if (responseCode == 200) {
 connection.disconnect()
 ```
 ### Active Choices Parameter
-
-Плагин [Active Choices](https://plugins.jenkins.io/uno-choice) позволяет динамически обновлять содержимое параметров.
 
 Пример выбора репозитория, получения списка доступных версий и содержимого файлов выбранного релиза.
 
@@ -8676,7 +8698,7 @@ pipeline {
 ```
 ### Email Extension
 
-Установить расширение [Email Extension](https://plugins.jenkins.io/email-ext) для отправки на почту и настроить SMTP сервер в настройках Jenkins (`System` => `Extended E-mail Notification`)
+Для отправки на почту и настроить SMTP сервер в настройках Jenkins (`System` => `Extended E-mail Notification`)
 
 SMTP server: `smtp.yandex.ru`
 SMTP port: `587`
@@ -9915,7 +9937,7 @@ volumes:
 ```
 `docker-compose up -d`
 
-`kuma_db=$(docker inspect uptime-kuma-frontend | jq -r .[].Mounts.[].Source)` место хранения конфигураций в базе SQLite \
+`kuma_db=$(docker inspect uptime-kuma | jq -r .[].Mounts.[].Source)` место хранения конфигураций в базе SQLite \
 `cp $kuma_db/kuma.db $HOME/uptime-kuma-backup.db`
 
 Сгенерировать API ключ: `http://192.168.3.101:8081/settings/api-keys` \
@@ -9923,14 +9945,18 @@ volumes:
 
 Пример конфигурации для Prometheus:
 ```yaml
-- job_name: 'uptime'
-  scrape_interval: 30s
-  scheme: http
-  static_configs:
-    - targets: ['uptime.url']
-  basic_auth: 
-    password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
+scrape_configs:
+  - job_name: uptime-kuma
+    scrape_interval: 30s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - '192.168.3.101:8081'
+    basic_auth:
+      password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 ```
+Dashboard для Grafana - [Uptime Kuma - SLA/Latency/Certs](https://grafana.com/grafana/dashboards/18667-uptime-kuma-metrics) (id 18667)
+
 [Uptime-Kuma-Web-API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - оболочка API и Swagger документация написанная на Python с использованием FastAPI и [Uptime-Kuma-API](https://github.com/lucasheld/uptime-kuma-api).
 
 nano docker-compose.yml
@@ -9944,6 +9970,7 @@ services:
     restart: unless-stopped
     volumes:
       - uptime-kuma:/app/data
+
   uptime-kuma-api:
     container_name: uptime-kuma-backend
     image: medaziz11/uptimekuma_restapi
@@ -9959,6 +9986,7 @@ services:
       - uptime-kuma-web
     ports:
       - "8082:8000"
+
 volumes:
   uptime-kuma:
   uptime-api:
@@ -9971,38 +9999,24 @@ TOKEN=$(curl -sS -X POST http://192.168.3.101:8082/login/access-token --data "us
 curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://192.168.3.101:8082/monitors | jq .
 curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://192.168.3.101:8082/monitors/1 | jq '.monitor | "\(.name) - \(.active)"'
 ```
-### MeTube
-
-[MeTube](https://github.com/alexta69/metube) - веб-интерфейс yt-dlp для загрузки YouTube
-
-`mkdir /home/lifailon/metube-downloads` директория для хранения загружаемого видео контента в хостовой системе 
-
-`nano docker-compose.yml`
-```yaml
-services:
-  metube:
-    image: ghcr.io/alexta69/metube
-    container_name: metube
-    restart: unless-stopped
-    ports:
-      - "8090:8081"
-    volumes:
-      - /home/lifailon/metube-downloads:/downloads
-```
-`docker-compose up -d`
-
 ### Dozzle
 
-`echo -n DozzleAdmin | shasum -a 256` получить пароль в формате sha-256 \
-`mkdir dozzle && nano ./dozzle/users.yml` создать файл с авторизационными данными
+Dozzle (https://github.com/amir20/dozzle) - легковесное приложение с веб-интерфейсом для мониторинга журналов Docker (без хранения).
+
+`mkdir dozzle && cd dozzle && mkdir dozzle_data`
+
+`echo -n DozzleAdmin | shasum -a 256` получить пароль в формате sha-256 и передать в конфигурацию
 ```yaml
+echo '
 users:
   admin:
     name: "admin"
     password: "a800c3ee4dac5102ed13ba673589077cf0a87a7ddaff59882bb3c08f275a516e"
+' > ./dozzle_data/users.yml
 ```
-`nano docker-compose.yml`
+Запускаем контейнер:
 ```yaml
+echo '
 services:
   dozzle:
     image: amir20/dozzle:latest
@@ -10010,16 +10024,67 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./dozzle:/data
+      - ./dozzle_data:/data
     ports:
       - 9090:8080
     environment:
       DOZZLE_AUTH_PROVIDER: simple
       # Доступ к удаленному хосту через Docker API (tcp socket)
       # DOZZLE_REMOTE_HOST: tcp://192.168.3.102:2375|mon-01
+' > docker-compose.yml
 ```
 `docker-compose up -d`
 
+### Watchtower
+
+[Watchtower](https://github.com/containrrr/watchtower) - следить за тегом `latest` в реестре Docker Hub и обновлять контейнер, если он станет устаревшим.
+```yaml
+echo "
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    environment:
+      - WATCHTOWER_LIFECYCLE_HOOKS=1
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+      # - WATCHTOWER_HTTP_API_TOKEN=demotoken
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 600 --http-api-metrics --http-api-token demotoken # --http-api-update # --http-api-periodic-polls
+    ports:
+      - 8070:8080
+    restart: unless-stopped
+" > docker-compose.yml
+```
+`docker-compose up -d`
+
+Проброс потра используется для получения метрик через Prometheus. Если нужно запускать обновления только через API, нужно добавить команду `--http-api-update`, или указать команду `--http-api-periodic-polls`, что бы использовать ручное и автоматическое обновление.
+
+`curl -H "Authorization: Bearer demotoken" http://192.168.3.101:8070/v1/metrics` получить метрики \
+`curl -H "Authorization: Bearer demotoken" http://192.168.3.101:8070/v1/update` проверить и запустить обновления
+
+Добавить `scrape_configs` в `prometheus.yml` для сбора метрик:
+```yaml
+scrape_configs:
+  - job_name: watchtower
+    scrape_interval: 5s
+    metrics_path: /v1/metrics
+    bearer_token: demotoken
+    static_configs:
+      - targets:
+        - '192.168.3.101:8070'
+```
+`docker-compose restart prometheus`
+
+Чтобы исключить обновления, нужно добавить "lable" при запуске контейнера:
+```bash
+docker run -d --name kinozal-bot \
+  -v /home/lifailon/kinozal-bot/torrents:/home/lifailon/kinozal-bot/torrents \
+  --restart=unless-stopped \
+  --label com.centurylinklabs.watchtower.enable=false \
+  kinozal-bot
+```
 ### Portainer
 
 `curl -L https://downloads.portainer.io/portainer-agent-stack.yml -o portainer-agent-stack.yml` скачать yaml файл \
@@ -10667,29 +10732,71 @@ $secrets = Invoke-RestMethod -Uri "https://app.infisical.com/api/v3/secrets/raw/
 $secrets.secret.secretKey
 $secrets.secret.secretValue
 ```
-### HashiCorp
-```bash
-docker run --cap-add=IPC_LOCK -d --name=hashicorp-vault -p 8200:8200 \
-  -v hashicorp-vault-file:/vault/file \
-  -v hashicorp-vault-logs:/vault/logs \
-  hashicorp/vault
+### HashiCorp/Vault
 
-2025-01-26 20:06:14 Api Address: http://0.0.0.0:8200
-2025-01-26 20:06:14 Unseal Key: XOD8uWWSL7LAAUwPqBTvryr3U6l9J3Q7CDVc+YmTET8=
-2025-01-26 20:06:14 Root Token: hvs.aYaGulrLe2pySPTDbZhOQCar
+`mkdir vault && cd vault && mkdir vault_config`
+
+Создать конфигурацию:
+```bash
+echo '
+# Использовать локальное файловое хранилище
+storage "file" {
+  path = "/vault/file"
+}
+# Отключение режим dev (не будет выгружать данные в память)
+disable_mlock = false
+# Настройка слушателя для REST API
+listener "tcp" {
+  address = "0.0.0.0:8200"
+  tls_disable = 1  # Отключить TLS
+}
+# Включение интерфейс
+ui = true
+# Включение аутентификации в API по токену
+api_addr = "http://localhost:8200"
+auth "token" {}
+' > vault_config/vault.hcl
+```
+Запускаем в контейнере:
+```bash
+docker run -d --name=vault \
+  --restart=unless-stopped \
+  -e VAULT_ADDR=http://0.0.0.0:8200 \
+  -e VAULT_API_ADDR=http://localhost:8200 \
+  -p 8200:8200 \
+  -v ./vault_config:/vault/config \
+  -v ./vault_data:/vault/file \
+  --cap-add=IPC_LOCK \
+  hashicorp/vault:latest \
+  vault server -config=/vault/config/vault.hcl
+```
+Получить ключи разблокировки и root ключ для первичной инициализации:
+```bash
+docker exec -it vault vault operator init
+```
+Ввести любые 3 из 5 ключей для разблокировки после перезапуска контейнера:
+```bash
+docker exec -it vault vault operator unseal BPJSmuLvKAEr6wtE/8TOMRMM+x0fW3UhOxGFLn9Gmi5N
+docker exec -it vault vault operator unseal 44ntLYvSMN5FNLyddLo2IylRsLk7lqYXZOShvhV/2gbG
+docker exec -it vault vault operator unseal xP9+YTyW13W6xGz52mMut2MdOnzxtbhDW8dK9zdF4aLY
+```
+Проверить статус (должно быть `Sealed: false`) и авторизацию по root ключу в хранилище:
+```bash
+docker exec -it vault vault status
+docker exec -it vault vault login hvs.rxlYkJujkX6Fdxq2XAP3cd3a
 ```
 `Secrets Engines` -> `Enable new engine` + `KV` \
 API Swagger: http://192.168.3.100:8200/ui/vault/tools/api-explorer
 ```PowerShell
-$TOKEN = "hvs.aYaGulrLe2pySPTDbZhOQCar"
+$TOKEN = "hvs.rxlYkJujkX6Fdxq2XAP3cd3a"
 $Headers = @{
     "X-Vault-Token" = $TOKEN
 }
 # Указать путь до секретов (создается в корне kv)
 $path = "main-path"
-$url = "http://192.168.3.100:8200/v1/kv/data/$path"
+$url = "http://192.168.3.101:8200/v1/kv/data/$path"
 $data = Invoke-RestMethod -Uri $url -Method GET -Headers $Headers
-# Получить содержимое ключа по его названию
+# Получить содержимое ключа по его названию (key_name)
 $data.data.data.key_name # secret_value
 
 # Перезаписать все секреты
@@ -10727,6 +10834,49 @@ vault kv get -mount="kv" "main-path"
 # Удалить секреты
 vault kv delete kv/my-secret
 ```
+### HashiCorp/Consul
+
+[Consul](https://github.com/hashicorp/consul) используется для кластеризации и централизованного хранения данных `Vault`, а также как самостоятельное `Key-Value` хранилище.
+
+Создать конфигурацию:
+```bash
+echo '
+ui = true
+log_level = "INFO"
+acl {
+  enabled = true
+  default_policy = "deny"
+  enable_token_persistence = true
+}
+' > consul.hcl
+```
+Запускаем в контейнере:
+```bash
+docker run -d \
+  --name=consul \
+  --restart=unless-stopped \
+  -p 8500:8500 \
+  -v ./consul_data:/consul/data \
+  -v ./consul.hcl:/consul/config/consul.hcl \
+  hashicorp/consul:latest \
+  agent -server -bootstrap-expect=1 -client=0.0.0.0
+```
+Создать `root token`, который будет использоваться для управления системой `ACL` и для создания политик доступа и других токенов доступа:
+```bash
+docker exec -it consul consul acl bootstrap
+```
+Создать новую политику доступа:
+```bash
+docker exec -it consul consul acl policy create -name "default" -rules 'node_prefix "" { policy = "write" } service_prefix "" { policy = "write" } key_prefix "" { policy = "write" }' -token "382834da-28b6-c72c-7ffb-11acf9bf20bc"
+```
+Создать новый токен доступа:
+```bash
+docker exec -it consul consul acl token create -policy-name "default" -token "382834da-28b6-c72c-7ffb-11acf9bf20bc"
+```
+`curl http://localhost:8500/v1/health/service/consul?pretty` \
+`curl --request PUT --data "ssh-rsa AAAA" http://localhost:8500/v1/kv/ssh/key` записать секрет KV Store Consul \
+`curl -s http://localhost:8500/v1/kv/ssh/key | jq -r .[].Value | base64 --decode` извлечь содержимое секрета
+
 # LLM
 
 ## OpenAI
