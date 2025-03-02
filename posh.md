@@ -359,6 +359,7 @@
     - [UserParameter](#userparameter)
     - [Include Plugins](#include-plugins)
     - [Zabbix API](#zabbix-api)
+- [Prometheus](#prometheus)
 - [pki](#pki)
 - [OpenSSL](#openssl)
 - [OpenVPN](#openvpn)
@@ -6937,6 +6938,96 @@ function ConvertFrom-UnixTime {
 `($hosts | where hostid -eq $host_id).host` получить имя хоста \
 `$UpTime` последнее полученное значение времени работы хоста \
 `$GetDataTime` время последнего полученного значения
+
+# Prometheus
+
+Пример создания экспортера для получения метрик температуры всех дисков из CrystalDiskInfo и отправки в [Prometheus](https://github.com/prometheus/prometheus) через [PushGateway](https://github.com/prometheus/pushgateway).
+
+1. Запускаем `pushgateway` в контейнере:
+
+`docker run -d --name pushgateway --restart unless-stopped -p 19091:9091 prom/pushgateway`
+
+2. Запускаем скрипт в консоли:
+```PowerShell
+$instance = [System.Net.Dns]::GetHostName()
+$pushgatewayUrl = "http://192.168.3.100:19091/metrics/job/disk_temperature"
+# Изменить адрес шлюза на имя контейнера при запуске через compose
+# $pushgatewayUrl = "http://pushgateway:9091/metrics/job/disk_temperature"
+$path = "C:/Program Files/CrystalDiskInfo/Smart"
+# Изменить путь при запуске в контейнере Docker через WSL
+# $path = "/mnt/c/Program Files/CrystalDiskInfo/Smart"
+# Необходимо строго использовать синтаксис PowerShell (избегая псевдонимы ls)
+$diskArray = $(Get-ChildItem $path).Name
+while ($true) {
+    $metrics = "# TYPE disk_temperature gauge`n"
+    foreach ($diskName in $diskArray) {
+        $lastTemp = $(@("Date,Value")+$(Get-Content "$path/$diskName/Temperature.csv") | ConvertFrom-Csv)[-1].Value
+        $diskLabel = $diskName -replace "[^a-zA-Z0-9]", "_"
+        $metrics += "disk_temperature{disk=`"$diskLabel`",instance=`"$instance`"} $lastTemp`n"
+    }
+    $metrics
+    Invoke-RestMethod -Uri $pushgatewayUrl -Method POST -Body $metrics
+    Start-Sleep 10
+}
+```
+3. Проверяем наличие метрик на конечной точке шлюза:
+```PowerShell
+$(Invoke-RestMethod http://192.168.3.100:9091/metrics).Split("`n") | Select-String "disk_temperature"
+```
+4. Добавляем конфигурацию в `prometheus.yml`:
+```yaml
+scrape_configs:
+  - job_name: cdi-exporter
+    scrape_interval: 10s
+    scrape_timeout: 2s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - '192.168.3.100:19091'
+```
+`docker-compose kill -s SIGHUP prometheus` применяем изменения
+
+5. Собираем контейнер в среде `WSL` с монтированием системного диска Windows:
+```dockerfile
+Write-Output '
+FROM mcr.microsoft.com/powershell:latest
+WORKDIR /cdi-exporter
+COPY cdi-exporter.ps1 ./cdi-exporter.ps1
+CMD ["pwsh", "-File", "cdi-exporter.ps1"]
+' | Out-File -FilePath dockerfile
+```
+`docker build -t cdi-exporter .` \
+`docker run -d -v /mnt/c:/mnt/c --name cdi-exporter cdi-exporter`
+
+6. Собираем стек из шлюза и скрипта в `compose`:
+```yaml
+Write-Output '
+services:
+  cdi-exporter:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: cdi-exporter
+    volumes:
+      - /mnt/c:/mnt/c
+    restart: unless-stopped
+
+  pushgateway:
+    image: prom/pushgateway
+    container_name: pushgateway
+    ports:
+      - "19091:9091"
+    restart: unless-stopped
+' | Out-File -FilePath docker-compose.yml
+```
+`docker-compose up -d`
+
+7. Настраиваем `Dashboard` в `Grafana`:
+
+Переменные для фильтрации запроса: \
+hostName: `label_values(exported_instance)` \
+diskName: `label_values(disk)` \
+Метрика температуры: `disk_temperature{exported_instance="$hostName", disk=~"$diskName"}`
 
 # pki
 
