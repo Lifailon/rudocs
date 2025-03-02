@@ -1,0 +1,8 @@
+scrape_configs:
+  - job_name: cdi-exporter
+    scrape_interval: 10s
+    scrape_timeout: 2s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - '192.168.3.100:19091'

@@ -1,0 +1,16 @@
+services:
+  cdi-exporter:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: cdi-exporter
+    volumes:
+      - /mnt/c:/mnt/c
+    restart: unless-stopped
+
+  pushgateway:
+    image: prom/pushgateway
+    container_name: pushgateway
+    ports:
+      - "19091:9091"
+    restart: unless-stopped
