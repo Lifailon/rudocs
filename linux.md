@@ -823,6 +823,33 @@ EOF
 `last | sed -n 1p | awk '$2=" ",$4=" "{print $0}'` вывести все, кроме 2 и 4 значения (заменить) \
 `ps -A | awk '{sum=""; for(i=1;i<=NF;i++) { if (i != 2) {sum=sum" "$i} } print sum}'` вывести все, кроме 2-го значения
 
+`cut -d',' -f2,4 file.csv` взять второй и четвертый столбцы \
+`awk -F',' '{if (NF >= 4) print $2, $4}' file.csv`
+
+`grep "Error" logs.txt` \
+`awk '/Error/' logs.txt` \
+`awk '/^Error [0-9]{3}:/' logs.txt`
+
+`grep -c "Success" logs.txt` посчитать количество совпадений \
+`awk '/Success/ {count++} END {print count}' logs.txt`
+
+`sed 's/Error/Success/g' file.txt` замена слов \
+`awk '{gsub(/Error/, "Success"); print}' file.txt`
+
+`sort file.txt | uniq` \
+`awk '!seen[$0]++' file.txt` заполняем уникальный массив строк
+
+`wc -w file.txt` посчитать количество слов в файле \
+`awk '{count += NF} END {print count}' file.txt`
+
+`sed -n '10,20p' file.txt` вывести с 10 по 20 строку \
+`awk 'NR>=10 && NR<=20' file.txt`
+
+`awk '{sum += $1} END {print sum/NR}' numbers.txt` получить среднее значение чисел в первом столбце \
+`awk '{ if ($2 > 50000) print $1, "> 50K"; else print $1, "< 50K" }' data.txt` вывести значение первого столбца, если значение второго столбца выше или ниже 50 тысяч \
+`awk '{ sum = 0; for (i = 1; i <= NF; i++) sum += $i; print "сумма:", sum }' data.txt` посчитать сумму числе в каждой строке \
+`awk '{ for (i = 1; i <= NF; i++) sum[i] += $i } END { for (i in sum) print "Столбец", i, "сумма:", sum[i] }' data.txt` посчитать сумму числе в каждом столбце
+
 ## printf
 
 `top=$(top -bn1)` \
