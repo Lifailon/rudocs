@@ -8,23 +8,24 @@ services:
       - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
     volumes:
       - ./jenkins_home:/var/jenkins_home
-  # Получить токен доступа:
-  # docker exec -u root -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
   jenkins-agent:
-    image: jenkins/inbound-agent:latest
+    # image: jenkins/inbound-agent:latest
+    build:
+      context: .
+      dockerfile: dockerfile
     container_name: jenkins-agent
     restart: unless-stopped
     depends_on:
-      - jenkins
+      - jenkins-server
     environment:
-      - JENKINS_URL=http://jenkins:8080 # Подключить агент к контроллеру и указать каталог корневой директории /home/jenkins
+      # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
+      - JENKINS_URL=http://jenkins-server:8080
       - JENKINS_AGENT_NAME=local-agent
-      - JENKINS_SECRET=42743ee1a24ef14e2de556e195ddae0ddeea1a6e9d43ca7ec1e186d7ddde9347 # http://192.168.3.101:8080/manage/computer
+      # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
+      - JENKINS_SECRET=42743ee1a24ef14e2de556e195ddae0ddeea1a6e9d43ca7ec1e186d7ddde9347
     volumes:
       - ./jenkins_agent:/home/jenkins
-      # Предоставить права доступа на директорию для сборки:
-      # docker exec -u root -it jenkins-agent chown -R jenkins:jenkins /home/jenkins
-      # Установка пакетов ping и nc на агенте:
-      # docker exec -u root -it jenkins-agent bash
-      # apt-get update && apt-get install -y iputils-ping netcat-openbsd
+    labels:
+      # Отключаем автоматическое обновление образа через Watchtower (не поддерживается при использовании build из dockerfile)
+      - "com.centurylinklabs.watchtower.enable=false"

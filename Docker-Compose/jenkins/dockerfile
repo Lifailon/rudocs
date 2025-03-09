@@ -1,0 +1,17 @@
+FROM jenkins/inbound-agent:latest
+
+USER root
+
+# Установка пакетов ping и nc
+RUN apt-get update && apt-get install -y \
+    iputils-ping \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Предоставление права доступа группе jenkins на директорию для сборки
+RUN chown -R jenkins:jenkins /home/jenkins
+
+USER jenkins
+
+# /opt/java/openjdk/bin/java -jar /usr/share/jenkins/agent.jar -secret $JENKINS_SECRET -name $JENKINS_AGENT_NAME -url $JENKINS_URL
+ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
