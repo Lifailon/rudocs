@@ -61,6 +61,7 @@
   - [fd](#fd)
 - [bashrc](#bashrc)
   - [fzf](#fzf)
+  - [fzf-obc](#fzf-obc)
   - [hstr](#hstr)
   - [mcfly](#mcfly)
 - [compgen](#compgen)
@@ -1087,16 +1088,27 @@ sudo chmod +x /usr/bin/locate
 
 ## bashrc
 
+Установить `oh-my-bash` (обновляет профиль, делая рядом резервную копию старого файла в `.bashrc.omb-TIMESTAMP`):
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+```
+
 `nano ~/.bashrc`
 ```bash
-# Псевдонимы команд с ключами для сокращения ввода 
+# Псевдонимы для команды или набора команд с ключами для сокращения ввода 
 alias ll='ls -lFh'
 alias la='ls -alFh'
+alias tspin=tailspin
+alias ts=tailspin
 
 # Забиндить очистку ввода на Ctrl+C
 bind '"\C-l": "^\C-u\C-mclear\C-m"'
 
-# Добавляет фильтрация по введеному тексту при испоьзовании стрелочек вверх и вниз
+# Определить переменную окружения, доступную для дочерних процессов, запущенных в текущей сессии
+# Игнорировать запись в историю команд, которые начинаются с пробела
+export HISTCONTROL=ignorespace
+
+# Добавить фильтрацию по введеному тексту в истории команд при испоьзовании стрелочек вверх и вниз
 if [[ $- == *i* ]]; then
     bind '"\e[A": history-search-backward'
     bind '"\e[B": history-search-forward'
@@ -1106,18 +1118,34 @@ fi
 
 ### fzf
 
-`apt install fzf` установить fzf (https://github.com/junegunn/fzf) \
+`apt install fzf` установить [fzf](https://github.com/junegunn/fzf) \
 `history | fzf` интерактивный поиск с фильтрацией \
 `eval $(history | fzf | awk '{print $2}')` выполнить (eval) выбранную команду из списка (добавить в макрос) \
 `ls *.json | fzf | xargs cat | jq .` вывести содержимое выбранного json файла через fzf \
 `find / -name "*.yaml" | fzf | xargs cat` найти в системе все файлы yaml и запустить по ним поиск
 ```bash
-# Поиск по истории с помощью команды h и комбинации Ctrl+F
+tee -a "$HOME/.bashrc" << 'EOF'
+# Поиск по истории с помощью команды h и комбинации Ctrl+R через fzf
 if command -v fzf > /dev/null; then
-    #alias h='eval $(cat ~/.bash_history | fzf)'
-    alias h='eval $(history | fzf | sed -r "s/^\s+[0-9]+\s+[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\s//")'
-    bind -x '"\C-f": h'
+  function hstr {
+    local current_input="$READLINE_LINE"
+    command=$(tac $HOME/.bash_history | fzf --height 20 --reverse --query="$current_input" | sed -r "s/^\s+[0-9]+\s+[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\s//")
+    if [[ -n "$command" ]]; then
+      READLINE_LINE="$command"
+      READLINE_POINT=${#READLINE_LINE}
+    fi
+  }
+  alias h=hstr
+  bind -x '"\C-r": h'
 fi
+EOF
+```
+### fzf-obc
+
+Установить [fzf over bash complete](https://github.com/rockandska/fzf-obc) (выпадающий список автодополнения команд) и добавить в профиль `bash`:
+```bash
+git clone https://github.com/rockandska/fzf-obc $HOME/.local/opt/fzf-obc
+echo "source $HOME/.local/opt/fzf-obc/bin/fzf-obc.bash" >> $HOME/.bashrc
 ```
 ### hstr
 
@@ -1131,11 +1159,10 @@ fi
 ```
 ### mcfly
 
-Заменяет поиск истории через Ctrl-R на интеллектуальную поисковую систему, которая учитывает рабочий каталог и контекст недавно выполненных команд (https://github.com/cantino/mcfly)
+Установить [homebrew](https://brew.sh) и [mcfly](https://github.com/cantino/mcfly), который заменяет поиск истории через `Ctrl-R` на интеллектуальную поисковую систему, которая учитывает рабочий каталог и контекст недавно выполненных команд:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 source ~/.bashrc
 brew install mcfly
 echo 'eval "$(mcfly init bash)"' >> ~/.bashrc
