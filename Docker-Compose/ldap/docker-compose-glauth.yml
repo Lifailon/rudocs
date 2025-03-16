@@ -1,0 +1,16 @@
+services:
+  glauth:
+    image: glauth/glauth:latest
+    container_name: glauth
+    environment:
+      - TZ=UTC
+    ports:
+      - "3893:3893"  # LDAP port
+      # - "3894:3894"  # LDAPS port
+      - "5555:5555"  # API (Web UI and /metrics for Prometheus)
+    volumes:
+      - ./glauth.cfg:/app/config/config.cfg # host path : container path default
+    restart: unless-stopped
+
+# sudo apt install ldap-utils
+# ldapsearch -LLL -H ldap://192.168.3.100:3893 -D "cn=admin1,ou=admins,dc=home,dc=lab" -w LdapAdmin -b "dc=home,dc=lab" cn=admin2

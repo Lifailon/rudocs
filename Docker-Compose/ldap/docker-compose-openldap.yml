@@ -1,0 +1,34 @@
+services:
+  ldap-backend:
+    image: osixia/openldap:latest
+    container_name: openldap
+    restart: unless-stopped
+    environment:
+      LDAP_ORGANISATION: "Home Lab"
+      LDAP_DOMAIN: "home.lab"
+      LDAP_ADMIN_PASSWORD: "LdapAdmin"
+    ports:
+      - "3893:389"
+      - "636:636"
+    volumes:
+      - ./ldap-data:/var/lib/ldap
+      - ./ldap-config:/etc/ldap/slapd.d
+
+  ldap-frontend:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    restart: unless-stopped
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: ldap-backend
+    ports:
+      - "6443:443"
+
+# Web UI: https://192.168.3.101:6443
+# cn=admin,dc=home,dc=lab:LdapAdmin
+
+# sudo apt install ldap-utils
+# ldapsearch -LLL -H ldap://localhost:3893 -D "cn=admin,dc=home,dc=lab" -w LdapAdmin -b "dc=home,dc=lab"
+
+# TUI LDAP Client: https://github.com/Macmod/godap
+# brew install godap
+# godap 192.168.3.101 -P 3893 -u "cn=admin,dc=home,dc=lab" -p "LdapAdmin" -r "dc=home,dc=lab"
