@@ -1,0 +1,34 @@
+services:
+  librespeedtest:
+    image: lscr.io/linuxserver/librespeed:latest
+    restart: unless-stopped
+    container_name: librespeedtest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - PASSWORD=PASSWORD # пароль для базы данных результатов
+      - CUSTOM_RESULTS=true # опционально, включить пользовательскую страницу результатов в /config/www/results/index.php
+      # - DB_TYPE=sqlite # по умолчанию sqlite (доступно mysql и postgresql)
+      # - DB_NAME=DB_NAME # опционально, имя базы данных (требуется для mysql и pgsql)
+      # - DB_HOSTNAME=DB_HOSTNAME # опционально
+      # - DB_USERNAME=DB_USERNAME # опционально
+      # - DB_PASSWORD=DB_PASSWORD # опционально
+      # - DB_PORT=DB_PORT # опционально
+      # - IPINFO_APIKEY=ACCESS_TOKEN # опционально, токен доступа от ipinfo.io (требуется для подробной информации об ip)
+    volumes:
+      - ./librespeed/config:/config
+    ports:
+      - 8088:80
+
+  openspeedtest:
+    image: openspeedtest/latest:latest
+    restart: unless-stopped
+    container_name: openspeedtest
+    # environment:
+    #   - ENABLE_LETSENCRYPT=True
+    #   - DOMAIN_NAME=speedtest.domain.com
+    #   - USER_EMAIL=name@domain.com
+    ports:
+      - '3000:3000'
+      - '3001:3001' # HTTPS
