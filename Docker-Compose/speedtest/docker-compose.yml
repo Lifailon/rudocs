@@ -1,0 +1,10 @@
+services:
+  speedtest-exporter:
+    image: miguelndecarvalho/speedtest-exporter
+    container_name: speedtest-exporter
+    # environment:
+      # - SPEEDTEST_PORT=9798
+      # - SPEEDTEST_SERVER=21110 
+    ports:
+      - 9798:9798
+    restart: unless-stopped

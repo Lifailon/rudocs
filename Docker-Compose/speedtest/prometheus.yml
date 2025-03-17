@@ -1,0 +1,7 @@
+scrape_configs:
+  - job_name: speedtest-exporter
+    scrape_interval: 30m
+    scrape_timeout: 1m
+    static_configs:
+      - targets:
+        - '192.168.3.101:9798'
