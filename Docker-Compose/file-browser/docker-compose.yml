@@ -1,0 +1,12 @@
+services:
+  file-browser:
+    image: filebrowser/filebrowser
+    container_name: file-browser
+    ports:
+      - "8888:80"
+    volumes:
+      - /home/lifailon:/srv
+      - ./filebrowser.db:/database.db # touch filebrowser.db
+      - ./filebrowser.json:/.filebrowser.json
+    user: "1000:1000" # id -u && id -g
+    restart: unless-stopped
