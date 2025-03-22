@@ -1,0 +1,49 @@
+services:
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - /home/lifailon/torrent_data/jackett:/config
+      - /home/lifailon/torrent_files:/downloads # blackhole (директория хранения торрент файлов)
+    ports:
+      - 9117:9117 # Веб интерфейс
+    restart: unless-stopped
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - USER=admin
+      - PASS=admin
+    volumes:
+      - /home/lifailon/torrent_data/transmission:/config
+      - /home/lifailon/torrent_downloads:/downloads
+      - /home/lifailon/torrent_files:/watch # директория для отслеживания торрент файлов на загрузку, синхронизированная с Jackett
+    ports:
+      - 9091:9091 # Веб интерфейс
+      - 51413:51413
+      - 51413:51413/udp
+    restart: unless-stopped
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - /home/lifailon/torrent_data/jellyfin:/config # конфигурация
+      - /home/lifailon/torrent_downloads:/data/tvshows # директория для хранения сериалов, синхронизированная с Transmission
+    ports:
+      - 8096:8096 # Веб интерфейс
+      - 7359:7359/udp # позволяет клиентам найти сервер Jellyfin в локальной сети (опционально)
+      - 1900:1900/udp # обнаружение служб используемых DNLA (опционально)
+    restart: unless-stopped

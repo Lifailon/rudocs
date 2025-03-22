@@ -1,0 +1,42 @@
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - /home/lifailon/qbittorrent:/config
+      - /home/lifailon/plex-content:/downloads
+    ports:
+      - 8080:8080 # Web UI
+      - 6881:6881 # Входящий торрент-трафик TCP
+      - 6881:6881/udp # Входящий торрент-трафик UDP
+    restart: unless-stopped
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - VERSION=docker
+    volumes:
+      - /path/to/plex:/config
+      - /home/lifailon/plex-content:/movies
+    ports:
+      - 32400:32400
+      - 1900:1900/udp
+      - 5353:5353/udp
+      - 8324:8324
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+      - 32469:32469
+    restart: unless-stopped
