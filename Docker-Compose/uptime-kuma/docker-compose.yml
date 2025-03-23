@@ -1,0 +1,30 @@
+services:
+  # Web (frontend)
+  uptime-kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:latest
+    ports:
+      - "8081:3001"
+    restart: unless-stopped
+    volumes:
+      - ./kuma_data:/app/data
+
+  # API (backend)
+  uptime-kuma-api:
+    container_name: uptime-kuma-api
+    image: medaziz11/uptimekuma_restapi
+    volumes:
+      - kuma_api:/db
+    restart: unless-stopped
+    environment:
+      - KUMA_SERVER=http://uptime-kuma:3001
+      - KUMA_USERNAME=admin
+      - KUMA_PASSWORD=KumaAdmin
+      - ADMIN_PASSWORD=KumaApiAdmin
+    depends_on:
+      - uptime-kuma
+    ports:
+      - "8082:8000"
+
+volumes:
+  kuma_api:

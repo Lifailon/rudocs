@@ -1,0 +1,9 @@
+scrape_configs:
+  - job_name: uptime-kuma
+    scrape_interval: 30s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - '192.168.3.101:8081'
+    basic_auth:
+      password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
