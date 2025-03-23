@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: zabbix-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    volumes:
+      - ./zabbix-data/postgres:/var/lib/postgresql/data
+    networks:
+      - zabbix-net
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-latest
+    container_name: zabbix-server
+    restart: always
+    environment:
+      DB_SERVER_HOST: postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+    volumes:
+      - ./zabbix-data/server:/var/lib/zabbix
+    depends_on:
+      - postgres
+    networks:
+      - zabbix-net
+
+  zabbix-web:
+    image: zabbix/zabbix-web-apache-pgsql:alpine-latest
+    container_name: zabbix-web
+    restart: always
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      DB_SERVER_HOST: postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      PHP_TZ: Europe/Moscow
+    depends_on:
+      - zabbix-server
+    ports:
+      - "8080:8080"
+    networks:
+      - zabbix-net
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent:alpine-latest
+    container_name: zabbix-agent
+    restart: always
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+    volumes:
+      - ./zabbix-data/agent:/var/lib/zabbix
+    depends_on:
+      - zabbix-server
+    networks:
+      - zabbix-net
+
+networks:
+  zabbix-net:
