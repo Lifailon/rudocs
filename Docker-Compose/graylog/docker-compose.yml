@@ -1,0 +1,28 @@
+services:
+  graylog-mongodb:
+    image: mongo:3
+    container_name: graylog-mongodb
+    restart: unless-stopped
+
+  graylog-elasticsearch:
+    image: dockerhub.timeweb.cloud/library/elasticsearch:5.5.1
+    container_name: graylog-elasticsearch
+    environment:
+      - "http.host=0.0.0.0"
+      - "xpack.security.enabled=false"
+    restart: unless-stopped
+
+  graylog:
+    image: graylog/graylog:2.3.2-1
+    container_name: graylog
+    depends_on:
+      - graylog-mongodb
+      - graylog-elasticsearch
+    ports:
+      - "9000:9000"   # Web UI
+      - "12201:12201" # GELF TCP
+      - "514:514"     # Syslog
+      - "5044:5044"   # Beats input
+    environment:
+      - GRAYLOG_WEB_ENDPOINT_URI=http://192.168.3.101:9000/api
+    restart: unless-stopped
