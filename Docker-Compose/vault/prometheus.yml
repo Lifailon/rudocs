@@ -1,0 +1,14 @@
+scrape_configs:
+  - job_name: vault
+    static_configs:
+      - targets:
+        - '192.168.3.101:8200'
+    metrics_path: /v1/sys/metrics
+    bearer_token: 'hvs.rxlYkJujkX6Fdxq2XAP3cd3a'
+
+  - job_name: consul
+    static_configs:
+      - targets:
+        - '192.168.3.101:8500'
+    bearer_token: '382834da-28b6-c72c-7ffb-11acf9bf20bc'
+    metrics_path: '/v1/agent/metrics'
