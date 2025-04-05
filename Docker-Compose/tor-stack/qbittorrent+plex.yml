@@ -9,12 +9,12 @@ services:
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes:
-      - /home/lifailon/qbittorrent:/config
-      - /home/lifailon/plex-content:/downloads
+      - ./config/qbittorrent:/config
+      - ./content:/downloads
     ports:
-      - 8080:8080 # Web UI
-      - 6881:6881 # Входящий торрент-трафик TCP
-      - 6881:6881/udp # Входящий торрент-трафик UDP
+      - 8080:8080      # Web UI
+      - 6881:6881      # Входящий торрент-трафик TCP
+      - 6881:6881/udp  # Входящий торрент-трафик UDP
     restart: unless-stopped
 
   plex:
@@ -27,8 +27,8 @@ services:
       - TZ=Etc/GMT+3
       - VERSION=docker
     volumes:
-      - /path/to/plex:/config
-      - /home/lifailon/plex-content:/movies
+      - ./config/plex:/config
+      - ./content:/movies
     ports:
       - 32400:32400
       - 1900:1900/udp

@@ -7,4 +7,4 @@ services:
       - "8090:8081"
     volumes:
       # Директория для хранения видео в хостовой системе : контейнере
-      - /home/lifailon/metube-downloads:/downloads
+      - ./downloads:/downloads
