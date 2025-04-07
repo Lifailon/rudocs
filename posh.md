@@ -411,6 +411,7 @@
     - [Build (Pipeline)](#build-pipeline)
     - [CI](#ci)
     - [Logs](#logs)
+    - [act](#act)
 - [Vercel](#vercel)
     - [CD](#cd)
 - [GitLab](#gitlab)
@@ -8136,6 +8137,44 @@ $headers = @{
 }
 Invoke-RestMethod -Uri $url -Headers $headers # получить логи задания
 ```
+### act
+
+[act](https://github.com/nektos/act) - пользволяет запускать действия GitHub Actions локально.
+```bash
+version=$(curl -s https://api.github.com/repos/nektos/act/releases/latest | jq -r .tag_name)
+curl -L "https://github.com/nektos/act/releases/download/$version/act_$(uname -s)_$(uname -m).tar.gz" -o $HOME/.local/bin/act.tar.gz
+tar -xzf $HOME/.local/bin/act.tar.gz -C $HOME/.local/bin
+chmod +x $HOME/.local/bin/act
+rm $HOME/.local/bin/act.tar.gz
+act --version
+```
+`act --list` список доступных действий, указаных в файлах .github/workflows \
+`act -j build` запуск указанного действия по Job ID (имя файла, не путать с названием Workflow) \
+`act -n -j build` пробный запуск (--dry-run), без выполнения команд, для отображения всех выполняемых jobs и steps
+```json
+{
+  "inputs": {
+    "Distro": "ubuntu-24.04",
+    "Update": "false",
+    "Linter": "true",
+    "Test": "false",
+    "Release": "false",
+    "Binary": "true"
+  }
+}
+```
+`act -e event.json -W .github/workflows/build.yml -P ubuntu-24.04=catthehacker/ubuntu:act-latest` запустить указанный файл workflow с переданным файлом переменных (предварительно определенных параметров) и указанным сборщиком \
+`act -e event.json -W .github/workflows/build.yml -P ubuntu-24.04=catthehacker/ubuntu:act-latest --artifact-server-path $PWD/artifacts` примонтировать рабочий каталог в контейнер для сохранения артефактов
+```bash
+echo "DOCKER_HUB_USERNAME=username" >> .secrets
+echo "DOCKER_HUB_PASSWORD=password" >> .secrets
+```
+`act --secret-file .secrets` \
+`act -s DOCKER_HUB_USERNAME=username -s DOCKER_HUB_PASSWORD=password` передать содержимое секретов \
+`act push` симуляция push-ивента (имитация коммита и запуск workflow, который реагирует на push) \
+`act --reuse` не удалять контейнер из успешно завершенных рабочих процессов для сохранения состояния между запусками (кэширование) \
+`act --parallel` запуск всех jobs одновременно или последовательно (--no-parallel, по умолчанию)
+
 # Vercel
 
 `npm i -g vercel` установить глобально в систему Vercel CLI \
