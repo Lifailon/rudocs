@@ -1,0 +1,16 @@
+services:
+  influxdb:
+    image: influxdb:1.8
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb_data:/var/lib/influxdb
+      - ./ssl:/etc/ssl/
+    environment:
+      - INFLUXDB_DB=ohm
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_HTTP_HTTPS_ENABLED=true
+      - INFLUXDB_HTTP_HTTPS_CERTIFICATE=/etc/ssl/ohm.crt
+      - INFLUXDB_HTTP_HTTPS_PRIVATE_KEY=/etc/ssl/ohm.key
+      - INFLUXDB_HTTP_AUTH_ENABLED=true

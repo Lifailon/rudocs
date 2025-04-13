@@ -1,0 +1,21 @@
+# Выпуск самоподписанного сертификата в Linux
+mkdir influxdb
+cd influxdb
+hostname=hv-us-01
+ip=192.168.3.101
+mkdir ssl
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout ssl/ohm.key -out ssl/ohm.crt -subj "/CN=$hostname" \
+  -addext "subjectAltName=DNS:$hostname,IP:$ip"
+
+# Импорт сертификата в Windows
+# Import-Certificate -FilePath .\ohm.crt -CertStoreLocation 'Cert:\LocalMachine\Root'
+
+# Установка и запуск службы
+# ./OhmGraphite.exe install
+# Get-Service OhmGraphite | Start-Service
+
+# Импорт сертификата в контейнер Grafana для подключения нового источника данных через https
+# docker cp /home/lifailon/influxdb/ssl/ohm.crt grafana:/etc/ssl/certs/
+# docker exec -u root grafana update-ca-certificates
+# docker restart grafana
