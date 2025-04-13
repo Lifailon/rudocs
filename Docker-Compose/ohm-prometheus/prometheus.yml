@@ -1,0 +1,6 @@
+scrape_configs:
+  - job_name: ohmgraphite
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+        - '192.168.3.100:4445'
