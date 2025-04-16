@@ -435,6 +435,8 @@
     - [Uninstall-Notepad-Plus-Plus](#uninstall-notepad-plus-plus)
     - [Deploy-WinSCP](#deploy-winscp)
 - [DSC](#dsc)
+- [pussh](#pussh)
+- [Sake](#sake)
 - [Ansible](#ansible)
     - [Hosts](#hosts)
 - [Win\_Modules](#win_modules)
@@ -8372,14 +8374,18 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 ```
 ### Plugins
 
-| Плагин                | Ссылка                                        | Описание                                                                                              |
-| -                     | -                                             | -                                                                                                     |
-| Prometheus Metrics    | https://plugins.jenkins.io/prometheus         | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.        |
-| Web Monitoring        | https://plugins.jenkins.io/monitoring         | Конечная точка `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                   |
-| SSH Pipeline Steps    | https://plugins.jenkins.io/ssh-steps          | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                    |
-| Active Choices        | https://plugins.jenkins.io/uno-choice         | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                    |
-| File parameters       | https://plugins.jenkins.io/file-parameters    | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).  |
-| Email Extension       | https://plugins.jenkins.io/email-ext          | Плагин для отправки на почту из pipeline.                                                             |
+| Плагин                                                                        | Описание                                                                                                      |
+| -                                                                             | -                                                                                                             |
+| [Web Monitoring](https://plugins.jenkins.io/monitoring)                       | Конечная точка `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                           |
+| [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                   | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.                |
+| [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status) | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                     |
+| [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)      | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.    |
+| [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                    | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                            |
+| [Active Choices](https://plugins.jenkins.io/uno-choice)                       | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                            |
+| [File parameters](https://plugins.jenkins.io/file-parameters)                 | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).          |
+| [Email Extension](https://plugins.jenkins.io/email-ext)                       | Плагин для отправки на почту из pipeline.                                                                     |
+| [Schedule Build](https://plugins.jenkins.io/schedule-build)                   | Позволяет запланировать сборку на указанный момент времени.                                                   |
+| [Test Results Analyzer](https://plugins.jenkins.io/test-results-analyzer)     | Показывает историю результатов сборки junit тестов в табличном древовидном виде.                              |
 
 ### SSH Steps and Artifacts
 
@@ -9253,6 +9259,92 @@ Configuration InstallPowerShellCore {
 `Test-DscConfiguration -Path $Path` \
 `Start-DscConfiguration -Path $path -Wait -Verbose` \
 `Get-Job`
+
+# pussh
+
+[Pussh](https://github.com/bearstech/pussh) — инструмент для параллельного выполнения команд через SSH на нескольких хостах одновременно, выводя результаты с указанием имени каждого хоста. Был внутренним инструментом Bearstech (хостинг-провайдер в Париже, Франция) примерно с 2008 года.
+```bash
+sudo curl -s https://raw.githubusercontent.com/bearstech/pussh/refs/heads/master/pussh -o /usr/bin/pussh
+sudo chmod +x /usr/bin/pussh
+
+bash pussh -h root@192.168.3.102,root@192.168.3.103 uname -a
+
+echo -e "root@192.168.3.102\nroot@192.168.3.103" > host.list
+pussh -f host.list uname -a
+```
+# Sake
+
+[Sake](https://github.com/alajmo/sake) - это командный раннер для локальных и удаленных хостов. Вы определяете серверы и задачи в файле `sake.yaml`, а затем запускаете задачи на серверах.
+```bash
+curl -sfL https://raw.githubusercontent.com/alajmo/sake/main/install.sh | sh
+sake init # инициализировать sake.yml файл
+sake list servers # вывести список машин
+sake list tags  # список тегов (группы серверов)
+sake list tasks # список задач
+sake run ping --all # запустить задачу на все хосты
+sake exec --all "uname -a && uptime" # запустить команду на всех хостах
+```
+Пример конфигурации:
+```yaml
+servers:
+  localhost:
+    host: 0.0.0.0
+    local: true
+  obsd:
+    host: root@192.168.3.102:22
+    tags: [bsd]
+  fbsd:
+    host: root@192.168.3.103:22
+    tags: [bsd]
+    work_dir: /tmp
+
+env:
+  DATE: $(date -u +"%Y-%m-%dT%H:%M:%S%Z")
+
+specs:
+  info:
+    output: table
+    ignore_errors: true
+    omit_empty_rows: true
+    omit_empty_columns: true
+    any_fatal_errors: false
+    ignore_unreachable: true
+    strategy: free
+
+tasks:
+  ping:
+    desc: Pong
+    spec: info
+    cmd: echo "pong"
+
+  uname:
+    name: OS
+    desc: Print OS
+    spec: info
+    cmd: |
+      os=$(uname -s)
+      release=$(uname -r)
+      echo "$os $release"
+
+  uptime:
+    name: Uptime
+    desc: Print uptime
+    spec: info
+    cmd: uptime
+
+  info:
+    desc: Get system overview
+    spec: info
+    tasks:
+      - task: ping
+      - name: date
+        cmd: echo $DATE
+      - name: pwd
+        cmd: pwd
+      - task: uname
+      - task: uptime
+```
+`sake run info --tags bsd` запустить набор из 5 заданий из группы info
 
 # Ansible
 
