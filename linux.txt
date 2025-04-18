@@ -60,6 +60,7 @@
   - locate
   - fd
 - bashrc
+  - oh-my-bash
   - fzf
   - fzf-obc
   - hstr
@@ -694,7 +695,7 @@ curl -s -X POST -u "Login:Password" "http://localhost:9091/transmission/rpc" | h
 
 ### yq
 
-snap install yq || pip install yq # установить yq (https://github.com/kislyuk/yq) для YAML/XML/TOML на Python
+snap install yq # установить yq (https://github.com/mikefarah/yq) для YAML, JSON, XML, CSV и TOML
 cat /etc/netplan/*.yaml | yq .network.ethernets # список адаптеров netplan
 cat /etc/netplan/*.yaml | yq .network.ethernets.eth0.nameservers.addresses[] # вывести массив dns адресов, настроенные на адаптере
 curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | yq -p xml .rss.channel.item[1].link # вывести ссылку из первого элемента
@@ -1088,17 +1089,16 @@ fd -e zip -x unzip # рекурсивно найти все zip-архивы и 
 
 ## bashrc
 
-Установить oh-my-bash (обновляет профиль, делая рядом резервную копию старого файла в .bashrc.omb-TIMESTAMP):
-
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
-
 nano ~/.bashrc
 
-# Псевдонимы для команды или набора команд с ключами для сокращения ввода 
-alias ll='ls -lFh'
-alias la='ls -alFh'
+# Псевдонимы для команды или набора команд с флагами для сокращения ввода 
 alias tspin=tailspin
 alias ts=tailspin
+
+function Out-TailSpin() {
+     "$@" | ts
+}
+alias cot="Out-TailSpin cat"
 
 # Забиндить очистку ввода на Ctrl+C
 bind '"\C-l": "^\C-u\C-mclear\C-m"'
@@ -1106,36 +1106,93 @@ bind '"\C-l": "^\C-u\C-mclear\C-m"'
 # Определить переменную окружения, доступную для дочерних процессов, запущенных в текущей сессии
 # Игнорировать запись в историю команд, которые начинаются с пробела
 export HISTCONTROL=ignorespace
-
 # Добавить фильтрацию по введеному тексту в истории команд при испоьзовании стрелочек вверх и вниз
-if [[ $- == *i* ]]; then
+if [[ "$-" == *i* ]]; then
     bind '"\e[A": history-search-backward'
     bind '"\e[B": history-search-forward'
 fi
 
-`source ~/.bashrc` применить политики
+source ~/.bashrc применить политики
+
+### oh-my-bash
+
+Установить oh-my-bash (обновляет профиль, делая рядом резервную копию старого файла в `.bashrc.omb-TIMESTAMP`):
+
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+
+Настроить динамический профиль:
+
+function sysStat() {
+    top=$(top -bn1)
+    cpu=$(echo "$top" | grep "%Cpu(s)" | awk '{printf "%.0f%%", 100-$8}')
+    # sys=$(echo "$top" | grep "%Cpu(s)" | awk '{printf "%.0f%%", $4}')
+    # usr=$(echo "$top" | grep "%Cpu(s)" | awk '{printf "%.0f%%", $2}')
+    avg=$(echo "$top" | grep "load average" | awk -F ': ' '{print $2}' | awk -F ', ' '{print $1"/"$2"/"$3}')
+    mem=$(echo "$top" | grep "MiB Mem" | awk '{printf "%.1fG/%.1fG", ($8)/1024, $4/1024}')
+    disk=$(df -h | awk '$NF=="/"{print $3"/"$2}')
+    echo "📊 $cpu ($avg) $mem 💾 $disk"
+}
+
+function gitStatus() {
+    status=$(git status --porcelain 2>/dev/null)
+    if [ -z "$status" ]; then
+        echo ""
+        return
+    fi
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    result="🔸 ($branch) "
+    added=$(echo "$status" | grep -c '^?')
+    modified=$(echo "$status" | grep -c '^ M')
+    deleted=$(echo "$status" | grep -c '^ D')
+    [ "$added" -gt 0 ] && result+="\e[32m+${added} \e[0m"
+    [ "$modified" -gt 0 ] && result+="\e[33m~${modified} \e[0m"
+    [ "$deleted" -gt 0 ] && result+="\e[31m-${deleted} \e[0m"
+    echo "$result"
+}
+
+export PROMPT_COMMAND+='
+    SYSSTAT=$(sysStat);
+    GITSTATUS=$(gitStatus);
+'
+
+PS1='\[\e[34m\]$SYSSTAT \[\e[0m\]'
+PS1+='\[\e[32m\]👤 \u \[\e[0m\]'
+PS1+='\[\e[33m\]📁 \w \[\e[0m\]'
+PS1+='$(echo -e "$GITSTATUS")'
+PS1+='\[\e[34m\]> \[\e[0m\]'
 
 ### fzf
 
 apt install fzf # установить fzf (https://github.com/junegunn/fzf)
 history | fzf # интерактивный поиск с фильтрацией
 eval $(history | fzf | awk '{print $2}') # выполнить (eval) выбранную команду из списка (добавить в макрос)
-ls *.json | fzf | xargs cat | jq . # вывести содержимое выбранного json файла через fzf
 find / -name "*.yaml" | fzf | xargs cat # найти в системе все файлы yaml и запустить по ним поиск
 
 tee -a "$HOME/.bashrc" << 'EOF'
-# Поиск по истории с помощью команды h и комбинации Ctrl+R через fzf
+# Поиск по истории команд с помощью команды h и комбинации Ctrl+R через fzf
+export PROMPT_COMMAND='history -a;'
 if command -v fzf > /dev/null; then
-  function hstr {
-    local current_input="$READLINE_LINE"
-    command=$(tac $HOME/.bash_history | fzf --height 20 --reverse --query="$current_input" | sed -r "s/^\s+[0-9]+\s+[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\s//")
-    if [[ -n "$command" ]]; then
-      READLINE_LINE="$command"
-      READLINE_POINT=${#READLINE_LINE}
-    fi
-  }
-  alias h=hstr
-  bind -x '"\C-r": h'
+    function hstr {
+        local current_input="$READLINE_LINE"
+        command=$(tac $HOME/.bash_history | sed '/^#/d' | awk '!seen[$0]++' |  fzf --height 20 --reverse --query="$current_input" | sed -r "s/^\s+[0-9]+\s+[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\s//")
+        if [[ -n "$command" ]]; then
+            READLINE_LINE="$command"
+            READLINE_POINT=${#READLINE_LINE}
+        fi
+    }
+    alias h=hstr
+    bind -x '"\C-r": h'
+fi
+# Kill jobs over fzf
+if command -v fzf > /dev/null; then
+    function jobKill {
+        pid=$(jobs -l | fzf --height 20 --reverse --preview "echo {}" --preview-window down | awk '{print $2}')
+        if [[ -n "$pid" ]]; then
+            READLINE_LINE="kill -9 $pid"
+            READLINE_POINT=${#READLINE_LINE}
+        fi
+    }
+    bind -x '"\C-j": jobKill'
 fi
 EOF
 
@@ -1690,7 +1747,12 @@ curl -s https://raw.githubusercontent.com/dylanaraps/neofetch/refs/heads/master/
 curl -s https://raw.githubusercontent.com/dylanaraps/pfetch/refs/heads/master/pfetch | bash
 curl -s https://raw.githubusercontent.com/KittyKatt/screenFetch/refs/heads/master/screenfetch-dev | bash
 curl -s https://raw.githubusercontent.com/ThatOneCalculator/NerdFetch/refs/heads/main/nerdfetch | bash
+curl -s https://raw.githubusercontent.com/m0zgen/system-checks/master/system-check.sh | sudo bash
 curl -s https://raw.githubusercontent.com/Lifailon/hwstat/refs/heads/rsa/hwstat.sh | bash
+
+curl -s -L "https://github.com/fastfetch-cli/fastfetch/releases/download/2.40.1/fastfetch-linux-amd64.deb" -o /tmp/fastfetch.deb
+sudo dpkg -i /tmp/fastfetch.deb && rm /tmp/fastfetch.deb
+fastfetch
 
 ## networkmanager
 
@@ -3419,21 +3481,34 @@ crontab -e
 
 ## log
 
-Терминальный пользовательский интерфейс для journalctl, журналов файловой системы, а также контейнеров Docker и Podman для быстрого просмотра и фильтрации с поддержкой нечеткого поиска и регулярных выражений:
+- lazyjournal (https://github.com/Lifailon/lazyjournal) - терминальный пользовательский интерфейс для journalctl, журналов файловой системы, а также контейнеров Docker, Podman и Kubernetes для быстрого просмотра и фильтрации с поддержкой нечеткого поиска, регулярных выражений и раскрашивания вывода:
 
 curl https://raw.githubusercontent.com/Lifailon/lazyjournal/main/install.sh | bash
 lazyjournal
 
-Терминальный пользовательский интерфейс для логов файловой системы с таймстампами, возможностью поиска и подсветкой:
+- lnav (https://github.com/tstack/lnav) - терминальный пользовательский интерфейс для логов файловой системы с таймстампами, возможностью поиска и подсветкой:
 
 apt install lnav
 journalctl -f -a -xe -o json | lnav
 ssh playground@demo.lnav.org
 
-Вывод с подсветкой, которая будет работать одинаково стабильно для разных лог-файлов:
+- tailspin (https://github.com/bensadeh/tailspin) - раскрашивание любого вывода:
 
 apt install tailspin
 cat /var/log/syslog | tailspin
+
+- toolong (https://github.com/Textualize/toolong) - терминальный пользовательский интерфейс для интерактивного просмотра логов с поддержкой поиска и объединения журналов (заменяет tail, less и grep):
+
+pipx install toolong
+tl /var/log/syslog* # откроет все журналы syslog (включая поддержку чтения архивных журналов)
+tl /var/log/syslog /var/log/syslog.1 --merge # объеденит два журнала в один
+cat /var/log/syslog /var/log/syslog.1 | tailspin | tl # вначале красим вывод и потом передаем на вход toolong
+
+- ttyd (https://github.com/tsl0922/ttyd) - позволяет запускать терминальные интерфейсы в Web интерфейсе с поддержкой базовой авторизации:
+
+sudo apt install ttyd
+ttyd -W -p 4444 tl /var/log/syslog*
+ttyd -W -p 4444 -c admin:admin tl /var/log/syslog*
 
 ## smb
 

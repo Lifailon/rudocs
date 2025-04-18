@@ -695,7 +695,7 @@ EOF
 
 ### yq
 
-`snap install yq || pip install yq` установить yq (https://github.com/kislyuk/yq) для YAML/XML/TOML на Python \
+`snap install yq` установить yq (https://github.com/mikefarah/yq) для YAML, JSON, XML, CSV и TOML \
 `cat /etc/netplan/*.yaml | yq .network.ethernets` список адаптеров netplan \
 `cat /etc/netplan/*.yaml | yq .network.ethernets.eth0.nameservers.addresses[]` вывести массив dns адресов, настроенные на адаптере \
 `curl -s https://kinozal.tv/rss.xml -x kinozal:proxy@192.168.3.100:9090 | yq -p xml .rss.channel.item[1].link` вывести ссылку из первого элемента \
