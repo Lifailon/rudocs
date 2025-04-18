@@ -1,0 +1,27 @@
+services:
+  lazydocker-web:
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    # https://hub.docker.com/r/lifailon/lazydocker-web
+    image: lifailon/lazydocker-web:latest
+    container_name: lazydocker-web
+    restart: unless-stopped
+    # Permissions for Docker Socket in host system
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # TUI mode
+    # stdin_open: true
+    # tty: true
+    # Web mode
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT}
+      - USERNAME=${USERNAME}
+      - PASSWORD=${PASSWORD}
+    ports:
+      - "${PORT}:${PORT}"
+    # Watchtower auto update disabled
+    # labels:
+    #   - "com.centurylinklabs.watchtower.enable=false"

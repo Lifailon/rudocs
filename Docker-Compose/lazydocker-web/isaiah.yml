@@ -1,0 +1,12 @@
+services:
+  isaiah:
+    image: mosswill/isaiah:latest
+    container_name: isaiah-lazydocker-web
+    restart: unless-stopped
+    ports:
+      - "4444:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      SERVER_PORT: "80"
+      AUTHENTICATION_SECRET: "secret"
