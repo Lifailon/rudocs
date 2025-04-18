@@ -1,0 +1,42 @@
+services:
+    semaphore:
+        image: public.ecr.aws/semaphore/pro/server:v2.13.12
+        ports:
+            - 3030:3000
+        environment:
+            SEMAPHORE_DB_DIALECT: postgres
+            SEMAPHORE_DB_HOST: semaphore-db
+            SEMAPHORE_DB_NAME: semaphore_db
+            SEMAPHORE_DB_USER: semaphore
+            SEMAPHORE_DB_PASS: semaphore
+            SEMAPHORE_ADMIN: admin
+            SEMAPHORE_ADMIN_PASSWORD: admin
+            SEMAPHORE_ADMIN_NAME: admin
+            SEMAPHORE_ADMIN_EMAIL: admin@localhost
+            SEMAPHORE_TELEGRAM_CHAT: "XXX"
+            SEMAPHORE_TELEGRAM_TOKEN: "XXX"
+            SEMAPHORE_DB_OPTIONS: "{\"sslmode\":\"disable\"}"
+        volumes:
+            - semaphore_data:/var/lib/semaphore
+            - semaphore_conf:/etc/semaphore
+        networks:
+            - semaphore_network
+
+    semaphore-db:
+        image: postgres
+        environment:
+            POSTGRES_USER: semaphore
+            POSTGRES_PASSWORD: semaphore
+            POSTGRES_DB: semaphore_db
+        volumes:
+            - semaphore_db:/var/lib/postgresql/data
+        networks:
+            - semaphore_network
+
+volumes:
+    semaphore_data:
+    semaphore_conf:
+    semaphore_db:
+
+networks:
+    semaphore_network: {driver: "bridge"}
