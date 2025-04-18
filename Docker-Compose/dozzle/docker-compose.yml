@@ -1,0 +1,14 @@
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./dozzle_data:/data
+    ports:
+      - 9090:8080
+    environment:
+      DOZZLE_AUTH_PROVIDER: simple
+      # Доступ к удаленному хосту через Docker API (tcp socket)
+      # DOZZLE_REMOTE_HOST: tcp://192.168.3.102:2375|mon-01
