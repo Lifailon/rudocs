@@ -437,6 +437,8 @@
 - [DSC](#dsc)
 - [pussh](#pussh)
 - [Sake](#sake)
+- [Puppet](#puppet)
+    - [Bolt](#bolt)
 - [Ansible](#ansible)
     - [Hosts](#hosts)
 - [Win\_Modules](#win_modules)
@@ -460,6 +462,7 @@
     - [win\_uri](#win_uri)
     - [win\_updates](#win_updates)
     - [win\_chocolatey](#win_chocolatey-1)
+- [Jinja](#jinja)
 - [Docker](#docker)
     - [WSL](#wsl)
     - [Install](#install-1)
@@ -9346,6 +9349,62 @@ tasks:
 ```
 `sake run info --tags bsd` запустить набор из 5 заданий из группы info
 
+# Puppet
+
+### Bolt
+
+[Bolt](https://github.com/puppetlabs/bolt) - это инструмент оркестровки, который выполняет заданную команду или группу команд на локальной рабочей станции, а также напрямую подключается к удаленным целям с помощью SSH или WinRM, что не требует установки агентов.
+
+Docs: https://www.puppet.com/docs/bolt/latest/getting_started_with_bolt.html
+```bash
+wget https://apt.puppet.com/puppet-tools-release-bullseye.deb
+sudo dpkg -i puppet-tools-release-bullseye.deb
+sudo apt-get update
+sudo apt-get install puppet-bolt
+```
+`nano inventory.yaml`
+```yaml
+groups:
+- name: bsd
+  targets:
+    - uri: 192.168.3.102:22
+      name: openbsd
+    - uri: 192.168.3.103:22
+      name: freebsd
+  config:
+    transport: ssh
+    ssh:
+      user: root
+      # password: root
+      host-key-check: false
+```
+`bolt command run uptime --inventory inventory.yaml --targets bsd` выполнить команду uptime на группе хостов bsd, заданной в файле inventory
+
+`echo name: lazyjournal > bolt-project.yaml` создать файл проекта
+
+`mkdir plans && nano test.yaml` создать директорию и файл с планом работ
+```yaml
+parameters:
+  targets:
+    type: TargetSpec
+
+steps:
+  - name: clone
+    command: rm -rf lazyjournal && git clone https://github.com/Lifailon/lazyjournal
+    targets: $targets
+
+  - name: test
+    command: cd lazyjournal && go test -v -cover --run TestMainInterface
+    targets: $targets
+
+  - name: remove
+    command: rm -rf lazyjournal
+    targets: $targets
+```
+`bolt plan show` вывести список всех планов
+
+`bolt plan run lazyjournal::test --inventory inventory.yaml --targets bsd -v` запустить план
+
 # Ansible
 
 `apt -y update && apt -y upgrade` \
@@ -9822,6 +9881,75 @@ ansible_shell_type=powershell
 	# source: URL-адрес внутреннего репозитория
     source: https://community.chocolatey.org/api/v2/ChocolateyInstall.ps1
 ```
+# Jinja
+
+Локальное использование:
+
+`pip install jinja2 --break-system-packages`
+
+`inventory.j2` шаблон для генерации
+```
+[dev]
+{% for host in hosts -%}
+{{ host }} ansible_host={{ host }}
+{% endfor %}
+```
+`env.json` файл с переменными
+```json
+{
+  "hosts": ["192.168.3.101", "192.168.3.102", "192.168.3.103"]
+}
+```
+`render.py` скрипт для генерации файла inventory
+```Python
+from jinja2 import Environment, FileSystemLoader
+import json
+# Загружаем переменные из JSON
+with open('env.json') as f:
+    data = json.load(f)
+# Настройка шаблонизатора
+env = Environment(loader=FileSystemLoader('.'))
+template = env.get_template('inventory.j2')
+output = template.render(data)
+# Сохраняем результат в файл
+with open('inventory.generated', 'w') as f:
+    f.write(output)
+```
+`python render.py`
+
+Использование в Ansible для обновления файла `hosts`:
+
+`inventory.ini`
+```
+[dev]
+dev1 ansible_host=192.168.3.101
+dev2 ansible_host=192.168.3.102
+dev3 ansible_host=192.168.3.103
+```
+`templates/hosts.j2`
+```
+127.0.0.1 localhost
+{% for host in groups['all'] -%}
+{{ hostvars[host]['ansible_host'] }} {{ host }}
+{% endfor %}
+```
+`playbook.yml`
+```yaml
+- name: Update hosts file
+  hosts: all
+  become: true
+  tasks:
+    - name: Generate hosts file
+      template:
+        src: hosts.j2
+        dest: /etc/hosts
+        owner: root
+        group: root
+        mode: '0644'
+```
+`ansible-playbook -i inventory.ini playbook.yml --check --diff` отобразит изменения без их реального применения \
+`ansible-playbook -i inventory.ini playbook.yml -K` позволяет передать пароль для root
+
 # Docker
 
 ### WSL
