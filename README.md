@@ -2,11 +2,9 @@
 
 <p align="center">
         <a href="https://lifailon.github.io"><img title="GitHub Page"src="https://img.shields.io/website?url=https://lifailon.github.io&logo=GitHub&label=GitHub+Page+Status&color=green"></a>
-        <a href="https://github.com/Lifailon/lifailon.github.io/actions"><img title="GitHub Actions"src="https://img.shields.io/github/actions/workflow/status/Lifailon/lifailon.github.io/build-zola.yml?logo=GitHub-Actions&label=CI/CD+Actions"></a>
-    <br>
+        <a href="https://github.com/Lifailon/lifailon.github.io/actions"><img title="GitHub Actions"src="https://img.shields.io/github/actions/workflow/status/Lifailon/lifailon.github.io/build-zola.yml?logo=GitHub-Actions&label=CI+Page+Status"></a>
         <a href="https://github.com/PowerShell/PowerShell"><img title="GitHub Top Language"src="https://img.shields.io/github/languages/top/lifailon/PS-Commands?label=PowerShell&logo=powershell"></a>
         <a href="https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts"><img title="GitHub Repo file count in path Scripts"src="https://img.shields.io/github/directory-file-count/Lifailon/PS-Commands/Scripts?logo=powershell&label=Scripts%20count"></a>
-    <br>
         <a href="https://github.com/Lifailon/PS-Commands"><img title="GitHub Repo Stars"src="https://img.shields.io/github/stars/Lifailon/PS-Commands"></a>
     <br>
     <br>
@@ -14,16 +12,23 @@
         <a href="posh.pdf"><img title="PDF version"src="https://img.shields.io/badge/pdf_version-DA1F26.svg?style=for-the-badge&logo=Adobe%20Acrobat%20Reader&logoColor=white"></a>
 </p>
 
-Большая база заметок **PowerShell** и командам 🐧 [Linux](linux.md) на русском языке.
-
-Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](WinForms/WinForms-Test-Stend.ps1) с примерами реализации большинства функционала (`DataGridView`, `Button`, `Checkbox`, т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом и [REST API сервер](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных [KeePass](https://keepass.info) с поддержкой авторизации (без шифрования).
-
-Вы можете ознакомиться с другими шпаргалками для языков `Go` и `JavaScript`:
-
-<p align="left">
-    <a href="https://github.com/Lifailon/golang-cheat-sheet-ru"><img title="GoLang Cheat Sheet"src="https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white"></a>
-    <a href="https://github.com/Lifailon/node.js-cheat-sheet-ru"><img title="Node.js Cheat Sheet"src="https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white"></a>
+<p align="center">
+    Большая база заметок <b>PowerShell</b>, инструментам <b>DevOps</b> и командам 🐧 <a href="linux.md">Linux</a> на русском языке.
 </p>
+
+Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](WinForms/WinForms-Test-Stend.ps1) с примерами реализации большинства функционала (`DataGridView`, `Button`, `Checkbox`, т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом и [REST API сервер](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных [KeePass](https://keepass.info).
+
+---
+
+<p align="center">
+        Вы можете ознакомиться с другими шпаргалками для языков <b>Go</b> и <b>JavaScript</b>:
+    <br>
+    <br>
+        <a href="https://github.com/Lifailon/golang-cheat-sheet-ru"><img title="GoLang Cheat Sheet"src="https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white"></a>
+        <a href="https://github.com/Lifailon/node.js-cheat-sheet-ru"><img title="Node.js Cheat Sheet"src="https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white"></a>
+</p>
+
+---
 
 <h2 align="left">
     Навигация:
@@ -138,8 +143,12 @@
 - [Pester](posh.md/#pester)
 - [PSAppDeployToolkit](posh.md/#psappdeploytoolkit)
 - [DSC](posh.md/#dsc)
+- [pussh](posh.md/#pussh)
+- [Sake](posh.md/#sake)
+- [Puppet](posh.md/#puppet)
 - [Ansible](posh.md/#ansible)
 - [Docker](posh.md/#docker)
+- [Jinja](posh.md/#jinja)
 - [Compose](posh.md/#compose)
 - [Swarm](posh.md/#swarm)
 - [Kubernetes](posh.md/#kubernetes)
