@@ -6,10 +6,10 @@ services:
       - WATCHTOWER_LIFECYCLE_HOOKS=1
       - WATCHTOWER_NOTIFICATIONS=shoutrrr
       - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
-      # - WATCHTOWER_HTTP_API_TOKEN=demotoken
+      - WATCHTOWER_HTTP_API_TOKEN=demotoken
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 600 --http-api-metrics --http-api-token demotoken # --http-api-update # --http-api-periodic-polls
+    command: --interval 600 --http-api-metrics # --http-api-token demotoken # --http-api-update
     ports:
-      - 8070:8080
+      - 9095:8080
     restart: unless-stopped

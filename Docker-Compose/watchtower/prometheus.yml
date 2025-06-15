@@ -5,4 +5,4 @@ scrape_configs:
     bearer_token: demotoken
     static_configs:
       - targets:
-        - '192.168.3.101:8070'
+        - 192.168.3.105:9095
