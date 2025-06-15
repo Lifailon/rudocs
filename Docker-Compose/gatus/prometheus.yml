@@ -1,0 +1,6 @@
+scrape_configs:
+  - job_name: gatus
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - 192.168.3.105:8081

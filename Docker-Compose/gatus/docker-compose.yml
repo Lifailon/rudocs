@@ -1,0 +1,15 @@
+services:
+  gatus:
+    image: twinproduction/gatus:latest
+    container_name: gatus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./config:/config
+      # SQLite
+      - ./data:/data/
+    ports:
+      - "8081:8080"
