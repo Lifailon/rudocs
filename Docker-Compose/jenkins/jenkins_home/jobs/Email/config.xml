@@ -1,0 +1,80 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>emailTo</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>emailTo</name>
+          <description>Почтовый адрес назначения</description>
+          <defaultValue>test@yandex.ru</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4018.vf02e01888da_f">
+    <script>pipeline {
+    agent any
+    parameters {
+        string(name: &apos;emailTo&apos;, defaultValue: &apos;test@yandex.ru&apos;, description: &apos;Почтовый адрес назначения&apos;)
+    }
+    stages {
+        stage(&apos;Вывод всех переменных окружения&apos;) {
+            steps {
+                script {
+                    env.getEnvironment().each { key, value -&gt;
+                        echo &quot;${key} = ${value}&quot;
+                    }
+                }
+            }
+        }
+        stage(&apos;Отправка на почту&apos;) {
+            options {
+                timeout(time: 1, unit: &apos;MINUTES&apos;)
+            }
+            steps {
+                script {
+                    emailext (
+                        to:	&quot;${params.emailTo}&quot;,
+                        subject: &quot;${env.JOB_NAME} - ${BUILD_NUMBER}&quot;,
+                        mimeType: &quot;text/html&quot;,
+                        body: &quot;&quot;&quot;
+                            &lt;html&gt;
+                                &lt;body&gt;
+                                    &lt;div style=&quot;padding-left: 30px; padding-bottom: 15px;&quot; color=&quot;blue&quot;&gt;
+                                    &lt;font name=&quot;Arial&quot; color=&quot;#906090&quot; size=&quot;3&quot; font-weight=&quot;normal&quot;&gt;
+                                        &lt;b&gt; ${env.JOB_NAME} - ${env.BUILD_NUMBER} &lt;/b&gt;
+                                    &lt;/font&gt;
+                                    &lt;br&gt;
+                                    &lt;div style=&quot;padding-left: 30px; padding-bottom: 15px;&quot; color=&quot;black&quot;&gt;
+                                    &lt;br&gt;
+                                    &lt;font name=&quot;Arial&quot; color=&quot;black&quot; size=&quot;2&quot; font-weight=&quot;normal&quot;&gt; 
+                                        &lt;pre&gt; Build url: ${env.BUILD_URL} &lt;/pre&gt;
+                                    &lt;/font&gt;	
+                                &lt;/body&gt;
+                            &lt;/html&gt;
+                        &quot;&quot;&quot;
+                    )
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

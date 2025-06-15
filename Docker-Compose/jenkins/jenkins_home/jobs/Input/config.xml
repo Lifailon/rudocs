@@ -1,0 +1,45 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4018.vf02e01888da_f">
+    <script>pipeline {
+    agent any
+    stages {
+        stage(&apos;Input text&apos;) {
+            input {
+                message &quot;Что бы продолжить, передайте текст в поле ввода&quot;
+                ok &quot;Передать&quot;
+                parameters {
+                    string(name: &apos;TEXT&apos;, defaultValue: &apos;test&apos;, description: &apos;Введите текст&apos;)
+                }
+            }
+            steps {
+                echo &quot;Переданный текст в параметре input: ${TEXT}&quot;
+            }
+        }
+        stage(&apos;Input file&apos;) {
+            steps {
+                script {
+                    def fileBase64 = input message: &quot;Передайте файл&quot;, parameters: [base64File(&apos;file&apos;)]
+                    sh &quot;echo $fileBase64 | base64 -d&quot;
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

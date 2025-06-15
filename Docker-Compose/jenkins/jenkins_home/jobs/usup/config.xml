@@ -1,0 +1,307 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2247.va_423189a_7dff"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2247.va_423189a_7dff">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repoPath</name>
+          <description>Format: &lt;UserName/Repository&gt;</description>
+          <defaultValue>lifailon/usup</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.6">
+          <name>repoBranch</name>
+          <description>Select branch</description>
+          <randomName>choice-parameter-479607741508858</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>import groovy.json.JsonSlurper
+
+def url = &quot;https://api.github.com/repos/${repoPath}/branches&quot;
+def URL = new URL(url)
+def connection = URL.openConnection()
+connection.requestMethod = &apos;GET&apos;
+connection.setRequestProperty(&quot;Accept&quot;, &quot;application/vnd.github.v3+json&quot;)
+def response = connection.inputStream.text
+
+def json = new JsonSlurper().parseText(response)
+def branches = json.collect { it.name }
+return branches as List</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>usup</projectName>
+          <projectFullName>usup</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>repoPath</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.6">
+          <name>fileName</name>
+          <description>Select configuration file (supfile in yml/yaml format)</description>
+          <randomName>choice-parameter-479438407946639</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>import groovy.json.JsonSlurper
+
+def url = &quot;https://api.github.com/repos/${repoPath}/git/trees/${repoBranch}?recursive=1&quot;
+def URL = new URL(url)
+def connection = URL.openConnection()
+connection.requestMethod = &apos;GET&apos;
+def response = connection.inputStream.text
+
+def json = new JsonSlurper().parseText(response)
+def yamlFiles = json.tree.findAll { it.path.endsWith(&apos;.yml&apos;) || it.path.endsWith(&apos;.yaml&apos;) }.collect { it.path }
+return yamlFiles as List</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>usup</projectName>
+          <projectFullName>usup</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>repoPath,repoBranch</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.6">
+          <name>network</name>
+          <description>Select network (host list)</description>
+          <randomName>choice-parameter-479518669012871</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>import org.yaml.snakeyaml.Yaml
+
+def url = &quot;https://raw.githubusercontent.com/${repoPath}/refs/heads/${repoBranch}/${fileName}&quot;
+def supfile = new URL(url).getText()
+
+def yaml = new Yaml()
+def data = yaml.load(supfile)
+
+return data.networks.keySet() as List</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>usup</projectName>
+          <projectFullName>usup</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>repoPath,repoBranch,fileName</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <hudson.model.TextParameterDefinition>
+          <name>localHostList</name>
+          <description>Set host list (each host on a new line in the format USER@IP:PORT) for network group: local-host-list</description>
+          <defaultValue>lifailon@192.168.3.102:22
+root@192.168.3.103:22
+lifailon@192.168.3.104:2121</defaultValue>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.6">
+          <name>command</name>
+          <description>Select command for run</description>
+          <randomName>choice-parameter-479518672164416</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>import org.yaml.snakeyaml.Yaml
+
+def url = &quot;https://raw.githubusercontent.com/${repoPath}/refs/heads/${repoBranch}/${fileName}&quot;
+def supfile = new URL(url).getText()
+
+def yaml = new Yaml()
+def data = yaml.load(supfile)
+
+return data.commands.keySet() as List</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>usup</projectName>
+          <projectFullName>usup</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>repoPath,repoBranch,fileName</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.6">
+          <name>target</name>
+          <description>Select target (groups of commands) for run or using null for command run</description>
+          <randomName>choice-parameter-479518674155445</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>import org.yaml.snakeyaml.Yaml
+
+def url = &quot;https://raw.githubusercontent.com/${repoPath}/refs/heads/${repoBranch}/${fileName}&quot;
+def supfile = new URL(url).getText()
+
+def yaml = new Yaml()
+def data = yaml.load(supfile)
+
+def targetsList = data.targets.keySet() as List
+targetsList.add(0, null)
+return targetsList
+</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>usup</projectName>
+          <projectFullName>usup</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>repoPath,repoBranch,fileName</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.8.6">
+          <name>env</name>
+          <description>Environment variables list</description>
+          <randomName>choice-parameter-546068867453181</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>import org.yaml.snakeyaml.Yaml
+
+def url = &quot;https://raw.githubusercontent.com/${repoPath}/refs/heads/${repoBranch}/${fileName}&quot;
+def supfile = new URL(url).getText()
+
+def yaml = new Yaml()
+def data = yaml.load(supfile)
+
+def keyValueList = []
+for (entry in data.env.entrySet()) {
+    keyValueList.add(&quot;${entry.key}=${entry.value}&quot;)
+}
+return keyValueList as List</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>usup</projectName>
+          <projectFullName>usup</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>repoPath,repoBranch,fileName</referencedParameters>
+          <choiceType>ET_UNORDERED_LIST</choiceType>
+          <omitValueField>false</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <hudson.model.TextParameterDefinition>
+          <name>envVars</name>
+          <description>Change variable values in the format KEY=VALUE (each variable on a new line)</description>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4043.va_fb_de6a_a_8b_f5">
+    <script>pipeline {
+    agent any
+    stages {
+        stage(&apos;Install usup&apos;) {
+            steps {
+                script {
+                    sh &quot;&quot;&quot;
+                        GITHUB_LATEST_VERSION=\$(curl -L -sS -H &apos;Accept: application/json&apos; https://github.com/Lifailon/usup/releases/latest | sed -e &apos;s/.*&quot;tag_name&quot;:&quot;\\([^&quot;]*\\)&quot;.*/\\1/&apos;)
+                        BIN_URL=&quot;https://github.com/Lifailon/usup/releases/download/\$GITHUB_LATEST_VERSION/usup-\$GITHUB_LATEST_VERSION-linux-amd64&quot;
+                        curl -L -sS &quot;\$BIN_URL&quot; -o ${env.WORKSPACE}/usup
+                        chmod +x ${env.WORKSPACE}/usup
+                        ${env.WORKSPACE}/usup -v
+                    &quot;&quot;&quot;
+                }
+            }
+        }
+        stage(&apos;Run usup&apos;) {
+            steps {
+                script {
+                    // Get host list from param
+                    writeFile file: &apos;hostlist&apos;, text: params.localHostList
+                    def hostlist = readFile(&apos;hostlist&apos;)
+                    echo &quot;Local host list in file:\n${hostlist}&quot;
+
+                    // Check params
+                    def options = &quot;-u https://raw.githubusercontent.com/${params.repoPath}/refs/heads/main/${params.fileName}&quot;
+                    sh &quot;${env.WORKSPACE}/usup ${options} || true&quot;
+                    sh &quot;${env.WORKSPACE}/usup ${options} ${params.network} || true&quot;
+
+                    // Get env from param
+                    def envVars = params.envVars.trim().split(&apos;\n&apos;)
+                    def envParams = []
+                    for (line in envVars) {
+                        if (line.trim() ==~ /^[A-Za-z_][A-Za-z0-9_]*=.*/) {
+                            envParams &lt;&lt; &quot;-e \&quot;${line.trim()}\&quot;&quot;
+                        }
+                    }
+                    def envList = envParams.join(&apos; &apos;)
+                    echo &quot;Environment variables list for flag: ${envList}&quot;
+
+                    // Set options
+                    if (envParams.size() &gt; 0) {
+                        options += &quot; ${envList}&quot;
+                    }
+
+                    // Run usup
+                    if (params.target == &quot;null&quot;) {
+                        sh &quot;${env.WORKSPACE}/usup ${options} ${params.network} ${params.command}&quot;
+                    } else {
+                        sh &quot;${env.WORKSPACE}/usup ${options} ${params.network} ${params.target}&quot;
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                sh &quot;&quot;&quot;
+                    rm ${env.WORKSPACE}/usup
+                &quot;&quot;&quot;
+            }
+        }
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

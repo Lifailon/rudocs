@@ -1,0 +1,101 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>path</string>
+        <string>url</string>
+        <string>token</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>url</name>
+          <description>Url адресс хранилища секретов</description>
+          <defaultValue>http://192.168.3.101:8200</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>path</name>
+          <description>Путь для извлечения секретов</description>
+          <defaultValue>v1/kv/data/ssh-auth</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.PasswordParameterDefinition>
+          <name>token</name>
+          <description>Токен доступа к API HashiCorp Vault</description>
+          <defaultValue>{AQAAABAAAAAgH4USI/6PVlmCIhiE+0EkRAdbfTgGcLZLdLtPQUlp53yn/yeQ/5IGo6jb2k2Kt7qk}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4018.vf02e01888da_f">
+    <script>def getVaultSecrets(
+    String address,
+    String path,
+    String token
+) {
+    def url = new URL(&quot;${address}/${path}&quot;)
+    
+    def connection = url.openConnection()
+    connection.setRequestMethod(&quot;GET&quot;)
+    connection.setRequestProperty(&quot;X-Vault-Token&quot;, token)
+    connection.setRequestProperty(&quot;Accept&quot;, &quot;application/json&quot;)
+    
+    def response = new groovy.json.JsonSlurper().parse(connection.inputStream)
+    def user = response.data.data.user
+    def password = response.data.data.password
+    return [
+        user: user,
+        password: password
+    ]
+}
+
+def USER_NAME
+def USER_PASS
+
+pipeline {
+    agent any
+    parameters {
+        string(name: &apos;url&apos;, defaultValue: &apos;http://192.168.3.101:8200&apos;, description: &apos;Url адресс хранилища секретов&apos;)
+        string(name: &apos;path&apos;, defaultValue: &apos;v1/kv/data/ssh-auth&apos;, description: &apos;Путь для извлечения секретов&apos;)
+        password(name: &apos;token&apos;, defaultValue: &apos;hvs.bySybhyYOxSWEVk4FQDdcyyg&apos;, description: &apos;Токен доступа к API HashiCorp Vault&apos;)
+    }
+    stages {
+        stage(&apos;Get vault secrets&apos;) {
+            steps {
+                script {
+                    def secrets = getVaultSecrets(
+                        &quot;${params.url}&quot;,
+                        &quot;${params.path}&quot;,
+                        &quot;${params.token}&quot;
+                    )
+                    USER_NAME = secrets.user
+                    USER_PASS = secrets.password
+                }
+            }
+        }
+        stage(&apos;Use secrets&apos;) {
+            steps {
+                script {
+                    echo &quot;User: ${USER_NAME}&quot;
+                    echo &quot;Password: ${USER_PASS}&quot;
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

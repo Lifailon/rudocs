@@ -1,0 +1,179 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93">
+      <jobProperties/>
+      <triggers>
+        <string>hudson.triggers.TimerTrigger</string>
+      </triggers>
+      <parameters>
+        <string>address</string>
+        <string>port</string>
+        <string>credentials</string>
+        <string>root</string>
+        <string>report</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>address</name>
+          <description>Адрес удаленного сервера</description>
+          <defaultValue>192.168.3.101</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>port</name>
+          <description>Порт ssh</description>
+          <defaultValue>2121</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>credentials</name>
+          <description>Идентификатор учетных данных из Jenkins</description>
+          <defaultValue>d5da50fc-5a98-44c4-8c55-d009081a861a</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>root</name>
+          <description>Запуск с повышенными привилегиями</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>report</name>
+          <description>Выгружать отчет в формате json</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H */6 * * 1-5</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4018.vf02e01888da_f">
+    <script>// Глобальный массив для хранения данных подключения по ssh 
+def remote = [:]
+
+pipeline {
+    agent { label &apos;local-agent&apos; }
+    parameters {
+        string(name: &apos;address&apos;, defaultValue: &apos;192.168.3.101&apos;, description: &apos;Адрес удаленного сервера&apos;)
+        // choice(name: &quot;addresses&quot;, choices: [&quot;192.168.3.101&quot;,&quot;192.168.3.102&quot;], description: &quot;Выберите сервер из выпадающего списка&quot;)
+        string(name: &apos;port&apos;, defaultValue: &apos;2121&apos;, description: &apos;Порт ssh&apos;)
+        string(name: &apos;credentials&apos;, defaultValue: &apos;d5da50fc-5a98-44c4-8c55-d009081a861a&apos;, description: &apos;Идентификатор учетных данных из Jenkins&apos;)
+        booleanParam(name: &quot;root&quot;, defaultValue: false, description: &apos;Запуск с повышенными привилегиями&apos;)
+        booleanParam(name: &quot;report&quot;, defaultValue: true, description: &apos;Выгружать отчет в формате json&apos;)
+    }
+    triggers {
+        cron(&apos;H */6 * * 1-5&apos;) // выполнять запуск каждын 6 часов с понедельника по пятницу
+    }
+    options {
+        timeout(time: 5, unit: &apos;MINUTES&apos;) // период ожидания, после которого нужно прервать Pipeline
+        retry(2) // в случае неудачи повторить весь Pipeline указанное количество раз
+    }
+    environment {
+        // Переменная окружения для хранения пути временного файла с содержимым приватного ключа
+        SSH_KEY_FILE = &quot;/tmp/ssh_key_${UUID.randomUUID().toString()}&quot;
+    }
+    stages {
+        stage(&apos;Проверка доступности хоста (icmp и tcp)&apos;) {
+            steps {
+                script {
+                    def check = sh(
+                        script: &quot;&quot;&quot;
+                            ping -c 1 ${params.address} &gt; /dev/null || exit 1
+                            nc -z ${params.address} ${params.port} || exit 2
+                        &quot;&quot;&quot;,
+                        returnStatus: true // исключить завершение Pipeline с ошибкой
+                    )
+                    if (check == 1) {
+                        error(&quot;Сервер ${params.address} недоступен (icmp ping)&quot;)
+                    } else if (check == 2) {
+                        error(&quot;Порт ${params.address} закрыт (tcp check)&quot;)
+                    } else {
+                        echo &quot;Сервер ${params.address} доступен и порт ${params.port} открыт&quot;
+                    }
+                }
+            }
+        }
+        stage(&apos;Извлечение данных для авторизации по ключу&apos;) {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: params.credentials, usernameVariable: &apos;SSH_USER&apos;, keyFileVariable: &apos;SSH_KEY&apos;, passphraseVariable: &apos;&apos;)]) {
+                        // Записываем содержимое приватного ключа во временный файл
+                        writeFile(file: env.SSH_KEY_FILE, text: readFile(SSH_KEY))
+                        sh &quot;chmod 600 ${env.SSH_KEY_FILE}&quot;
+                        remote.name = params.address
+                        remote.host = params.address
+                        remote.port = params.port.toInteger()
+                        remote.user = SSH_USER
+                        remote.identityFile = env.SSH_KEY_FILE
+                        remote.allowAnyHosts = true
+                    }
+                }
+            }
+        }
+        stage(&apos;Запуск скрипта через через ssh&apos;) {
+            steps {
+                script {
+                    def runCommand
+                    if (params.root) {
+                        runCommand = &quot;&quot;&quot;
+                            curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | sudo bash -s -- &quot;json&quot; &gt; &quot;hwstat-report.json&quot;
+                        &quot;&quot;&quot;
+                    } else {
+                        runCommand = &quot;&quot;&quot;
+                            curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash -s -- &quot;json&quot; &gt; &quot;hwstat-report.json&quot;
+                        &quot;&quot;&quot;
+                    }
+                    def jsonOutput = sshCommand remote: remote, command: runCommand
+                    if (params.report) {
+                        // Записать содержимое переменной в файл
+                        // writeFile file: &apos;hwstat-report.json&apos;, text: jsonOutput
+                        // Загрузить файл из удаленной машины
+                        sshGet remote: remote, from: &quot;hwstat-report.json&quot;, into: &quot;${env.WORKSPACE}/hwstat-report.json&quot;, override: true
+                    }
+                    sshCommand remote: remote, command: &quot;rm hwstat-report.json&quot;
+                }
+            }
+        }
+        stage(&apos;Загрузка json отчета в Jenkins&apos;) {
+            // Проверка условия перед выполнением шага (пропуск если false)
+            when {
+                expression { params.report }
+            }
+            steps {
+                archiveArtifacts artifacts: &apos;hwstat-report.json&apos;, allowEmptyArchive: true
+            }
+        }
+    }
+    post {
+        // Выполнять независимо от успеха или ошибки
+        always {
+            script {
+                sh &quot;rm -f ${env.SSH_KEY_FILE}&quot;
+            }
+        }
+        success   { echo &quot;Сборка завершена успешно&quot; }
+        failure   { echo &quot;Сборка завершилась с ошибкой&quot; }
+        unstable  { echo &quot;Сборка завершилась с предупреждениями&quot; }
+        changed   { echo &quot;Текущий статус завершения изменился по сравнению с предыдущим запуском&quot; }
+        fixed     { echo &quot;Сборка завершена успешно по сравнению с предыдущим запуском&quot; }
+        aborted   { echo &quot;Запуск был прерван&quot; }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

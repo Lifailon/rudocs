@@ -1,13 +1,18 @@
+# Предварительно создать директории и предоставить права
+# mkdir -p jenkins_home && sudo chown -R 1000:1000 jenkins_home
+# mkdir -p jenkins_agent && sudo chown -R 1000:1000 jenkins_agent
+
 services:
   jenkins-server:
     image: jenkins/jenkins:latest
     container_name: jenkins-server
     restart: unless-stopped
+    user: "1000:1000"
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
     ports:
       - "8080:8080"   # Веб-интерфейс и регистрации агентов
       - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
-    volumes:
-      - ./jenkins_home:/var/jenkins_home
 
   jenkins-agent:
     # image: jenkins/inbound-agent:latest
@@ -24,6 +29,7 @@ services:
       - JENKINS_AGENT_NAME=local-agent
       # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
       - JENKINS_SECRET=42743ee1a24ef14e2de556e195ddae0ddeea1a6e9d43ca7ec1e186d7ddde9347
+    user: "1000:1000"
     volumes:
       - ./jenkins_agent:/home/jenkins
     labels:

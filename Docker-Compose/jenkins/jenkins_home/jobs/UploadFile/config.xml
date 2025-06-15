@@ -1,0 +1,51 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>UPLOAD_FILE</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <io.jenkins.plugins.file__parameters.Base64FileParameterDefinition plugin="file-parameters@358.v9ed4456a_169a_">
+          <name>UPLOAD_FILE</name>
+        </io.jenkins.plugins.file__parameters.Base64FileParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4018.vf02e01888da_f">
+    <script>pipeline {
+    agent any
+    parameters {
+        base64File &apos;UPLOAD_FILE&apos;
+    }
+    stages {
+        stage(&apos;Читаем содержимое файла&apos;) {
+            steps {
+                // Переменная хранит содержимое файла в формате base64
+                // echo UPLOAD_FILE
+                // Декодируем base64
+                withFileParameter(&apos;UPLOAD_FILE&apos;) {
+                    sh &quot;&quot;&quot;
+                        echo &quot;$UPLOAD_FILE&quot; # выводим путь к временному файлу с содержимым переданного файла
+                        cat &quot;$UPLOAD_FILE&quot;  # читаем содержимое файла
+                    &quot;&quot;&quot;
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
