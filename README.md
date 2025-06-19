@@ -16,12 +16,13 @@
     Большая база заметок <b>PowerShell</b>, инструментам <b>DevOps</b> и командам 🐧 <a href="linux.md">Linux</a> на русском языке.
 </p>
 
-Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также демонстрирует взаимодействие с `.NET Framework` на примере [REST API сервера](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных KeePass и [тестового стенда WinForms](WinForms/WinForms-Test-Stend.ps1), который возможно использовать как шаблон для создания программы с графическим интерфейсом.
+Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также взаимодействие с `.NET Framework` на примере [REST API сервера](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных KeePass и [тестового стенда WinForms](WinForms/WinForms-Test-Stend.ps1), который возможно использовать как шаблон для создания программы с графическим интерфейсом.
 
 > [!NOTE]
 > Вы можете ознакомиться с другими шпаргалками для языков **Go** и **JavaScript**:
 > 
 > [![GoLang Cheat Sheet](https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)](https://github.com/Lifailon/golang-cheat-sheet-ru)
+> 
 > [![Node.js Cheat Sheet](https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://github.com/Lifailon/node.js-cheat-sheet-ru)
 
 ---
