@@ -9072,6 +9072,68 @@ while (i < 3) {
 // 0
 // 1
 // 2
+
+// Классы
+def str = "start"
+println str
+class Main {
+    def echo (param) {
+        println param
+    }
+}
+def main = new Main()
+def array = [1, 2, 3]
+for (element in array) {
+    main.echo(element)
+}
+// 1
+// 2
+// 3
+
+// Обработка ошибок
+def newList = [:]
+newList[0] = 1
+newList[1] = 2
+for (index in 0..1) {
+    try {
+        newList[index] += 3
+        main.echo(newList[index])
+    } catch (Exception e) {
+        main.echo("Ошибка: ${e.message}")
+    } finally {
+        if (newList[index] >= 5) {
+            main.echo(newList[index]+1)
+        }
+    }
+}
+// 4
+// 5
+// 6
+
+println str.replace("start", "final")
+
+// Коллекция для синхронизации сохранения данных в потоках
+def sharedList = Collections.synchronizedList([])
+// Анонимная функция для обработки данных в потоке
+def runTask = { name, delay ->
+    Thread.start {
+        println "${name} запущена в потоке ${Thread.currentThread().name}"
+        sleep(delay)
+        println "${name} завершена"
+        synchronized(sharedList) {
+            sharedList << "${name} завершена"
+        }
+    }
+}
+
+def threads = []
+// Ждём завершения всех потоков
+threads << runTask("Задача 1", 3000)
+threads << runTask("Задача 2", 2000)
+threads << runTask("Задача 3", 1000)
+
+threads*.join()
+println "Результат: $sharedList"
 ```
 # Pester
 
