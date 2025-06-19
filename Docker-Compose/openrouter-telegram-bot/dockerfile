@@ -1,0 +1,25 @@
+# Build image
+FROM golang:1.23-alpine3.20 AS build
+# Clone repository
+RUN apk add git
+RUN git clone https://github.com/deinfinite/openrouter-gpt-telegram-bot /openrouter-telegram-bot
+WORKDIR /openrouter-telegram-bot
+# Copy config
+RUN mv config.example.yaml config.yaml
+# Download dependencies for caching
+RUN go mod download
+# Build bot
+RUN CGO_ENABLED=0 GOOS=linux go build -o /bot/openrouter-telegram-bot
+
+# Final image
+FROM alpine:3.20
+WORKDIR /bot
+# Copy config and langs
+COPY --from=build /openrouter-telegram-bot/config.yaml ./
+COPY --from=build /openrouter-telegram-bot/lang/ ./lang/
+# Copy bot binary
+COPY --from=build /bot/openrouter-telegram-bot /bot/
+# Creating directory for logs
+RUN mkdir logs
+
+ENTRYPOINT ["/bot/openrouter-telegram-bot"]
