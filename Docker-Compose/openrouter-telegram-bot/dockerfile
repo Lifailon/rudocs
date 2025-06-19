@@ -8,8 +8,9 @@ WORKDIR /openrouter-telegram-bot
 RUN mv config.example.yaml config.yaml
 # Download dependencies for caching
 RUN go mod download
-# Build bot
-RUN CGO_ENABLED=0 GOOS=linux go build -o /bot/openrouter-telegram-bot
+# Build bot for determining architecture
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -o /bot/openrouter-telegram-bot
 
 # Final image
 FROM alpine:3.20
