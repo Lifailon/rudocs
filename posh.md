@@ -360,6 +360,7 @@
     - [Include Plugins](#include-plugins)
     - [Zabbix API](#zabbix-api)
 - [Prometheus](#prometheus)
+  - [PromQL Functions](#promql-functions)
 - [pki](#pki)
 - [OpenSSL](#openssl)
 - [OpenVPN](#openvpn)
@@ -478,6 +479,7 @@
     - [Exec](#exec)
     - [Prune](#prune)
     - [Remove](#remove)
+    - [Diff](#diff)
     - [Docker Socket API](#docker-socket-api)
     - [Docker TCP API](#docker-tcp-api)
     - [Context](#context)
@@ -6949,6 +6951,22 @@ function ConvertFrom-UnixTime {
 
 Пример создания экспортера для получения метрик температуры всех дисков из CrystalDiskInfo и отправки в [Prometheus](https://github.com/prometheus/prometheus) через [PushGateway](https://github.com/prometheus/pushgateway).
 
+Формат метрик:
+```
+# HELP название_метрики Описание метрики
+# TYPE название_метрики ТИП-ДАННЫХ
+название_метрики{лейбл="НАЗВАНИЕ ДИСКА 1", instance="HOSTNAME"} ЗНАЧЕНИЕ
+название_метрики{лейбл="НАЗВАНИЕ ДИСКА 2", instance="HOSTNAME"} ЗНАЧЕНИЕ
+```
+Типы данных:
+
+- `counter` - возрастающее значение (например, количество запросов, ошибок, завершенных задач)
+- `gauge` - переменное значение (может увеличиваться или уменьшаться, например, нагрузка CPU, объем свободной памяти, температура)
+- `histogram` - разделенные данные на корзины (buckets, с помощью лэйбла `le`) и подсчет наблюдения в них (автоматически создает три метрики: <name>_bucket, <name>_sum, <name>_count)
+- `summary` - аналогичен гистограмме, но вычисляет квантили
+
+Строки метрик содержат имя, лейблы (в фигурных скобках) и значение.
+
 1. Запускаем `pushgateway` в контейнере:
 
 `docker run -d --name pushgateway --restart unless-stopped -p 19091:9091 prom/pushgateway`
@@ -6993,21 +7011,18 @@ scrape_configs:
 ```
 `docker-compose kill -s SIGHUP prometheus` применяем изменения
 
-5. Собираем контейнер в среде `WSL` с монтированием системного диска Windows:
+5. Собираем контейнер в среде `WSL` с помощью `dockerfile` монтированием системного диска Windows:
 ```dockerfile
-Write-Output '
 FROM mcr.microsoft.com/powershell:latest
 WORKDIR /cdi-exporter
 COPY cdi-exporter.ps1 ./cdi-exporter.ps1
 CMD ["pwsh", "-File", "cdi-exporter.ps1"]
-' | Out-File -FilePath dockerfile
 ```
 `docker build -t cdi-exporter .` \
 `docker run -d -v /mnt/c:/mnt/c --name cdi-exporter cdi-exporter`
 
-6. Собираем стек из шлюза и скрипта в `compose`:
+6. Собираем стек из шлюза и скрипта в `docker-compose.yml`:
 ```yaml
-Write-Output '
 services:
   cdi-exporter:
     build:
@@ -7024,7 +7039,6 @@ services:
     ports:
       - "19091:9091"
     restart: unless-stopped
-' | Out-File -FilePath docker-compose.yml
 ```
 `docker-compose up -d`
 
@@ -7034,6 +7048,30 @@ services:
 hostName: `label_values(exported_instance)` \
 diskName: `label_values(disk)` \
 Метрика температуры: `disk_temperature{exported_instance="$hostName", disk=~"$diskName"}`
+
+## PromQL Functions
+
+| Функция                       | Тип данных        | Описание                                                              | Пример                                                            |
+| -                             | -                 | -                                                                     | -                                                                 |
+| `rate()`                      | `counter`         | Средняя скорость роста метрики за интервал (increase / seconds)       | `rate(http_requests_total[$__rate_interval])`                     |
+| `irate()`                     | `counter`         | Мгновенная скорость роста (использует последние 2 точки)              | `irate(http_requests_total[1m])`                                  |
+| `increase()`                  | `counter`         | Абсолютный прирост метрики за интервал (end time - start time)        | `increase(http_requests_total[5m])`                               |
+| `resets()`                    | `counter`         | Количество сбросов counter-метрики за интервал.                       | `resets(process_cpu_seconds_total[1h])`                           |
+| `delta()`                     | `gauge`           | Разница между первым и последним значением метрики за интервал        | `delta(node_memory_free[[5m]])`                                   |
+| `idelta()`                    | `gauge`           | Разница между последними двумя точками                                | `delta(node_memory_free[1m])`                                     |
+| `avg_over_time()`             | `gauge`           | Среднее значение за интервал	                                        | `avg_over_time(temperature[5m])`                                  |
+| `max_over_time()`             | `gauge`           | Максимальное значение за интервал                                     | `max_over_time(temperature[5m])`                                  |
+| `predict_linear()`            | `gauge`           | Предсказывает значение метрики через N секунд (для прогнозирования)   | `predict_linear(disk_free[1h], 3600)`                             |
+| `count()`                     | `counter`/`gauge` | Количество элементов метрики                                          | `count(http_requests_total) by (status_code)`                     |
+| `sum()`                       | `counter`/`gauge` | Суммирует значения метрик по указанным labels                         | `sum(rate(cpu_usage[5m])) by (pod)`                               |
+| `avg()`                       | `counter`/`gauge` | Среднее значение метрики по указанным labels                          | `avg(node_memory_usage_bytes) by (instance)`                      |
+| `min() / max()`               | `counter`/`gauge` | Возвращает минимальное/максимальное значение                          | `max(container_cpu_usage) by (namespace)`                         |
+| `round()`                     | `counter`/`gauge` | Округляет значения до указанного числа дробных знаков                 | `round(container_memory_usage / 1e9, 2)`                          |
+| `floor() / ceil()`            | `counter`/`gauge` | Округляет вниз/вверх до целого числа                                  | `floor(disk_usage_percent)`                                       |
+| `absent()`                    | `counter`/`gauge` | Возвращает 1, если метрика отсутствует (для алертинга)                | `absent(up{job="node-exporter"})`                                 |
+| `clamp_min() / clamp_max()`   | `counter`/`gauge` | Ограничивает значения минимумом/максимумом (уменьшает если больше)    | `clamp_max(disk_usage_percent, 100)`                              |
+| `label_replace()`             | `counter`/`gauge` | Изменяет или добавляет labels в метрике                               | `label_replace(metric, "new_label", "$1", "old_label", "(.*)")`   |
+| `sort() / sort_desc()`        | `counter`/`gauge` | Сортирует метрики по возрастанию/убыванию                             | `sort(node_filesystem_free_bytes)`                                |
 
 # pki
 
@@ -10031,7 +10069,8 @@ Commands: `search/pull/images/creat/start/ps/restart/pause/unpause/rename/stop/k
 `docker run -d --restart=unless-stopped --name openspeedtest -p 3000:3000 -p 3001:3001 openspeedtest/latest` загрузить образ OpenSpeedTest (https://hub.docker.com/r/openspeedtest/latest), создать контейнер и запустить в одну команду в фоновом режиме (-d/--detach, терминал возвращает контроль сразу после запуска контейнера, если не используется, можно видеть логи, но придется остановить контейнер для выхода) \
 `docker rm openspeedtest && docker rmi openspeedtest/latest` удаляем контейнер и образ в одну команду \
 `docker run --name pg1 -p 5433:5432 -e POSTGRES_PASSWORD=PassWord -d postgres` создать контейнер postgres (https://hub.docker.com/_/postgres) с параметрами (-e) \
-`docker run -d --restart=always --name uptime-kuma -p 8080:3001 louislam/uptime-kuma:1` создать и запустить контейнер Uptime-Kuma (https://hub.docker.com/r/elestio/uptime-kuma) в режиме always, при котором контейнер должен перезапускаться автоматически, если он остановится или если перезапустится Docker (например, после перезагрузки хоста)
+`docker run -d --restart=always --name uptime-kuma -p 8080:3001 louislam/uptime-kuma:1` создать и запустить контейнер Uptime-Kuma (https://hub.docker.com/r/elestio/uptime-kuma) в режиме always, при котором контейнер должен перезапускаться автоматически, если он остановится или если перезапустится Docker (например, после перезагрузки хоста) \
+`docker history openspeedtest:latest` отображает слои образа, их размер и команды, которые были выполнены при его создании
 
 ### Update
 
@@ -10124,6 +10163,14 @@ docker run \
 `rm -rf /run/docker` \
 `rm -rf /run/docker.sock`
 
+### Diff
+
+`docker diff <container_id_or_name>` отображает изменения, внесённые в файловую систему контейнера по сравнению с исходным образом
+
+`A` — добавленные файлы \
+`C` — изменённые файлы \
+`D` — удалённые файлы
+
 ### Docker Socket API
 
 `curl --silent -XGET --unix-socket /run/docker.sock http://localhost/version | jq .` использовать локальный сокет (/run/docker.sock) для взаимодействия с Docker daemon через его API \
@@ -10147,6 +10194,14 @@ systemctl daemon-reload
 systemctl restart docker
 ```
 curl --silent -XGET http://192.168.3.102:2375/version | jq .
+
+Конечная точка `/metrics` для Prometheus:
+```yaml
+{
+  "metrics-addr": "0.0.0.0:9323"
+}
+```
+`curl http://192.168.3.102:9323/metrics`
 
 ### Context
 

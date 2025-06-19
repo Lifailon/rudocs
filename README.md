@@ -16,17 +16,13 @@
     Большая база заметок <b>PowerShell</b>, инструментам <b>DevOps</b> и командам 🐧 <a href="linux.md">Linux</a> на русском языке.
 </p>
 
-Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также [тестовый стенд WinForms](WinForms/WinForms-Test-Stend.ps1) с примерами реализации большинства функционала (`DataGridView`, `Button`, `Checkbox`, т.д.), который можно использовать как шаблон для создания программы с графическим интерфейсом и [REST API сервер](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных [KeePass](https://keepass.info).
+Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также демонстрирует взаимодействие с `.NET Framework` на примере [REST API сервера](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных KeePass и [тестового стенда WinForms](WinForms/WinForms-Test-Stend.ps1), который возможно использовать как шаблон для создания программы с графическим интерфейсом.
 
----
-
-<p align="center">
-        Вы можете ознакомиться с другими шпаргалками для языков <b>Go</b> и <b>JavaScript</b>:
-    <br>
-    <br>
-        <a href="https://github.com/Lifailon/golang-cheat-sheet-ru"><img title="GoLang Cheat Sheet"src="https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white"></a>
-        <a href="https://github.com/Lifailon/node.js-cheat-sheet-ru"><img title="Node.js Cheat Sheet"src="https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white"></a>
-</p>
+> [!NOTE]
+> Вы можете ознакомиться с другими шпаргалками для языков **Go** и **JavaScript**:
+> 
+> [![GoLang Cheat Sheet](https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)](https://github.com/Lifailon/golang-cheat-sheet-ru)
+> [![Node.js Cheat Sheet](https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://github.com/Lifailon/node.js-cheat-sheet-ru)
 
 ---
 
