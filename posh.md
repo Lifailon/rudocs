@@ -6949,7 +6949,7 @@ function ConvertFrom-UnixTime {
 
 # Prometheus
 
-Пример создания экспортера для получения метрик температуры всех дисков из CrystalDiskInfo и отправки в [Prometheus](https://github.com/prometheus/prometheus) через [PushGateway](https://github.com/prometheus/pushgateway).
+Пример создания экспортера для получения метрик температуры всех дисков из [CrystalDiskInfo](https://crystalmark.info/en/software/crystaldiskinfo) и отправки в [Prometheus](https://github.com/prometheus/prometheus) через [PushGateway](https://github.com/prometheus/pushgateway).
 
 Формат метрик:
 ```
@@ -10255,7 +10255,7 @@ printf "%s\n" "$service" > /lib/systemd/system/docker.service
 systemctl daemon-reload
 systemctl restart docker
 ```
-curl --silent -XGET http://192.168.3.102:2375/version | jq .
+`curl --silent -XGET http://192.168.3.102:2375/version | jq .`
 
 Конечная точка `/metrics` для Prometheus:
 ```yaml
