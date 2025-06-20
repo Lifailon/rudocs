@@ -1,0 +1,35 @@
+{{ define "telegram.default" }}
+{{ range .Alerts }}
+
+{{- if .Labels.severity }}
+{{- if eq .Labels.severity "critical" }}
+<b>🔥 CRITICAL</b>
+{{- else if eq .Labels.severity "error" }}
+<b>⚠ ERROR</b>
+{{- else if eq .Labels.severity "warning" }}
+<b>💡 WARNING</b>
+{{- else }}
+{{ .Labels.severity }}
+{{- end }}
+{{- end }}
+
+{{- if eq .Status "resolved" }}
+<b>Status:</b> ✅ Resolved
+{{- else }}
+<b>Status:</b> 🚩 Firing
+{{- end }}
+
+{{- if .Labels.alertname }}
+<b>Alert name:</b> {{ .Labels.alertname }}
+{{- end }}
+
+{{- if .Labels.instance }}
+<b>Instance:</b> {{ .Labels.instance }}
+{{- end }}
+
+{{- if .Annotations.description }}
+<b>Description:</b> {{ .Annotations.description }}
+{{- end }}
+
+{{- end }}
+{{- end }}

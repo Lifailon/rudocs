@@ -1,0 +1,102 @@
+groups:
+- name: temperature
+  rules:
+  - alert: TEMP_WARN
+    expr: node_hwmon_temp_celsius{sensor="temp0"} > 65
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Температура выше 65 градусов в течение 1 минуты"
+
+  - alert: TEMP_ERR
+    expr: node_hwmon_temp_celsius{sensor="temp0"} > 70
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      description: "Температура выше 70 градусов в течение 1 минуты"
+
+  - alert: TEMP_CRIT
+    expr: node_hwmon_temp_celsius{sensor="temp0"} > 75
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Температура выше 75 градусов в течение 1 минуты"
+
+- name: processor
+  rules:
+  - alert: CPU_SYSTEM_WARN
+    expr: rate(node_cpu_seconds_total{mode="system"}[5m]) > 0.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Системная нагрузка на процессор выше 50% в течение 1 минуты"
+
+  - alert: CPU_SYSTEM_ERR
+    expr: rate(node_cpu_seconds_total{mode="system"}[5m]) > 0.8
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      description: "Системная нагрузка на процессор выше 80% в течение 1 минуты"
+
+  - alert: CPU_SYSTEM_CRIT
+    expr: rate(node_cpu_seconds_total{mode="system"}[5m]) > 0.9
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Системная нагрузка на процессор выше 90% в течение 1 минуты"
+
+  - alert: CPU_USER_WARN
+    expr: rate(node_cpu_seconds_total{mode="user"}[5m]) > 0.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Пользовательская нагрузка на процессор выше 50% в течение 1 минуты"
+
+  - alert: CPU_USER_ERR
+    expr: rate(node_cpu_seconds_total{mode="user"}[5m]) > 0.8
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      description: "Пользовательская нагрузка на процессор выше 80% в течение 1 минуты"
+
+  - alert: CPU_USER_CRIT
+    expr: rate(node_cpu_seconds_total{mode="user"}[5m]) > 0.9
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Пользовательская нагрузка на процессор выше 90% в течение 1 минуты"
+
+- name: memory
+  rules:
+  - alert: MEM_USAGE_WARN
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Объем доступной памяти меньше 50% в течение 1 минуты"
+
+  - alert: MEM_USAGE_ERR
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.2
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      description: "Объем доступной памяти меньше 20% в течение 1 минуты"
+
+  - alert: MEM_USAGE_CRIT
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Объем доступной памяти меньше 10% в течение 1 минуты"
