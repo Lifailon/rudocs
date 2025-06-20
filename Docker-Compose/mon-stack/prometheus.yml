@@ -1,19 +1,80 @@
 global:
   scrape_interval: 10s
+  scrape_timeout: 5s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+rule_files:
+  - "alert.yml"
 
 scrape_configs:
   - job_name: prometheus
     static_configs:
-      - targets: ['prometheus:9090']
+      - targets:
+        - prometheus:9090
+
+  # Linux
 
   - job_name: node
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: 
+        - node-exporter:9100
 
-  - job_name: cadvisor
+  # Docker
+
+  # - job_name: cadvisor
+  #   static_configs:
+  #     - targets:
+  #       - cadvisor:8080
+
+  - job_name: logporter
+    scrape_interval: 5s
+    scrape_timeout: 5s
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets:
+        - logporter:9333
+        - 192.168.3.100:9333
+
+  # - job_name: watchtower
+  #   metrics_path: /v1/metrics
+  #   bearer_token: demotoken
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.105:9095
+
+  # Windows
+
+  # - job_name: ohmgraphite
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.100:4445
+
+  # API
+
+  # - job_name: uptime-kuma
+  #   scrape_interval: 30s
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.105:8081
+  #   basic_auth:
+  #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
+
+  # - job_name: gatus
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:8081
+
+  # CI/CD
+
+  # - job_name: jenkins
+  #   metrics_path: /prometheus
+  #   bearer_token: 1180f72a8cdb6eac2be7e3af10185c770a
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.105:8080
 
 # docker-compose kill -s SIGHUP prometheus
-# or
-# docker-compose restart prometheus

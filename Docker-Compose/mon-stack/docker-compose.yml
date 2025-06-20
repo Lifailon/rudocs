@@ -1,48 +1,73 @@
 services:
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    restart: unless-stopped
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    ports:
-      - '9091:9090'
-
+  # Frontend для отображения метрик
   # Connection data sources: http://prometheus:9090
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     ports:
-      - '9092:3000'
+      - '9091:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana_data:/var/lib/grafana
 
-  # Агент для сбора системных метрик (Grafana import dashboard id: 1860)
-  # https://grafana.com/grafana/dashboards/1860-node-exporter-full/
+  # Backend для хранения метрик
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert-rules.yml:/etc/prometheus/alert.yml
+      - prometheus_data:/prometheus
+    ports:
+      - '9092:9090'
+
+  # Система оповещений в Telegram
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      # Custom template
+      - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
+    ports:
+      - 9093:9093
+
+  # Агент для сбора системных метрик
+  # Grafana import dashboard id: 1860 (https://grafana.com/grafana/dashboards/1860-node-exporter-full)
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
     restart: unless-stopped
 
-  # Агент для сбора метрик контейнеров (Grafana import dashboard id: 13496)
-  # https://grafana.com/grafana/dashboards/13496-docker-and-system-monitoring/
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
+  # Агент для сбора метрик контейнеров Docker
+  # Grafana import dashboard id: 13496 (https://grafana.com/grafana/dashboards/13496-docker-and-system-monitoring)
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:latest
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+
+  # Легковесный агент для сбора базовых и кастомных метрик контейнеров Docker
+  # Grafana import dashboard id: 23573 (https://grafana.com/grafana/dashboards/23573-docker-exporter-logporter)
+  logporter:
+    image: lifailon/logporter:latest
+    container_name: logporter
     restart: unless-stopped
     volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 9333:9333
 
 volumes:
   grafana_data:
   prometheus_data:
-
-# docker-compose up -d
