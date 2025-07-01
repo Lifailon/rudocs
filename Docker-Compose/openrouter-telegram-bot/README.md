@@ -1,6 +1,6 @@
 # OpenRouter Telegram Bot
 
-This is an updated Docker image for quickly launching Telegram Bot to interact with OpenRouter from [Docker Hub](https://hub.docker.com/r/lifailon/openrouter-telegram-bot).
+This is an updated Docker image for quickly launching Telegram Bot to interact with OpenRouter from [Docker Hub](https://hub.docker.com/r/lifailon/openrouter-telegram-bot). This method allows you to launch a telegram bot for free for personal and family use.
 
 No need to copy the [source repository](https://github.com/deinfinite/openrouter-gpt-telegram-bot) to the host machine, fixed the error of missing configuration file, excluded storing variables in the image, support for `amd64` and `arm64` architectures and reduced the size of the final image.
 
@@ -20,13 +20,16 @@ nano .env
 
 # OpenRouter api key from https://openrouter.ai/settings/keys
 API_KEY=
+# Free modeles: https://openrouter.ai/models?max_price=0
+MODEL=deepseek/deepseek-r1:free
 # Telegram api key from https://telegram.me/BotFather
 TELEGRAM_BOT_TOKEN=
 # Telegram id from https://t.me/getmyid_bot
 ADMIN_IDS=
+# List of users to access the bot, separated by commas
 ALLOWED_USER_IDS=
-# Free modeles: https://openrouter.ai/models?max_price=0
-MODEL=deepseek/deepseek-r1:free
+# Disable guest access
+GUEST_BUDGET=0
 ```
 
 - Run the container:

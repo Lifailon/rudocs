@@ -3,11 +3,11 @@ groups:
   rules:
   - alert: TEMP_WARN
     expr: node_hwmon_temp_celsius{sensor="temp0"} > 65
-    for: 1m
+    for: 5m
     labels:
       severity: warning
     annotations:
-      description: "Температура выше 65 градусов в течение 1 минуты"
+      description: "Температура выше 65 градусов в течение 5 минут"
 
   - alert: TEMP_ERR
     expr: node_hwmon_temp_celsius{sensor="temp0"} > 70
