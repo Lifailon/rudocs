@@ -42,6 +42,7 @@
   - [sttr](#sttr)
 - [grep](#grep)
   - [ripgrep](#ripgrep)
+  - [rga](#rga)
   - [sig](#sig)
 - [sed](#sed)
 - [awk](#awk)
@@ -55,10 +56,14 @@
 - [debug](#debug)
 - [tools](#tools)
 - [dust](#dust)
-- [find](#find)
+- [fd](#fd)
+- [findutils](#findutils)
+  - [find](#find)
   - [exec](#exec)
   - [locate](#locate)
-  - [fd](#fd)
+  - [xargs](#xargs)
+- [fincore](#fincore)
+  - [lspage](#lspage)
 - [bashrc](#bashrc)
   - [oh-my-bash](#oh-my-bash)
   - [fzf](#fzf)
@@ -137,10 +142,9 @@
   - [kill](#kill)
   - [procs](#procs)
 - [jobs](#jobs)
-  - [nohub](#nohub)
+  - [nohup](#nohup)
+  - [task-spooler](#task-spooler)
 - [mem](#mem)
-  - [fincore](#fincore)
-  - [lspage](#lspage)
 - [lsof](#lsof)
   - [descriptor](#descriptor)
 - [vmstat](#vmstat)
@@ -582,12 +586,12 @@ sudo chmod +x /usr/bin/netcheck
 `systemctl list-units --all --plain --no-legend --no-pager | jc --systemctl -p`
 
 ### brew
-
-`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` установить менеджер пакетов brew (https://github.com/Homebrew/brew) для macOS/Linux \
-`echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.profile` \
-`eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"` \
-`brew --version`
-
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.profile`
+source ~/.profile
+brew --version
+```
 ### fx
 
 `brew install fx || snap install fx` установить fx (https://github.com/antonmedv/fx) TUI интерфейс для JSON на GoLang \
@@ -766,7 +770,7 @@ EOF
 
 ### ripgrep
 
-`apt-get install ripgrep` установить ripgrep (https://github.com/BurntSushi/ripgrep), аналог grep на Rust \
+`apt-get install ripgrep` установить [ripgrep](https://github.com/BurntSushi/ripgrep), аналог grep на Rust \
 `cat /var/log/auth.log | rg sshd` вывести журнал логов аудентификации фильтрацией по названию \
 `cat /var/log/auth.log | rg "Accepted password for \w+ from \d+\.\d+\.\d+\.\d+"` вывести строки, где указано `Accepted password for`, далее любое слово (имя пользователя) и IP-адрес в формате x.x.x.x \
 `cat /var/log/auth.log | rg "user \w+\(uid=\d+\)"` вывести строки с текстом user, затем имя пользователя (любое слово), и далее `uid` с числовым значением в скобках \
@@ -774,9 +778,16 @@ EOF
 `cat /var/log/auth.log | rg "sshd\[\d+\]: .* port \d+"` вывести строки, содержащие sshd с идентификатором процесса (например, `sshd[4188420]`), а затем текст `port` и номер порта \
 `cat /var/log/auth.log | rg "\b12:\d{2}:\d{2}\b"` фильтрация по времени за последние 12 часов (время начинается с `12:`, затем две цифры для минут и две для секунд)
 
+### rga
+
+`apt install ripgrep fzf pandoc ffmpeg poppler-utils` установить зависимости \
+`brew install rga` установить [ripgrep-all](https://github.com/phiresky/ripgrep-all) и `rga-fzf` - инструмент для быстрого поиска в файлах по содержимому \
+`rga-fzf token` поиск ключевого слова `token` во всех файлах 
+`rga "fatal" /var/log/syslog*` поиск строк по слову `fatal` во всех файлах syslog (включая архивные)
+
 ### sig
 
-`brew install ynqa/tap/sigrs` установить sig (https://github.com/ynqa/sig) интерактивный grep на Rust \
+`brew install ynqa/tap/sigrs` установить [sig](https://github.com/ynqa/sig) интерактивный `grep` на Rust \
 `curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/README.md > README.md` \
 `cat README.md |& sig -a`
 
@@ -1011,8 +1022,6 @@ EOF
 `echo "line2" | tee -a test.txt` добавить (>>) текст новой стройокй в конец файла \
 `echo -e "line3\nline4" >> test.txt` добавить две новые строки
 
-`du -a /var/log | awk '{print $2}' | xargs fincore` передать вывод первой команды построчно в аргументы следующей
-
 `split -l 100 input_file.txt output_prefix` разделить файл на части по 100 строк в каждой \
 `split -b 10M input_file.txt output_prefix` разделить файл на части по указанному размеру (например, 10MB)
 
@@ -1020,7 +1029,7 @@ EOF
 
 ## dust
 
-`snap install dust` аналог du на Rust (https://github.com/bootandy/dust) \
+`snap install dust` установить [dust](https://github.com/bootandy/dust) - альтернатива `du` на Rust \
 `dust /home/lifailon` выводит график используемого пространства по директориям и файлам для анализа занятого пространства \
 `dust -s` показывает размер файла, а не объем используемого им дискового пространства \
 `dust -n 30` выводит 30 каталогов (по умолчанию — высота терминала) \
@@ -1037,7 +1046,19 @@ EOF
 `dust -j  | jq` вывод в формате `JSON` \
 `dust -P` отключить индикатор прогресса
 
-## find
+## fd
+
+`apt install fd-find` установить [fd](https://github.com/sharkdp/fd)  быстрая альтернатива `find` на Rust \
+`fdfind` без аргументов заменяет `ls -R` для рекурсивного поиска в текущем каталоге \
+`fdfind log /var` ищет в указанной директории по частичному совпадению \
+`fdfind -tf "\.yaml$" / | fzf` ищет все файлы (`--type file` или директории `--type directory`) с расширением `.yaml` с корня с выводов в `fzf` \
+`fdfind --type file -H pre-commit` поиск скрытых файлов \
+`fdfind --type f -e pdf . $HOME | rofi -keep-right -dmenu -i -p FILES -multi-select | xargs -I {} xdg-open {}` интеграция с rofi (графическое меню) \
+`fd -e zip -x unzip` рекурсивно найти все zip-архивы и распаковать их
+
+## findutils
+
+### find
 
 `find / -name "*.sql"` найти файлы, начать поиск с корня (/) \
 `find / -iname "mysql"` найти файлы не учитывая регистр (-i) \
@@ -1062,8 +1083,9 @@ EOF
 
 ### locate
 
-`apt install plocate` \
+`apt install plocate` альтернатива стандартного `mlocate` с более быстрым и меньшим по размеру индексом \
 `updatedb` обновить индексы базы данных \
+`ls -lh /var/lib/[mp]locate/*.db` проверить размер базы данных \
 `locate .torrent` найти по частичному совпадению в имени или расширению \
 `locate .torrent -c` отображает количество найденных результатов \
 `locate -n 10 .torrent` вывести 10 результатов \
@@ -1076,17 +1098,27 @@ sudo chmod +x /usr/bin/locate
 `locate-linux -p /home/lifailon/ -q /qbittorrent` \
 `locate-linux -p /home/lifailon/.bash_history -q /qbittorrent`
 
-### fd
+### xargs
 
-`apt install fd-find` установка (https://github.com/sharkdp/fd) \
-`fdfind` без аргументов заменяет ls -R для рекурсивного поиска в текущем каталоге \
-`fdfind pass /etc` ищет в указанной директории по частичному совпадению \
-`fdfind -H pre-commit` поиск скрытых файлов \
-`fdfind .yaml / | fzf` ищет все файлы с корня с выводов в fzf \
-`sudo fdfind .yaml / | fzf` отобразит все результаты поиска \
-`fdfind --type f -e pdf . $HOME | rofi -keep-right -dmenu -i -p FILES -multi-select | xargs -I {} xdg-open {}` интеграция с rofi (графическое меню) \
-`fd -e zip -x unzip` рекурсивно найти все zip-архивы и распаковать их
+`echo {1..10} | xargs -n1 -P4 bash -c 'echo Start task $1 && sleep $1 && echo Complate task $1' _` принимает 1 аргумент и запускат до 4-х потоков за раз
 
+`du -a /var/log | awk '{print $2}' | xargs fincore` передать вывод первой команды (построчно) в аргументы следующей
+
+## fincore
+
+`sudo apt install util-linux-extra` \
+`fincore /var/log/*` отобразить все файлы, которые находятся в кэше страниц оперативной памяти (page cache) \
+`fincore /var/log/syslog` 4.3M (данные файла, хранящиеся в памяти) 1100 (кол-во страниц хранящиеся в памяти PageCache) 199.7M (размер файла) \
+`fincore /var/log/syslog -J` вывод в JSON (--raw вывод без табулияции, --noheadings без заголовков, --byte размер файла в байтах) \
+`apt install vmtouch` \
+`vmtouch /var/log/syslog` узнать какой процент указанного файла находится в страничном кеше (Resident Pages: 1100/51119  4M/199M  2.15%)
+
+### lspage
+```bash
+fc=$(du -a $1 2> /dev/null | awk '{print $2}' | xargs fincore 2> /dev/null)
+echo -e "PAGE\tSIZE\tPATH"
+printf "%s\n" "${fc[@]}" | grep -wvE "0B|SIZE" | awk 'BEGIN {OFS="\t"}; {print $1,$3,$4}'
+```
 ## bashrc
 
 `nano ~/.bashrc`
@@ -1095,24 +1127,20 @@ sudo chmod +x /usr/bin/locate
 alias tspin=tailspin
 alias ts=tailspin
 
-function Out-TailSpin() {
-     "$@" | ts
-}
-alias cot="Out-TailSpin cat"
-
-# Забиндить очистку ввода на Ctrl+C
+# Забиндить очистку ввода на Ctrl+L
 bind '"\C-l": "^\C-u\C-mclear\C-m"'
 
 # Определить переменную окружения, доступную для дочерних процессов, запущенных в текущей сессии
 # Игнорировать запись в историю команд, которые начинаются с пробела
 export HISTCONTROL=ignorespace
+
 # Добавить фильтрацию по введеному тексту в истории команд при испоьзовании стрелочек вверх и вниз
 if [[ "$-" == *i* ]]; then
     bind '"\e[A": history-search-backward'
     bind '"\e[B": history-search-forward'
 fi
 ```
-`source ~/.bashrc` применить политики
+`source ~/.bashrc` применить политики (перечитать профиль)
 
 ### oh-my-bash
 
@@ -1166,13 +1194,12 @@ PS1+='\[\e[34m\]> \[\e[0m\]'
 `apt install fzf` установить [fzf](https://github.com/junegunn/fzf) \
 `history | fzf` интерактивный поиск с фильтрацией \
 `eval $(history | fzf | awk '{print $2}')` выполнить (eval) выбранную команду из списка (добавить в макрос) \
-`find / -name "*.yaml" | fzf | xargs cat` найти в системе все файлы yaml и запустить по ним поиск
+`find / -name "*.yaml" | fzf | xargs cat` найти в системе все файлы `yaml`, запустить по ним поиск и передача в `cat` для чтения выбранного файла
+
+Поиск по истории команд с помощью функции `hstr` или псевдонима `h` и комбинации `Ctrl+R` через `fzf`:
 ```bash
-tee -a "$HOME/.bashrc" << 'EOF'
-# Поиск по истории команд с помощью команды h и комбинации Ctrl+R через fzf
-export PROMPT_COMMAND='history -a;'
 if command -v fzf > /dev/null; then
-    function hstr {
+    function hstr() {
         local current_input="$READLINE_LINE"
         command=$(tac $HOME/.bash_history | sed '/^#/d' | awk '!seen[$0]++' |  fzf --height 20 --reverse --query="$current_input" | sed -r "s/^\s+[0-9]+\s+[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\s//")
         if [[ -n "$command" ]]; then
@@ -1183,9 +1210,13 @@ if command -v fzf > /dev/null; then
     alias h=hstr
     bind -x '"\C-r": h'
 fi
-# Kill jobs over fzf
+```
+
+Kill jobs over fzf:
+
+```bash
 if command -v fzf > /dev/null; then
-    function jobKill {
+    function jobKill() {
         pid=$(jobs -l | fzf --height 20 --reverse --preview "echo {}" --preview-window down | awk '{print $2}')
         if [[ -n "$pid" ]]; then
             READLINE_LINE="kill -9 $pid"
@@ -1194,7 +1225,6 @@ if command -v fzf > /dev/null; then
     }
     bind -x '"\C-j": jobKill'
 fi
-EOF
 ```
 ### fzf-obc
 
@@ -2607,11 +2637,20 @@ done
 `disown %1` завершить последнию (если она первая) запущенную задачу \
 `kill %1` завершить последнию запущенную задачу
 
-### nohub
+### nohup
 
 `nohup ping ya.ru > ping.log &` используется для запуска процесса, который продолжает работать, даже если пользователь выйдет из сеанса (например, при закрытии терминала) \
 `ps -ef | grep "ping ya.ru"` найти процесс \
 `kill $(pgrep ping)` завершить процесс
+
+### task-spooler
+
+`sudo apt install task-spooler` \
+`tsp sleep 10 && echo ok` создать задачу \
+`tsp -l` отобразить список задач \
+`tsp -s 0` отобразить статус задачи \
+`tsp -t 0` вывести вывод работы задачи (в режиме `tail`) \
+`tsp -C` очистить все выполненные (со статусом `finished`) задачи
 
 ## mem
 
@@ -2623,20 +2662,6 @@ done
 `cat /proc/meminfo | grep -iE "^cache|^buff"` объем кэша и буфера \
 `echo 1 > /proc/sys/vm/drop_caches` отправить сигнал на вход drop_caches для очистки страничного кэша (free buff/cache) - PageCache (сигнал 1) \
 `echo 2 > /proc/sys/vm/drop_caches` очистка кэша структуры файловой системы - inode, dentrie (сигнал 2)
-
-### fincore
-
-`fincore /var/log/*` отобразить все файлы, которые находятся в кэше страниц оперативной памяти (page cache) \
-`fincore /var/log/syslog` 4.3M (данные файла, хранящиеся в памяти) 1100 (кол-во страниц хранящиеся в памяти PageCache) 199.7M (размер файла) \
-`fincore /var/log/syslog -J` вывод в JSON (--raw вывод без табулияции, --noheadings без заголовков, --byte размер файла в байтах) \
-`apt install vmtouch` \
-`vmtouch /var/log/syslog` узнать какой процент указанного файла находится в страничном кеше (Resident Pages: 1100/51119  4M/199M  2.15%)
-
-### lspage
-
-`fc=$(du -a $1 2> /dev/null | awk '{print $2}' | xargs fincore 2> /dev/null)` \
-`echo -e "PAGE\tSIZE\tPATH"` \
-`printf "%s\n" "${fc[@]}" | grep -wvE "0B|SIZE" | awk 'BEGIN {OFS="\t"}; {print $1,$3,$4}'`
 
 ## lsof
 
