@@ -57,6 +57,7 @@
 - [tools](#tools)
 - [dust](#dust)
 - [fd](#fd)
+  - [fd-fzf](#fd-fzf)
 - [findutils](#findutils)
   - [find](#find)
   - [exec](#exec)
@@ -1056,6 +1057,27 @@ EOF
 `fdfind --type f -e pdf . $HOME | rofi -keep-right -dmenu -i -p FILES -multi-select | xargs -I {} xdg-open {}` интеграция с rofi (графическое меню) \
 `fd -e zip -x unzip` рекурсивно найти все zip-архивы и распаковать их
 
+### fd-fzf
+```bash
+# fdfind over fzf
+if command -v fzf > /dev/null; then
+    function fd-fzf(){
+        if [ -z "$1" ]; then
+            # Current path by default
+            fdfind . ${pwd} | fzf
+        else
+            # Specified path
+            fdfind . $1 | fzf
+        fi
+    }
+    # Ctrl+F for fd-fzf
+    bind '"\ef": "fd-fzf\n"'
+    # Ctrl+Shift+F for rga-fzf
+    if command -v rga-fzf > /dev/null; then
+        bind '"\eF": "rga-fzf\n"'
+    fi
+fi
+```
 ## findutils
 
 ### find
