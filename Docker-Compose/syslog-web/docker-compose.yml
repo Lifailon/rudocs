@@ -1,0 +1,18 @@
+services:
+  syslog-web:
+    container_name: syslog-web
+    image: lifailon/syslog-web:latest
+    build:
+      context: .
+      dockerfile: dockerfile
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT}
+      - USERNAME=${USERNAME}
+      - PASSWORD=${PASSWORD}
+    ports:
+      - "${PORT}:${PORT}"

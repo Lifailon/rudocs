@@ -44,8 +44,10 @@ services:
     image: prom/node-exporter:latest
     container_name: node-exporter
     restart: unless-stopped
+    # ports:
+    #   - 9100:9100
 
-  # Агент для сбора метрик контейнеров Docker
+  # Агент для сбора метрик из контейнеров Docker
   # Grafana import dashboard id: 13496 (https://grafana.com/grafana/dashboards/13496-docker-and-system-monitoring)
   # cadvisor:
   #   image: gcr.io/cadvisor/cadvisor:latest
@@ -57,7 +59,7 @@ services:
   #     - /sys:/sys:ro
   #     - /var/lib/docker/:/var/lib/docker:ro
 
-  # Легковесный агент для сбора базовых и кастомных метрик контейнеров Docker
+  # Легковесный агент для сбора базовых и кастомных метрик из контейнеров Docker
   # Grafana import dashboard id: 23573 (https://grafana.com/grafana/dashboards/23573-docker-exporter-logporter)
   logporter:
     image: lifailon/logporter:latest
@@ -65,8 +67,8 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports:
-      - 9333:9333
+    # ports:
+    #   - 9333:9333
 
 volumes:
   grafana_data:

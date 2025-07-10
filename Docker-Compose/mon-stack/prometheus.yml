@@ -23,6 +23,7 @@ scrape_configs:
     static_configs:
       - targets: 
         - node-exporter:9100
+        # - 192.168.3.106:9100
 
   # Docker
 
@@ -37,7 +38,8 @@ scrape_configs:
     static_configs:
       - targets:
         - logporter:9333
-        - 192.168.3.100:9333
+        # - 192.168.3.100:9333
+        # - 192.168.3.106:9333
 
   # - job_name: watchtower
   #   metrics_path: /v1/metrics
