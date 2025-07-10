@@ -8420,12 +8420,13 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 | [Active Choices](https://plugins.jenkins.io/uno-choice)                       | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                            |
 | [File parameters](https://plugins.jenkins.io/file-parameters)                 | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).          |
 | [ANSI Color](https://plugins.jenkins.io/ansicolor)                            | Добавляет поддержку стандартных escape-последовательностей ANSI для покраски вывода.                          |
+| [Rebuilder](https://plugins.jenkins.io/rebuild)                               | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке.         |
+| [Schedule Build](https://plugins.jenkins.io/schedule-build)                   | Позволяет запланировать сборку на указанный момент времени.                                                   |
 | [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)      | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.    |
 | [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                   | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.                |
-| [Web Monitoring](https://plugins.jenkins.io/monitoring)                       | Конечная точка `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                           |
+| [Web Monitoring](https://plugins.jenkins.io/monitoring)                       | Добавляет конечную точку `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                 |
+| [Email Extension](https://plugins.jenkins.io/email-ext)                       | Плагин для отправки сообщений на почту из Pipeline.                                                           |
 | [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status) | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                     |
-| [Schedule Build](https://plugins.jenkins.io/schedule-build)                   | Позволяет запланировать сборку на указанный момент времени.                                                   |
-| [Email Extension](https://plugins.jenkins.io/email-ext)                       | Плагин для отправки на почту из pipeline.                                                                     |
 | [Test Results Analyzer](https://plugins.jenkins.io/test-results-analyzer)     | Показывает историю результатов сборки junit тестов в табличном древовидном виде.                              |
 
 ### SSH Steps and Artifacts
