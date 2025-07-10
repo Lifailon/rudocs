@@ -9,6 +9,8 @@ services:
     ports:
       - 9090:8080
     environment:
-      DOZZLE_AUTH_PROVIDER: simple
-      # Доступ к удаленному хосту через Docker API (tcp socket)
-      # DOZZLE_REMOTE_HOST: tcp://192.168.3.102:2375|mon-01
+      - DOZZLE_AUTH_PROVIDER=simple
+      # Подключиться к удаленному хосту через Docker API (tcp socket)
+      # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
+      # Подключиться к удаленному хосту через Dozzle Agent
+      # - DOZZLE_REMOTE_AGENT=192.168.3.106:7007
