@@ -82,6 +82,9 @@
 - [sysctl](#sysctl)
 - [limits](#limits)
 - [quota](#quota)
+- [Bearstech](#bearstech)
+  - [pussh](#pussh)
+  - [quickbench](#quickbench)
 - [fetch](#fetch)
 - [networkmanager](#networkmanager)
 - [wireless](#wireless)
@@ -1070,9 +1073,9 @@ if command -v fzf > /dev/null; then
             fdfind . $1 | fzf
         fi
     }
-    # Ctrl+F for fd-fzf
+    # Alt+F for fd-fzf
     bind '"\ef": "fd-fzf\n"'
-    # Ctrl+Shift+F for rga-fzf
+    # Alt+Shift+F for rga-fzf
     if command -v rga-fzf > /dev/null; then
         bind '"\eF": "rga-fzf\n"'
     fi
@@ -1791,6 +1794,29 @@ dd: error writing '/tmp/test.file': Disk quota exceeded
 ```
 -rw-rw-r-- 1 lifailon lifailon 113M Sep 26 14:37 /tmp/test.file
 ```
+## Bearstech
+
+### pussh
+
+[Pussh](https://github.com/bearstech/pussh) — инструмент для параллельного выполнения команд через SSH на нескольких хостах одновременно, выводя результаты с указанием имени каждого хоста. Был внутренним инструментом Bearstech (хостинг-провайдер в Париже, Франция) примерно с 2008 года.
+```bash
+mkdir -p $HOME/.local/bin
+sudo curl -s https://raw.githubusercontent.com/bearstech/pussh/refs/heads/master/pussh -o $HOME/.local/bin/pussh
+sudo chmod +x $HOME/.local/bin
+
+bash pussh -h root@192.168.3.102,root@192.168.3.103 uname -a
+
+echo -e "root@192.168.3.102\nroot@192.168.3.103" > host.list
+pussh -f host.list uname -a
+```
+### quickbench
+
+[quickbench](https://github.com/bearstech/quickbench) - скрипт без зависимостей для оценки базовой производительности.
+
+```bash
+curl -sSL https://raw.githubusercontent.com/bearstech/quickbench/refs/heads/main/quickbench | bash
+```
+
 ## fetch
 
 Набор скриптов, для быстрого получения информации о системе без установки:
