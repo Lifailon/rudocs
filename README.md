@@ -140,7 +140,6 @@
 - [Pester](posh.md/#pester)
 - [PSAppDeployToolkit](posh.md/#psappdeploytoolkit)
 - [DSC](posh.md/#dsc)
-- [pussh](posh.md/#pussh)
 - [Sake](posh.md/#sake)
 - [Puppet](posh.md/#puppet)
 - [Ansible](posh.md/#ansible)

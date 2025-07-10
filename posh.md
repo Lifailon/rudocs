@@ -436,7 +436,6 @@
     - [Uninstall-Notepad-Plus-Plus](#uninstall-notepad-plus-plus)
     - [Deploy-WinSCP](#deploy-winscp)
 - [DSC](#dsc)
-- [pussh](#pussh)
 - [Sake](#sake)
 - [Puppet](#puppet)
     - [Bolt](#bolt)
@@ -8417,15 +8416,16 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 
 | Плагин                                                                        | Описание                                                                                                      |
 | -                                                                             | -                                                                                                             |
-| [Web Monitoring](https://plugins.jenkins.io/monitoring)                       | Конечная точка `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                           |
-| [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                   | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.                |
-| [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status) | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                     |
-| [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)      | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.    |
 | [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                    | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                            |
 | [Active Choices](https://plugins.jenkins.io/uno-choice)                       | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                            |
 | [File parameters](https://plugins.jenkins.io/file-parameters)                 | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).          |
-| [Email Extension](https://plugins.jenkins.io/email-ext)                       | Плагин для отправки на почту из pipeline.                                                                     |
+| [ANSI Color](https://plugins.jenkins.io/ansicolor)                            | Добавляет поддержку стандартных escape-последовательностей ANSI для покраски вывода.                          |
+| [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)      | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.    |
+| [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                   | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.                |
+| [Web Monitoring](https://plugins.jenkins.io/monitoring)                       | Конечная точка `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                           |
+| [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status) | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                     |
 | [Schedule Build](https://plugins.jenkins.io/schedule-build)                   | Позволяет запланировать сборку на указанный момент времени.                                                   |
+| [Email Extension](https://plugins.jenkins.io/email-ext)                       | Плагин для отправки на почту из pipeline.                                                                     |
 | [Test Results Analyzer](https://plugins.jenkins.io/test-results-analyzer)     | Показывает историю результатов сборки junit тестов в табличном древовидном виде.                              |
 
 ### SSH Steps and Artifacts
@@ -9363,18 +9363,6 @@ Configuration InstallPowerShellCore {
 `Start-DscConfiguration -Path $path -Wait -Verbose` \
 `Get-Job`
 
-# pussh
-
-[Pussh](https://github.com/bearstech/pussh) — инструмент для параллельного выполнения команд через SSH на нескольких хостах одновременно, выводя результаты с указанием имени каждого хоста. Был внутренним инструментом Bearstech (хостинг-провайдер в Париже, Франция) примерно с 2008 года.
-```bash
-sudo curl -s https://raw.githubusercontent.com/bearstech/pussh/refs/heads/master/pussh -o /usr/bin/pussh
-sudo chmod +x /usr/bin/pussh
-
-bash pussh -h root@192.168.3.102,root@192.168.3.103 uname -a
-
-echo -e "root@192.168.3.102\nroot@192.168.3.103" > host.list
-pussh -f host.list uname -a
-```
 # Sake
 
 [Sake](https://github.com/alajmo/sake) - это командный раннер для локальных и удаленных хостов. Вы определяете серверы и задачи в файле `sake.yaml`, а затем запускаете задачи на серверах.
