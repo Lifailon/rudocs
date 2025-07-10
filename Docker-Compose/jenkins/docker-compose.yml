@@ -32,6 +32,8 @@ services:
     user: "1000:1000"
     volumes:
       - ./jenkins_agent:/home/jenkins
+      # Пробрасываем ssh ключ с хостовой системы
+      - $HOME/.ssh/id_rsa:/home/jenkins/.ssh/id_rsa
     labels:
       # Отключаем автоматическое обновление образа через Watchtower (не поддерживается при использовании build из dockerfile)
       - "com.centurylinklabs.watchtower.enable=false"
