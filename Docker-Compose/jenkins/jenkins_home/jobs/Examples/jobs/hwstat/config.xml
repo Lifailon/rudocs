@@ -1,12 +1,10 @@
 <?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+<flow-definition plugin="workflow-job@1540.v295eccc9778f">
   <actions>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93"/>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2221.vc657003fb_d93">
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2255.v56a_15e805f12"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2255.v56a_15e805f12">
       <jobProperties/>
-      <triggers>
-        <string>hudson.triggers.TimerTrigger</string>
-      </triggers>
+      <triggers/>
       <parameters>
         <string>address</string>
         <string>port</string>
@@ -25,7 +23,7 @@
         <hudson.model.StringParameterDefinition>
           <name>address</name>
           <description>Адрес удаленного сервера</description>
-          <defaultValue>192.168.3.101</defaultValue>
+          <defaultValue>192.168.3.105</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -52,31 +50,24 @@
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <hudson.triggers.TimerTrigger>
-          <spec>H */6 * * 1-5</spec>
-        </hudson.triggers.TimerTrigger>
-      </triggers>
-    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4018.vf02e01888da_f">
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4150.ve20ca_b_a_a_2815">
     <script>// Глобальный массив для хранения данных подключения по ssh 
 def remote = [:]
 
 pipeline {
     agent { label &apos;local-agent&apos; }
     parameters {
-        string(name: &apos;address&apos;, defaultValue: &apos;192.168.3.101&apos;, description: &apos;Адрес удаленного сервера&apos;)
+        string(name: &apos;address&apos;, defaultValue: &apos;192.168.3.105&apos;, description: &apos;Адрес удаленного сервера&apos;)
         // choice(name: &quot;addresses&quot;, choices: [&quot;192.168.3.101&quot;,&quot;192.168.3.102&quot;], description: &quot;Выберите сервер из выпадающего списка&quot;)
         string(name: &apos;port&apos;, defaultValue: &apos;2121&apos;, description: &apos;Порт ssh&apos;)
         string(name: &apos;credentials&apos;, defaultValue: &apos;d5da50fc-5a98-44c4-8c55-d009081a861a&apos;, description: &apos;Идентификатор учетных данных из Jenkins&apos;)
         booleanParam(name: &quot;root&quot;, defaultValue: false, description: &apos;Запуск с повышенными привилегиями&apos;)
         booleanParam(name: &quot;report&quot;, defaultValue: true, description: &apos;Выгружать отчет в формате json&apos;)
     }
-    triggers {
-        cron(&apos;H */6 * * 1-5&apos;) // выполнять запуск каждын 6 часов с понедельника по пятницу
-    }
+    // triggers {
+    //     cron(&apos;H */6 * * 1-5&apos;) // выполнять запуск каждын 6 часов с понедельника по пятницу
+    // }
     options {
         timeout(time: 5, unit: &apos;MINUTES&apos;) // период ожидания, после которого нужно прервать Pipeline
         retry(2) // в случае неудачи повторить весь Pipeline указанное количество раз
