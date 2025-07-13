@@ -1,0 +1,15 @@
+services:
+  OpenRouter-Bot:
+    container_name: OpenRouter-Bot
+    image: lifailon/openrouter-bot:latest
+    volumes:
+      - ./openrouter-bot.env:/openrouter-bot/.env
+    restart: unless-stopped
+
+  ssh-bot:
+    container_name: ssh-bot
+    image: lifailon/ssh-bot:latest
+    volumes:
+      - ./ssh-bot.env:/ssh-bot/.env
+      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+    restart: unless-stopped
