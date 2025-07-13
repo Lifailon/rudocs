@@ -8,7 +8,7 @@ services:
     command: "agent -server -bootstrap-expect=1 -client=0.0.0.0"
     volumes:
       - ./consul_data:/consul/data
-      - ./consul.hcl:/consul/config/consul.hcl
+      - ./consul.hcl.config:/consul/config/consul.hcl
 
   vault:
     image: hashicorp/vault:latest

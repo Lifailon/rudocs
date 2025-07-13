@@ -6,7 +6,13 @@ services:
       - "8888:80"
     volumes:
       - /home/lifailon:/srv
-      - ./filebrowser.db:/database.db # touch filebrowser.db
+      # Предварительно создать файл бд или Docker создаст директорию
+      # touch ./filebrowser.db
+      - ./filebrowser.db:/database.db
       - ./filebrowser.json:/.filebrowser.json
-    user: "1000:1000" # id -u && id -g
+    user: "1000:1000"
     restart: unless-stopped
+
+# login: admin
+# password from docker logs file-browser
+# Randomly generated password for user 'admin': u71Dlf8Bi812CFgi

@@ -1,7 +1,0 @@
-# Получить пароль в формате sha-256
-# echo -n DozzleAdmin | shasum -a 256
-
-users:
-  admin:
-    name: "admin"
-    password: "a800c3ee4dac5102ed13ba673589077cf0a87a7ddaff59882bb3c08f275a516e"
