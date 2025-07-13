@@ -6,7 +6,7 @@ services:
     container_name: grafana
     restart: unless-stopped
     ports:
-      - '9091:3000'
+      - 9091:3000
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -23,20 +23,20 @@ services:
       - ./alert-rules.yml:/etc/prometheus/alert.yml
       - prometheus_data:/prometheus
     ports:
-      - '9092:9090'
+      - 9092:9090
 
   # Система оповещений в Telegram
   alertmanager:
     image: prom/alertmanager
     container_name: alertmanager
     command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - --config.file=/etc/alertmanager/alertmanager.yml
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
-    ports:
-      - 9093:9093
+    # ports:
+    #   - 9093:9093
 
   # Агент для сбора системных метрик
   # Grafana import dashboard id: 1860 (https://grafana.com/grafana/dashboards/1860-node-exporter-full)
@@ -58,6 +58,8 @@ services:
   #     - /var/run:/var/run:rw
   #     - /sys:/sys:ro
   #     - /var/lib/docker/:/var/lib/docker:ro
+  #   ports:
+  #     - 9094:8080
 
   # Легковесный агент для сбора базовых и кастомных метрик из контейнеров Docker
   # Grafana import dashboard id: 23573 (https://grafana.com/grafana/dashboards/23573-docker-exporter-logporter)
