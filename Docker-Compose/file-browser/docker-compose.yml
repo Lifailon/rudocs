@@ -1,16 +1,16 @@
+# mkdir database/ settings/ && chown -R 1000:1000 database/ settings/
+
 services:
   file-browser:
     image: filebrowser/filebrowser
     container_name: file-browser
     ports:
-      - "8888:80"
+      - 8888:80
     volumes:
-      - /home/lifailon:/srv
-      # Предварительно создать файл бд или Docker создаст директорию
-      # touch ./filebrowser.db
-      - ./filebrowser.db:/database.db
-      - ./filebrowser.json:/.filebrowser.json
-    user: "1000:1000"
+      - /home/lifailon:/srv   # root directory
+      - ./database:/database  # filebrowser.db
+      - ./settings:/config    # settings.json
+    user: 1000:1000
     restart: unless-stopped
 
 # login: admin
