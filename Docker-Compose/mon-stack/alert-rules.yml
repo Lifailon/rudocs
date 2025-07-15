@@ -2,78 +2,54 @@ groups:
 - name: temperature
   rules:
   - alert: TEMP_WARN
-    expr: node_hwmon_temp_celsius{sensor="temp0"} > 65
+    expr: node_hwmon_temp_celsius{sensor="temp0"} > 70
     for: 5m
     labels:
       severity: warning
     annotations:
-      description: "Температура выше 65 градусов в течение 5 минут"
-
-  - alert: TEMP_ERR
-    expr: node_hwmon_temp_celsius{sensor="temp0"} > 70
-    for: 1m
-    labels:
-      severity: error
-    annotations:
-      description: "Температура выше 70 градусов в течение 1 минуты"
+      description: "Температура выше 70 градусов в течение 5 минут"
 
   - alert: TEMP_CRIT
     expr: node_hwmon_temp_celsius{sensor="temp0"} > 75
-    for: 1m
+    for: 5m
     labels:
       severity: critical
     annotations:
-      description: "Температура выше 75 градусов в течение 1 минуты"
+      description: "Температура выше 75 градусов в течение 5 минут"
 
 - name: processor
   rules:
   - alert: CPU_SYSTEM_WARN
-    expr: rate(node_cpu_seconds_total{mode="system"}[5m]) > 0.5
+    expr: avg(rate(node_cpu_seconds_total{mode="system"}[5m])) by (instance) > 0.5
     for: 1m
     labels:
       severity: warning
     annotations:
       description: "Системная нагрузка на процессор выше 50% в течение 1 минуты"
 
-  - alert: CPU_SYSTEM_ERR
-    expr: rate(node_cpu_seconds_total{mode="system"}[5m]) > 0.8
-    for: 1m
-    labels:
-      severity: error
-    annotations:
-      description: "Системная нагрузка на процессор выше 80% в течение 1 минуты"
-
   - alert: CPU_SYSTEM_CRIT
-    expr: rate(node_cpu_seconds_total{mode="system"}[5m]) > 0.9
+    expr: avg(rate(node_cpu_seconds_total{mode="system"}[5m])) by (instance) > 0.8
     for: 1m
     labels:
       severity: critical
     annotations:
-      description: "Системная нагрузка на процессор выше 90% в течение 1 минуты"
+      description: "Системная нагрузка на процессор выше 80% в течение 1 минуты"
 
   - alert: CPU_USER_WARN
-    expr: rate(node_cpu_seconds_total{mode="user"}[5m]) > 0.5
+    expr: avg(rate(node_cpu_seconds_total{mode="user"}[5m])) by (instance) > 0.5
     for: 1m
     labels:
       severity: warning
     annotations:
       description: "Пользовательская нагрузка на процессор выше 50% в течение 1 минуты"
 
-  - alert: CPU_USER_ERR
-    expr: rate(node_cpu_seconds_total{mode="user"}[5m]) > 0.8
-    for: 1m
-    labels:
-      severity: error
-    annotations:
-      description: "Пользовательская нагрузка на процессор выше 80% в течение 1 минуты"
-
   - alert: CPU_USER_CRIT
-    expr: rate(node_cpu_seconds_total{mode="user"}[5m]) > 0.9
+    expr: avg(rate(node_cpu_seconds_total{mode="user"}[5m])) by (instance) > 0.8
     for: 1m
     labels:
       severity: critical
     annotations:
-      description: "Пользовательская нагрузка на процессор выше 90% в течение 1 минуты"
+      description: "Пользовательская нагрузка на процессор выше 80% в течение 1 минуты"
 
 - name: memory
   rules:
@@ -85,18 +61,41 @@ groups:
     annotations:
       description: "Объем доступной памяти меньше 50% в течение 1 минуты"
 
-  - alert: MEM_USAGE_ERR
-    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.2
-    for: 1m
-    labels:
-      severity: error
-    annotations:
-      description: "Объем доступной памяти меньше 20% в течение 1 минуты"
-
   - alert: MEM_USAGE_CRIT
-    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.2
     for: 1m
     labels:
       severity: critical
     annotations:
-      description: "Объем доступной памяти меньше 10% в течение 1 минуты"
+      description: "Объем доступной памяти меньше 20% в течение 1 минуты"
+
+- name: disk
+  rules:
+  - alert: DISK_USAGE_WARN
+    expr: node_filesystem_avail_bytes{mountpoint=~"/etc/hostname"}/1024/1024/1024 < 10
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Размер корневой файловой системы меньше 10 Гб"
+
+  - alert: DISK_USAGE_CRIT
+    expr: node_filesystem_avail_bytes{mountpoint=~"/etc/hostname"}/1024/1024/1024 < 5
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Размер корневой файловой системы меньше 5 Гб"
+
+- name: reboot
+  rules:
+  - alert: UPTIME_ERR
+    # Время загрузки изменилось за последние 5 минут
+    expr: changes(node_boot_time_seconds[5m]) > 0
+    # Сравнение с предыдущим значением (текущий uptime меньше, чем 5 минут назад)
+    # expr: (time() - node_boot_time_seconds) < (time() - node_boot_time_seconds offset 5m)
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      description: "Сервер был перезагружен"
