@@ -4,4 +4,4 @@ scrape_configs:
     scrape_timeout: 90s
     static_configs:
       - targets:
-        - '192.168.3.105:9798'
+        - 192.168.3.105:9798

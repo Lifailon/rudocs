@@ -71,4 +71,12 @@ scrape_configs:
   #   basic_auth:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 
+  # Speedtest
+  - job_name: speedtest-exporter
+    scrape_interval: 15m
+    scrape_timeout: 90s
+    static_configs:
+      - targets:
+        - 192.168.3.105:9798
+
 # docker-compose kill -s SIGHUP prometheus
