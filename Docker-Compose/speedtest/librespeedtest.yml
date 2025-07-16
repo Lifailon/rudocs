@@ -20,15 +20,3 @@ services:
       - ./librespeed/config:/config
     ports:
       - 8088:80
-
-  openspeedtest:
-    image: openspeedtest/latest:latest
-    restart: unless-stopped
-    container_name: openspeedtest
-    # environment:
-    #   - ENABLE_LETSENCRYPT=True
-    #   - DOMAIN_NAME=speedtest.domain.com
-    #   - USER_EMAIL=name@domain.com
-    ports:
-      - '3000:3000'
-      - '3001:3001' # HTTPS
