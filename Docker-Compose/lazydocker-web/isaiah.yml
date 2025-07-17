@@ -1,0 +1,14 @@
+services:
+  isaiah:
+    image: mosswill/isaiah:latest
+    container_name: isaiah
+    restart: unless-stopped
+    ports:
+      - "5052:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./isaiah_hosts_list:/docker_hosts
+    environment:
+      SERVER_PORT: "80"
+      AUTHENTICATION_SECRET: "secret"
+      # MULTI_HOST_ENABLED: "TRUE"

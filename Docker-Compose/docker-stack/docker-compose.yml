@@ -1,4 +1,20 @@
 services:
+  # Auto-update docker images and restart containers
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    environment:
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=rpi-105
+      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+      - WATCHTOWER_HTTP_API_TOKEN=demotoken
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 600 # --http-api-metrics # --http-api-token demotoken # --http-api-update
+    # ports:
+    #   - 9095:8080
+    restart: unless-stopped
+
   # Web interface for docker logs
   dozzle:
     image: amir20/dozzle:latest
@@ -15,6 +31,32 @@ services:
       # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
       # Подключиться к удаленному хосту через Dozzle Agent
       # - DOZZLE_REMOTE_AGENT=192.168.3.106:7007
+
+  # Web interface for container metrics
+  beszel-server:
+    image: henrygd/beszel:latest
+    container_name: beszel-server
+    restart: unless-stopped
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 8090:8090
+    volumes:
+      - ./beszel_data:/beszel_data
+
+  # Agent for get metrics from containers
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # Монтируем в директорию /extra-filesystems для мониторинг других дисков или разделов
+    # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro 
+    environment:
+      PORT: 45876
+      KEY: "Копируем публичный ключ из интерфейса и перезапускаем docker compose"
 
   # Web interface for docker compose
   dockge:
@@ -33,35 +75,4 @@ services:
       - DOCKGE_STACKS_DIR=/home/lifailon
       # Доступ к консоли dockge
       - DOCKGE_ENABLE_CONSOLE=true
-    restart: unless-stopped
-
-  # LazyDocker Web
-  # isaiah:
-  #   image: mosswill/isaiah:latest
-  #   container_name: isaiah
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5052:80"
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     # - ./isaiah_hosts_list:/docker_hosts
-  #   environment:
-  #     SERVER_PORT: "80"
-  #     AUTHENTICATION_SECRET: "secret"
-  #     # MULTI_HOST_ENABLED: "TRUE"
-
-  # Auto-update docker images and restart containers
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    environment:
-      - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=rpi-105
-      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
-      - WATCHTOWER_HTTP_API_TOKEN=demotoken
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 600 # --http-api-metrics # --http-api-token demotoken # --http-api-update
-    # ports:
-    #   - 9095:8080
     restart: unless-stopped
