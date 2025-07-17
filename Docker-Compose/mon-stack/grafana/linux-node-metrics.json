@@ -22733,8 +22733,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Linux Node Exporter",
+  "title": "Linux Node Metrics",
   "uid": "rYdddlPWk",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

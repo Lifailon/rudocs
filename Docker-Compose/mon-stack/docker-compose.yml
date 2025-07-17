@@ -1,6 +1,5 @@
 services:
   # Frontend для отображения метрик
-  # Connection data sources: http://prometheus:9090
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -10,8 +9,27 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      # - GF_DATABASE_TYPE=postgres
+      # - GF_DATABASE_HOST=postgres:5432
+      # - GF_DATABASE_NAME=grafana
+      # - GF_DATABASE_USER=grafana
+      # - GF_DATABASE_PASSWORD=grafana
+      # - GF_DATABASE_SSL_MODE=disable
     volumes:
       - grafana_data:/var/lib/grafana
+
+  # postgres:
+  #   image: postgres:latest
+  #   container_name: postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: grafana
+  #     POSTGRES_USER: grafana
+  #     POSTGRES_PASSWORD: grafana
+  #   volumes:
+  #     - ./postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - 5432:5432
 
   # Backend для хранения метрик
   prometheus:
@@ -72,6 +90,29 @@ services:
     # ports:
     #   - 9333:9333
 
+  # Система агригации логов
+  # api: http://loki-server:3100/loki/api/v1/labels
+  loki-server:
+    image: grafana/loki:latest
+    container_name: loki-server
+    user: "root"
+    volumes:
+      - loki_data:/loki
+    ports:
+      - 3100:3100
+
+  # Агент для сбора логов
+  loki-promtail:
+    image: grafana/promtail:latest
+    container_name: loki-promtail
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./loki-promtail.yml:/etc/promtail/promtail.yml
+    command: -config.file=/etc/promtail/promtail.yml
+
 volumes:
   grafana_data:
   prometheus_data:
+  loki_data:
