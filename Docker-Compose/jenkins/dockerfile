@@ -29,5 +29,6 @@ RUN chown -R jenkins:jenkins /home/jenkins
 
 USER jenkins
 
+# Переменные для запуска передаются через environment в docker-compose
 # /opt/java/openjdk/bin/java -jar /usr/share/jenkins/agent.jar -secret $JENKINS_SECRET -name $JENKINS_AGENT_NAME -url $JENKINS_URL
 ENTRYPOINT ["/usr/local/bin/jenkins-agent"]

@@ -1,0 +1,210 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1540.v295eccc9778f">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2255.v56a_15e805f12"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2255.v56a_15e805f12">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>Repos</string>
+        <string>Versions</string>
+        <string>Files</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@338.va_0a_b_50e29397">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <org.biouno.unochoice.ChoiceParameter plugin="uno-choice@2.8.8">
+          <name>Repos</name>
+          <description>Select repository.</description>
+          <randomName>choice-parameter-939313386570676</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>
+                        return [
+                            &apos;Lifailon/lazyjournal&apos;,
+                            &apos;jesseduffield/lazydocker&apos;
+                        ]
+                    </script>
+              <sandbox>true</sandbox>
+            </secureScript>
+          </script>
+          <choiceType>PT_RADIO</choiceType>
+          <filterable>false</filterable>
+        </org.biouno.unochoice.ChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.8">
+          <name>Versions</name>
+          <description>Select version.</description>
+          <randomName>choice-parameter-939313387241953</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>
+                        import groovy.json.JsonSlurper
+                        def selectedRepo = Repos
+                        def apiUrl = &quot;https://api.github.com/repos/${selectedRepo}/tags&quot;
+                        def conn = new URL(apiUrl).openConnection()
+                        conn.setRequestProperty(&quot;User-Agent&quot;, &quot;Jenkins&quot;)
+                        def response = conn.getInputStream().getText()
+                        def json = new JsonSlurper().parseText(response)
+                        def versionsCount = json.size()
+                        def data = []
+                        for (int i = 0; i &lt; versionsCount; i++) {
+                            data += json.name[i]
+                        }
+                        return data
+                    </script>
+              <sandbox>true</sandbox>
+            </secureScript>
+          </script>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>Repos</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>true</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.8">
+          <name>Files</name>
+          <description>Select file.</description>
+          <randomName>choice-parameter-939313387758008</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1373.vb_b_4a_a_c26fa_00">
+              <script>
+                        import groovy.json.JsonSlurper
+                        def selectedRepo = Repos
+                        def selectedVer = Versions
+                        def apiUrl = &quot;https://api.github.com/repos/${selectedRepo}/releases/tags/${selectedVer}&quot;
+                        def conn = new URL(apiUrl).openConnection()
+                        conn.setRequestProperty(&quot;User-Agent&quot;, &quot;Jenkins&quot;)
+                        def response = conn.getInputStream().getText()
+                        def json = new JsonSlurper().parseText(response)
+                        def data = []
+                        for (file in json.assets) {
+                            data += file.name
+                        }
+                        return data
+                    </script>
+              <sandbox>true</sandbox>
+            </secureScript>
+          </script>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>Repos,Versions</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>true</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4151.v5406e29e3c90">
+    <script>pipeline {
+    agent any
+        parameters {
+        activeChoice(
+            name: &apos;Repos&apos;,
+            description: &apos;Select repository.&apos;,
+            choiceType: &apos;PT_RADIO&apos;,
+            filterable: false,
+            script: [
+                $class: &apos;GroovyScript&apos;,
+                script: [
+                    sandbox: true,
+                    script: &apos;&apos;&apos;
+                        return [
+                            &apos;Lifailon/lazyjournal&apos;,
+                            &apos;jesseduffield/lazydocker&apos;
+                        ]
+                    &apos;&apos;&apos;
+                ]
+            ]
+        )
+        reactiveChoice(
+            name: &apos;Versions&apos;,
+            description: &apos;Select version.&apos;,
+            choiceType: &apos;PT_SINGLE_SELECT&apos;,
+            filterable: true,
+            filterLength: 1,
+            script: [
+                $class: &apos;GroovyScript&apos;,
+                script: [
+                    sandbox: true,
+                    script: &apos;&apos;&apos;
+                        import groovy.json.JsonSlurper
+                        def selectedRepo = Repos
+                        def apiUrl = &quot;https://api.github.com/repos/${selectedRepo}/tags&quot;
+                        def conn = new URL(apiUrl).openConnection()
+                        conn.setRequestProperty(&quot;User-Agent&quot;, &quot;Jenkins&quot;)
+                        def response = conn.getInputStream().getText()
+                        def json = new JsonSlurper().parseText(response)
+                        def versionsCount = json.size()
+                        def data = []
+                        for (int i = 0; i &lt; versionsCount; i++) {
+                            data += json.name[i]
+                        }
+                        return data
+                    &apos;&apos;&apos;
+                ]
+            ],
+            referencedParameters: &apos;Repos&apos;
+        )
+        reactiveChoice(
+            name: &apos;Files&apos;,
+            description: &apos;Select file.&apos;,
+            choiceType: &apos;PT_SINGLE_SELECT&apos;,
+            filterable: true,
+            filterLength: 1,
+            script: [
+                $class: &apos;GroovyScript&apos;,
+                script: [
+                    sandbox: true,
+                    script: &apos;&apos;&apos;
+                        import groovy.json.JsonSlurper
+                        def selectedRepo = Repos
+                        def selectedVer = Versions
+                        def apiUrl = &quot;https://api.github.com/repos/${selectedRepo}/releases/tags/${selectedVer}&quot;
+                        def conn = new URL(apiUrl).openConnection()
+                        conn.setRequestProperty(&quot;User-Agent&quot;, &quot;Jenkins&quot;)
+                        def response = conn.getInputStream().getText()
+                        def json = new JsonSlurper().parseText(response)
+                        def data = []
+                        for (file in json.assets) {
+                            data += file.name
+                        }
+                        return data
+                    &apos;&apos;&apos;
+                ]
+            ],
+            referencedParameters: &apos;Repos,Versions&apos;
+        )
+    }
+    stages {
+        stage(&apos;Selected parameters&apos;) {
+            steps {
+                script {
+                    echo &quot;Selected repository: https://github.com/${params.Repos}&quot;
+                    echo &quot;Selected version: ${params.Versions}&quot;
+                    echo &quot;Selected file: ${params.Files}&quot;
+                    def downloadUrl = &quot;https://github.com/${params.Repos}/releases/download/${params.Versions}/${params.Files}&quot;
+                    echo &quot;Url for download: ${downloadUrl}&quot;
+                    httpRequest(url: downloadUrl, outputFile: params.Files)
+                    archiveArtifacts params.Files
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

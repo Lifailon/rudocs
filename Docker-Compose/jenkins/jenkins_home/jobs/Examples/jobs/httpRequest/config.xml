@@ -1,0 +1,49 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1540.v295eccc9778f">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2255.v56a_15e805f12"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2255.v56a_15e805f12">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@338.va_0a_b_50e29397">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4151.v5406e29e3c90">
+    <script>pipeline {
+    agent any
+    stages {
+        stage(&apos;HTTP Request and Read JSON&apos;) {
+            steps {
+                script {
+                    def url = &quot;https://torapi.vercel.app/api/provider/list&quot;
+                    def response = httpRequest(url: url, httpMode: &quot;GET&quot;, contentType: &quot;APPLICATION_JSON&quot;)
+                    echo &quot;${response.status}&quot;
+                    echo &quot;${response.headers}&quot;
+                    echo &quot;${response.content}&quot;
+                    def jsonData = readJSON(text: response.content)
+                    echo &quot;Url array: ${jsonData[0].Urls}&quot;
+                    echo &quot;One url: ${jsonData[0].Urls[0]}&quot;
+                    for (u in jsonData[0].Urls) {
+                        echo u
+                    }
+                    writeJSON(file: &quot;debug.json&quot;, json: jsonData)
+                    archiveArtifacts &quot;debug.json&quot;
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
