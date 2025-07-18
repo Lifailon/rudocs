@@ -1,0 +1,37 @@
+#Get-WinEvent -ListLog * | where logname -match exchange | sort RecordCount
+winlogbeat.event_logs:
+  - name: Application
+    level: critical, error, warning
+    ignore_older: 168h
+  - name: Security
+    level: critical, error, warning
+    ignore_older: 168h
+  - name: System
+    level: critical, error, warning
+    ignore_older: 168h
+  - name: Microsoft-Exchange-ActiveMonitoring/ResponderResult
+    ignore_older: 168h
+  - name: Microsoft-Exchange-ActiveMonitoring/MonitorResult
+    ignore_older: 168h
+  - name: Microsoft-Exchange-ActiveMonitoring/ProbeResult
+    ignore_older: 168h
+  - name: Microsoft-Exchange-ActiveMonitoring/MaintenanceResult
+    ignore_older: 168h
+  - name: Microsoft-Exchange-ManagedAvailability/RecoveryActionLogs
+    ignore_older: 168h
+  - name: Microsoft-Exchange-HighAvailability/Monitoring
+    ignore_older: 168h
+    
+tags: ["exch"]
+
+output.logstash:
+  hosts: ["192.168.11.230:5044"]
+#hosts: ["192.168.11.230:5044", "192.168.11.245:5044"]
+#loadbalance: true
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: C:/ProgramData/Elastic/Beats/winlogbeat
+  name: winlogbeat.log
+  keepfiles: 7

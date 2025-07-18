@@ -1,0 +1,31 @@
+winlogbeat.event_logs:
+  - name: Application
+    level: critical, error, warning
+    ignore_older: 168h
+  - name: Security
+    event_id: 4624,4634,4663 #logon,logoff,fs
+    ignore_older: 168h
+  - name: System
+    event_id: 1074,7036 # fw,service
+    ignore_older: 168h
+  - name: Microsoft-Windows-TerminalServices-RemoteConnectionManager/Operational
+    ignore_older: 168h
+  - name: Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
+    event_id: 21,23,24,25,39,40
+    ignore_older: 168h
+  - name: Microsoft-Windows-Windows Firewall With Advanced Security/Firewall
+    ignore_older: 168h
+    
+tags: ["winfs"]
+
+output.logstash:
+  hosts: ["192.168.11.230:5044"]
+#hosts: ["192.168.11.230:5044", "192.168.11.245:5044"]
+#loadbalance: true
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: C:/ProgramData/Elastic/Beats/winlogbeat
+  name: winlogbeat.log
+  keepfiles: 7
