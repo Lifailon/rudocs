@@ -18,7 +18,7 @@ services:
     image: lifailon/syslog-web:latest
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     restart: unless-stopped
     volumes:
       - /var/log:/var/log
