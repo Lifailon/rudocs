@@ -2,7 +2,7 @@
 
 Этой мой основной стек, который я использую для мониторинга систем на базе Linux и контейнеров Docker в своей домашней среде.
 
-Он запускает стект из Grafana для визуализации метрик и логов, Prometheus для хранения метрик, Alertmanager с преднастроенными базовыми правилами и шаблоном Telegram, Loki сервер и агент promtail для сборка логов из файловой системы и контейнеров через сокет. В директории [grafana](./grafana) все преднастроенные Dashboard для работы с текущим стеком.
+Он запускает [Grafana](https://github.com/grafana/grafana) для визуализации метрик и логов, [Prometheus](https://github.com/prometheus/prometheus) для хранения метрик, [Node Exporter](https://github.com/prometheus/node_exporter) для сбора системных метрик, [cAdvisor](https://github.com/google/cadvisor) или [LogPorter](https://github.com/Lifailon/logporter) (на выбор, можно закомментировать любой из них) для сбора метрик из контейнеров Docker, [Alertmanager](https://github.com/prometheus/alertmanager) с преднастроенными базовыми правилами и шаблоном Telegram, [Loki](https://github.com/grafana/loki) сервер и агент `promtail` для сборка логов из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
 
 Перед запуском необходимо настроить параметры подключения к Telegram боту в файле [alertmanager](./alertmanager.yml) для отправки оповещений.
 
@@ -25,12 +25,9 @@ rm -rf PS-Commands
 docker-compose up -d
 ```
 
-Идем в браузер: http://localhost:9091 (логин и пароль `admin:admin`).
+Идем в браузер: http://localhost:9091 (логин и пароль `admin:admin`) и подключаем источники данных:
 
-- Подключаем источники данных:
+- Prometheus: http://prometheus:9092
+- Loki: http://loki-server:3100
 
-Prometheus: http://prometheus:9092
-
-Loki: http://loki-server:3100
-
-- Импортируем Dashboards.
+Импортируем Dashboards из директории [grafana](./grafana) (все панели преднастроенны для работы с текущим стеком).
