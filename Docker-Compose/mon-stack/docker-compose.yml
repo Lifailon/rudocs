@@ -43,10 +43,11 @@ services:
     ports:
       - 9092:9090
 
-  # Система оповещений в Telegram
+  # Система оповещений в Telegram (поддерживает свой Web интерфейс)
   alertmanager:
     image: prom/alertmanager
     container_name: alertmanager
+    restart: unless-stopped
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
     volumes:
@@ -66,7 +67,6 @@ services:
     #   - 9100:9100
 
   # Агент для сбора метрик из контейнеров Docker
-  # Grafana import dashboard id: 13496 (https://grafana.com/grafana/dashboards/13496-docker-and-system-monitoring)
   # cadvisor:
   #   image: gcr.io/cadvisor/cadvisor:latest
   #   container_name: cadvisor
@@ -91,13 +91,14 @@ services:
     #   - 9333:9333
 
   # Система агригации логов
-  # api: http://loki-server:3100/loki/api/v1/labels
   loki-server:
     image: grafana/loki:latest
     container_name: loki-server
+    restart: unless-stopped
     user: "root"
     volumes:
       - loki_data:/loki
+    # Порт нужен для внешних агентов и api: http://loki-server:3100/loki/api/v1/labels
     ports:
       - 3100:3100
 
@@ -105,6 +106,7 @@ services:
   loki-promtail:
     image: grafana/promtail:latest
     container_name: loki-promtail
+    restart: unless-stopped
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
