@@ -66,16 +66,16 @@ services:
     # ports:
     #   - 9100:9100
 
-  # Агент для сбора метрик из контейнеров Docker
-  # cadvisor:
-  #   image: gcr.io/cadvisor/cadvisor:latest
-  #   container_name: cadvisor
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /:/rootfs:ro
-  #     - /var/run:/var/run:rw
-  #     - /sys:/sys:ro
-  #     - /var/lib/docker/:/var/lib/docker:ro
+  # Агент для сбора метрик из контейнеров Docker от Google (поддерживает свой Web интерфейс)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
   #   ports:
   #     - 9094:8080
 
