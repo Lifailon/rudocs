@@ -1,10 +1,10 @@
 services:
   lazydocker-web:
-    # build:
-    #   context: .
-    #   dockerfile: dockerfile
     # https://hub.docker.com/r/lifailon/lazydocker-web
     image: lifailon/lazydocker-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: lazydocker-web
     restart: unless-stopped
     # Permissions for Docker Socket in host system

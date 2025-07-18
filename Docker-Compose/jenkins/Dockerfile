@@ -1,0 +1,34 @@
+FROM jenkins/inbound-agent:latest
+
+USER root
+
+# Обновление и установка дополнительных пакетов
+RUN apt-get update && apt-get install -y \
+    curl \
+    iputils-ping \
+    netcat-openbsd \
+    make \
+    tmux \
+    && rm -rf /var/lib/apt/lists/*
+
+# Устанавливаем Go последней версии
+RUN ARCH=$(uname -m) && \
+    case "$ARCH" in \
+        "aarch64" | "arm64") ARCH="arm64" ;; \
+        "x86_64"  | "amd64") ARCH="amd64" ;; \
+    esac && \
+    LATEST_GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -1) && \
+    curl -L "https://go.dev/dl/${LATEST_GO_VERSION}.linux-${ARCH}.tar.gz" | tar -xz -C /usr/local
+
+# Добавляем Go в PATH
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Предоставление права доступа группе jenkins на директорию для сборки
+# RUN chown -R jenkins:jenkins /home/jenkins/workspace
+RUN chown -R jenkins:jenkins /home/jenkins
+
+USER jenkins
+
+# Переменные для запуска передаются через environment (.env файл) при запуске в docker compose
+# /opt/java/openjdk/bin/java -jar /usr/share/jenkins/agent.jar -secret $JENKINS_SECRET -name $JENKINS_AGENT_NAME -url $JENKINS_URL
+ENTRYPOINT ["/usr/local/bin/jenkins-agent"]

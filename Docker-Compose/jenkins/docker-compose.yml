@@ -25,15 +25,13 @@ services:
       - jenkins-server
     environment:
       # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
-      - JENKINS_URL=http://jenkins-server:8080
-      - JENKINS_AGENT_NAME=local-agent
+      - JENKINS_URL=${JENKINS_URL}
+      - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
       # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
-      - JENKINS_SECRET=b040ab8fa1de3e64e77ed57d4ce45f42c843950f981f8db18a97091a94395f32
+      - JENKINS_SECRET=${JENKINS_SECRET}
     user: "1000:1000"
     volumes:
       - ./jenkins_agent:/home/jenkins
-      # Пробросить ssh ключ с хостовой системы
-      # - $HOME/.ssh/id_rsa:/home/jenkins/.ssh/id_rsa
     labels:
       # Отключаем автоматическое обновление образа через Watchtower (не поддерживается при использовании build из dockerfile)
       - "com.centurylinklabs.watchtower.enable=false"

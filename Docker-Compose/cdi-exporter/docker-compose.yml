@@ -2,7 +2,7 @@ services:
   cdi-exporter:
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     container_name: cdi-exporter
     volumes:
       - /mnt/c:/mnt/c

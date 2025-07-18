@@ -52,7 +52,7 @@ scrape_configs:
 
 `docker-compose kill -s SIGHUP prometheus` применяем изменения
 
-- Собираем контейнер в среде `WSL` с помощью `dockerfile` монтированием системного диска Windows:
+- Собираем контейнер в среде `WSL` с помощью `Dockerfile` монтированием системного диска Windows:
 
 ```dockerfile
 FROM mcr.microsoft.com/powershell:latest
@@ -71,7 +71,7 @@ services:
   cdi-exporter:
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     container_name: cdi-exporter
     volumes:
       - /mnt/c:/mnt/c
