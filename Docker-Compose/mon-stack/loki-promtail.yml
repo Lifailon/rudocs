@@ -67,12 +67,12 @@ scrape_configs:
       - json:
           expressions:
             level:
-      - regex:
-          expression: '\[(?P<tag>[A-Za-z]+)\]'                            # [TEXT]
-      # - regex:
-      #     expression: '\[(?P<level>INFO|WARN|WARNING|ERR|ERRO|ERROR)\]' # [INFO]
       # - regex:
       #     expression: '(?P<level>INFO|WARN|WARNING|ERR|ERRO|ERROR):'    # INFO:
+      # - regex:
+      #     expression: '\[(?P<level>INFO|WARN|WARNING|ERR|ERRO|ERROR)\]' # [INFO]
+      - regex:
+          expression: '\[(?P<tag>[A-Za-z]+)\]'                            # [TEXT]
       - labels:
           level:
           tag:

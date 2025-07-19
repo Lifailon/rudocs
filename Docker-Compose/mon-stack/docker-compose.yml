@@ -77,7 +77,7 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
   #   ports:
-  #     - 9094:8080
+  #     - 8080:8080
 
   # Легковесный агент для сбора базовых и кастомных метрик из контейнеров Docker
   # Grafana import dashboard id: 23573 (https://grafana.com/grafana/dashboards/23573-docker-exporter-logporter)
@@ -113,6 +113,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./loki-promtail.yml:/etc/promtail/promtail.yml
     command: -config.file=/etc/promtail/promtail.yml
+    # ports:
+    #   - 9080:9080
 
 volumes:
   grafana_data:

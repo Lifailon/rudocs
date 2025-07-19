@@ -3,17 +3,17 @@ services:
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
-    environment:
-      - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=rpi-105
-      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
-      - WATCHTOWER_HTTP_API_TOKEN=demotoken
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
+      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+      - WATCHTOWER_HTTP_API_TOKEN=demotoken
     command: --interval 600 # --http-api-metrics # --http-api-token demotoken # --http-api-update
     # ports:
     #   - 9095:8080
-    restart: unless-stopped
 
   # Web interface for docker logs
   dozzle:
@@ -23,14 +23,14 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./dozzle_data:/data
-    ports:
-      - 9090:8080
     environment:
       - DOZZLE_AUTH_PROVIDER=simple
       # Подключиться к удаленному хосту через Docker API (tcp socket)
       # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
       # Подключиться к удаленному хосту через Dozzle Agent
       # - DOZZLE_REMOTE_AGENT=192.168.3.106:7007
+    ports:
+      - 9090:8080
 
   # Web interface for container metrics
   beszel-server:
@@ -39,31 +39,32 @@ services:
     restart: unless-stopped
     extra_hosts:
       - host.docker.internal:host-gateway
-    ports:
-      - 8090:8090
     volumes:
       - ./beszel_data:/beszel_data
+    ports:
+      - 8090:8090
 
   # Agent for get metrics from containers
   beszel-agent:
-    image: henrygd/beszel-agent:latest
-    container_name: beszel-agent
+    image: "henrygd/beszel-agent"
+    container_name: "beszel-agent"
     restart: unless-stopped
     network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    # Монтируем в директорию /extra-filesystems для мониторинг других дисков или разделов
-    # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro 
+      # monitor other disks / partitions by mounting a folder in /extra-filesystems
+      # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
     environment:
-      PORT: 45876
+      LISTEN: 45876
       KEY: "Копируем публичный ключ из интерфейса и перезапускаем docker compose"
+    # ports:
+    #   - 45876:45876
 
   # Web interface for docker compose
   dockge:
     image: louislam/dockge:1
     container_name: dockge
-    ports:
-      - 5001:5001
+    restart: unless-stopped
     volumes:
       # mkdir dockge_data
       - ./dockge_data:/app/data
@@ -75,4 +76,5 @@ services:
       - DOCKGE_STACKS_DIR=/home/lifailon
       # Доступ к консоли dockge
       - DOCKGE_ENABLE_CONSOLE=true
-    restart: unless-stopped
+    ports:
+      - 5001:5001

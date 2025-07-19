@@ -35,7 +35,7 @@ scrape_configs:
     static_configs:
       - targets:
         - cadvisor:8080
-        - 192.168.3.106:9333
+        - 192.168.3.106:8080
 
   - job_name: logporter
     scrape_interval: 10s
