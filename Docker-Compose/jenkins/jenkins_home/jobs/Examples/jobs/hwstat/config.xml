@@ -90,7 +90,7 @@ pipeline {
                     if (check == 1) {
                         error(&quot;Сервер ${params.address} недоступен (icmp ping)&quot;)
                     } else if (check == 2) {
-                        error(&quot;Порт ${params.address} закрыт (tcp check)&quot;)
+                        error(&quot;Порт ${params.port} закрыт (tcp check)&quot;)
                     } else {
                         echo &quot;Сервер ${params.address} доступен и порт ${params.port} открыт&quot;
                     }

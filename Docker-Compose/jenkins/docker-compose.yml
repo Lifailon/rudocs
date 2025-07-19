@@ -18,14 +18,14 @@ services:
     # image: jenkins/inbound-agent:latest
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     container_name: jenkins-agent
     restart: unless-stopped
     depends_on:
       - jenkins-server
     environment:
       # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
-      - JENKINS_URL=${JENKINS_URL}
+      - JENKINS_URL=${JENKINS_SERVER_URL}
       - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
       # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
       - JENKINS_SECRET=${JENKINS_SECRET}

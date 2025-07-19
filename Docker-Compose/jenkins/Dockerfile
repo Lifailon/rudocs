@@ -4,12 +4,19 @@ USER root
 
 # Обновление и установка дополнительных пакетов
 RUN apt-get update && apt-get install -y \
+    git \
     curl \
     iputils-ping \
     netcat-openbsd \
     make \
-    tmux \
-    && rm -rf /var/lib/apt/lists/*
+    tmux
+
+# Устанавливаем Ansible
+RUN apt-get -y install \
+    python3-pip && \
+    pip3 install --break-system-packages ansible && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем Go последней версии
 RUN ARCH=$(uname -m) && \
@@ -28,6 +35,11 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 RUN chown -R jenkins:jenkins /home/jenkins
 
 USER jenkins
+
+# Check versions
+RUN ansible --version && \
+    python3 --version && \
+    go version
 
 # Переменные для запуска передаются через environment (.env файл) при запуске в docker compose
 # /opt/java/openjdk/bin/java -jar /usr/share/jenkins/agent.jar -secret $JENKINS_SECRET -name $JENKINS_AGENT_NAME -url $JENKINS_URL
