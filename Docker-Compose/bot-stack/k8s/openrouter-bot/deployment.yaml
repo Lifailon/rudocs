@@ -33,13 +33,14 @@ spec:
         readinessProbe:
           exec:
             command: ["pgrep", "-f", "openrouter-bot"]
-          initialDelaySeconds: 5
-          periodSeconds: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
         livenessProbe:
           exec:
             command: ["pgrep", "-f", "openrouter-bot"]
-          initialDelaySeconds: 5
-          periodSeconds: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
           failureThreshold: 3
         resources:
           requests:
@@ -58,13 +59,3 @@ spec:
           items:
           - key: .env
             path: .env
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: openrouter-bot-pdb
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app: openrouter-bot

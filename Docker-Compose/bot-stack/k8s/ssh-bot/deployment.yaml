@@ -33,13 +33,14 @@ spec:
         readinessProbe:
           exec:
             command: ["pgrep", "-f", "ssh-bot"]
-          initialDelaySeconds: 5
-          periodSeconds: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
         livenessProbe:
           exec:
             command: ["pgrep", "-f", "ssh-bot"]
-          initialDelaySeconds: 5
-          periodSeconds: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
           failureThreshold: 3
         resources:
           requests:
@@ -68,13 +69,3 @@ spec:
           items:
           - key: id_rsa
             path: id_rsa
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: ssh-bot-pdb
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app: ssh-bot
