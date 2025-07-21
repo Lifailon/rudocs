@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openrouter-bot-config
+data:
+  .env: |
+    API_KEY=
+    TELEGRAM_BOT_TOKEN=
+    ADMIN_IDS=
+    ALLOWED_USER_IDS=
+    BASE_URL=https://openrouter.ai/api/v1
+    MODEL=deepseek/deepseek-r1:free
+    VISION=false
+    MAX_HISTORY_SIZE=20
+    MAX_HISTORY_TIME=60
+    GUEST_BUDGET=0
+    LANG=RU
+    STATS_MIN_ROLE=ADMIN

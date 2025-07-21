@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssh-bot
+  labels:
+    app: ssh-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-bot
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ssh-bot
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values: [ssh-bot]
+            topologyKey: "kubernetes.io/hostname"
+      terminationGracePeriodSeconds: 30
+      containers:
+      - image: lifailon/ssh-bot:latest
+        name: ssh-bot
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command: ["pgrep", "-f", "ssh-bot"]
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        livenessProbe:
+          exec:
+            command: ["pgrep", "-f", "ssh-bot"]
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: ssh-config-volume
+          mountPath: /ssh-bot/.env
+          subPath: .env
+        - name: ssh-key-volume
+          mountPath: /root/.ssh/id_rsa
+          subPath: id_rsa
+          readOnly: true
+      volumes:
+      - name: ssh-config-volume
+        secret:
+          secretName: ssh-bot-secrets
+          items:
+          - key: .env
+            path: .env
+      - name: ssh-key-volume
+        secret:
+          secretName: ssh-bot-secrets
+          items:
+          - key: id_rsa
+            path: id_rsa
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ssh-bot-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ssh-bot

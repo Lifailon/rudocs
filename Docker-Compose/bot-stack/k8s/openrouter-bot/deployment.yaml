@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openrouter-bot
+  labels:
+    app: openrouter-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openrouter-bot
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: openrouter-bot
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values: [openrouter-bot]
+            topologyKey: "kubernetes.io/hostname"
+      terminationGracePeriodSeconds: 30
+      containers:
+      - image: lifailon/openrouter-bot:latest
+        name: openrouter-bot
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command: ["pgrep", "-f", "openrouter-bot"]
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        livenessProbe:
+          exec:
+            command: ["pgrep", "-f", "openrouter-bot"]
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: config-volume
+          mountPath: /openrouter-bot/.env
+          subPath: .env
+      volumes:
+      - name: config-volume
+        configMap:
+          name: openrouter-bot-config
+          items:
+          - key: .env
+            path: .env
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: openrouter-bot-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: openrouter-bot
