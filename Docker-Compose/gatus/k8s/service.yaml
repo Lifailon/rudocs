@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gatus
+  namespace: test
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      protocol: TCP
+      targetPort: 8080
+      port: 8080
+      nodePort: 30080
+  selector:
+    app: gatus

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatus
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gatus
+  template:
+    metadata:
+      name: gatus
+      namespace: test
+      labels:
+        app: gatus
+    spec:
+      serviceAccountName: gatus
+      terminationGracePeriodSeconds: 5
+      containers:
+        - image: twinproduction/gatus
+          imagePullPolicy: IfNotPresent
+          name: gatus
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 250m
+              memory: 100M
+            requests:
+              cpu: 50m
+              memory: 30M
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+          volumeMounts:
+            - mountPath: /config
+              name: gatus-config
+      volumes:
+        - configMap:
+            name: gatus
+          name: gatus-config
