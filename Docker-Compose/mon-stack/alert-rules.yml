@@ -1,101 +1,171 @@
 groups:
 - name: temperature
   rules:
-  - alert: TEMP_WARN
-    expr: node_hwmon_temp_celsius{sensor="temp0"} > 70
+  - alert: LINUX_TEMP_WARN
+    expr: avg(node_hwmon_temp_celsius{sensor="temp0"}) by (instance) > 70
     for: 5m
     labels:
       severity: warning
     annotations:
       description: "Температура выше 70 градусов в течение 5 минут"
 
-  - alert: TEMP_CRIT
-    expr: node_hwmon_temp_celsius{sensor="temp0"} > 75
+  - alert: LINUX_TEMP_CRIT
+    expr: avg(node_hwmon_temp_celsius{sensor="temp0"}) by (instance) > 75
     for: 5m
     labels:
       severity: critical
     annotations:
       description: "Температура выше 75 градусов в течение 5 минут"
 
+  - alert: WIN_TEMP_WARN
+    expr: avg(label_replace(label_replace(label_join({__name__=~"ohm_.*_celsius"}, "Hardware", " ", "hardware", "sensor"), "__SensorGroup", "$1$2", "sensor", "(.*)#[0-9]*(.*)"), "__SensorID", "$2", "sensor", "(.*#)([0-9]*)(.*)")) by (instance,hardware,sensor) > 70
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: "Температура датчика выше 70 градусов в течение 5 минут"
+
+  - alert: WIN_TEMP_WARN
+    expr: avg(label_replace(label_replace(label_join({__name__=~"ohm_.*_celsius"}, "Hardware", " ", "hardware", "sensor"), "__SensorGroup", "$1$2", "sensor", "(.*)#[0-9]*(.*)"), "__SensorID", "$2", "sensor", "(.*#)([0-9]*)(.*)")) by (instance,hardware,sensor) > 75
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: "Температура датчика выше 75 градусов в течение 5 минут"
+
 - name: processor
   rules:
-  - alert: CPU_SYSTEM_WARN
-    expr: avg(rate(node_cpu_seconds_total{mode="system"}[5m])) by (instance) > 0.5
+  - alert: LINUX_CPU_SYSTEM_WARN
+    expr: avg(rate(node_cpu_seconds_total{mode="system"}[1m])) by (instance) > 0.5
     for: 1m
     labels:
       severity: warning
     annotations:
       description: "Системная нагрузка на процессор выше 50% в течение 1 минуты"
 
-  - alert: CPU_SYSTEM_CRIT
-    expr: avg(rate(node_cpu_seconds_total{mode="system"}[5m])) by (instance) > 0.8
+  - alert: LINUX_CPU_SYSTEM_CRIT
+    expr: avg(rate(node_cpu_seconds_total{mode="system"}[1m])) by (instance) > 0.8
     for: 1m
     labels:
       severity: critical
     annotations:
       description: "Системная нагрузка на процессор выше 80% в течение 1 минуты"
 
-  - alert: CPU_USER_WARN
-    expr: avg(rate(node_cpu_seconds_total{mode="user"}[5m])) by (instance) > 0.5
+  - alert: LINUX_CPU_USER_WARN
+    expr: avg(rate(node_cpu_seconds_total{mode="user"}[1m])) by (instance) > 0.5
     for: 1m
     labels:
       severity: warning
     annotations:
       description: "Пользовательская нагрузка на процессор выше 50% в течение 1 минуты"
 
-  - alert: CPU_USER_CRIT
-    expr: avg(rate(node_cpu_seconds_total{mode="user"}[5m])) by (instance) > 0.8
+  - alert: LINUX_CPU_USER_CRIT
+    expr: avg(rate(node_cpu_seconds_total{mode="user"}[1m])) by (instance) > 0.8
     for: 1m
     labels:
       severity: critical
     annotations:
       description: "Пользовательская нагрузка на процессор выше 80% в течение 1 минуты"
 
+  - alert: WIN_CPU_WARN
+    expr: avg(ohm_cpu_load_percent{sensor="CPU Total"}) by (instance) > 50
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Нагрузка процессора выше 50% в течение 1 минуты"
+
+  - alert: WIN_CPU_CRIT
+    expr: avg(ohm_cpu_load_percent{sensor="CPU Total"}) by (instance) > 80
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Нагрузка процессора выше 80% в течение 1 минуты"
+
 - name: memory
   rules:
-  - alert: MEM_USAGE_WARN
-    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.5
+  - alert: LINUX_MEM_USAGE_WARN
+    expr: avg((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) by (instance) > 0.5
     for: 1m
     labels:
       severity: warning
     annotations:
       description: "Объем доступной памяти меньше 50% в течение 1 минуты"
 
-  - alert: MEM_USAGE_CRIT
-    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.2
+  - alert: LINUX_MEM_USAGE_CRIT
+    expr: avg((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) by (instance) > 0.9
     for: 1m
     labels:
       severity: critical
     annotations:
-      description: "Объем доступной памяти меньше 20% в течение 1 минуты"
+      description: "Объем доступной памяти меньше 10% в течение 1 минуты"
+
+  - alert: WIN_MEM_USAGE_WARN
+    expr: avg(ohm_ram_load_percent{sensor="Memory"}) by (instance) > 70
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Объем доступной памяти меньше 30% в течение 1 минуты"
+
+  - alert: WIN_MEM_USAGE_CRIT
+    expr: avg(ohm_ram_load_percent{sensor="Memory"}) by (instance) > 90
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Объем доступной памяти меньше 10% в течение 1 минуты"
 
 - name: disk
   rules:
-  - alert: DISK_USAGE_WARN
-    expr: node_filesystem_avail_bytes{mountpoint=~"/etc/hostname"}/1024/1024/1024 < 10
+  - alert: LINUX_DISK_USAGE_WARN
+    expr: avg(node_filesystem_avail_bytes{mountpoint=~"/etc/hostname"}/1024/1024/1024) by (instance) < 10
     for: 1m
     labels:
       severity: warning
     annotations:
       description: "Размер корневой файловой системы меньше 10 Гб"
 
-  - alert: DISK_USAGE_CRIT
-    expr: node_filesystem_avail_bytes{mountpoint=~"/etc/hostname"}/1024/1024/1024 < 5
+  - alert: LINUX_DISK_USAGE_CRIT
+    expr: avg(node_filesystem_avail_bytes{mountpoint=~"/etc/hostname"}/1024/1024/1024) by (instance) < 5
     for: 1m
     labels:
       severity: critical
     annotations:
       description: "Размер корневой файловой системы меньше 5 Гб"
 
+  - alert: WIN_DISK_USAGE_WARN
+    expr: avg(ohm_hdd_load_percent{sensor="Used Space"}) by (hardware,instance) > 90
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: "Размер диска меньше 10 %"
+
+  - alert: WIN_DISK_USAGE_CRIT
+    expr: avg(ohm_hdd_load_percent{sensor="Used Space"}) by (hardware,instance) > 95
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: "Размер диска меньше 5 %"
+
 - name: reboot
   rules:
-  - alert: UPTIME_ERR
-    # Время загрузки изменилось за последние 5 минут
-    expr: changes(node_boot_time_seconds[5m]) > 0
-    # Сравнение с предыдущим значением (текущий uptime меньше, чем 5 минут назад)
-    # expr: (time() - node_boot_time_seconds) < (time() - node_boot_time_seconds offset 5m)
+  - alert: LINUX_UPTIME_ERR
+    expr: avg(changes(node_boot_time_seconds[1m])) by (instance) > 0
     for: 1m
     labels:
       severity: error
     annotations:
       description: "Сервер был перезагружен"
+
+- name: ping
+  rules:
+  - alert: GATUS_PING
+    expr: avg(rate(gatus_results_total{success="false"}[1m])) by (name) > 0
+    labels:
+      severity: error
+    annotations:
+      description: 'Интернет недоступен (отсутствует ping до {{ $labels.name }})'

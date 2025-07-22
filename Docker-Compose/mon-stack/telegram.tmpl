@@ -27,9 +27,19 @@
 <b>Instance:</b> {{ .Labels.instance }}
 {{- end }}
 
+{{- if .Labels.hardware }}
+<b>Hardware:</b> {{ .Labels.hardware }}
+{{- end }}
+
+{{- if .Labels.sensor }}
+<b>Sensor:</b> {{ .Labels.sensor }}
+{{- end }}
+
 {{- if .Annotations.description }}
 <b>Description:</b> {{ .Annotations.description }}
 {{- end }}
+
+{{- "\n" }}
 
 {{- end }}
 {{- end }}
