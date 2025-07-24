@@ -24,14 +24,9 @@ scrape_configs:
         - node-exporter:9100
 
   # Docker
-  - job_name: cadvisor
-    static_configs:
-      - targets:
-        - cadvisor:8080
-
   - job_name: logporter
-    scrape_interval: 10s
-    scrape_timeout: 10s
+    scrape_interval: 5s
+    scrape_timeout: 1s
     static_configs:
       - targets:
         - logporter:9333

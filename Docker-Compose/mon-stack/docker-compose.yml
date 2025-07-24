@@ -18,6 +18,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
 
+  # Хранение данных Grafana
   # postgres:
   #   image: postgres:latest
   #   container_name: postgres
@@ -43,7 +44,7 @@ services:
     ports:
       - 9092:9090
 
-  # Система оповещений в Telegram (поддерживает свой Web интерфейс)
+  # Система оповещений (в т.ч. Telegram, поддерживает свой Web интерфейс)
   alertmanager:
     image: prom/alertmanager
     container_name: alertmanager
@@ -54,11 +55,10 @@ services:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
-    # ports:
-    #   - 9093:9093
+    ports:
+      - 9093:9093
 
   # Агент для сбора системных метрик
-  # Grafana import dashboard id: 1860 (https://grafana.com/grafana/dashboards/1860-node-exporter-full)
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -66,21 +66,20 @@ services:
     # ports:
     #   - 9100:9100
 
-  # Агент для сбора метрик из контейнеров Docker от Google (поддерживает свой Web интерфейс)
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
-    restart: unless-stopped
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
+  # Агент для сбора метрик из контейнеров Docker от Google (поддерживает свой Web интерфейс для визуализации метрик)
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:latest
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
   #   ports:
   #     - 8080:8080
 
-  # Легковесный агент для сбора базовых и кастомных метрик из контейнеров Docker
-  # Grafana import dashboard id: 23573 (https://grafana.com/grafana/dashboards/23573-docker-exporter-logporter)
+  # Легковесный агент для сбора всех базовых метрик из контейнеров Docker
   logporter:
     image: lifailon/logporter:latest
     container_name: logporter

@@ -31,15 +31,15 @@ scrape_configs:
         - 192.168.3.100:4445
 
   # Docker
-  - job_name: cadvisor
-    static_configs:
-      - targets:
-        - cadvisor:8080
-        - 192.168.3.106:8080
+  # - job_name: cadvisor
+  #   static_configs:
+  #     - targets:
+  #       - cadvisor:8080
+  #       - 192.168.3.106:8080
 
   - job_name: logporter
-    scrape_interval: 10s
-    scrape_timeout: 10s
+    scrape_interval: 5s
+    scrape_timeout: 1s
     static_configs:
       - targets:
         - logporter:9333
@@ -80,5 +80,3 @@ scrape_configs:
   #       - 192.168.3.105:8081
   #   basic_auth:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
-
-# docker-compose kill -s SIGHUP prometheus
