@@ -1754,6 +1754,7 @@
       {
         "current": {},
         "definition": "label_values(cadvisor_version_info,instance)",
+        "multi": true,
         "name": "Node",
         "options": [],
         "query": {
@@ -1875,7 +1876,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1894,6 +1895,6 @@
   "timezone": "browser",
   "title": "Docker Exporter (cadvisor)",
   "uid": "hr8-CooGk",
-  "version": 9,
+  "version": 10,
   "weekStart": ""
 }
