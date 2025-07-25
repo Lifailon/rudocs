@@ -1,0 +1,18 @@
+local {
+    hosts /etc/coredns/proxylist
+    reload 10s
+    log
+    errors
+}
+
+. {
+    hosts /etc/coredns/blacklist {
+        fallthrough
+        log
+    }
+    reload 10s
+    forward . 8.8.8.8 1.1.1.1 {
+        policy sequential
+    }
+    errors
+}

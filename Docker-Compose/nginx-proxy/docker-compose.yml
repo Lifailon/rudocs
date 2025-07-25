@@ -1,7 +1,20 @@
 services:
-  nginx-proxy:
+  nginx-proxy-db:
+    image: postgres:latest
+    container_name: nginx-proxy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "npm"
+      POSTGRES_PASSWORD: "npm_password"
+      POSTGRES_DB: "npm"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - nginx-network
+
+  nginx-proxy-manager:
     image: 'docker.io/jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy
+    container_name: nginx-proxy-manager
     restart: unless-stopped
     ports:
       - '8888:81'      # Web interface
@@ -25,19 +38,6 @@ services:
     # login: admin@example.com
     # pass: changeme
 
-  nginx-proxy-db:
-    image: postgres:latest
-    container_name: nginx-proxy-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: "npm"
-      POSTGRES_PASSWORD: "npm_password"
-      POSTGRES_DB: "npm"
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-    networks:
-      - nginx-network
-
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: nginx-exporter
@@ -45,9 +45,9 @@ services:
     ports:
       - "9113:9113"
     command:
-      - "--nginx.scrape-uri=http://nginx-proxy:80/status"
+      - "--nginx.scrape-uri=http://nginx-proxy-manager:80/status"
     depends_on:
-      - nginx-proxy
+      - nginx-proxy-manager
     networks:
       - nginx-network
 

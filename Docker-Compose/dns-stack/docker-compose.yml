@@ -1,0 +1,57 @@
+services:
+  # DNS Server
+  coredns:
+    container_name: coredns
+    image: coredns/coredns
+    command: -conf /etc/coredns/corefile
+    user: 1000:1000
+    volumes:
+      - ./coredns:/etc/coredns
+    environment:
+      - GOMAXPROCS=1
+    ports:
+      - "53:53/udp"
+    depends_on:
+      - hosts-gen
+      - nginx-proxy
+
+  # Proxy mode + docker-gen
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: nginxproxy/nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    ports:
+      - "80:80"
+    # Применять конфигурацию для любого контейнера на хосте (не ограничивая текущим стеком в compose)
+    network_mode: "host"
+
+  # Generate blacklist + proxy hosts
+  hosts-gen:
+    container_name: hosts-gen
+    image: lifailon/hosts-gen
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./coredns:/etc/coredns
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - PROXY_HOSTS_PATH=/etc/coredns/proxylist
+      - PROXY_HOSTS_IP=192.168.3.105
+      - PROXY_UPDATE_TIMEOUT=10
+      - BLACKLIST_PATH=/etc/coredns/blacklist
+      - BLACKLIST_URL=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+      - BLACKLIST_UPDATE_TIMEOUT=3600
+
+  # Example 1
+  # nginx:
+  #   image: nginx
+  #   environment:
+  #     - VIRTUAL_HOST=nginx.local
+
+  # Example 2
+  # apache:
+  #   image: httpd
+  #   environment:
+  #     - VIRTUAL_HOST=apache.local
