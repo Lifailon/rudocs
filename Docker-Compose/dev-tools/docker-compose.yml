@@ -1,0 +1,24 @@
+services:
+  go-playground:
+    image: x1unix/go-playground:latest
+    container_name: go-playground
+    restart: unless-stopped
+    ports:
+      - 10080:8000
+    environment:
+      - APP_CLEAN_INTERVAL=30m
+
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - PASSWORD=CodeServerAdmin
+    volumes:
+      - ./vscode_config:/config
+      - /home/lifailon:/home/lifailon
+    ports:
+      - "10443:8443"
