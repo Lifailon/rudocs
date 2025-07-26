@@ -66,6 +66,35 @@ services:
     # ports:
     #   - 9100:9100
 
+  # Веб-конструктор для анализа и визуализации запросов PromQL
+  # promlens:
+  #   image: prom/promlens
+  #   container_name: promlens
+  #   restart: unless-stopped
+  #   ports:
+  #     - 9094:8080
+
+  # Шлюз для сбора метрик через REST API из скриптов (не требует listener на экспортере)
+  # pushgateway:
+  #   image: prom/pushgateway:latest
+  #   container_name: pushgateway
+  #   ports:
+  #     - 9095:9091
+  #   restart: unless-stopped
+
+  # Мониторинг ICMP, TCP, DNS, HTTP, HTTPS и gRPC
+  # http://blackbox:9115/probe?target=https://google.com&module=http
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox
+    ports:
+      - 9115:9115
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+    restart: unless-stopped
+
   # Агент для сбора метрик из контейнеров Docker от Google (поддерживает свой Web интерфейс для визуализации метрик)
   # cadvisor:
   #   image: gcr.io/cadvisor/cadvisor:latest

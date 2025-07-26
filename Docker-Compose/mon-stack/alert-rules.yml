@@ -185,9 +185,9 @@ groups:
 
 - name: ping
   rules:
-  - alert: GATUS_PING
-    expr: avg(rate(gatus_results_total{success="false"}[1m])) by (name) > 0
+  - alert: ICMP_PING_ERR
+    expr: avg(rate(probe_icmp_reply_hop_limit{}[1m])) by (instance) > 0
     labels:
       severity: error
     annotations:
-      description: "Отсутствует ping до {{ $labels.name }}"
+      description: "Отсутствует ping до {{ $labels.instance }}"

@@ -18,7 +18,7 @@ scrape_configs:
         - prometheus:9090
 
   # Linux
-  - job_name: node
+  - job_name: linux-node-exporter
     static_configs:
       - targets:
         - node-exporter:9100
@@ -30,3 +30,36 @@ scrape_configs:
     static_configs:
       - targets:
         - logporter:9333
+
+  # ICMP
+  - job_name: blackbox-icmp
+    metrics_path: /probe
+    params:
+      module: [icmp_ping]
+    static_configs:
+      - targets:
+          - 8.8.8.8
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  # HTTPS
+  - job_name: blackbox-http
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://google.com
+          - https://telegram.org
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115

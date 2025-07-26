@@ -1,0 +1,36 @@
+modules:
+  icmp_ping:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: "ip4"
+
+  tcp_ssh:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+      query_response:
+        - expect: "^SSH"
+
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: "ip4"
+      no_follow_redirects: false
+      ip_protocol_fallback: false
+      tls_config:
+        insecure_skip_verify: true
+      method: GET
+      valid_status_codes: [200]
+
+  rest_api:
+    prober: http
+    timeout: 5s
+    http:
+      method: GET
+      headers:
+        Content-Type: "application/json"
+      fail_if_body_not_matches_regexp:
+        - '.+"Provider":"RuTracker".+'

@@ -2,7 +2,13 @@
 
 Этой мой основной стек, который я использую для мониторинга систем на базе Linux, Windows и контейнеров Docker в своей домашней среде.
 
-Он запускает [Grafana](https://github.com/grafana/grafana) для визуализации метрик и логов, [Prometheus](https://github.com/prometheus/prometheus) для хранения метрик, [Node Exporter](https://github.com/prometheus/node_exporter) для сбора системных метрик, [logporter](https://github.com/Lifailon/logporter) для сбора всех базовых метрик из контейнеров Docker (легковесная альтернатива [cAdvisor](https://github.com/google/cadvisor)), [Alertmanager](https://github.com/prometheus/alertmanager) с преднастроенными базовыми правилами и шаблоном Telegram, [Loki](https://github.com/grafana/loki) сервер и агент `promtail` для сборка логов из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
+- [Grafana](https://github.com/grafana/grafana) для визуализации метрик и логов.
+- [Prometheus](https://github.com/prometheus/prometheus) для хранения метрик.
+- [Alertmanager](https://github.com/prometheus/alertmanager) с преднастроенными базовыми правилами и шаблоном Telegram.
+- [Blackbox Exporter](https://github.com/prometheus/blackbox_exporter/tree/master) для проверки доступности интернета и хостов в сети.
+- [Node Exporter](https://github.com/prometheus/node_exporter) для сбора системных метрик.
+- [logporter](https://github.com/Lifailon/logporter) для сбора всех базовых метрик из контейнеров Docker (легковесная альтернатива [cAdvisor](https://github.com/google/cadvisor)).
+- [Loki](https://github.com/grafana/loki) сервер и агент `promtail` для сборка логов из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
 
 Перед запуском необходимо настроить параметры подключения к Telegram боту в файле [alertmanager](./alertmanager.yml) для отправки оповещений.
 
