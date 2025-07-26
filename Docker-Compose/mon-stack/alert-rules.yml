@@ -186,7 +186,7 @@ groups:
 - name: ping
   rules:
   - alert: ICMP_PING_ERR
-    expr: avg(rate(probe_icmp_reply_hop_limit{}[1m])) by (instance) > 0
+    expr: avg(probe_success{job="blackbox-icmp"}) by (instance) != 1
     labels:
       severity: error
     annotations:
