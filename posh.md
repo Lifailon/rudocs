@@ -496,7 +496,6 @@
     - [Portainer](#portainer)
 - [Docker.DotNet](#dockerdotnet)
 - [Swarm](#swarm)
-- [Uncloud](#uncloud)
 - [Kubernetes](#kubernetes)
     - [Micro8s](#micro8s)
     - [k3s](#k3s)
@@ -10686,12 +10685,14 @@ volumes:
 `docker service inspect TorAPI_torapi` отобразить подробную конфигурацию сервиса в формате `json` \
 `docker stack rm TorAPI` удалить стек (не требует остановки контейнеров)
 
+<!--
 # Uncloud
 
 [Uncloud](https://github.com/psviderski/uncloud) - легковесный инструмент для кластеризации и оркестровки контейнеров.
 
 `curl -fsS https://get.uncloud.run/install.sh | sh` установка \
 `uncloud machine init lifailon@192.168.3.106:2121 -i ~/.ssh/id_rsa` инициализация кластера (на удаленной ноде будет установлен Caddy в Docker)
+-->
 
 # Kubernetes
 
