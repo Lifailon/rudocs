@@ -1,0 +1,47 @@
+services:
+  OpenRouter-Bot:
+    image: lifailon/openrouter-bot:latest
+    labels:
+          - com.centurylinklabs.watchtower.enable=false
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    configs:
+      - source: openrouter-bot-env
+        target: /openrouter-bot/.env
+
+  ssh-bot:
+    image: lifailon/ssh-bot:latest
+    labels:
+          - com.centurylinklabs.watchtower.enable=false
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+    configs:
+      - source: ssh-bot-env
+        target: /ssh-bot/.env
+    secrets:
+      - source: ssh_private_key
+        target: /root/.ssh/id_rsa
+        mode: 0600
+
+configs:
+  openrouter-bot-env:
+    file: ./openrouter-bot.env
+  ssh-bot-env:
+    file: ./ssh-bot.env
+
+secrets:
+  ssh_private_key:
+    file: /home/lifailon/.ssh/id_rsa
+
+# docker-compose down
+# docker stack deploy -c docker-stack.yml bot-stack
