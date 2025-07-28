@@ -141,10 +141,10 @@ scrape_configs:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 
   # DNS
-  - job_name: coredns
+  - job_name: pi-hole-exporter
     static_configs:
       - targets:
-          - 192.168.3.105:9153
+          - 192.168.3.105:9617
 
   # Speedtest
   - job_name: speedtest-exporter
