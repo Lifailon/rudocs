@@ -1,0 +1,15 @@
+. {
+    blocklist https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts {
+        domain_metrics
+        block_response nxdomain
+    }
+    forward . 8.8.8.8 1.1.1.1 {
+        policy sequential
+    }
+    log . "{type} {remote} => {name} ({duration}) {rcode}"
+    errors
+    prometheus :9153
+    reload 10s
+    cache 30
+    loop
+}

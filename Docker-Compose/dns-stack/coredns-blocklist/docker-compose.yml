@@ -1,0 +1,20 @@
+services:
+  # DNS server + blocklist plugin
+  coredns-blocklist:
+    container_name: coredns-blocklist
+    image: lifailon/coredns-blocklist:latest
+    build:
+      context: .
+      dockerfile: coredns/Dockerfile
+    command: -conf /etc/coredns/Corefile
+    user: 1000:1000
+    volumes:
+      - ./coredns:/etc/coredns
+    environment:
+      - GOMAXPROCS=1
+    ports:
+      - 53:53/udp # DNS listener
+      - 9153:9153 # Prometheus metrics
+    depends_on:
+      - nginx-proxy
+      - hosts-gen
