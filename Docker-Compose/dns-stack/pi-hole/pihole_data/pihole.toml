@@ -5,6 +5,20 @@
     "8.8.8.8",
     "1.1.1.1"
   ]
+
+  # Pi-hole interface listening modes (ALL/LOCAL/BIND/SINGLE/NONE)
+  listeningMode = "LOCAL"
+  # listeningMode = "BIND"
+  # interface = "wlan0"
+
+  # Array of custom DNS records
+  # Example: hosts = [ "127.0.0.1 mylocal", "192.168.0.1 therouter" ]
+  hosts = []
+
+  port = 53
+  revServers = []
+  queryLogging = true
+  cnameRecords = []
   CNAMEdeepInspect = true
   blockESNI = true
   EDNS0ECS = true
@@ -15,25 +29,12 @@
   replyWhenBusy = "ALLOW"
   blockTTL = 2
 
-  # Array of custom DNS records
-  # Example: hosts = [ "127.0.0.1 mylocal", "192.168.0.1 therouter" ]
-  hosts = []
-
+  domain = "lan"
   domainNeeded = false
   expandHosts = false
-  domain = "lan"
   bogusPriv = true
   dnssec = false
   hostRecord = ""
-
-  # Pi-hole interface listening modes
-  listeningMode = "BIND" # ALL/LOCAL/SINGLE/NONE
-  interface = "wlan0"
-
-  queryLogging = true
-  cnameRecords = []
-  port = 53
-  revServers = []
 
   [dns.cache]
     size = 10000
@@ -192,7 +193,7 @@
   database = "/etc/pihole/pihole-FTL.db"
   gravity = "/etc/pihole/gravity.db"
   gravity_tmp = "/tmp"
-  macvendor = "/macvendor.db" ### CHANGED, default = "/etc/pihole/macvendor.db"
+  macvendor = "/macvendor.db" # default "/etc/pihole/macvendor.db"
   pcap = ""
 
   [files.log]

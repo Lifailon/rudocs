@@ -1,7 +1,7 @@
 services:
   # DNS Server + AdBlock
-  pihole:
-    container_name: pihole
+  pihole-server:
+    container_name: pihole-server
     image: pihole/pihole:latest
     ports:
       # DNS
@@ -33,13 +33,14 @@ services:
     container_name: pihole-exporter
     image: ekofr/pihole-exporter:latest
     environment:
-      - PIHOLE_HOSTNAME=pihole
+      - PIHOLE_HOSTNAME=pihole-server
+      - PIHOLE_PORT=5353
       - PIHOLE_PASSWORD=PiHoleAdmin
       - PIHOLE_API_TOKEN=PiHoleAdmin
       - INTERVAL=90s
       - PORT=9617
     ports:
-      - 617:9617
+      - 9617:9617
     logging:
       driver: "json-file"
       options:

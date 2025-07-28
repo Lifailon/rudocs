@@ -15,6 +15,3 @@ services:
     ports:
       - 53:53/udp # DNS listener
       - 9153:9153 # Prometheus metrics
-    depends_on:
-      - nginx-proxy
-      - hosts-gen

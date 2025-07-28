@@ -1,13 +1,4 @@
 services:
-  go-playground:
-    image: x1unix/go-playground:latest
-    container_name: go-playground
-    restart: unless-stopped
-    ports:
-      - 10080:8000
-    environment:
-      - APP_CLEAN_INTERVAL=30m
-
   code-server:
     image: lscr.io/linuxserver/code-server:latest
     container_name: code-server
@@ -21,4 +12,13 @@ services:
       - ./vscode_config:/config
       - /home/lifailon:/home/lifailon
     ports:
-      - "10443:8443"
+      - 10443:8443
+
+  go-playground:
+    image: x1unix/go-playground:latest
+    container_name: go-playground
+    restart: unless-stopped
+    environment:
+      - APP_CLEAN_INTERVAL=30m
+    ports:
+      - 10444:8000
