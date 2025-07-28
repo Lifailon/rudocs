@@ -1,0 +1,248 @@
+# v6.2.3
+
+[dns]
+  upstreams = [
+    "8.8.8.8",
+    "1.1.1.1"
+  ]
+  CNAMEdeepInspect = true
+  blockESNI = true
+  EDNS0ECS = true
+  ignoreLocalhost = false
+  showDNSSEC = true
+  analyzeOnlyAandAAAA = false
+  piholePTR = "PI.HOLE"
+  replyWhenBusy = "ALLOW"
+  blockTTL = 2
+
+  # Array of custom DNS records
+  # Example: hosts = [ "127.0.0.1 mylocal", "192.168.0.1 therouter" ]
+  hosts = []
+
+  domainNeeded = false
+  expandHosts = false
+  domain = "lan"
+  bogusPriv = true
+  dnssec = false
+  hostRecord = ""
+
+  # Pi-hole interface listening modes
+  listeningMode = "BIND" # ALL/LOCAL/SINGLE/NONE
+  interface = "wlan0"
+
+  queryLogging = true
+  cnameRecords = []
+  port = 53
+  revServers = []
+
+  [dns.cache]
+    size = 10000
+    optimizer = 3600
+    upstreamBlockedTTL = 86400
+
+  [dns.blocking]
+    active = true
+    mode = "NULL" # NULL/IP_NODATA_AAAA/IP/NX/NODATA
+    edns = "TEXT" # NONE/CODE/TEXT
+
+  [dns.specialDomains]
+    mozillaCanary = true
+    iCloudPrivateRelay = true
+    designatedResolver = true
+
+    [dns.reply.host]
+      force4 = false
+      IPv4 = ""
+      force6 = false
+      IPv6 = ""
+
+    [dns.reply.blocking]
+      force4 = false
+      IPv4 = ""
+      force6 = false
+      IPv6 = ""
+
+  [dns.rateLimit]
+    count = 1000
+    interval = 60
+
+[dhcp]
+  active = false
+  start = "" # 192.168.3.2
+  end = "" # 192.168.3.254
+  router = "" # 192.168.3.1
+  netmask = "" # 255.255.255.0
+  leaseTime = "" # 30m/1h/7d
+  ipv6 = false
+  rapidCommit = false
+  multiDNS = false
+  logging = false
+  ignoreUnknownClients = false
+  # Static DHCP leases
+  # "[<hwaddr>][,id:<client_id>|*][,set:<tag>][,tag:<tag>][,<ipaddr>][,<hostname>][,<lease_time>][,ignore]"
+  hosts = []
+
+  [ntp.ipv4]
+    active = true
+    address = ""
+
+  [ntp.ipv6]
+    active = true
+    address = ""
+
+  [ntp.sync]
+    # NTP server
+    active = true
+    server = "pool.ntp.org"
+    interval = 3600
+    count = 8
+
+    [ntp.sync.rtc]
+      set = false
+      device = ""
+      utc = true
+
+[resolver]
+  resolveIPv4 = true
+  resolveIPv6 = true
+  networkNames = true
+  refreshNames = "IPV4_ONLY" # ALL/UNKNOWN/NONE
+
+[database]
+  DBimport = true
+  maxDBdays = 91
+  DBinterval = 60
+  useWAL = true
+
+  [database.network]
+    parseARPcache = true
+    expire = 91
+
+[webserver]
+  domain = "pi.hole"
+  # Listeners
+  port = "5353o,4343os,[::]:5353o,[::]:4343os"
+  # Webserver access control list (ACL)
+  acl = ""
+  # acl = "+127.0.0.1,+[::1]"
+  # ---> deny all access, except from 127.0.0.1 and ::1,
+  # acl = "+192.168.0.0/16"
+  # ---> deny all accesses, except from the 192.168.0.0/16 subnet,
+  # acl = "+[::]/0" ---> allow only IPv6 access.
+  threads = 50
+  serve_all = false
+  headers = [
+    "X-DNS-Prefetch-Control: off",
+    "Content-Security-Policy: default-src 'self' 'unsafe-inline';",
+    "X-Frame-Options: DENY",
+    "X-XSS-Protection: 0",
+    "X-Content-Type-Options: nosniff",
+    "Referrer-Policy: strict-origin-when-cross-origin"
+  ]
+
+  [webserver.session]
+    timeout = 1800
+    restore = true
+
+  [webserver.tls]
+    cert = "/etc/pihole/tls.pem"
+
+  [webserver.paths]
+    webroot = "/var/www/html"
+    webhome = "/admin/"
+    prefix = ""
+
+  [webserver.interface]
+    theme = "default-auto" # default-light/default-dark/default-darker/high-contrast/high-contrast-dark/lcars
+    boxed = true
+
+  [webserver.api]
+    # API password hash (default = "")
+    pwhash = "$BALLOON-SHA256$v=1$s=1024,t=32$jdtPya2PO0dzzZVxQ/3DMQ==$U8IggOzO8a9xcO+Rqsz3LHETaLSoXpHj0tsjhHdj1kg="
+    # Pi-hole application password
+    app_pwhash = ""
+    # Pi-hole 2FA TOTP secret (20 Bytes in Base32 encoding)
+    totp_secret = ""
+    # Should FTL prettify the API output (add extra spaces, newlines and indentation)
+    prettyJSON = false
+    # Should application password API sessions be allowed to modify config settings
+    app_sudo = false
+    # Array of clients to be excluded from certain API responses (regex):
+    # excludeClients = [ "^192\\.168\\.2\\.56$", "^fe80::341:[0-9a-f]*$", "^localhost$" ]
+    excludeClients = []
+
+    # Array of domains to be excluded from certain API responses (regex):
+    # excludeDomains = [ "(^|\\.)\\.google\\.de$", "\\.pi-hole\\.net$" ]
+    excludeDomains = []
+    
+    max_sessions = 16
+    maxClients = 10
+    maxHistory = 86400
+    client_history_global_max = true
+    cli_pw = true
+    allow_destructive = true
+
+    [webserver.api.temp]
+      # Which upper temperature limit should be used by Pi-hole? Temperatures above this
+      limit = 75.000000
+      unit = "C" # F (Fahrenheit) or K (Kelvin)
+
+[files]
+  pid = "/run/pihole-FTL.pid"
+  database = "/etc/pihole/pihole-FTL.db"
+  gravity = "/etc/pihole/gravity.db"
+  gravity_tmp = "/tmp"
+  macvendor = "/macvendor.db" ### CHANGED, default = "/etc/pihole/macvendor.db"
+  pcap = ""
+
+  [files.log]
+    ftl = "/var/log/pihole/FTL.log"
+    dnsmasq = "/var/log/pihole/pihole.log"
+    webserver = "/var/log/pihole/webserver.log"
+
+[misc]
+  privacylevel = 0
+  delay_startup = 0
+  nice = -10
+  addr2line = true
+  etc_dnsmasq_d = false
+  dnsmasq_lines = []
+  extraLogging = false
+  readOnly = false
+
+  [misc.check]
+    load = true
+    shmem = 90
+    disk = 90
+
+[debug]
+  database = false
+  networking = false
+  locks = false
+  queries = false
+  flags = false
+  shmem = false
+  gc = false
+  arp = false
+  regex = false
+  api = false
+  tls = false
+  overtime = false
+  status = false
+  caps = false
+  dnssec = false
+  vectors = false
+  resolver = false
+  edns0 = false
+  clients = false
+  aliasclients = false
+  events = false
+  helper = false
+  config = false
+  inotify = false
+  webserver = false
+  extra = false
+  reserved = false
+  ntp = false
+  netlink = false
+  all = false

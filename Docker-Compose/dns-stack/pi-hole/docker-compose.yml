@@ -1,0 +1,48 @@
+services:
+  # DNS Server + AdBlock
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      # DNS
+      - 53:53/tcp
+      - 53:53/udp
+      # HTTP
+      - 5353:5353/tcp
+      # HTTPS
+      - 4343:4343/tcp
+      # DHCP
+      #- "67:67/udp"
+    environment:
+      - TZ=Europe/Moscow
+      - FTLCONF_webserver_api_password=PiHoleAdmin # or docker logs pihole | grep random
+      - FTLCONF_dns_upstreams=8.8.8.8;1.1.1.1      # корневые DNS-сервера верхнего уровн (TLD), на которые пересылаются запросы
+    volumes:
+      - ./pihole_data:/etc/pihole
+      # - ./custom_hosts:/etc/pihole/hosts/custom.list
+      # - ./etc_hosts:/etc/hosts
+    # Для использования DHCP сервера
+    # cap_add:
+      # - NET_ADMIN
+    restart: unless-stopped
+    # Пробросить хостовую сеть и использовать режим listeningMode = "LOCAL"
+    network_mode: host
+
+  # Prometheus metrics from pi-hole
+  pihole-exporter:
+    container_name: pihole-exporter
+    image: ekofr/pihole-exporter:latest
+    environment:
+      - PIHOLE_HOSTNAME=pihole
+      - PIHOLE_PASSWORD=PiHoleAdmin
+      - PIHOLE_API_TOKEN=PiHoleAdmin
+      - INTERVAL=90s
+      - PORT=9617
+    ports:
+      - 617:9617
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    restart: unless-stopped
