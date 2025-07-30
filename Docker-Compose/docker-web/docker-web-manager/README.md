@@ -4,6 +4,10 @@ Switch between hosts to remotely manage Docker containers in your browser.
 
 This project was made possible by combining the capabilities of popular utilities. Realizing that this is mostly a hack, I don't see the point in isolating it into a separate repository, the source code for launching and building the image is available in the [repository](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose/docker-web/docker-web-manager) with notes.
 
+## Demo
+
+![](demo.gif)
+
 ## How does it work?
 
 The [fzf](https://github.com/junegunn/fzf) interface is used to select and filter the host list, remote machines are accessed via Docker socket forwarding via the `ssh` protocol, containers and other Docker entities are managed using the [lazydocker](https://github.com/jesseduffield/lazydocker) or [ctop](https://github.com/bcicen/ctop) interfaces. All this runs in the browser, thanks to [ttyd](https://github.com/tsl0922/ttyd), with support for basic authorization (it is also possible to configure `SSL` or authorization via a Proxy server to secure the connection). The final image includes the `docker-cli` client, to be able to connect to the terminal of the selected container via the `exec` method.
