@@ -67,9 +67,10 @@
   - [lspage](#lspage)
 - [bashrc](#bashrc)
   - [oh-my-bash](#oh-my-bash)
-  - [fzf](#fzf)
+- [fzf](#fzf)
   - [fzf-obc](#fzf-obc)
-  - [hstr](#hstr)
+- [hstr](#hstr)
+  - [hstr-fzf](#hstr-fzf)
   - [mcfly](#mcfly)
 - [compgen](#compgen)
 - [cron](#cron)
@@ -1173,6 +1174,9 @@ fi
 
 `bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"`
 
+`ls ~/.oh-my-bash/themes/` список доступных тем \
+`sed -iE "s/^OSH_THEME=.*/OSH_THEME=powerline/" ~/.bashrc && source $HOME/.bashrc` изменить тему
+
 Настроить динамический профиль:
 ```bash
 function sysStat() {
@@ -1214,42 +1218,49 @@ PS1+='\[\e[33m\]📁 \w \[\e[0m\]'
 PS1+='$(echo -e "$GITSTATUS")'
 PS1+='\[\e[34m\]> \[\e[0m\]'
 ```
-### fzf
+## fzf
 
 `apt install fzf` установить [fzf](https://github.com/junegunn/fzf) \
 `history | fzf` интерактивный поиск с фильтрацией \
 `eval $(history | fzf | awk '{print $2}')` выполнить (eval) выбранную команду из списка (добавить в макрос) \
 `find / -name "*.yaml" | fzf | xargs cat` найти в системе все файлы `yaml`, запустить по ним поиск и передача в `cat` для чтения выбранного файла
 
-Поиск по истории команд с помощью функции `hstr` или псевдонима `h` и комбинации `Ctrl+R` через `fzf`:
+Поиск, чтение и фильтрация системных логов и контейнеров Docker через `fzf` с покраской вывода в `tailspin`:
 ```bash
-if command -v fzf > /dev/null; then
-    function hstr() {
-        local current_input="$READLINE_LINE"
-        command=$(tac $HOME/.bash_history | sed '/^#/d' | awk '!seen[$0]++' |  fzf --height 20 --reverse --query="$current_input" | sed -r "s/^\s+[0-9]+\s+[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\s//")
-        if [[ -n "$command" ]]; then
-            READLINE_LINE="$command"
-            READLINE_POINT=${#READLINE_LINE}
+alias ts=tailspin
+# docker logs over fzf
+function logd() {
+    contaner_name=$(docker ps --format "{{.Names}}" | fzf --exact --height 20 --reverse)
+    if [ -n "$contaner_name" ]; then
+        docker logs $contaner_name | ts | fzf --ansi --exact
+    fi
+}
+# varlog over fzf (including including archives)
+function log() {
+    file_name=$(ls -p /var/log/ | grep -v / | fzf --exact --height 20 --reverse)
+    if [ -n "$file_name" ]; then
+        if [ "$file_name" == *.gz ]; then
+            zcat "/var/log/$file_name" | tac | ts | fzf --ansi --exact
+        else
+            tac "/var/log/$file_name" | ts | fzf --ansi --exact
         fi
-    }
-    alias h=hstr
-    bind -x '"\C-r": h'
-fi
-```
-
-Kill jobs over fzf:
-
-```bash
-if command -v fzf > /dev/null; then
-    function jobKill() {
-        pid=$(jobs -l | fzf --height 20 --reverse --preview "echo {}" --preview-window down | awk '{print $2}')
-        if [[ -n "$pid" ]]; then
-            READLINE_LINE="kill -9 $pid"
-            READLINE_POINT=${#READLINE_LINE}
+    fi
+}
+# all file logs over fzf
+function logs() {
+    if command -v fdfind > /dev/null; then
+        file_name=$(fdfind ".log$" / | fzf --exact --height 20 --reverse)
+    else
+        file_name=$(find / -name "*.log" 2> /dev/null | fzf --exact --height 20 --reverse)
+    fi
+    if [ -n "$file_name" ]; then
+        if [ "$file_name" == *.gz ]; then
+            zcat "/var/log/$file_name" | tac | ts | fzf --ansi --exact
+        else
+            tac "/var/log/$file_name" | ts | fzf --ansi --exact
         fi
-    }
-    bind -x '"\C-j": jobKill'
-fi
+    fi
+}
 ```
 ### fzf-obc
 
@@ -1258,7 +1269,7 @@ fi
 git clone https://github.com/rockandska/fzf-obc $HOME/.local/opt/fzf-obc
 echo "source $HOME/.local/opt/fzf-obc/bin/fzf-obc.bash" >> $HOME/.bashrc
 ```
-### hstr
+## hstr
 
 `sudo apt install hstr` установить hstr (https://github.com/dvorka/hstr) \
 `hstr -f` избранное (Ctrl+F добавить в избранное) \
@@ -1266,6 +1277,24 @@ echo "source $HOME/.local/opt/fzf-obc/bin/fzf-obc.bash" >> $HOME/.bashrc
 ```bash
 if command -v hstr > /dev/null; then
     bind -x '"\C-r": hstr'
+fi
+```
+### hstr-fzf
+
+Поиск по истории команд с помощью функции `hstr` или псевдонима `h` и комбинации `Ctrl+R` через `fzf`:
+```bash
+# History search over fzf
+if command -v fzf > /dev/null; then
+    function hstr() {
+        local current_input="$READLINE_LINE"
+        command=$(tac $HOME/.bash_history | sed '/^#/d' | awk '!seen[$0]++' |  fzf --exact --no-sort --height 20 --reverse --query="$current_input")
+        if [[ -n "$command" ]]; then
+            READLINE_LINE="$command"
+            READLINE_POINT=${#READLINE_LINE}
+        fi
+    }
+    alias h=hstr
+    bind -x '"\C-r": h'
 fi
 ```
 ### mcfly
@@ -1802,12 +1831,12 @@ dd: error writing '/tmp/test.file': Disk quota exceeded
 ```bash
 mkdir -p $HOME/.local/bin
 sudo curl -s https://raw.githubusercontent.com/bearstech/pussh/refs/heads/master/pussh -o $HOME/.local/bin/pussh
-sudo chmod +x $HOME/.local/bin
+sudo chmod +x $HOME/.local/bin/pussh
 
 bash pussh -h root@192.168.3.102,root@192.168.3.103 uname -a
 
-echo -e "root@192.168.3.102\nroot@192.168.3.103" > host.list
-pussh -f host.list uname -a
+echo -e "root@192.168.3.102\nroot@192.168.3.103" > hostlist
+pussh -c -f hostlist uname -a
 ```
 ### quickbench
 
