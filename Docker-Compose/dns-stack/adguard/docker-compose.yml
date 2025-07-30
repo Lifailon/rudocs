@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   adguard:
     image: adguard/adguardhome
@@ -36,3 +34,8 @@ services:
 networks:
   adguard_net:
     driver: bridge
+
+# Reset password by hash:
+# sudo apt-get install apache2
+# htpasswd -B -C 10 -n -b admin AdHuardHome
+# sudo nano adguard_conf/AdGuardHome.yaml
