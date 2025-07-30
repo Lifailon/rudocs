@@ -1,0 +1,15 @@
+services:
+  docker-web-manager:
+    image: lifailon/docker-web-manager:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docker-web-manager
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+    env_file:
+      - .env
+    ports:
+      - "${WEB_PORT:-3333}:${WEB_PORT:-3333}"

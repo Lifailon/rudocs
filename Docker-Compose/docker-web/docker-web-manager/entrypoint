@@ -1,0 +1,31 @@
+function dcm() {
+    if [ -n "$SSH_HOST" ]; then
+        if [ "$SSH_HOST" = "localhost" ]; then
+            unset DOCKER_HOST
+        else
+            # Delete socket 
+            pkill -f "ssh -fNL $SOCKET_PATH"
+            ps aux | grep "[s]sh -fNL" > /dev/null 2>&1 && echo -e "\e[31mError: socket not stopped\e[0m"
+            rm -f /tmp/remote-docker.sock
+            ls $SOCKET_PATH > /dev/null 2>&1 && echo -e "\e[31mError: socket not deleted\e[0m"
+            # Create socket
+            ssh -fNL $SOCKET_PATH:/var/run/docker.sock "$SSH_USER@$SSH_HOST" -p $SSH_PORT -o StrictHostKeyChecking=no
+            export DOCKER_HOST="unix://$SOCKET_PATH"
+            ps aux | grep "[s]sh -fNL" 1> /dev/null || echo -e "\e[31mError: socket not forwarded\e[0m"
+        fi
+    fi
+}
+
+export -f dcm
+export SSH_HOSTS=${SSH_HOSTS:-localhost}
+export SSH_USER=${SSH_USER:-root}
+export SSH_PORT=${SSH_PORT:-22}
+export SOCKET_PATH=/tmp/remote-docker.sock
+export DOCKER_CLIENT=${DOCKER_CLIENT:-lazydocker}
+
+TTYD_OPTIONS="-W -p ${WEB_PORT:-3333}"
+if [ -n "${WEB_USERNAME}" ] && [ -n "${WEB_PASSWORD}" ]; then
+    TTYD_OPTIONS+=" -c ${WEB_USERNAME}:${WEB_PASSWORD}"
+fi
+
+ttyd "$TTYD_OPTIONS" bash -c 'SSH_HOST=$(printf "%s\n" ${SSH_HOSTS//,/ } | fzf --exact --no-sort --reverse --border) && dcm && $DOCKER_CLIENT'
