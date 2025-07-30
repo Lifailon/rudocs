@@ -1,0 +1,14 @@
+services:
+  lazydocker-web:
+    image: lifailon/lazydocker-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lazydocker-web
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-3333}:${PORT:-3333}"

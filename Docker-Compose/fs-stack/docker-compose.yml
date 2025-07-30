@@ -1,4 +1,4 @@
-# mkdir filebrowser_database filebrowser_settings && chown -R 1000:1000 filebrowser_database filebrowser_settings
+# mkdir filebrowser_data filebrowser_conf && chown -R 1000:1000 filebrowser_data filebrowser_conf
 
 services:
   # Web File Browser
@@ -13,7 +13,6 @@ services:
       - ./filebrowser_conf:/config    # settings.json
     user: 1000:1000
     restart: unless-stopped
-
 
   # Web Server Index
   h5ai:

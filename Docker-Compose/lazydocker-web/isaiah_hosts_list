@@ -1,2 +1,0 @@
-Local unix:///var/run/docker.sock
-Agent-01 tcp://192.168.3.106:4382

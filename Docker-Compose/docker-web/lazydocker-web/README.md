@@ -12,26 +12,17 @@ services:
     image: lifailon/lazydocker-web:latest
     container_name: lazydocker-web
     restart: unless-stopped
-    # Permissions for Docker Socket in host system
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    # TUI mode
-    # stdin_open: true
-    # tty: true
-    # Web mode
     env_file:
       - .env
-    environment:
-      - PORT=${PORT}
-      - USERNAME=${USERNAME}
-      - PASSWORD=${PASSWORD}
     ports:
-      - "${PORT}:${PORT}"
+      - "${PORT:-3333}:${PORT:-3333}"
 ```
 
 To add basic authorization in the web interface or change the port, create a `.env` file next to it with the following contents:
 
-```
+```bash
 PORT=3333
 USERNAME=admin
 PASSWORD=admin
@@ -39,4 +30,4 @@ PASSWORD=admin
 
 ## Alternatives
 
-[isaiah](https://github.com/will-moss/isaiah) - Independent and self-hosted development clone of lazydocker based on Go and JavaScript for the Web.
+[isaiah](https://github.com/will-moss/isaiah) - independent development clone of lazydocker for the Web based on Go and JavaScript.

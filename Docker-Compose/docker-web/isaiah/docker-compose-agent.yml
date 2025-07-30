@@ -1,13 +1,13 @@
-version: '3'
 services:
-  isaiah:
+  isaiah-agent:
     image: mosswill/isaiah:latest
+    container_name: isaiah-agent
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       SERVER_ROLE: "Agent"
       AUTHENTICATION_SECRET: "secret"
-      MASTER_HOST: "192.168.3.105:5052"
+      MASTER_HOST: "192.168.3.105:4444"
       MASTER_SECRET: "secret"
-      AGENT_NAME: "rpi-105"
+      AGENT_NAME: "rpi-106"
