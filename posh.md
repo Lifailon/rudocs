@@ -9095,6 +9095,77 @@ threads << runTask("Задача 3", 1000)
 
 threads*.join()
 println "Результат: $sharedList"
+
+// Функции строк
+" text ".trim()                     // удаляет пробелы в начале и конце => "text"
+"ping".replace("i", "o")            // заменяет буквы в строке => pong
+"a,b,c".split(",")                  // разбивает строку по разделителю => ["a", "b", "c"]
+"abc".size()                        // возвращает длину строки или размер списка (кол-во элементов) => 3
+"abc".reverse()                     // переворачивает строку => "cba"
+"abc".contains("b")                 // проверяет наличие подстроки => true
+"abc".startsWith("a")               // проверяет начало строки => true
+"abc".endsWith("c")                 // проверяет конец строки => true
+"123".isNumber()                    // проверяет, является ли строка числом => true
+"abc".matches("a.*")                // проверяет соответствие регулярному выражения => true
+"hello".toUpperCase()               // преобразует строку в верхний регистр => "HELLO"
+"HELLO".toLowerCase()               // преобразует строку в нижний регистр => "hello"
+
+// Функции массивов
+["a","b","c"].join(",")             // объединяет элементы в строку => "a,b,c"
+["a","b","c"].contains("b")         // проверяет наличие элемента => true
+[1, 2, 3].sum()                     // суммирует элементы => 6
+[1, 2, 3].max()                     // находит максимум => 3
+[1, 2, 3].min()                     // находит минимум => 1
+[1, 2, 3].average()                 // вычисляет среднее => 2
+[1, 2, 3].reverse()                 // переворачивает список => [3, 2, 1]
+[3, 2, 1].sort()                    // сортирует список => [1, 2, 3]
+[1, 2, 2, 3, 3].unique()            // удаляет дубли => [1, 2, 3]
+[1, 2, 3].findAll { it > 1 }        // фильтрует элементы => [2, 3]
+[1, 2, 3].collect { it * 2 }        // преобразует элементы => [2, 4, 6]
+["1","2"].collect {it.toInteger()}  // строки => числа => [1, 2]
+
+def users = [
+    [name: "Alex", age: 30],
+    [name: "Jack", age: 35]
+]  
+users.collect { it.name }
+// ["Alex", "Jack"]
+
+// Функции карт (map)
+["a": 1, "b": 2].get("a")                       // получает значение по ключу => 1
+["a": 1, "b": 2].keySet()                       // возвращает все ключи => ["a", "b"]
+["a": 1, "b": 2].values()                       // возвращает все значения => [1, 2]
+["a": 1, "b": 2].containsKey("a")               // проверяет наличие ключа => true
+["a": 1, "b": 2].findAll { k, v -> v > 1 }      // фильтрует записи => ["b": 2]
+["a": 1, "b": 2].collect { k, v -> "$k-$v" }    // преобразует => ["a-1", "b-2"]
+["a": 1].put("b", 2)                            // добавляет новую пару ключ-значение => ["a": 1, "b": 2]
+["a": 1].plus(["b": 2])                         // объединяет мапы => ["a": 1, "b": 2]
+
+// Директории и файлы
+new File("dir").mkdir()                         // создает директорию => boolean
+new File("dir/subdir").mkdirs()                 // создает все недостающие директории d genb => boolean
+new File("dir").list()                          // список имен файлов => String[]
+new File("dir").listFiles()                     // возвращает список файлов в директории => File[]
+new File("dir").deleteDir()                     // удаляет директорию (рекурсивно) => boolean
+new File("dir").isDirectory()                   // проверяет, что это директория => boolean
+new File("file.txt").createNewFile()            // создает пустой файл => boolean
+new File("file.txt").delete()                   // удаляет файл => boolean
+new File("file.txt").exists()                   // проверяет существование файла => boolean
+new File("file.txt").isFile()                   // проверяет, что это файл => boolean
+new File("file.txt").length()                   // возвращает размер файла в байтах => long
+new File("file.txt").lastModified()             // возвращает время последнего изменения => long (timestamp)
+new File("file.txt").getName()                  // возвращает имя файла (без пути) => String
+new File("file.txt").getPath()                  // возвращает относительный путь => String
+new File("file.txt").getAbsolutePath()          // возвращает абсолютный путь => String
+new File("file.txt").text                       // читает содержимое файла в строку
+new File("file.txt").getText("UTF-8")           // указать кодировку при чтение
+new File("file.txt").readBytes()                // читает файл как массив байтов => byte[]
+new File("file.txt").readLines()                // читает файл построчно (получаем массив из строк) => List<String>
+new File("file.txt").eachLine { it }            // обработать каждую строку
+new File("file.txt").write("text")              // перезаписывает файл (если существует) => void
+new File("file.txt").setText("text")            // аналог write() => void
+new File("file.txt").bytes = [1, 2, 3]          // записывает массив байтов => void
+new File("file.txt") << "text"                  // добавляет текст в конец файла => void
 ```
 # Pester
 
