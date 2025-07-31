@@ -482,13 +482,14 @@
     - [Docker Socket API](#docker-socket-api)
     - [Docker TCP API](#docker-tcp-api)
     - [Context](#context)
+    - [dcm](#dcm)
     - [ctop](#ctop)
     - [Dockly](#dockly)
     - [LazyDocker](#lazydocker)
     - [Lazyjournal](#lazyjournal)
     - [Dockerfile](#dockerfile)
     - [Push](#push)
-    - [ADD](#add)
+    - [Buildx](#buildx)
 - [Compose](#compose)
     - [Uptime-Kuma](#uptime-kuma)
     - [Dozzle](#dozzle)
@@ -961,16 +962,16 @@ g    # Период или эра (например, "н.э.")
 ```
 ### Якори
 
-`^` или `\A` определяет начало строки. $url -replace '^','https:'` добавить в начало; \
-`$` или `\Z` обозначают конец строки. $ip -replace "\d{1,3}$","0" \
-`(?=text)` поиск слова слева. Пишем слева на право от искомого (ищет только целые словосочетания) "Server:\s(.{1,30})\s(?=$username)" \
-`(?<=text)` поиск слова справа. $in_time -replace ".+(?<=Last)"` удалить все до слова Last \
+`^` или `\A` определяет начало строки (`$url -replace '^','https:'` - добавить текст в начало строки) \
+`$` или `\Z` обозначают конец строки (`$ip -replace "\d{1,3}$","0"`) \
+`(?=text)` поиск слова слева. Пишем слева на право от искомого (ищет только целые словосочетания - `"Server:\s(.{1,30})\s(?=$username)"`) \
+`(?<=text)` поиск слова справа (`$in_time -replace ".+(?<=Last)"` - удалить все до `Last`) \
 `(?!text)` не совпадает со словом слева \
 `(?<!text)` не совпадает со словом справа
 
 `$test = "string"` \
 `$test -replace ".{1}$"` удалить любое кол-во символов в конце строки \
-`$test -replace "^.{1}"` удалить любое кол-во символов в начале строки \
+`$test -replace "^.{1}"` удалить любое кол-во символов в начале строки
 
 ### Группы захвата
 
@@ -10215,12 +10216,69 @@ systemctl restart docker
 
 ### Context
 
-`docker context create devops-01 --docker "host=tcp://192.168.3.101:2375"` подключиться к удаленному сокету \
-`docker context ls` список контекстов \
-`docker context inspect devops-01` конфигурация указанного контекста \
-`docker context use devops-01` использовать выбранный контекст по умолчанию (возможно на прямую взаимосдействовать с удаленным Docker Engine через cli) \
-`docker context rm devops-01` удалить контекст
+`docker context create rpi-106 --docker "host=tcp://192.168.3.106:2375"` добавить подключение к удаленному хосту через протокол `TCP` \
+`docker context create rpi-106 --docker "host=ssh://lifailon@192.168.3.106:2121"` добавить подключение к удаленному хосту через протокол `SSH` \
+`docker context ls` список всех доступных контекстов (`*` отображается текущий) \
+`docker context inspect rpi-106` конфигурация указанного контекста \
+`docker context use rpi-106` переключиться на выбранный контекст (возможно на прямую взаимосдействовать с удаленным Docker Engine через cli, за исключением взаимодействия через Socket) \
+`docker context rm rpi-106` удалить контекст
 
+### dcm
+
+`dcm` (Docker Context Manager) - это простая реализация TUI интерфейса на базе [fzf](https://github.com/junegunn/fzf), для переключения контекста из перечисленного списка хостов. Т.к. для использовать TUI интерфейсов требуется взаимодействие с сокетом, недостаточно изменить только переменную `DOCKER_HOST` или использовать команду `docker context`, по этому используется механиз `ssh forwarding`, который пробрасывает сокета с удаленной машины в локальную систему (используется временный файл, с изменением пути в переменной окружения).
+
+```bash
+DCM_SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
+DCM_SSH_USER=lifailon
+DCM_SSH_PORT=2121
+DCM_SOCKET_PATH=/tmp/remote-docker.sock
+
+# dcm (Docker Context Manager)
+function dcm() {
+    DCM_SSH_HOST=$(printf "%s\n" ${DCM_SSH_HOSTS//,/ } | fzf --exact --no-sort --height 20 --reverse)
+    if [ -n "$DCM_SSH_HOST" ]; then
+        if [ $DCM_SSH_HOST == "localhost" ]; then
+            pkill -f "ssh -fNL $DCM_SOCKET_PATH"
+            ps aux | grep "[s]sh -fNL" > /dev/null 2>&1 && echo -e "\e[31mError: socket not stopped\e[0m"
+            rm -f /tmp/remote-docker.sock
+            ls $DCM_SOCKET_PATH > /dev/null 2>&1 && echo -e "\e[31mError: socket not deleted\e[0m"
+            unset DOCKER_HOST
+        else
+            pkill -f "ssh -fNL $DCM_SOCKET_PATH"
+            ps aux | grep "[s]sh -fNL" > /dev/null 2>&1 && echo -e "\e[31mError: socket not stopped\e[0m"
+            rm -f /tmp/remote-docker.sock
+            ls $DCM_SOCKET_PATH > /dev/null 2>&1 && echo -e "\e[31mError: socket not deleted\e[0m"
+            ssh -fNL $DCM_SOCKET_PATH:/var/run/docker.sock "$DCM_SSH_USER@$DCM_SSH_HOST" -p $DCM_SSH_PORT
+            export DOCKER_HOST="unix://$DCM_SOCKET_PATH"
+            ps aux | grep "[s]sh -fNL" 1> /dev/null || echo -e "\e[31mError: socket not forwarded\e[0m"
+        fi
+    fi
+}
+
+# lazydocker over dcm
+alias ld=lazydocker
+function dcl() {
+    DCM_SSH_HOST=$(printf "%s\n" ${DCM_SSH_HOSTS//,/ } | fzf --exact --no-sort --height 20 --reverse)
+    if [ -n "$DCM_SSH_HOST" ]; then
+        # Delete socket 
+        pkill -f "ssh -fNL $DCM_SOCKET_PATH"
+        ps aux | grep "[s]sh -fNL" > /dev/null 2>&1 && echo -e "\e[31mError: socket not stopped\e[0m"
+        rm -f /tmp/remote-docker.sock
+        ls $DCM_SOCKET_PATH > /dev/null 2>&1 && echo -e "\e[31mError: socket not deleted\e[0m"
+        # Create socket
+        ssh -fNL $DCM_SOCKET_PATH:/var/run/docker.sock "$DCM_SSH_USER@$DCM_SSH_HOST" -p $DCM_SSH_PORT
+        export DOCKER_HOST="unix://$DCM_SOCKET_PATH"
+        ps aux | grep "[s]sh -fNL" 1> /dev/null || echo -e "\e[31mError: socket not forwarded\e[0m"
+        ld
+        # Delete socket 
+        pkill -f "ssh -fNL $DCM_SOCKET_PATH"
+        ps aux | grep "[s]sh -fNL" > /dev/null 2>&1 && echo -e "\e[31mError: socket not stopped\e[0m"
+        rm -f /tmp/remote-docker.sock
+        ls $DCM_SOCKET_PATH > /dev/null 2>&1 && echo -e "\e[31mError: socket not deleted\e[0m"
+        unset DOCKER_HOST
+    fi
+}
+```
 ### ctop
 
 `scoop install ctop` установка в Windows (https://github.com/bcicen/ctop)
@@ -10283,6 +10341,18 @@ lazydocker
 `ONBUILD` задает команды, которые будут автоматически выполнены при сборке дочерних образов \
 `STOPSIGNAL` определяет сигнал, который будет отправлен контейнеру для его остановки
 
+Пример использования `ADD` для загрузки из `url`:
+```bash
+FROM alpine:latest
+# Загрузка и распаковка архива напрямую из GitHub
+ADD https://github.com/<username>/<repository>/archive/refs/heads/main.zip /app/
+# Установка инструмента для работы с архивами
+RUN apk add --no-cache unzip && \
+    unzip /app/main.zip -d /app/ && \
+    rm /app/main.zip
+```
+Пример сборки приложения на `node.js`:
+
 `git clone https://github.com/Lifailon/TorAPI` \
 `cd TorAPI` \
 `nano Dockerfile`
@@ -10342,15 +10412,29 @@ docker run -d --name TorAPI -p 8443:8443 --restart=unless-stopped \
 `docker pull lifailon/torapi:latest` загрузить образ из Docker Hub \
 `docker run -d --name TorAPI -p 8443:8443 lifailon/torapi:latest` загрузить образ и создать контейнер
 
-### ADD
-```bash
-FROM alpine:latest
-# Загрузка и распаковка архива напрямую из GitHub
-ADD https://github.com/<username>/<repository>/archive/refs/heads/main.zip /app/
-# Установка инструмента для работы с архивами
-RUN apk add --no-cache unzip && \
-    unzip /app/main.zip -d /app/ && \
-    rm /app/main.zip
+### Buildx
+
+`sudo apt install docker-buildx -y` установить систему для мультиплатформенной сборки \
+`docker buildx create --use --name multiarch-builder --driver docker-container` оздать и запустить сборщик в контейнере \
+`docker buildx ls` \
+`docker buildx rm multiarch-builder`
+
+`go list -u -m all && go get -u ./...` обновить пакеты приложения на Go
+
+Добавить аргументы в Dockerfile и передать их в переменные для сборки:
+```Dockerfile
+ARG TARGETOS TARGETARCH
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /logporter
+```
+docker buildx build --platform linux/amd64,linux/arm64 .
+docker buildx build --platform linux/amd64,linux/arm64 -t lifailon/logporter --push .
+
+`npm outdated && npm update --save` обновить паеты node.jd приложения
+
+Передаем аргументы в параметры платформы для образа:
+```Dockerfile
+ARG TARGETOS TARGETARCH
+FROM --platform=${TARGETOS}/${TARGETARCH} node:alpine AS build
 ```
 # Compose
 ```bash
