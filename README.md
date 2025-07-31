@@ -16,7 +16,7 @@
     Большая база заметок <b>PowerShell</b>, инструментам <b>DevOps</b> и командам 🐧 <a href="linux.md">Linux</a> на русском языке.
 </p>
 
-Репозиторий содержит набор полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts) автора, а также взаимодействие с `.NET Framework` на примере [REST API сервера](HttpListener/KeePassREST.psm1) для удаленного доступа к базе данных KeePass и [тестового стенда WinForms](WinForms/WinForms-Test-Stend.ps1), который возможно использовать как шаблон для создания программы с графическим интерфейсом.
+Также репозиторий содержит библиотеку полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts), коллекцию актуальных стеков [Docker Compose](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose) и взаимодействие с `.NET Framework`, на напримере создания `REST API` сервера с использованием [HttpListener](https://github.com/Lifailon/PS-Commands/blob/rsa/HttpListener/KeePassREST.psm1) и программы с графическим интерфейсом на базе [WinForms](https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms).
 
 > [!NOTE]
 > Вы можете ознакомиться с другими шпаргалками для языков **Go** и **JavaScript**:
@@ -137,6 +137,7 @@
 - [Vercel](posh.md/#vercel)
 - [GitLab](posh.md/#gitlab)
 - [Jenkins](posh.md/#jenkins)
+- [Groovy](posh.md/#groovy)
 - [Pester](posh.md/#pester)
 - [PSAppDeployToolkit](posh.md/#psappdeploytoolkit)
 - [DSC](posh.md/#dsc)

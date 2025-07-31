@@ -428,7 +428,7 @@
     - [Vault](#vault)
     - [Email Extension](#email-extension)
     - [Parallel](#parallel)
-    - [Groovy](#groovy)
+- [Groovy](#groovy)
 - [Pester](#pester)
 - [PSAppDeployToolkit](#psappdeploytoolkit)
     - [Install-DeployToolkit](#install-deploytoolkit)
@@ -466,8 +466,9 @@
 - [Docker](#docker)
     - [WSL](#wsl)
     - [Install](#install-1)
-    - [Mirror](#mirror)
     - [Proxy](#proxy)
+    - [Mirror](#mirror)
+    - [Nexus](#nexus)
     - [Run](#run)
     - [Update](#update-2)
     - [Stats](#stats)
@@ -8950,9 +8951,9 @@ pipeline {
     }
 }
 ```
-### Groovy
+# Groovy
 
-Базовый синтаксис языка `Groovy`
+Базовый синтаксис языка `Groovy`:
 ```Groovy
 // Переменные
 javaString = 'java'
@@ -10103,6 +10104,19 @@ dev3 ansible_host=192.168.3.103
 `cat /root/.docker/config.json | jq -r .auths[].auth` место хранения токена авторизации в системе \
 `cat /root/.docker/config.json | python3 -m json.tool`
 
+### Proxy
+```bash
+mkdir -p /etc/systemd/system/docker.service.d
+```
+Создаем дополнительную конфигурацию для службы Docker в файле `/etc/systemd/system/docker.service.d/http-proxy.conf`:
+```
+[Service]
+Environment="HTTP_PROXY=http://docker:password@192.168.3.100:9090"
+Environment="HTTPS_PROXY=http://docker:password@192.168.3.100:9090"
+```
+`systemctl daemon-reload` \
+`systemctl restart docker`
+
 ### Mirror
 
 `echo '{ "registry-mirrors": ["https://dockerhub.timeweb.cloud"] }' > "/etc/docker/daemon.json"` \
@@ -10113,16 +10127,19 @@ dev3 ansible_host=192.168.3.103
 
 `systemctl restart docker`
 
-### Proxy
-```bash
-mkdir -p /etc/systemd/system/docker.service.d
+### Nexus
 
-'[Service]
-Environment="HTTP_PROXY=http://docker:password@192.168.3.100:9090"
-Environment="HTTPS_PROXY=http://docker:password@192.168.3.100:9090"' > /etc/systemd/system/docker.service.d/http-proxy.conf
+Разрешает небезопасные HTTP-соединения с Nexus сервером (если не использует HTTPS):
+```bash
+echo -e '{\n  "insecure-registries": ["http://192.168.3.105:8882"]\n}' | sudo tee "/etc/docker/daemon.json"
+sudo systemctl restart docker
 ```
-`systemctl daemon-reload` \
-`systemctl restart docker`
+`docker login 192.168.3.105:8882` авторизируемся в репозитории Docker Registry на сервере Nexus \
+`docker tag lifailon/docker-web-manager:latest 192.168.3.105:8882/docker-web-manager:latest` создаем тег с прявязкой сервера \
+`docker push 192.168.3.105:8882/docker-web-manager:latest` загружаем образ на сервер Nexus
+
+`curl -sX GET http://192.168.3.105:8882/v2/docker-web-manager/tags/list | jq` отобразить список доступных тегов \
+`docker pull 192.168.3.105:8882/docker-web-manager:latest` загрузить образ из Nexus
 
 ### Run 
 
