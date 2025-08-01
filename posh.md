@@ -499,8 +499,9 @@
 - [Docker.DotNet](#dockerdotnet)
 - [Swarm](#swarm)
 - [Kubernetes](#kubernetes)
+    - [K3s](#k3s)
+    - [Dashboard](#dashboard)
     - [Micro8s](#micro8s)
-    - [k3s](#k3s)
     - [Minikube](#minikube)
     - [kubectl](#kubectl)
     - [Deployment](#deployment)
@@ -10745,7 +10746,7 @@ $client.Containers.StartContainerAsync($kuma_id, $StartParameters)
 `docker swarm join --token SWMTKN-1-1a078rm7vuenefp6me84t4swqtvdoveu6dh2pw34xjcf2gyw33-81f8r32jt3kkpk4dqnt0oort9 192.168.3.101:2377` подключение на worker node (на клиенте) \
 `docker node ls` отобразить список node на manager node \
 `docker node inspect u4u897mxb1oo39pbj5oezd3um` подробная информация (конфигурация) о node по id \
-`1` выйти из кластера на `worker node` (на `manager node` изменится статус с `Ready` на `Down`) \
+`docker swarm leave --force` выйти из кластера на `worker node` (на `manager node` изменится статус с `Ready` на `Down`) \
 `docker node rm u4u897mxb1oo39pbj5oezd3um` удалить node (со статусом `Down`) на `manager node` \
 `docker swarm init --force-new-cluster` заново инициализировать кластер (если упал, при наличии одного менеджера)
 
@@ -10868,9 +10869,32 @@ volumes:
 
 # Kubernetes
 
+### K3s
+
+[K3s](https://github.com/k3s-io/k3s) — это полностью совместимый дистрибутив Kubernetes в формате единого двоичного файле, который удаляет хранение драйверов и поставщика облачных услуг, а также добавляет поддержку `sqlite3` для `backend` хранилища от компании Rancher Labs (SUSE).
+
+`curl -sfL https://get.k3s.io | sh -` установка службы в systemd и утилит `kubectl`, `crictl`, `k3s-killall.sh` и `k3s-uninstall.sh` \
+`sudo chmod 644 /etc/rancher/k3s/k3s.yaml && sudo chown $(id -u):$(id -g) /etc/rancher/k3s/k3s.yaml` назначить права на конфигурацию текущему пользователю \
+`sudo cat /var/lib/rancher/k3s/server/node-token` токен авторизации \
+`curl -sfL https://get.k3s.io | K3S_URL=https://192.168.3.105:6443 K3S_TOKEN=<TOKEN> sh -` передать переменные окружения `K3S_URL` и `K3S_TOKEN` токен для установки на рабочие ноды \
+`sudo nano /boot/firmware/cmdline.txt` включить cgroups v1 вместо v2 => `systemd.unified_cgroup_hierarchy=0 cgroup_enable=memory cgroup_memory=1` \
+`k3s kubectl get nodes` отобразить список нод в кластере \
+`sudo k3s crictl ps` отобразить список всех запущенных контейнеров, включая системные для работы класетра \
+`sudo k3s etcd-snapshot save` создать снапшот etcd (распределённого key-value хранилища, которое отвечает за состояние всего кластера Kubernetes) \
+`sudo k3s etcd-snapshot restor` восстановление кластера из снапшота
+
+### Dashboard
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml # загружаем deployment
+kubectl create serviceaccount dashboard-admin -n kubernetes-dashboard # создаем сервисный аккаунт
+kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:dashboard-admin # выдаем права cluster-admin
+kubectl -n kubernetes-dashboard create token dashboard-admin # получаем JWT-токен сервисного аккаунта для авторизации
+kubectl -n kubernetes-dashboard patch svc kubernetes-dashboard-kong-proxy -p '{"spec":{"type":"NodePort"}}' # меняем тип сервиса на NodePort
+kubectl -n kubernetes-dashboard get svc kubernetes-dashboard-kong-proxy # узнаем назначенный порт (в диапазоне 30000-32767) для внешнего подключения
+```
 ### Micro8s
 
-[Micro8s](https://github.com/canonical/microk8s) - это полностью совместимый и легкий Kubernetes в одном пакете, работающий на 42 разновидностях Linux.
+[Micro8s](https://github.com/canonical/microk8s) - это полностью совместимый и легкий Kubernetes в одном пакете, работающий на 42 разновидностях Linux от компании Canonical.
 
 `snap install microk8s --classic` установка \
 `microk8s status --wait-ready` отобразить статус работы (дождаться инициализации служб Kubernetes) и список дополнений \
@@ -10882,21 +10906,9 @@ volumes:
 `kubectl get nodes` отобразить список нод \
 `kubectl config view --raw > $HOME/.kube/config` передать конфигурацию в MicroK8s, для использования с существующим kubectl
 
-### k3s
-
-[K3s](https://github.com/k3s-io/k3s) — это полностью совместимый дистрибутив Kubernetes в формате единого двоичного файле, который удаляет хранение драйверов и поставщика облачных услуг, а также добавляет поддержку sqlite3 для backend хранилища.
-
-`curl -sfL https://get.k3s.io | sh -` установка службы в systemd и утилит `kubectl`, `crictl`, `k3s-killall.sh` и `k3s-uninstall.sh` \
-`/etc/rancher/k3s/k3s.yaml` конфигурация \
-`/var/lib/rancher/k3s/server/node-token` токен авторизации \
-`curl -sfL https://get.k3s.io | K3S_URL=https://myserver:6443 K3S_TOKEN=XXX sh -` передать переменные окружения K3S_URL и K3S_TOKEN токен для установки на рабочие ноды \
-`sudo k3s server &` запустить сервер кластера \
-`sudo k3s agent --server https://myserver:6443 --token ${NODE_TOKEN}` подключиться к кластеру \
-`sudo k3s kubectl get nodes` отобразить список нод в кластере
-
 ### Minikube
 
-[Minikube](https://github.com/kubernetes/minikube) - это локальный кластер Kubernetes от создателя оригинального k8s
+[Minikube](https://github.com/kubernetes/minikube) - это локальный кластер Kubernetes от создателя оригинального k8s.
 ```bash
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-windows-amd64.exe
 mv minikube-windows-amd64.exe minikube.exe
