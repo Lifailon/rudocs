@@ -8800,7 +8800,6 @@ curl -s "https://videocdn.tv/api/$ep?api_token=$token&field=kinopoisk_id&query=$
 `mkdir /jackett` \
 `docker-compose.yml`
 ```yaml
----
 services:
   jackett:
     image: lscr.io/linuxserver/jackett:latest
