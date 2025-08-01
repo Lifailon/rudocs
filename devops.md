@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
+<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/devops-tools.png"></a></p>
 
 <p align="center">
     Заметки по инструментам направления <b>DevOps</b>.

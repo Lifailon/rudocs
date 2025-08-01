@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
+<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/ps-commands.png"></a></p>
 
 <p align="center">
     Большая база заметок <b>PowerShell</b> на русском языке.

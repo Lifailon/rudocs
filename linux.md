@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/linux.md"><img title="Linux Commands Logo"src="Logo/Linux-Commands-Logo.png"></a>
+    <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/linux.md"><img title="Linux Commands Logo"src="Logo/linux-commands.png"></a>
 </p>
 
 <p align="center">
