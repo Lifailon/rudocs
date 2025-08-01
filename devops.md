@@ -97,7 +97,6 @@
 - [Prometheus](#prometheus)
   - [PromQL Functions](#promql-functions)
 
-
 ---
 
 ## Git

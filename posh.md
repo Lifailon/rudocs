@@ -82,7 +82,7 @@
   - [Microsoft.PowerShell.Archive](#microsoftpowershellarchive)
   - [System.IO.Compression.FileSystem](#systemiocompressionfilesystem)
   - [WinRAR](#winrar)
-- [Handle](#handle)
+- [File descriptor](#file-descriptor)
 - [Console-Menu](#console-menu)
 - [Credential](#credential)
   - [Out-Gridview](#out-gridview)
@@ -1373,7 +1373,7 @@ function Expand-ArchivePassword {
 `cd "$home\Downloads"` \
 `Expand-ArchivePassword archive.rar qwe123`
 
-## Handle
+## File descriptor
 
 `$url = "https://download.sysinternals.com/files/Handle.zip"` \
 `Invoke-RestMethod $url -OutFile "$env:TEMP\handle.zip"` \
