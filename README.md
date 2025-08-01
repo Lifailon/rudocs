@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/PS-Commands-Logo.png"></a></p>
+<p align="center"><a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/ps-commands.png"></a></p>
 
 <p align="center">
         <a href="https://lifailon.github.io"><img title="GitHub Page"src="https://img.shields.io/website?url=https://lifailon.github.io&logo=GitHub&label=GitHub+Page+Status&color=green"></a>
@@ -19,8 +19,9 @@
 Также репозиторий содержит библиотеку полезных [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts), коллекцию актуальных стеков [Docker Compose](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose) и взаимодействие с `.NET Framework`, на напримере создания `REST API` сервера с использованием [HttpListener](https://github.com/Lifailon/PS-Commands/blob/rsa/HttpListener/KeePassREST.psm1) и программы с графическим интерфейсом на базе [WinForms](https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms).
 
 > [!NOTE]
-> Вы можете ознакомиться с другими шпаргалками для языков **Go** и **JavaScript**:
-> 
-> [![GoLang Cheat Sheet](https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)](https://github.com/Lifailon/golang-cheat-sheet-ru)
-> 
-> [![Node.js Cheat Sheet](https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://github.com/Lifailon/node.js-cheat-sheet-ru)
+> Вы можете ознакомиться с другими шпаргалками для языков [Go](https://github.com/Lifailon/golang-cheat-sheet-ru) и [JavaScript](https://github.com/Lifailon/node.js-cheat-sheet-ru)
+<!--
+[![GoLang Cheat Sheet](https://img.shields.io/badge/golang_cheat_sheet_ru-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)](https://github.com/Lifailon/golang-cheat-sheet-ru)
+
+[![Node.js Cheat Sheet](https://img.shields.io/badge/node.js_cheat_sheet_ru-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://github.com/Lifailon/node.js-cheat-sheet-ru)
+-->
