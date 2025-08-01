@@ -2,7 +2,7 @@ services:
   OpenRouter-Bot:
     image: lifailon/openrouter-bot:latest
     labels:
-          - com.centurylinklabs.watchtower.enable=false
+      - com.centurylinklabs.watchtower.enable=false
     deploy:
       mode: replicated
       replicas: 1
@@ -17,7 +17,7 @@ services:
   ssh-bot:
     image: lifailon/ssh-bot:latest
     labels:
-          - com.centurylinklabs.watchtower.enable=false
+      - com.centurylinklabs.watchtower.enable=false
     deploy:
       mode: replicated
       replicas: 1
@@ -44,4 +44,4 @@ secrets:
     file: /home/lifailon/.ssh/id_rsa
 
 # docker-compose down
-# docker stack deploy -c docker-stack.yml bot-stack
+# docker stack deploy -c docker-compose-stack.yml bot-stack

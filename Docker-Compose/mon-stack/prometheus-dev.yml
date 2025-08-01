@@ -127,10 +127,10 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox:9115
 
-  - job_name: gatus
-    static_configs:
-      - targets:
-          - 192.168.3.105:8081
+  # - job_name: gatus
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:8081
 
   # - job_name: uptime-kuma
   #   scrape_interval: 30s

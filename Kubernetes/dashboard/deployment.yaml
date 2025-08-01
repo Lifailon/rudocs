@@ -5,6 +5,8 @@ metadata:
 
 ---
 
+# Создаем сервисный аккаунт
+
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -13,8 +15,11 @@ metadata:
   labels:
     k8s-app: kubernetes-dashboard
 
+# Получить JWT-токен сервисного аккаунта для авторизации
 # kubectl -n kubernetes-dashboard create token dashboard-admin
 ---
+
+# Выдаем права для ServiceAccount dashboard-admin с ролью cluster-admin
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -45,7 +50,7 @@ spec:
   ports:
     - port: 443
       targetPort: 8443
-      nodePort: 30000
+      nodePort: 30000 # Пробрасываем порт в хостовую систему
   selector:
     k8s-app: kubernetes-dashboard
 
@@ -104,17 +109,17 @@ metadata:
   name: kubernetes-dashboard
   namespace: kubernetes-dashboard
 rules:
-  # Allow Dashboard to get, update and delete Dashboard exclusive secrets.
+  # Разрешить Dashboard получать, обновлять и удалять эксклюзивные секреты Dashboard
   - apiGroups: [""]
     resources: ["secrets"]
     resourceNames: ["kubernetes-dashboard-key-holder", "kubernetes-dashboard-certs", "kubernetes-dashboard-csrf"]
     verbs: ["get", "update", "delete"]
-    # Allow Dashboard to get and update 'kubernetes-dashboard-settings' config map.
+  # Разрешить Dashboard получать и обновлять карту конфигурации - kubernetes-dashboard-settings
   - apiGroups: [""]
     resources: ["configmaps"]
     resourceNames: ["kubernetes-dashboard-settings"]
     verbs: ["get", "update"]
-    # Allow Dashboard to get metrics.
+  # Разрешить панели мониторинга получать метрики.
   - apiGroups: [""]
     resources: ["services"]
     resourceNames: ["heapster", "dashboard-metrics-scraper"]
@@ -133,7 +138,7 @@ metadata:
     k8s-app: kubernetes-dashboard
   name: kubernetes-dashboard
 rules:
-  # Allow Metrics Scraper to get metrics from the Metrics server
+  # Разрешить Metrics Scraper получать метрики с Metrics сервера
   - apiGroups: ["metrics.k8s.io"]
     resources: ["pods", "nodes"]
     verbs: ["get", "list", "watch"]
@@ -204,14 +209,12 @@ spec:
           args:
             - --auto-generate-certificates
             - --namespace=kubernetes-dashboard
-            # Uncomment the following line to manually specify Kubernetes API server Host
-            # If not specified, Dashboard will attempt to auto discover the API server and connect
-            # to it. Uncomment only if the default does not work.
+            # Вручную указать хост сервера API Kubernetes
             # - --apiserver-host=http://my-address:port
           volumeMounts:
             - name: kubernetes-dashboard-certs
               mountPath: /certs
-              # Create on-disk volume to store exec logs
+              # Создать том на диске для хранения журналов выполнения
             - mountPath: /tmp
               name: tmp-volume
           livenessProbe:
@@ -232,10 +235,10 @@ spec:
             secretName: kubernetes-dashboard-certs
         - name: tmp-volume
           emptyDir: {}
-      serviceAccountName: kubernetes-dashboard
+      serviceAccountName: dashboard-admin
       nodeSelector:
         "kubernetes.io/os": linux
-      # Comment the following tolerations if Dashboard must not be deployed on master
+      # Закомментировать tolerations, если панель управления не должна быть развернута на master
       tolerations:
         - key: node-role.kubernetes.io/master
           effect: NoSchedule
@@ -300,10 +303,10 @@ spec:
             readOnlyRootFilesystem: true
             runAsUser: 1001
             runAsGroup: 2001
-      serviceAccountName: kubernetes-dashboard
+      serviceAccountName: dashboard-admin
       nodeSelector:
         "kubernetes.io/os": linux
-      # Comment the following tolerations if Dashboard must not be deployed on master
+      # Закомментировать tolerations, если панель управления не должна быть развернута на master
       tolerations:
         - key: node-role.kubernetes.io/master
           effect: NoSchedule
