@@ -176,12 +176,12 @@ groups:
     annotations:
       description: "Сервер был перезагружен"
 
-  - alert: CONTAINER_UPTIME_ERR
-    expr: avg(changes(docker_started_time[1m])) by (containerName,hostname) > 0
-    labels:
-      severity: error
-    annotations:
-      description: "Перезагружен контейнер {{ $labels.containerName }} на {{ $labels.hostname }}"
+  # - alert: CONTAINER_UPTIME_ERR
+  #   expr: avg(changes(docker_started_time[1m])) by (containerName,hostname) > 0
+  #   labels:
+  #     severity: error
+  #   annotations:
+  #     description: "Перезагружен контейнер {{ $labels.containerName }} на {{ $labels.hostname }}"
 
 - name: ping
   rules:

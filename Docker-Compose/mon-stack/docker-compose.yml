@@ -1,3 +1,7 @@
+# mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
+# mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data
+# mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
+
 services:
   # Frontend для отображения метрик
   grafana:
@@ -7,6 +11,7 @@ services:
     ports:
       - 9091:3000
     environment:
+      - VIRTUAL_HOST=grafana.local
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       # - GF_DATABASE_TYPE=postgres
@@ -16,7 +21,7 @@ services:
       # - GF_DATABASE_PASSWORD=grafana
       # - GF_DATABASE_SSL_MODE=disable
     volumes:
-      - grafana_data:/var/lib/grafana
+      - ./grafana_data:/var/lib/grafana
 
   # Хранение данных Grafana
   # postgres:
@@ -40,7 +45,9 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alert-rules.yml:/etc/prometheus/alert.yml
-      - prometheus_data:/prometheus
+      - ./prometheus_data:/prometheus
+    environment:
+      - VIRTUAL_HOST=prometheus.local
     ports:
       - 9092:9090
 
@@ -55,6 +62,8 @@ services:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
+    environment:
+      - VIRTUAL_HOST=alertmanager.local
     ports:
       - 9093:9093
 
@@ -125,8 +134,11 @@ services:
     restart: unless-stopped
     user: "root"
     volumes:
-      - loki_data:/loki
+      - ./loki-server.yml:/etc/loki/loki-config.yaml
+      - ./loki_data:/loki
     # Порт нужен для внешних агентов и api: http://loki-server:3100/loki/api/v1/labels
+    environment:
+      - VIRTUAL_HOST=loki.local
     ports:
       - 3100:3100
 
@@ -143,8 +155,3 @@ services:
     command: -config.file=/etc/promtail/promtail.yml
     # ports:
     #   - 9080:9080
-
-volumes:
-  grafana_data:
-  prometheus_data:
-  loki_data:
