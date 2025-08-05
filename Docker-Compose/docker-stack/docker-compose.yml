@@ -24,6 +24,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./dozzle_data:/data
     environment:
+      - VIRTUAL_HOST=dozzle.local
       - DOZZLE_AUTH_PROVIDER=simple
       # Подключиться к удаленному хосту через Docker API (tcp socket)
       # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
@@ -41,13 +42,15 @@ services:
       - host.docker.internal:host-gateway
     volumes:
       - ./beszel_data:/beszel_data
+    environment:
+      - VIRTUAL_HOST=beszel.local
     ports:
       - 8090:8090
 
   # Agent for get metrics from containers
   beszel-agent:
-    image: "henrygd/beszel-agent"
-    container_name: "beszel-agent"
+    image: henrygd/beszel-agent
+    container_name: beszel-agent
     restart: unless-stopped
     network_mode: host
     volumes:
@@ -73,8 +76,28 @@ services:
       # Docker API
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
+      - VIRTUAL_HOST=dockge.local
       - DOCKGE_STACKS_DIR=/home/lifailon
       # Доступ к консоли dockge
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
       - 5001:5001
+
+  # Web interface for docker manager on remote hosts via lazydocker or ctop
+  docker-web-manager:
+    image: lifailon/docker-web-manager:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docker-web-manager
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+    environment:
+      - VIRTUAL_HOST=docker.local
+      - SSH_HOSTS=localhost,192.168.3.106
+      - SSH_USER=lifailon
+      - SSH_PORT=2121
+    ports:
+      - 3333:3333
