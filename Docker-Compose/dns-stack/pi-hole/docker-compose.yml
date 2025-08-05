@@ -3,28 +3,29 @@ services:
   pihole-server:
     container_name: pihole-server
     image: pihole/pihole:latest
+    restart: unless-stopped
     ports:
       # DNS
       - 53:53/tcp
       - 53:53/udp
       # HTTP
-      - 5353:5353/tcp
+      - 8000:8000/tcp
       # HTTPS
-      - 4343:4343/tcp
+      # - 4443:4443/tcp
       # DHCP
-      #- "67:67/udp"
+      # - 67:67/udp
     environment:
-      - TZ=Europe/Moscow
-      - FTLCONF_webserver_api_password=PiHoleAdmin # or docker logs pihole | grep random
+      - TZ=Etc/GMT+3
+      - FTLCONF_webserver_api_password=PiHoleAdmin # или docker logs pihole-server | grep random
       - FTLCONF_dns_upstreams=8.8.8.8;1.1.1.1      # корневые DNS-сервера верхнего уровн (TLD), на которые пересылаются запросы
     volumes:
       - ./pihole_data:/etc/pihole
-      # - ./custom_hosts:/etc/pihole/hosts/custom.list
-      # - ./etc_hosts:/etc/hosts
+      # - ./pihole.toml:/etc/pihole/pihole.toml
+      # - ./custom.list:/etc/pihole/hosts/custom.list
+      # - ./hosts:/etc/hosts
     # Для использования DHCP сервера
     # cap_add:
-      # - NET_ADMIN
-    restart: unless-stopped
+    #   - NET_ADMIN
     # Пробросить хостовую сеть и использовать режим listeningMode = "LOCAL"
     network_mode: host
 
@@ -32,18 +33,16 @@ services:
   pihole-exporter:
     container_name: pihole-exporter
     image: ekofr/pihole-exporter:latest
+    restart: unless-stopped
     environment:
-      - PIHOLE_HOSTNAME=pihole-server
-      - PIHOLE_PORT=5353
+      # - PIHOLE_HOSTNAME=pihole-server
+      - PIHOLE_HOSTNAME=192.168.3.105 # если pihole-server в режиме network_mode: host, указать ip-адрес хоста (или localhost и тоже использовать network_mode: host)
+      - PIHOLE_PROTOCOL=http
+      - PIHOLE_PORT=8000
       - PIHOLE_PASSWORD=PiHoleAdmin
-      - PIHOLE_API_TOKEN=PiHoleAdmin
       - INTERVAL=90s
       - PORT=9617
     ports:
       - 9617:9617
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "5m"
-        max-file: "2"
-    restart: unless-stopped
+    depends_on:
+      - pihole-server

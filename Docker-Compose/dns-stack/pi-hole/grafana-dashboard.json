@@ -21,7 +21,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "12.2.0-16557133545"
+      "version": "12.2.0-16711121739"
     },
     {
       "type": "panel",
@@ -156,14 +156,15 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_status{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_status{}",
           "instant": true,
           "interval": "",
           "legendFormat": "{{ legend }}",
@@ -234,14 +235,15 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_ads_percentage_today{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_ads_percentage_today{}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -311,16 +313,18 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_reply{hostname='$node'}",
+          "editorMode": "code",
+          "expr": "pihole_reply{}",
           "interval": "",
           "legendFormat": "{{ type }}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -383,14 +387,15 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_top_queries{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_top_queries{}",
           "instant": true,
           "interval": "",
           "legendFormat": "{{ domain }}",
@@ -456,16 +461,18 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_top_ads{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_top_ads{}",
           "interval": "",
           "legendFormat": "{{ domain }}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -533,14 +540,15 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_domains_being_blocked{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_domains_being_blocked{}",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -611,16 +619,18 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_unique_domains{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_unique_domains{}",
           "interval": "",
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -726,16 +736,18 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_dns_queries_all_types{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_dns_queries_all_types{}",
           "interval": "",
           "legendFormat": "{{ job }}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -841,16 +853,18 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_forward_destinations{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_forward_destinations{}",
           "interval": "",
           "legendFormat": "{{ destination }}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -956,14 +970,15 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_ads_blocked_today{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_ads_blocked_today{}",
           "instant": false,
           "interval": "",
           "legendFormat": "{{ job }}",
@@ -1056,7 +1071,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
@@ -1155,16 +1170,18 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_queries_cached{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_queries_cached{}",
           "interval": "",
           "legendFormat": "Queries cached",
+          "range": true,
           "refId": "A"
         },
         {
@@ -1172,9 +1189,11 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pihole_queries_forwarded{hostname=~'$node'}",
+          "editorMode": "code",
+          "expr": "pihole_queries_forwarded{}",
           "interval": "",
           "legendFormat": "Queries forwarded",
+          "range": true,
           "refId": "B"
         }
       ],
@@ -1280,7 +1299,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0-16557133545",
+      "pluginVersion": "12.2.0-16711121739",
       "targets": [
         {
           "datasource": {

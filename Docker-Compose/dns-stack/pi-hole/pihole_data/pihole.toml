@@ -122,7 +122,8 @@
 [webserver]
   domain = "pi.hole"
   # Listeners
-  port = "5353o,4343os,[::]:5353o,[::]:4343os"
+  # port = "80o,443os,[::]:80o,[::]:443os"
+  port = "8000o,[::]:8000o"
   # Webserver access control list (ACL)
   acl = ""
   # acl = "+127.0.0.1,+[::1]"
