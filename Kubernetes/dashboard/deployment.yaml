@@ -209,6 +209,7 @@ spec:
           args:
             - --auto-generate-certificates
             - --namespace=kubernetes-dashboard
+            - --token-ttl=43200 # Поддерживать до 12 часов активной сессии
             # Вручную указать хост сервера API Kubernetes
             # - --apiserver-host=http://my-address:port
           volumeMounts:

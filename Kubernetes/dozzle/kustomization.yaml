@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+
+resources:
+- namespace.yaml
+- clusterrole.yaml
+- clusterrolebinding.yaml
+- serviceaccount.yaml
+- service.yaml
+- deployment.yaml
+
+# kubectl apply -k .
+# kubectl delete -k .
+# kubectl kustomize . > all-deployment.yaml
