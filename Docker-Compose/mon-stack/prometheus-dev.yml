@@ -141,18 +141,24 @@ scrape_configs:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 
   # DNS
-  - job_name: pi-hole-exporter
-    static_configs:
-      - targets:
-          - 192.168.3.105:9617
+  # - job_name: pi-hole-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:9617
+
+  # Proxy
+  # - job_name: nginx-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:9113
 
   # Speedtest
-  - job_name: speedtest-exporter
-    scrape_interval: 15m
-    scrape_timeout: 90s
-    static_configs:
-      - targets:
-        - 192.168.3.105:9798
+  # - job_name: speedtest-exporter
+  #   scrape_interval: 15m
+  #   scrape_timeout: 90s
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.105:9798
 
   # CI/CD
   - job_name: jenkins
@@ -161,3 +167,9 @@ scrape_configs:
     static_configs:
       - targets:
         - 192.168.3.105:8080
+
+  # k8s
+  - job_name: ksm
+    static_configs:
+      - targets:
+        - 192.168.3.105:30002

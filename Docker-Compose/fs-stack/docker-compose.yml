@@ -12,6 +12,8 @@ services:
       - ./filebrowser_data:/database  # filebrowser.db
       - ./filebrowser_conf:/config    # settings.json
     user: 1000:1000
+    environment:
+      - VIRTUAL_HOST=fs-05.local
     restart: unless-stopped
 
   # Web Server Index

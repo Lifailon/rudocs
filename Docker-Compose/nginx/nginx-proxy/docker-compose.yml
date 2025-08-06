@@ -1,0 +1,43 @@
+services:
+  # Proxy Server + docker-gen
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: nginxproxy/nginx-proxy
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./nginx-status.conf:/etc/nginx/conf.d/status.conf # конфигурация для получения статуса с помощью nginx-exporter 
+    ports:
+      - 80:80
+      - 443:443
+    # Apply config to any container on the host (not limited to the current stack in compose)
+    network_mode: host
+    # labels:
+    #   - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
+
+  # Prometheus metrics from nginx
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    restart: unless-stopped
+    command:
+      - "--nginx.scrape-uri=http://localhost:80/status"
+    ports:
+      - "9113:9113"
+    network_mode: host
+    depends_on:
+      - nginx-proxy
+
+  # Автоматическая генерация сертификатов letsencrypt, для хостов, использующих переменную LETSENCRYPT_HOST
+  # acme-companion:
+  #   image: nginxproxy/acme-companion
+  #   container_name: nginx-proxy-acme
+  #   depends_on:
+  #     - nginx-proxy
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./certs:/etc/nginx/certs
+  #     - ./html:/usr/share/nginx/html
+  #     - ./acme.sh:/etc/acme.sh
+  #   environment:
+  #     - DEFAULT_EMAIL=mail@yourdomain.tld
