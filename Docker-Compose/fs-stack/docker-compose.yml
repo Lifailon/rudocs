@@ -5,6 +5,7 @@ services:
   file-browser:
     image: filebrowser/filebrowser
     container_name: file-browser
+    restart: unless-stopped
     ports:
       - 8888:80
     volumes:
@@ -14,22 +15,50 @@ services:
     user: 1000:1000
     environment:
       - VIRTUAL_HOST=fs-05.local
+
+  # File Synchronization
+  file-syncthing:
+    image: syncthing/syncthing
+    container_name: file-syncthing
     restart: unless-stopped
+    ports:
+      - 8384:8384         # Web UI
+      - 22000:22000/tcp   # TCP file transfers
+      - 22000:22000/udp   # QUIC file transfers
+      - 21027:21027/udp   # Receive local discovery broadcasts
+    network_mode: host
+    volumes:
+      - ./syncthing_data:/var/syncthing   # configs
+      - $HOME:/sync_data                  # sync data on server (home directory)
+      # - ./backup:/sync_data             # sync data on client (mkdir backup && chown -R 1000:1000 backup)
+    healthcheck:
+      test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    environment:
+      - PUID=0
+      - PGID=0
+      - VIRTUAL_HOST=sync-05.local
+    # environment:
+    #   - PUID=1000
+    #   - PGID=1000
+    #   - VIRTUAL_HOST=sync-06.local
 
   # Web Server Index
-  h5ai:
-    image: awesometic/h5ai
-    container_name: h5ai
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-      - HTPASSWD=false
-      - HTPASSWD_USER=admin
-      - HTPASSWD_PW=admin
-    restart: unless-stopped
-    volumes:
-      - ./h5ai_data:/h5ai
-      - ./h5ai_conf:/config # Directory for storing public data
-    ports:
-      - "8889:80"
+  # h5ai:
+  #   image: awesometic/h5ai
+  #   container_name: h5ai
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8889:80
+  #   volumes:
+  #     - ./h5ai_data:/h5ai
+  #     - ./h5ai_conf:/config
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/GMT+3
+  #     - HTPASSWD=false
+  #     - HTPASSWD_USER=admin
+  #     - HTPASSWD_PW=admin

@@ -10,7 +10,7 @@ services:
       - PASSWORD=CodeServerAdmin
     volumes:
       - ./vscode_config:/config
-      - /home/lifailon:/home/lifailon
+      - $HOME:/home
     ports:
       - 10443:8443
 
