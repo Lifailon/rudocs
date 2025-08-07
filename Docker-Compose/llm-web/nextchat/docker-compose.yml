@@ -1,0 +1,14 @@
+services:
+  nextchat:
+    container_name: nextchat
+    image: yidadaa/chatgpt-next-web
+    ports:
+      - 3000:3000
+    environment:
+      - CODE=$CODE
+      - BASE_URL=$BASE_URL
+      - OPENAI_API_KEY=$OPENAI_API_KEY
+      - DEFAULT_MODEL=$DEFAULT_MODEL
+      - CUSTOM_MODELS=$CUSTOM_MODELS
+      - HIDE_USER_API_KEY=$HIDE_USER_API_KEY
+      - ENABLE_BALANCE_QUERY=$ENABLE_BALANCE_QUERY
