@@ -1,0 +1,20 @@
+{
+  "models": [
+    {
+      "apiBase": "http://192.168.3.100:12345/v1/",
+      "model": "qwen/qwen3-8b",
+      "title": "LM Studio (QWEN 3 8B)",
+      "provider": "lmstudio",
+      "apiKey": "123"
+    }
+  ],
+  "tabAutocompleteModel": [
+    {
+      "apiBase": "http://192.168.3.100:12345/v1/",
+      "model": "qwen/qwen3-8b",
+      "title": "LM Studio (QWEN 3 8B)",
+      "provider": "lmstudio",
+      "apiKey": "123"
+    }
+  ]
+}
