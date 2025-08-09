@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: torapi-service
+  namespace: rest-api
+spec:
+  selector:
+    app: torapi
+  ports:
+    - protocol: TCP
+      targetPort: 8443    # Порт, который слушают поды (контейнеры)
+      port: 8444          # Порт, на котором сервис доступен внутри кластера (ClusterIP)
+      # nodePort: 30443   # Порт, открытый на каждой ноде кластера для доступа извне (единственная точка входа в режиме type: nodePort)
+  type: LoadBalancer      # Порт ClusterIP (указанный в targetPort) становится доступен из вне на всех нодах
+  # type: ClusterIP       # Значение по умолчанию, используется для общения сервисов только внутри кластера
+  # type: NodePort        # Единственная точка входа через NodePort
