@@ -1,0 +1,77 @@
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - 9100:9100
+
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:latest
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #   ports:
+  #     - 8080:8080
+
+  logporter:
+    image: lifailon/logporter:latest
+    container_name: logporter
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 9333:9333
+
+  loki-promtail:
+    image: grafana/promtail:latest
+    container_name: loki-promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./loki-promtail.yml:/etc/promtail/promtail.yml
+    command: -config.file=/etc/promtail/promtail.yml
+    ports:
+      - 9080:9080
+
+  dozzle-agent:
+    image: amir20/dozzle:latest
+    command: agent
+    container_name: dozzle-agent
+    environment:
+      - DOZZLE_HOSTNAME= # change agent name
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 7007:7007
+
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      PORT: 45876
+      KEY: ssh-ed25519 KEY
+    ports:
+      - 45876:45876
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME= # change agent name
+      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+    command: --interval 600
