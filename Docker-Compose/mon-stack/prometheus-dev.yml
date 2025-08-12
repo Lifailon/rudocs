@@ -22,6 +22,7 @@ scrape_configs:
     static_configs:
       - targets:
         - node-exporter:9100
+        - 192.168.3.105:9100
         - 192.168.3.106:9100
 
   # Windows
@@ -37,6 +38,7 @@ scrape_configs:
     static_configs:
       - targets:
         - logporter:9333
+        - 192.168.3.105:9333
         - 192.168.3.106:9333
 
   # - job_name: cadvisor
@@ -53,6 +55,8 @@ scrape_configs:
 
   # ICMP
   - job_name: blackbox-icmp
+    scrape_interval: 30s
+    scrape_timeout: 5s
     metrics_path: /probe
     params:
       module: [icmp_ping]
@@ -71,24 +75,28 @@ scrape_configs:
         replacement: blackbox:9115
 
   # TCP
-  - job_name: blackbox-tcp
-    metrics_path: /probe
-    params:
-      module: [tcp_ssh]
-    static_configs:
-      - targets:
-          - 192.168.3.105:2121
-          - 192.168.3.106:2121
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox:9115
+  # - job_name: blackbox-tcp
+  #   scrape_interval: 30s
+  #   scrape_timeout: 5s
+  #   metrics_path: /probe
+  #   params:
+  #     module: [tcp_ssh]
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:2121
+  #         - 192.168.3.106:2121
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: __param_target
+  #     - source_labels: [__param_target]
+  #       target_label: instance
+  #     - target_label: __address__
+  #       replacement: blackbox:9115
 
   # HTTPS
   - job_name: blackbox-http
+    scrape_interval: 30s
+    scrape_timeout: 5s
     metrics_path: /probe
     params:
       module: [http_2xx]
@@ -98,11 +106,6 @@ scrape_configs:
           - https://telegram.org
           - https://hub.docker.com
           - https://vercel.com
-          - https://grafana.com
-          - https://nuget.org
-          - https://npmjs.com
-          - https://pypi.org
-          - https://brew.sh
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -113,6 +116,8 @@ scrape_configs:
 
   # REST API
   - job_name: blackbox-api
+    scrape_interval: 60s
+    scrape_timeout: 5s
     metrics_path: /probe
     params:
       module: [rest_api]
@@ -166,10 +171,10 @@ scrape_configs:
     bearer_token: 1180f72a8cdb6eac2be7e3af10185c770a
     static_configs:
       - targets:
-        - 192.168.3.105:8080
+        - 192.168.3.101:8080
 
   # k8s
   - job_name: ksm
     static_configs:
       - targets:
-        - 192.168.3.105:30002
+        - 192.168.3.101:30002

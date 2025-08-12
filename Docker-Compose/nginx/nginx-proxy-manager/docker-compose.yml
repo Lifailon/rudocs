@@ -13,23 +13,22 @@ services:
       - nginx-network
 
   nginx-proxy-manager:
-    image: 'docker.io/jc21/nginx-proxy-manager:latest'
+    image: docker.io/jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
     restart: unless-stopped
     ports:
-      - '8888:81'      # Web interface
-      - '80:80'        # Forward HTTP
-      - '443:443'      # Forward HTTPS
+      - 81:81         # Web interface
+      - 80:80         # Forward HTTP
+      - 443:443       # Forward HTTPS
     environment:
-      DB_POSTGRES_HOST: "nginx-proxy-db"  # Контейнер с PostgreSQL
-      DB_POSTGRES_PORT: 5432
-      DB_POSTGRES_USER: "npm"
-      DB_POSTGRES_PASSWORD: "npm_password"
-      DB_POSTGRES_NAME: "npm"
+      - DB_POSTGRES_HOST=nginx-proxy-db
+      - DB_POSTGRES_PORT=5432
+      - DB_POSTGRES_USER=npm
+      - DB_POSTGRES_PASSWORD=npm_password
+      - DB_POSTGRES_NAME=npm
     volumes:
       - ./data:/data
       - ./letsencrypt:/etc/letsencrypt
-      - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - nginx-proxy-db
     networks:

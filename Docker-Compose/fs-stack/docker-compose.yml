@@ -29,8 +29,8 @@ services:
     network_mode: host
     volumes:
       - ./syncthing_data:/var/syncthing   # configs
-      - $HOME:/sync_data                  # sync data on server (home directory)
-      # - ./backup:/sync_data             # sync data on client (mkdir backup && chown -R 1000:1000 backup)
+      - $HOME/docker:/sync_data           # src sync data on server
+      # - ./backup:/sync_data             # dst sync data on client (mkdir backup && chown -R 1000:1000 backup)
     healthcheck:
       test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
       interval: 1m

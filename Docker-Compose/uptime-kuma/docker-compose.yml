@@ -14,7 +14,7 @@ services:
     container_name: uptime-kuma-api
     image: medaziz11/uptimekuma_restapi
     volumes:
-      - kuma_api:/db
+      - ./kuma_api:/db
     restart: unless-stopped
     environment:
       - KUMA_SERVER=http://uptime-kuma:3001
@@ -25,6 +25,3 @@ services:
       - uptime-kuma
     ports:
       - "8082:8000"
-
-volumes:
-  kuma_api:

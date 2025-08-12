@@ -1,5 +1,6 @@
 # mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
-# mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data
+# mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
+# sudo chown 65534:65534 
 # mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
 
 services:
@@ -127,7 +128,7 @@ services:
     # ports:
     #   - 9333:9333
 
-  # Система агригации логов
+  # Система агрегации логов
   loki-server:
     image: grafana/loki:latest
     container_name: loki-server
