@@ -1,0 +1,70 @@
+services:
+  postgresql:
+    image: postgres
+    container_name: postgresql
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: dbname
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: dbpass
+    volumes:
+      - ./postgresql_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U pgweb -h 127.0.0.1
+      interval: 5s
+
+  # Web Client
+  postgresweb:
+    container_name: postgresweb
+    image: sosedoff/pgweb:latest
+    build: .
+    environment:
+      PGWEB_DATABASE_URL: postgres://dbuser:dbpass@postgresql:5432/dbname?sslmode=disable
+    ports:
+      - 8081:8081
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
+      interval: 5s
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+  # REST API Client
+  postgrest:
+    image: postgrest/postgrest
+    container_name: postgrest
+    restart: unless-stopped
+    ports:
+      - 4000:3000
+    environment:
+      PGRST_DB_URI: postgres://dbuser:dbpass@postgresql:5432/dbname
+      PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3000
+    depends_on:
+      - postgresql
+
+  # Swagger UI
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - 4001:8080
+    expose:
+      - 8080
+    environment:
+      API_URL: http://localhost:3000/
+    depends_on:
+      - postgresql
+      - postgrest
+
+  # Monitoring & Backup
+  postgresus:
+    image: rostislavdugin/postgresus:latest
+    container_name: postgresus
+    restart: unless-stopped
+    ports:
+      - 4005:4005
+    volumes:
+      - ./postgresus-data:/postgresus-data
+    depends_on:
+      - postgresql
