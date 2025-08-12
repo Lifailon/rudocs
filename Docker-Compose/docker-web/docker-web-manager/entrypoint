@@ -25,7 +25,7 @@ export DOCKER_CLIENT=${DOCKER_CLIENT:-lazydocker}
 
 TTYD_OPTIONS="-W -p ${WEB_PORT:-3333}"
 if [ -n "${WEB_USERNAME}" ] && [ -n "${WEB_PASSWORD}" ]; then
-    TTYD_OPTIONS+=" -c ${WEB_USERNAME}:${WEB_PASSWORD}"
+    TTYD_OPTIONS="${TTYD_OPTIONS} -c ${WEB_USERNAME}:${WEB_PASSWORD}"
 fi
 
 ttyd "$TTYD_OPTIONS" bash -c 'SSH_HOST=$(printf "%s\n" ${SSH_HOSTS//,/ } | fzf --exact --no-sort --reverse --border) && dcm && $DOCKER_CLIENT'

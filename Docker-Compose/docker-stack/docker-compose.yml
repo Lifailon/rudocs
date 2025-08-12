@@ -49,7 +49,7 @@ services:
 
   # Agent for get metrics from containers
   beszel-agent:
-    image: henrygd/beszel-agent
+    image: henrygd/beszel-agent:latest
     container_name: beszel-agent
     restart: unless-stopped
     network_mode: host
@@ -86,9 +86,6 @@ services:
   # Web interface for docker manager on remote hosts via lazydocker or ctop
   docker-web-manager:
     image: lifailon/docker-web-manager:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
     container_name: docker-web-manager
     restart: unless-stopped
     volumes:
@@ -96,8 +93,11 @@ services:
       - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
     environment:
       - VIRTUAL_HOST=docker.local
+      - WEB_USERNAME=admin
+      - WEB_PASSWORD=admin
       - SSH_HOSTS=localhost,192.168.3.106
       - SSH_USER=lifailon
       - SSH_PORT=2121
+      - DOCKER_CLIENT=lazydocker
     ports:
       - 3333:3333
