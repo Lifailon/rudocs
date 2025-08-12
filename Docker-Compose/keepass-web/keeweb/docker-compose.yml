@@ -1,13 +1,13 @@
 services:
   keeweb:
     container_name: keeweb
-    image: ghcr.io/keeweb/keeweb:latest       # Github image
-    # image: keeweb/keeweb:latest             # Dockerhub image
+    image: ghcr.io/keeweb/keeweb:latest
+    # image: keeweb/keeweb:latest
     restart: unless-stopped
     volumes:
       - ./cert.crt:/config/keys/cert.crt:ro
       - ./cert.key:/config/keys/cert.key:ro
-      - ./keeweb:/config
+      - ./keeweb_data:/config
     ports:
       - 4343:443
     environment:

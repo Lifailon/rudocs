@@ -1,0 +1,21 @@
+services:
+  keepassxc:
+    # Base image: https://github.com/linuxserver/docker-baseimage-selkies
+    image: lscr.io/linuxserver/keepassxc:latest
+    container_name: keepassxc
+    restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined # optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - LC_ALL=ru_RU.UTF-8
+      # Creds for auth
+      # - CUSTOM_USER=admin
+      # - PASSWORD=admin
+    volumes:
+      - ./keepassxc_data:/config # dir for ssl and kdbx files
+    ports:
+      - 3000:3000 # HTTP Selkies (https://github.com/selkies-project/selkies)
+      - 3001:3001 # HTTPS
