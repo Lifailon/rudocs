@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: headlamp
+  namespace: kubernetes-dashboard
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 4466
+      nodePort: 30066
+  selector:
+    k8s-app: headlamp

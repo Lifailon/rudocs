@@ -4,11 +4,11 @@ namespace: monitoring
 
 resources:
 - namespace.yaml
+- serviceaccount.yaml
 - clusterrole.yaml
 - clusterrolebinding.yaml
-- serviceaccount.yaml
-- service.yaml
 - deployment.yaml
+- service.yaml
 
 # kubectl apply -k .
 # kubectl delete -k .

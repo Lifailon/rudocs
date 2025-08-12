@@ -3,8 +3,7 @@ kind: Kustomization
 namespace: rest-api
 
 resources:
-- namespace.yaml
+- configmap.yaml
+- serviceaccount.yaml
 - deployment.yaml
 - service.yaml
-- hpa.yaml
-- ingress.yaml
