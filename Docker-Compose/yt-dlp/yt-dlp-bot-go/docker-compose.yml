@@ -1,0 +1,10 @@
+services:
+  yt-dlp-telegram-bot:
+    image: lifailon/yt-dlp-telegram-bot:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yt-dlp-telegram-bot
+    restart: unless-stopped
+    env_file:
+      - .env

@@ -1,0 +1,5 @@
+token = ""                  # Telegram api key your bot
+logs = 2390049              # Telegram your chat id
+max_filesize = 50000000     # Max file size in bytes
+
+# output_folder = "/download"

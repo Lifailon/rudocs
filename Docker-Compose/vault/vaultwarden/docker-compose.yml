@@ -4,8 +4,11 @@ services:
     container_name: vaultwarden
     restart: unless-stopped
     environment:
-      DOMAIN: "https://vw.domain.tld"
+      - DOMAIN=http://vault.local:1338
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_PORT=1338
     volumes:
-      - ./vw-data/:/data/
+      - ./vw_data/:/data/
+    # network_mode: host
     ports:
-      - 7777:80
+      - 1338:1338

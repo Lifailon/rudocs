@@ -1,0 +1,10 @@
+services:
+  yt-dlp-bot:
+    image: lifailon/yt-dlp-bot:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yt-dlp-bot
+    restart: unless-stopped
+    volumes:
+      - ./config:/bot/config.py

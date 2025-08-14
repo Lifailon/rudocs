@@ -1,31 +1,18 @@
 services:
-  passbolt-db:
-    image: mariadb:10.11
-    container_name: passbolt-db
-    restart: unless-stopped
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "true"
-      MYSQL_DATABASE: "passbolt"
-      MYSQL_USER: "passbolt"
-      MYSQL_PASSWORD: "P4ssb0lt"
-    volumes:
-      - ./database:/var/lib/mysql
-
   passbolt:
     image: passbolt/passbolt:latest-ce
     container_name: passbolt
     restart: unless-stopped
-    depends_on:
-      - passbolt-db
     environment:
-      - APP_FULL_BASE_URL=https://passbolt.local
+      - APP_FULL_BASE_URL=http://passbolt.local
+      # - APP_FULL_BASE_URL=https://passbolt.local
       - DATASOURCES_DEFAULT_HOST=passbolt-db
       - DATASOURCES_DEFAULT_USERNAME=passbolt
-      - DATASOURCES_DEFAULT_PASSWORD=P4ssb0lt
+      - DATASOURCES_DEFAULT_PASSWORD=passbolt
       - DATASOURCES_DEFAULT_DATABASE=passbolt
     volumes:
-      - ./gpg_volume:/etc/passbolt/gpg
-      - ./jwt_volume:/etc/passbolt/jwt
+      - ./passbolt_data/gpg_volume:/etc/passbolt/gpg
+      - ./passbolt_data/jwt_volume:/etc/passbolt/jwt
     command:
       [
         "/usr/bin/wait-for.sh",
@@ -36,5 +23,19 @@ services:
         "/docker-entrypoint.sh",
       ]
     ports:
-      - 3080:80
-      - 3443:443
+      - 80:80
+      - 443:443
+    depends_on:
+      - passbolt-db
+
+  passbolt-db:
+    image: mariadb:10.11
+    container_name: passbolt-db
+    restart: unless-stopped
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=true
+      - MYSQL_DATABASE=passbolt
+      - MYSQL_USER=passbolt
+      - MYSQL_PASSWORD=passbolt
+    volumes:
+      - ./passbolt_db:/var/lib/mysql
