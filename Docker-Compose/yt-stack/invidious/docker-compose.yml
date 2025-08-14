@@ -1,0 +1,46 @@
+services:
+  invidious:
+    # docker run quay.io/invidious/youtube-trusted-session-generator
+    image: quay.io/invidious/invidious:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: invidious
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      # Gen password for hmac_key: pwgen 20 1
+      INVIDIOUS_CONFIG: |
+        db:
+          dbname: invidious
+          user: kemal
+          password: kemal
+          host: invidious-db
+          port: 5432
+        check_tables: true
+        # external_port:
+        # domain:
+        # https_only: false
+        # statistics_enabled: false
+        hmac_key: "aiph2EeShu6ohng0ohqu"
+    healthcheck:
+      test: wget -nv --tries=1 --spider http://127.0.0.1:3000/api/v1/trending || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 2
+
+  invidious-db:
+    image: docker.io/library/postgres:14
+    container_name: invidious-db
+    restart: unless-stopped
+    volumes:
+      - ./invidious_db:/var/lib/postgresql/data
+      - ./invidious_data/config/sql:/config/sql
+      - ./invidious_data/docker/init-invidious-db.sh:/docker-entrypoint-initdb.d/init-invidious-db.sh
+    environment:
+      POSTGRES_DB: invidious
+      POSTGRES_USER: kemal
+      POSTGRES_PASSWORD: kemal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
