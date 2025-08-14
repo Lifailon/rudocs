@@ -2,49 +2,32 @@ services:
   planka-web:
     image: ghcr.io/plankanban/planka:2.0.0-rc.3
     container_name: planka-web
+    # https://github.com/RARgames/4gaBoards
+    # image: ghcr.io/rargames/4gaboards:latest
+    # container_name: 4gaBoards
     restart: unless-stopped
     environment:
-      - BASE_URL=http://localhost:1337
-      # Database connection
-      # - DATABASE_URL=postgresql://postgres@planka-db/planka
-      - DATABASE_URL=postgresql://postgres:postgres@planka-db/planka
-      # - DATABASE_URL=postgresql://postgres:$${DATABASE_PASSWORD}@planka-db/planka
-      # - DATABASE_PASSWORD__FILE=/run/secrets/database_password
-      # secrets:
-      #   - database_password
-      # WPA Key (openssl rand -hex 64)
-      - SECRET_KEY=c74fd30800bc3c742ba368e396b87409edc7613e3ee58deee00992c3c4b98ec9eb154d441f143e28b4716287ba31d3699ee09f7e101cfe6c98872102ea622a76
-      # - SECRET_KEY__FILE=/run/secrets/secret_key
+      # - BASE_URL=http://planka.local:1337
+      - BASE_URL=http://192.168.3.101:1337
       # Web credentials
       - DEFAULT_ADMIN_EMAIL=admin@admin.com
       - DEFAULT_ADMIN_PASSWORD=admin
       - DEFAULT_ADMIN_NAME=Admin
       - DEFAULT_ADMIN_USERNAME=admin
-      # Webhooks
-      # - |
-      #   WEBHOOKS=[{
-      #     "url": "http://localhost:3001",
-      #     "accessToken": "notaccesstoken",
-      #     "events": ["cardCreate", "cardUpdate", "cardDelete"],
-      #     "excludedEvents": ["notificationCreate", "notificationUpdate"]
-      #   }]
+      # Database connection
+      - DATABASE_URL=postgresql://planka:postgresPlankaPassword@planka-db:5432/planka
+      # WPA Key (openssl rand -hex 64)
+      - SECRET_KEY=c74fd30800bc3c742ba368e396b87409edc7613e3ee58deee00992c3c4b98ec9eb154d441f143e28b4716287ba31d3699ee09f7e101cfe6c98872102ea622a76
+    volumes:
+      - ./planka_data/favicons:/app/public/favicons
+      - ./planka_data/user-avatars:/app/public/user-avatars
+      - ./planka_data/background-images:/app/public/background-images
+      - ./planka_data/attachments:/app/private/attachments
+    ports:
+      - 1337:1337
     depends_on:
       planka-db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1337"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    volumes:
-      - ./planka-data/favicons:/app/public/favicons
-      - ./planka-data/user-avatars:/app/public/user-avatars
-      - ./planka-data/background-images:/app/public/background-images
-      - ./planka-data/attachments:/app/private/attachments
-    ports:
-      - 1337:1337
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
   planka-db:
     image: postgres:16-alpine
@@ -52,13 +35,19 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_DB=planka
-      - POSTGRES_HOST_AUTH_METHOD=trust
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=planka
+      - POSTGRES_PASSWORD=postgresPlankaPassword
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d planka"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     volumes:
-      - ./planka-db:/var/lib/postgresql/data
+      - ./planka_db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+networks:
+  default:
+    name: planka-network
+    driver: bridge

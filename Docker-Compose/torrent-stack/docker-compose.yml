@@ -1,0 +1,60 @@
+services:
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - ./jackett_data:/config
+      - ./torrent_files:/downloads        # Директория blackhole для хранения торрент файлов (синхронизация с Transmission)
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+    networks:
+      - tor-network
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - USER=admin
+      - PASS=admin
+    volumes:
+      - ./transmission_data:/config
+      - ./torrent_files:/watch            # Директория для отслеживания торрент файлов на загрузку (синхронизация с Jackett)
+      - ./jellyfin_content:/downloads     # Директория для хранения загруженных файлов (синхронизация с Jellyfin)
+    ports:
+      - 9091:9091
+      - 51413:51413
+      - 51413:51413/udp
+    restart: unless-stopped
+    networks:
+      - tor-network
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - ./jellyfin_data/jellyfin:/config
+      - ./jellyfin_content:/data/tvshows  # директория для хранения загруженных файлов (синхронизация с Transmission)
+      - ./content:/data/movies
+    ports:
+      - 8096:8096                         # Веб интерфейс
+      - 7359:7359/udp                     # Позволяет клиентам найти сервер Jellyfin в локальной сети (опционально)
+      - 1900:1900/udp                     # Обнаружение служб используемых DNLA (опционально)
+    restart: unless-stopped
+    networks:
+      - tor-network
+
+networks:
+  tor-network:
+    driver: bridge

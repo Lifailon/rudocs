@@ -2,31 +2,38 @@ services:
   kan-web:
     image: ghcr.io/kanbn/kan:latest
     container_name: kan-web
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - 3000:3000
+    environment:
+      # - NEXT_PUBLIC_BASE_URL=http://kan.local:3000
+      - NEXT_PUBLIC_BASE_URL=http://192.168.3.101:3000
+      - BETTER_AUTH_SECRET=KanBanAdminSecret
+      - POSTGRES_URL=postgresql://kan:KanBanAdminSecret@kan-db:5432/kan_db
+      - NEXT_PUBLIC_ALLOW_CREDENTIALS=true
+    depends_on:
+      kan-db:
+        condition: service_healthy
     networks:
       - kan-network
-    environment:
-      NEXT_PUBLIC_BASE_URL: http://localhost:3000
-      BETTER_AUTH_SECRET: KanBanAdminSecret
-      POSTGRES_URL: postgresql://kan:your_postgres_password@kan-db:5432/kan_db
-      NEXT_PUBLIC_ALLOW_CREDENTIALS: true
-    depends_on:
-      - kan-db
-    restart: unless-stopped
 
   kan-db:
     image: postgres:15
     container_name: kan-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: kan_db
       POSTGRES_USER: kan
-      POSTGRES_PASSWORD: your_postgres_password
+      POSTGRES_PASSWORD: KanBanAdminSecret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./kanban_db:/var/lib/postgresql/data
     ports:
       - 5432:5432
-    volumes:
-      - ./kan-db-data:/var/lib/postgresql/data
-    restart: unless-stopped
     networks:
       - kan-network
 
