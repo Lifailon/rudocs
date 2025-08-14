@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: openrouter-bot-config
   namespace: telegram
+
 data:
   .env: |
     API_KEY=

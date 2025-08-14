@@ -3,5 +3,17 @@ kind: Kustomization
 namespace: telegram
 
 resources:
-- configmap.yaml
+# - configmap.yaml
 - deployment.yaml
+
+configMapGenerator:
+- name: openrouter-bot-config
+  # Передать содержимое файла в configMap
+  files:
+    - .env
+  # Определить переменные окружения вручную (- key=value)
+  # literals:
+  #   - LOG_MODE=DEBUG
+  # Определить переменные окружения из env файла
+  # envs:
+  #   - .env

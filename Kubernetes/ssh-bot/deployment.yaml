@@ -65,9 +65,9 @@ spec:
           subPath: id_rsa
           readOnly: true
       volumes:
-      - name: ssh-config-volume
-        secret:
-          secretName: ssh-bot-secrets
+      - name: ssh-config-volume # Имя для монтирования томов
+        configMap:
+          name: ssh-bot-config  # Имя для определения configMap
           items:
           - key: .env
             path: .env

@@ -3,5 +3,17 @@ kind: Kustomization
 namespace: telegram
 
 resources:
-- secrets.yaml
+# - configmap.yaml
+# - secrets.yaml
 - deployment.yaml
+
+configMapGenerator:
+- name: ssh-bot-config
+  files:
+    - .env
+
+secretGenerator:
+- name: ssh-bot-secrets
+  type: Opaque
+  files:
+    - id_rsa
