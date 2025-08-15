@@ -33,6 +33,26 @@ services:
     ports:
       - 9090:8080
 
+  # Container for monitoring syslog file on host
+  # dozzle-syslog:
+  #   image: alpine
+  #   container_name: dozzle-syslog
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/log/syslog:/var/log/custom.log
+  #   command:
+  #     - tail
+  #     - -f
+  #     - /var/log/custom.log
+
+  # Container for monitoring files from /var/log on host
+  dozzle-varlog:
+    image: lifailon/dozzle-varlog:latest
+    container_name: dozzle-varlog
+    restart: unless-stopped
+    volumes:
+      - /var/log:/logs
+
   # Web interface for container metrics
   beszel-server:
     image: henrygd/beszel:latest

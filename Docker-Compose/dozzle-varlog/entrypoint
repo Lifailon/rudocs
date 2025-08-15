@@ -1,0 +1,12 @@
+# logDir="/var/log"
+logDir="/logs"
+logFiles=($(find "$logDir" -type f -maxdepth 1 -name "*log" -not -name "lastlog" -exec basename {} \; 2> /dev/null))
+
+for logFile in "${logFiles[@]}"; do
+    fullPath="$logDir/$logFile"
+    if [ -f "$fullPath" ]; then
+        tail -f "$fullPath" | sed "s/^/[$logFile] /g" &
+    fi
+done
+
+wait

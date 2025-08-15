@@ -1,8 +1,9 @@
 services:
   dozzle-agent:
     image: amir20/dozzle:latest
-    command: agent
     container_name: dozzle-agent
+    restart: unless-stopped
+    command: agent
     # environment:
     #   - DOZZLE_HOSTNAME=dozzle-agent-01
     volumes:

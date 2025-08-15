@@ -1,0 +1,10 @@
+services:
+  dozzle-varlog:
+    image: lifailon/dozzle-varlog:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dozzle-varlog
+    restart: unless-stopped
+    volumes:
+      - /var/log:/logs
