@@ -15,7 +15,7 @@ scrape_configs:
           - localhost
         labels:
           job_name: system
-          node_name: rpi-105
+          node_name: hv-us-01
           __path__: /var/log/*log
     pipeline_stages:
       - regex:
@@ -55,7 +55,7 @@ scrape_configs:
       - target_label: job_name
         replacement: docker
       - target_label: node_name
-        replacement: rpi-105
+        replacement: hv-us-01
       - source_labels: [__meta_docker_container_name]
         target_label: container_name
         replacement: $1
