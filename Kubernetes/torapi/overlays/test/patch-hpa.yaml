@@ -1,0 +1,21 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: torapi-hpa
+  namespace: rest-api
+spec:
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization         # Утилизация в процентах
+        averageUtilization: 5     # 5% = 5m от 100m в spec.containers.resources.requests.cpu (0.005 ядра на один под)
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+        # type: AverageValue      # Абсолютное значение
+        # averageValue: 60Mi      # 60 МБайт

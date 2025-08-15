@@ -20,6 +20,7 @@
   - [Mirror](#mirror)
   - [Nexus](#nexus)
   - [Run](#run)
+  - [Alias](#alias)
   - [Update](#update)
   - [Stats](#stats)
   - [Logs](#logs)
@@ -41,7 +42,7 @@
   - [Push](#push)
   - [Buildx](#buildx)
 - [Dockerfile](#dockerfile)
-- [Compose](#compose)
+- [Docker Compose](#docker-compose)
   - [Uptime-Kuma](#uptime-kuma)
   - [Dozzle](#dozzle)
   - [Watchtower](#watchtower)
@@ -49,17 +50,20 @@
 - [Docker.DotNet](#dockerdotnet)
 - [Swarm](#swarm)
 - [Kubernetes](#kubernetes)
+  - [Minikube](#minikube)
+  - [Microk8s](#microk8s)
   - [K3s](#k3s)
   - [Dashboard](#dashboard)
-  - [Micro8s](#micro8s)
-  - [Minikube](#minikube)
+  - [Headlamp](#headlamp)
+  - [k9s](#k9s)
   - [kubectl](#kubectl)
   - [Deployment](#deployment)
+  - [Proxy and forward](#proxy-and-forward)
   - [HPA](#hpa)
   - [Ingress](#ingress)
-  - [Secrets](#secrets)
+  - [MetalLB](#metallb)
   - [Kompose](#kompose)
-  - [k9s](#k9s)
+  - [Kustomize](#kustomize)
 - [GitHub API](#github-api)
 - [GitHub Actions](#github-actions)
   - [Runner (Agent)](#runner-agent)
@@ -90,7 +94,6 @@
 - [Puppet](#puppet)
   - [Bolt](#bolt)
 - [Sake](#sake)
-- [DSC](#dsc)
 - [Secret Manager](#secret-manager)
   - [Bitwarden](#bitwarden)
   - [Infisical](#infisical)
@@ -98,6 +101,7 @@
   - [HashiCorp/Consul](#hashicorpconsul)
 - [Prometheus](#prometheus)
   - [PromQL Functions](#promql-functions)
+- [Graylog](#graylog)
 
 ---
 
@@ -672,7 +676,7 @@ docker run -d --name TorAPI -p 8443:8443 --restart=unless-stopped \
   -e PASSWORD="TorAPI" \
   torapi
 ```
-## Compose
+## Docker Compose
 ```bash
 mkdir -p $HOME/.local/bin
 version=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
@@ -796,9 +800,50 @@ services:
       # - DOZZLE_REMOTE_AGENT=192.168.3.106:7007
     ports:
       - 9090:8080
+
+  # Контейнер для мониторинга файла syslog на хостовой системе
+  # dozzle-syslog:
+  #   image: alpine
+  #   container_name: dozzle-syslog
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/log/syslog:/var/log/custom.log
+  #   command:
+  #     - tail
+  #     - -f
+  #     - /var/log/custom.log
+
+  # Контейнер для мониторинга файлов из директории /var/log на хостовой системе
+  dozzle-varlog:
+    image: lifailon/dozzle-varlog:latest
+    container_name: dozzle-varlog
+    restart: unless-stopped
+    volumes:
+      - /var/log:/logs
 ```
 `docker-compose up -d`
 
+Контейнер на агенте:
+```yaml
+services:
+  dozzle-agent:
+    image: amir20/dozzle:latest
+    container_name: dozzle-agent
+    restart: unless-stopped
+    command: agent
+    # environment:
+    #   - DOZZLE_HOSTNAME=dozzle-agent-01
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - 7007:7007
+```
 ### Watchtower
 
 [Watchtower](https://github.com/containrrr/watchtower) - следит за тегом `latest` в реестре Docker Hub и обновлять контейнер, если он станет устаревшим.
@@ -1420,6 +1465,127 @@ spec:
 ```
 `kubectl apply -f l2-advertisement.yaml`
 
+### Kompose
+
+[Kompose](https://github.com/kubernetes/kompose) - инструмент, который конвертируемт спецификацию `docker-compose` в манифесты Kubernetes.
+```bash
+mkdir -p $HOME/.local/bin
+arch=$(uname -m)
+case $arch in
+    x86_64|amd64) arch="amd64" ;;
+    aarch64) arch="arm64" ;;
+esac
+version=$(curl -s https://api.github.com/repos/kubernetes/kompose/releases/latest | jq -r .tag_name)
+curl -sSL https://github.com/kubernetes/kompose/releases/download/$version/kompose-linux-$arch -o $HOME/.local/bin/kompose
+chmod +x $HOME/.local/bin/kompose
+```
+`kompose --file docker-compose.yaml convert` конвертация
+
+### Kustomize
+
+[Kustomize](https://github.com/kubernetes-sigs/kustomize) — это встроенный в `kubectl` (с версии 1.14) инструмент для управления и слияния конфигураций Kubernetes без использования шаблонизаторов (как в [Helm](https://github.com/helm/helm)). Он похож на Make, т.к. его действия объявлены в файле `kustomization.yaml`, и на `sed`, т.к. он выводит отредактированный текст (без создания новых и изменения исходных манифестов).
+
+`kubectl version --client`
+
+`curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && mv kustomize $HOME/.local/bin/` установить внешний исполняемый файл
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rest-api
+
+resources:
+- namespace.yaml
+- deployment.yaml
+- service.yaml
+- hpa.yaml
+- ingress.yaml
+```
+Формат запуска: `kustomize build <path_dir/url> || kubectl kustomize <path_dir/url>`
+
+`kubectl kustomize ./base` объеденить все манифесты перечисленные в `resources` в один `yaml` файл (в правильном порядке), где к каждому ресурсу автоматически добавляется `namespace`,  указанный в `kustomization` файле
+
+`kubectl apply -k ./base` применить все перечисленные манифесты в файле `kustomization.yaml`
+
+Kustomize работает по принципу наследования конфигураций, где директория `base/` содержит базовые манифесты (например, `deployment.yaml` и `service.yaml`), а директория `overlays/` — содержит изменения для разных окружений (например, `overlays/dev` и `overlays/test`), переопределяя только указанные параметры.
+```bash
+├── base
+│   ├── deployment.yaml
+│   ├── hpa.yaml
+│   ├── ingress.yaml
+│   ├── kustomization.yaml
+│   ├── namespace.yaml
+│   └── service.yaml
+└── overlays
+    ├── dev
+    │   ├── kustomization.yaml
+    │   └── patch-hpa.yaml
+    ├── test
+    │   ├── kustomization.yaml
+    │   └── patch-hpa.yaml
+```
+Пример дочернего файла `overlays/test/kustomization.yaml`:
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Наследуем все манифесты из base
+resources:
+- ../../base
+
+# Добавляем патч для HPA
+patches:
+- path: patch-hpa.yaml
+```
+Пример конфигурации для `overlays/test/path-hpa.yaml`:
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: torapi-hpa
+  namespace: rest-api
+spec:
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization         # Утилизация в процентах
+        averageUtilization: 5     # 5% = 5m от 100m в spec.containers.resources.requests.cpu (0.005 ядра на один под)
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+        # type: AverageValue      # Абсолютное значение
+        # averageValue: 60Mi      # 60 МБайт
+```
+`kubectl kustomize overlays/test/` проверить конфигурацию \
+`kubectl apply -k overlays/test` применить конфигурацию
+
+Генерация `configMap` из файлов и переменных окружения:
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: telegram
+
+resources:
+# - configmap.yaml
+- deployment.yaml
+
+configMapGenerator:
+- name: openrouter-bot-config
+  # Передать содержимое файла в configMap
+  files:
+    - .env
+  # Определить переменные окружения вручную (- key=value)
+  # literals:
+  #   - LOG_MODE=DEBUG
+  # Определить переменные окружения из env файла
+  # envs:
+  #   - .env
+```
 ## GitHub API
 
 `$user = "Lifailon"` \
@@ -3551,7 +3717,7 @@ diskName: `label_values(disk)` \
 | `label_replace()`             | `counter`/`gauge` | Изменяет или добавляет labels в метрике                               | `label_replace(metric, "new_label", "$1", "old_label", "(.*)")`   |
 | `sort() / sort_desc()`        | `counter`/`gauge` | Сортирует метрики по возрастанию/убыванию                             | `sort(node_filesystem_free_bytes)`                                |
 
-# Graylog
+## Graylog
 
 [Graylog Docker Image](https://hub.docker.com/r/itzg/graylog)
 
