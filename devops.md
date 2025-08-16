@@ -64,6 +64,7 @@
   - [MetalLB](#metallb)
   - [Kompose](#kompose)
   - [Kustomize](#kustomize)
+  - [Helm](#helm)
 - [GitHub API](#github-api)
 - [GitHub Actions](#github-actions)
   - [Runner (Agent)](#runner-agent)
@@ -1508,6 +1509,8 @@ resources:
 `kubectl apply -k ./base` применить все перечисленные манифесты в файле `kustomization.yaml`
 
 Kustomize работает по принципу наследования конфигураций, где директория `base/` содержит базовые манифесты (например, `deployment.yaml` и `service.yaml`), а директория `overlays/` — содержит изменения для разных окружений (например, `overlays/dev` и `overlays/test`), переопределяя только указанные параметры.
+
+Пример структуры:
 ```bash
 ├── base
 │   ├── deployment.yaml
@@ -1520,9 +1523,9 @@ Kustomize работает по принципу наследования кон
     ├── dev
     │   ├── kustomization.yaml
     │   └── patch-hpa.yaml
-    ├── test
-    │   ├── kustomization.yaml
-    │   └── patch-hpa.yaml
+    └── test
+        ├── kustomization.yaml
+        └── patch-hpa.yaml
 ```
 Пример дочернего файла `overlays/test/kustomization.yaml`:
 ```yaml
@@ -1586,6 +1589,114 @@ configMapGenerator:
   # envs:
   #   - .env
 ```
+### Helm
+
+[Helm](https://github.com/helm/helm) - это шаблонизатор для управления конфигурациями и менеджер пакетов Kubernetes, использующий чарты (charts, которые являются пакетами), содержащими всю информацию для установки и управления приложениями в Kubernetes.
+
+`curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash`
+
+Пример базовой структуры:
+```bash
+├── Chart.yaml
+├── values.yaml
+└── templates
+    ├── deployment.yaml
+    └── service.yaml
+```
+`Chart.yaml`:
+```yaml
+apiVersion: v2
+name: torapi
+description: Unofficial API for torrent trackers
+version: 0.1.0
+appVersion: "0.5.2"
+```
+`values.yaml`:
+```yaml
+# Deployment
+replicaCount: 2
+image: "lifailon/torapi:latest"
+containerPort: 8443
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+probe:
+  path: "/api/provider/list"
+  port: 8443
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Service
+service:
+  type: LoadBalancer
+  port: 8444
+  targetPort: 8443
+```
+`templates/deployment.yaml`:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: rest-api
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: {{ .Values.image }}
+        ports:
+        - containerPort: {{ .Values.containerPort }}
+        resources:
+          requests:
+            cpu: "{{ .Values.resources.requests.cpu | default "100m" }}"
+            memory: "{{ .Values.resources.requests.memory | default "128Mi" }}"
+          limits:
+            cpu: "{{ .Values.resources.limits.cpu | default "200m" }}"
+            memory: "{{ .Values.resources.limits.memory | default "256Mi" }}"
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probe.path }}
+            port: {{ .Values.probe.port }}
+          initialDelaySeconds: {{ .Values.probe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probe.periodSeconds }}
+          timeoutSeconds: {{ .Values.probe.timeoutSeconds }}
+          failureThreshold: {{ .Values.probe.failureThreshold }}
+```
+`service.yaml`:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-service
+  namespace: rest-api
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      targetPort: {{ .Values.service.targetPort }}
+      port: {{ .Values.service.port }}
+  type: {{ .Values.service.type }}
+```
+`helm template torapi-app .` напечатать итоговую спецификацию (проверить подстановку переменных) \
+`helm install torapi-app .` установка в кластер \
+`helm upgrade torapi-app .` обновление релиза (при изменение значение в `values.yaml`) \
+`helm uninstall torapi-app .` удалить
+
 ## GitHub API
 
 `$user = "Lifailon"` \

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: torapi
+description: Unofficial API for torrent trackers
+version: 0.1.0
+appVersion: "0.5.2"

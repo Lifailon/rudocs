@@ -1,0 +1,24 @@
+# Deployment
+replicaCount: 2
+image: "lifailon/torapi:latest"
+containerPort: 8443
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+probe:
+  path: "/api/provider/list"
+  port: 8443
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Service
+service:
+  type: LoadBalancer
+  port: 8444
+  targetPort: 8443
