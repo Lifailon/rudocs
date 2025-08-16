@@ -1,0 +1,17 @@
+version: "3"
+services:
+  focalboard:
+    image: mattermost/focalboard:latest # 7.10.6
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: focalboard
+    restart: unless-stopped
+    environment:
+      # - VIRTUAL_HOST=focalboard.local:8000
+      - VIRTUAL_HOST=192.168.3.101:8000
+      - VIRTUAL_PORT=8000
+    volumes:
+      - ./fb_data:/opt/focalboard/data
+    ports:
+      - 8000:8000

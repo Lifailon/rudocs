@@ -64,6 +64,13 @@ services:
     ports:
       - 45876:45876
 
+  dozzle-varlog:
+    image: lifailon/dozzle-varlog:latest
+    container_name: dozzle-varlog
+    restart: unless-stopped
+    volumes:
+      - /var/log:/logs
+
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
