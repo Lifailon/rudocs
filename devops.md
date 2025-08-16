@@ -57,7 +57,7 @@
   - [Headlamp](#headlamp)
   - [k9s](#k9s)
   - [kubectl](#kubectl)
-  - [Deployment](#deployment)
+  - [Deployment and Service](#deployment-and-service)
   - [Proxy and forward](#proxy-and-forward)
   - [HPA](#hpa)
   - [Ingress](#ingress)
@@ -1212,15 +1212,15 @@ kubectl create token headlamp-admin -n kube-system --duration=43800h # выпу�
 
 `kubectl get jobs -n kube-system` проверить статус выполнения заданий (job)
 
-### Deployment
+### Deployment and Service
 ```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
   name: rest-api
-
----
-
+```
+`kubectl apply -f namespace.yaml`
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
