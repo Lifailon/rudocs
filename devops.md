@@ -103,6 +103,8 @@
 - [Prometheus](#prometheus)
   - [PromQL Functions](#promql-functions)
 - [Graylog](#graylog)
+- [HAProxy](#haproxy)
+- [Keepalive](#keepalive)
 
 ---
 
@@ -1692,11 +1694,21 @@ spec:
       port: {{ .Values.service.port }}
   type: {{ .Values.service.type }}
 ```
-`helm template torapi-app .` напечатать итоговую спецификацию (проверить подстановку переменных) \
-`helm install torapi-app .` установка в кластер \
-`helm upgrade torapi-app .` обновление релиза (при изменение значение в `values.yaml`) \
-`helm uninstall torapi-app .` удалить
+`helm template torapi .` напечатать итоговую спецификацию (проверить подстановку переменных) \
+`helm install torapi .` установка в кластер \
+`helm upgrade torapi .` обновление релиза (при изменение значение в `values.yaml`) \
+`helm uninstall torapi .` удалить
 
+Публикация и установка:
+```bash
+helm package . # упаковать пакет (архив)
+helm repo index . --url https://<username>.github.io/<repo_name> # создать или обновить индекс
+# Разместить <repo_name>-0.1.0.tgz и index.yaml в новую ветку gh-pages
+
+helm repo add openrouter-bot https://<username>.github.io/<repo_name> # добавить новый репозиторий
+helm repo list
+helm upgrade --install <repo_name> <repo_name>/<repo_name> # установить пакет
+```
 ## GitHub API
 
 `$user = "Lifailon"` \
@@ -3890,3 +3902,162 @@ output.logstash:
 Get-Service winlogbeat | Start-Service
 ```
 - Настроить Inputs для приема Beats на порту 5044
+
+## HAProxy
+
+`apt install haproxy` \
+`systemctl status haproxy`
+
+`/etc/default/haproxy`
+```
+ENABLED=1
+```
+`/etc/haproxy/haproxy.cfg`
+```conf
+global
+log 127.0.0.1 local0 notice
+maxconn 10000
+nbproc 1
+user haproxy
+group haproxy
+daemon
+
+defaults
+log global
+maxconn global
+timeout client 5s
+timeout server 5s
+timeout connect 5s
+
+frontend http_front
+mode http
+bind *:8081
+#bind *:443 ssl crt /etc/ssl/domain.ru/cert.pem 
+option httplog
+###mode tcp
+###bind *:3389
+###option tcplog
+use_backend http_back
+
+backend http_back
+mode http
+balance roundrobin
+###mode tcp
+###balance leastconn
+option httpchk GET / HTTP/1.1\r\nHost:\ localhost
+###option tcp-check
+###tcp-check connect port 3389
+#server term1.domain.ru 192.168.55.30:443 ssl verify none weight 100 check inter 5s fall 5 rise 3
+#server term2.domain.ru 192.168.55.35:443 ssl verify none weight 100 check inter 5s fall 5 rise 3
+server pi-hole-01 192.168.3.101:8081 weight 100 check inter 5s fall 5 rise 3
+server netbox-01 192.168.3.104:8081 weight 100 check inter 5s fall 5 rise 3
+
+listen stats
+bind *:8082
+#bind *:8080 ssl crt /etc/ssl/domain.ru/cert.pem 
+mode http
+stats enable
+stats uri /
+stats auth admin:password
+stats show-legends
+stats show-node
+stats refresh 5s
+```
+`haproxy -f /etc/haproxy/haproxy.cfg -c` проверить синтаксис (Configuration file is valid) \
+`systemctl restart haproxy` применить настройки (перечитать конфигурацию) \
+`ss -lpn | grep 8081` \
+`curl http://192.168.3.102:8081` проверка http-трафика \
+`http://192.168.3.102:8082` статистика \
+`cat /var/log/haproxy.log` \
+`journalctl -eu haproxy` \
+`systemctl stop apache2` отключить на 101
+
+- options:
+
+`maxconn` максимальное количество одновременных соединений \
+`nbproc` количество процессов HAProxy \
+`option httplog` включает журналирование HTTP-трафика, полезно для отладки и мониторинга прохождения трафика через HAProxy и дает возможность просматривать HTTP-трафик в журнале, чтобы отслеживать запросы и ответы \
+`option httpchk` отправлять HTTP-запросы к серверам в бэкенде, чтобы определить, работают ли они, это позволяет выявлять неработающие сервера и перераспределять запросы на работающие \
+`option httpchk GET / HTTP/1.1\r\nHost:\ localhost` отправляет GET-запрос на корневой путь (/) используя версию протокола HTTP 1.1, Host:\ localhost - это часть заголовка Host, который также включается в HTTP-запрос и указывает на целевой хост, который проверяется \
+`option tcp-check` активирует общую функцию TCP-проверок для всего бэкэнда, без необходимости указывать порт явно \
+`tcp-check connect port 443` HAProxy будет устанавливать соединение с серверами в бэкенде на порту 443 для проверки, что серверы доступны и способны принимать соединения на этом порту
+
+- balance:
+
+`Round Robin (roundrobin)` алгоритм используемый по умолчанию, отправляет запросы на сервера по очереди \
+`static-rr` похож на roundrobin, но он сохраняет порядок серверов в конфигурации \
+`Least Connections (leastconn)` выбирает сервер с наименьшим количеством активных соединений, это полезно, если у серверов разная производительность или загруженность, так как запросы будут отправляться на менее загруженные серверы \
+`source` использует IP-адрес источника (клиента) для привязки к одному и тому же серверу, это означает, что клиент всегда будет направляться к одному и тому же серверу, это полезно для сохранения состояния сеанса \
+`uri` запросы с одним и тем же URL (до знака вопроса) будут переправляться на один и тот же сервер, это полезно для балансировки запросов к разным частям приложения \
+`rdp-cookie` используется для балансировки запросов RDP (Remote Desktop Protocol), он анализирует cookie-заголовок RDP для принятия решений о направлении запросов
+
+- server:
+
+`ssl` использование SSL \
+`verify none` отсутствие проверки сертификата \
+`weight` распределение запросов по весу, если необходимо на определенный сервер отправлять больше запросов \
+`inter` изменяет интервал между проверками, по умолчанию две секунды \
+`fall` устанавливает допустимое количество неудачных проверок, по умолчанию три \
+`rise` задает, сколько проходных проверок должно быть, прежде чем вернуть ранее отказавший сервер в ротацию, по умолчанию два \
+`check port 443` указать явную проверку порта для конкретного сервера \
+`check backup` параметр означает, что сервер будет использоваться только в случае, если все основные серверы становятся недоступными и не будет участвовать в балансировке, пока основные серверы функционируют
+
+## Keepalive
+
+**VRRP (Virtual Router Redundancy Protocol)** - сетевой протокол, предназначенный для увеличения доступности маршрутизаторов, выполняющих роль шлюза \
+**VRRP-пакеты** - это специальные сообщения, которые узлы (маршрутизаторы/сервера) в VRRP-группе рассылают для сообщения своего состояния \
+**VIP (Virtual IP)** - виртуальный IP адрес, который может автоматически переключаться между серверами в случае сбоя (frondend для haproxy/dns-rr), у кого в данный момент в сетевом интерфейсе прописан VIP, тот сервер и работает \
+**Master** - сервер, на котором в данный момент активен VIP (отправляет VRRP-пакеты на backup nodes) \
+**Backup** - сервера на которые переключится VIP, в случае сбоя мастера (следим за мастером) \
+**VRID (virtual_router_id)** - сервера, объединенные общим виртуальным IP (VIP) образуют виртуальный роутер, уникальный идентификатор которого, принимает значения от 1 до 255. Сервер может одновременно состоять в нескольких VRID, при этом для каждой VRID должны использоваться уникальные виртуальные IP адреса. \
+Master сервер с заданным интервалом отправляет VRRP пакеты на зарезервированный адрес multicast (многоадресной) рассылки или unicast на указанные ip-адреса, а все backup/slave сервера слушают этот адрес. Если Slave сервер не получает пакеты, он начинает процедуру выбора Master в соответствии с приоритетом, и если он переходит в состояние Master, то у него активирует VIP (поднимается виртуальный интерфейс) и отравляет gratuitous ARP. \
+**Gratuitous ARP** - это вид ARP ответа, который обновляет MAC таблицу на подключенных коммутаторах, чтобы проинформировать о смене владельца виртуального IP-адреса и MAC-адреса для перенаправления трафика. При настройке VRRP, в качестве адреса для виртуального IP не используется реальный адрес сервера, так как, в случае сбоя, его адрес переместится на соседний, и при восстановлении, он окажется изолированным от сети, и чтобы вернуть свой адрес, нужно отправить в сеть VRRP пакет, но не будет IP адреса, с которого это возможно сделать.
+
+`nano /etc/keepalived/keepalived.conf`
+```conf
+global_defs {
+    enable_script_security
+}
+
+vrrp_script nginx_check {
+    script "/usr/bin/curl http://127.0.0.1"
+    interval 5
+    user nginx
+}
+
+vrrp_instance web {
+    state MASTER # на втором сервере BACKUP
+    interface ens33
+    virtual_router_id 110
+    priority 255 # на втором сервере 100
+    advert_int 2
+    notify /etc/keepalived/notify-web.sh root
+    virtual_ipaddress {
+        192.168.3.110
+    }
+    track_interface {
+        ens333
+    }
+    track_script {
+        nginx_check
+    }
+}
+```
+`state <MASTER|BACKUP>` начальное состояние при запуске, в режиме nopreempt единственное допустимое значение - BACKUP \
+`interface` интерфейс, на котором будет работать VRRP и подниматься VIP \
+`virtual_router_id <0-255>` уникальный идентификатор VRRP экземпляра, должен совпадать на всех серверах одной группы \
+`priority <0-255>` задает приоритет при выборе MASTER, сервер с большим числом приоритета становится MASTER \
+`advert_int <число секунд>` определяет, с какой периодичностью мастер должен сообщать остальным о себе, и если по истечению данного периода сервера не получат от мастера широковещательный пакет, то они инициируют выборы нового мастера \
+`nopreempt` если мастер пропал из сети, и был выбран новый мастер с меньшим приоритетом, то по возвращении старшего мастера, он останется в состоянии BACKUP, пока новый мастер не отвалится \
+`preempt_delay` что бы мастером был конкретный сервер, то заменить настройку nopreempt на preempt_delay \
+`notify` скрипт, который будет выполняться при каждом изменении состояния сервера, и имя пользователя, от имени которого данный скрипт будет выполняться (логирование или отправка на почту) \
+`virtual_ipaddress` виртуальный IP-адрес (VIP), которые будет активирован на сервере в состоянии MASTER, должны совпадать на всех серверах внутри VRRP экземпляра \
+`track_interface` мониторинг состояния интерфейсов, переводит VRRP экземпляр в состояние FAULT, если один из перечисленных интерфейсов находится в состоянии DOWN \
+`track_script` мониторинг с использованием скрипта, который должен возвращать 0 если проверка завершилась успешно или 1, если проверка завершилась с ошибкой \
+`fall <число>` количество раз, которое скрипт вернул не нулевое значение, при котором перейти в состояние FAULT \
+`rise <число>` количество раз, которое скрипт вернул нулевое значение, при котором выйти из состояния FAULT \
+`timeout <число>` время ожидания, пока скрипт вернет результат, после которого вернуть ненулевое значение
+
+`journalctl -u keepalived` \
+`cat /var/log/messages | grep -i keepalived` \
+`tail /var/run/keepalived.INSTANCE.web.state`
