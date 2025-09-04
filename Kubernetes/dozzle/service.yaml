@@ -2,12 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: dozzle-service
+  annotations:
+    metallb.universe.tf/address-pool: "default-pool"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.202"
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: dozzle
   ports:
-    - port: 8080
+    - port: 4477
       targetPort: 8080
       protocol: TCP
-      nodePort: 30002
