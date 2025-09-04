@@ -1,0 +1,16 @@
+services:
+  netalertx:
+    image: ghcr.io/jokob-sk/netalertx:latest
+    container_name: netalertx
+    restart: unless-stopped
+    environment:
+      - PUID=200
+      - PGID=300
+      - TZ=Etc/GMT+3
+      - PORT=20211
+    network_mode: host
+    volumes:
+      - ./netalertx_config:/app/config
+      - ./netalertx_db:/app/db
+    tmpfs:
+      - /app/api
