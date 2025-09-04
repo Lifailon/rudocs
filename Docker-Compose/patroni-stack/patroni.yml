@@ -1,0 +1,59 @@
+scope: mycluster
+namespace: /service/
+name: ${PATRONI_NAME}
+
+restapi:
+  listen: ${PATRONI_RESTAPI_LISTEN}
+  connect_address: ${PATRONI_RESTAPI_CONNECT_ADDRESS}
+
+raft:
+  data_dir: /var/lib/postgresql/raft
+  self_addr: ${PATRONI_RAFT_SELF_ADDR}
+  partner_addrs:
+    - patroni1:2221
+    - patroni2:2222
+    - patroni3:2223
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        max_connections: 100
+        shared_buffers: 128MB
+        hot_standby: on
+        wal_level: replica
+        max_wal_senders: 10
+        max_replication_slots: 10
+
+  initdb:
+  - encoding: UTF8
+  - data-checksums
+
+  pg_hba:
+  - host replication replicator 0.0.0.0/0 md5
+  - host all all 0.0.0.0/0 md5
+
+  users:
+    admin:
+      password: ${PATRONI_admin_PASSWORD}
+      options:
+        - createrole
+        - createdb
+
+postgresql:
+  listen: ${PATRONI_POSTGRESQL_LISTEN}
+  connect_address: ${PATRONI_POSTGRESQL_CONNECT_ADDRESS}
+  data_dir: ${PATRONI_POSTGRESQL_DATA_DIR}
+  authentication:
+    replication:
+      username: replicator
+      password: ${PATRONI_REPLICATION_PASSWORD}
+    superuser:
+      username: postgres
+      password: ${PATRONI_SUPERUSER_PASSWORD}

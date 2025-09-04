@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # Patroni Cluster Web Manager
+  ivory:
+    image: veegres/ivory:latest
+    container_name: ivory
+    restart: unless-stopped
+    ports:
+      - 7070:80
+    networks:
+      - patroni-net
+
+  # LB
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    restart: unless-stopped
+    ports:
+      - "5430:5430" # Write endpoint (master)
+      - "5431:5431" # Read endpoint (replicas)
+      - "7000:7000" # Stats dashboard
+    networks:
+      - patroni-net
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - patroni1
+      - patroni2
+      - patroni3
+
+  # Patroni Node 1
+  patroni1:
+    image: postgres:17.2
+    container_name: patroni1
+    restart: unless-stopped
+    environment:
+      - PATRONI_NAME=patroni1
+      - PATRONI_RAFT_SELF_ADDR=patroni1:2221
+      - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=patroni1:5432
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=patroni1:8008
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_SCOPE=mycluster
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=postgres
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=replicatorpass
+      - PATRONI_admin_PASSWORD=admin
+    # ports:
+    #   - 5432:5432
+    #   - 8008:8008
+    #   - 2221:2221
+    networks:
+      - patroni-net
+    volumes:
+      - ./patroni1_data:/var/lib/postgresql/data
+      - ./patroni.yml:/etc/patroni.yml:ro
+    command: patroni /etc/patroni.yml
+
+  # Patroni Node 2
+  patroni2:
+    image: postgres:17.2
+    container_name: patroni2
+    restart: unless-stopped
+    environment:
+      - PATRONI_NAME=patroni2
+      - PATRONI_RAFT_SELF_ADDR=patroni2:2222
+      - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=patroni2:5432
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=patroni2:8008
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_SCOPE=mycluster
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=postgres
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=replicatorpass
+      - PATRONI_admin_PASSWORD=admin
+    # ports:
+    #   - 5433:5432
+    #   - 8009:8008
+    #   - 2222:2222
+    networks:
+      - patroni-net
+    volumes:
+      - ./patroni2_data:/var/lib/postgresql/data
+      - ./patroni.yml:/etc/patroni.yml:ro
+    command: patroni /etc/patroni.yml
+
+  # Patroni Node 3
+  patroni3:
+    image: postgres:17.2
+    container_name: patroni3
+    restart: unless-stopped
+    environment:
+      - PATRONI_NAME=patroni3
+      - PATRONI_RAFT_SELF_ADDR=patroni3:2223
+      - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=patroni3:5432
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=patroni3:8008
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_SCOPE=mycluster
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=postgres
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=replicatorpass
+      - PATRONI_admin_PASSWORD=admin
+    # ports:
+    #   - 5434:5432
+    #   - 8010:8008
+    #   - 2223:2223
+    networks:
+      - patroni-net
+    volumes:
+      - ./patroni3_data:/var/lib/postgresql/data
+      - ./patroni.yml:/etc/patroni.yml:ro
+    command: patroni /etc/patroni.yml
+
+networks:
+  patroni-net:
+    driver: bridge
