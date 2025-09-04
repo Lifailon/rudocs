@@ -92,12 +92,12 @@ services:
       # mkdir dockge_data
       - ./dockge_data:/app/data
       # Stacks directory
-      - /home/lifailon:/home/lifailon
+      - /home/lifailon/docker:/stacks
       # Docker API
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - VIRTUAL_HOST=dockge.local
-      - DOCKGE_STACKS_DIR=/home/lifailon
+      - DOCKGE_STACKS_DIR=/stacks
       # Доступ к консоли dockge
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
