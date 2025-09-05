@@ -92,16 +92,24 @@ services:
       # mkdir dockge_data
       - ./dockge_data:/app/data
       # Stacks directory
-      - /home/lifailon/docker:/stacks
+      - /home/lifailon/docker:/home/lifailon/docker
       # Docker API
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - VIRTUAL_HOST=dockge.local
-      - DOCKGE_STACKS_DIR=/stacks
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
       # Доступ к консоли dockge
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
       - 5001:5001
+
+  # Web interface for kompose (compose to k8s manifest converter)
+  kompose-ui:
+    image: jadcham/komposeui
+    container_name: kompose-ui
+    restart: unless-stopped
+    ports:
+      - 5002:8000
 
   # Web interface for docker manager on remote hosts via lazydocker or ctop
   docker-web-manager:
@@ -115,7 +123,7 @@ services:
       - VIRTUAL_HOST=docker.local
       - WEB_USERNAME=admin
       - WEB_PASSWORD=admin
-      - SSH_HOSTS=localhost,192.168.3.106
+      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
       - SSH_USER=lifailon
       - SSH_PORT=2121
       - DOCKER_CLIENT=lazydocker
