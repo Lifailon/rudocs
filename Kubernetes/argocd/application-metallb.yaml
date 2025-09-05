@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb
+spec:
+  destination:
+    namespace: metallb-system
+    server: https://kubernetes.default.svc
+  source:
+    path: Kubernetes/metallb
+    repoURL: https://github.com/Lifailon/PS-Commands
+    targetRevision: rsa
+  sources: []
+  project: default
+  syncPolicy:
+    automated: null
