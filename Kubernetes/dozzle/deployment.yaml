@@ -20,3 +20,17 @@ spec:
           env:
             - name: DOZZLE_MODE
               value: "k8s"
+            - name: DOZZLE_REMOTE_AGENT
+              value: "192.168.3.106:7007"
+            # Авторизация
+            - name: DOZZLE_AUTH_PROVIDER
+              value: "simple"
+          volumeMounts:
+            - name: auth-config
+              mountPath: /data/users.yml
+              subPath: users.yml
+              readOnly: true
+      volumes:
+        - name: auth-config
+          secret:
+            secretName: dozzle-auth-secret

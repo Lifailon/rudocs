@@ -11,4 +11,5 @@ resources:
 - clusterrole.yaml
 - clusterrolebinding.yaml
 - deployment.yaml
+- secrets.yaml
 - service.yaml
