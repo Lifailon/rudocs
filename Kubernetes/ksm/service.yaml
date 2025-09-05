@@ -13,7 +13,7 @@ spec:
     - name: http-metrics
       port: 8080
       targetPort: http-metrics
-      nodePort: 30001
+      nodePort: 30002
     - name: telemetry
       port: 8081
       targetPort: telemetry

@@ -11,5 +11,6 @@ spec:
   ports:
     - port: 80
       targetPort: 4466
+      nodePort: 30002
   selector:
     k8s-app: headlamp
