@@ -29,7 +29,7 @@ services:
       # Подключиться к удаленному хосту через Docker API (tcp socket)
       # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
       # Подключиться к удаленному хосту через Dozzle Agent
-      # - DOZZLE_REMOTE_AGENT=192.168.3.106:7007
+      # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
     ports:
       - 9090:8080
 

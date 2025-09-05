@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beszel-server
+  labels:
+    app: beszel-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beszel-server
+  template:
+    metadata:
+      labels:
+        app: beszel-server
+    spec:
+      containers:
+      - name: beszel-server
+        image: henrygd/beszel:latest
+        ports:
+        - containerPort: 8090
+        env:
+        - name: VIRTUAL_HOST
+          value: "beszel.local"
+        volumeMounts:
+        - name: beszel-data
+          mountPath: /beszel_data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: beszel-data
+        # emptyDir: {}
+        persistentVolumeClaim:
+          claimName: beszel-pvc
