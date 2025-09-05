@@ -7,9 +7,9 @@ metadata:
 
 resources:
 - namespace.yaml
-- serviceaccount.yaml
-- clusterrole.yaml
-- clusterrolebinding.yaml
+- service-account.yaml
+- cluster-role.yaml
+- cluster-role-binding.yaml
 - deployment.yaml
 - secrets.yaml
 - service.yaml

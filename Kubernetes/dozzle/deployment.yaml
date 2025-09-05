@@ -20,9 +20,7 @@ spec:
           env:
             - name: DOZZLE_MODE
               value: "k8s"
-            - name: DOZZLE_REMOTE_AGENT
-              value: "192.168.3.106:7007"
-            # Авторизация
+            # Auth
             - name: DOZZLE_AUTH_PROVIDER
               value: "simple"
           volumeMounts:

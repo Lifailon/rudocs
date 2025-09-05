@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: dozzle-server
+  name: dozzle
 spec:
   destination:
     namespace: monitoring

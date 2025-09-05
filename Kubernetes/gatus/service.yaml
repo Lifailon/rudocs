@@ -1,15 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: gatus
-  namespace: rest-api
+  name: gatus-service
+  namespace: monitoring
+  annotations:
+    metallb.universe.tf/address-pool: "default-pool"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.202"
 spec:
-  type: NodePort
-  ports:
-    - name: http
-      protocol: TCP
-      targetPort: 8080
-      port: 8080
-      nodePort: 30081
+  type: LoadBalancer
   selector:
     app: gatus
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30081

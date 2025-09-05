@@ -1,15 +1,8 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: rest-api
-
----
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gatus
-  namespace: rest-api
+  namespace: monitoring
 spec:
   replicas: 1
   selector:
@@ -18,7 +11,7 @@ spec:
   template:
     metadata:
       name: gatus
-      namespace: rest-api
+      namespace: monitoring
       labels:
         app: gatus
     spec:
@@ -59,6 +52,6 @@ spec:
             - mountPath: /config
               name: gatus-config
       volumes:
-        - configMap:
-            name: gatus
-          name: gatus-config
+        - name: gatus-config
+          configMap:
+            name: gatus-config
