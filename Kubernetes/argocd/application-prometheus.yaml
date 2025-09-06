@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/prometheus-community/helm-charts
+    path: charts/prometheus
+    targetRevision: main
+    helm:
+      values: |
+        server:
+          service:
+            type: NodePort
+            nodePort: 30100
+          persistentVolume:
+            enabled: true
+            size: 8Gi
+        alertmanager:
+          enabled: false
+        prometheus-pushgateway:
+          enabled: false
+        nodeExporter:
+          enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: null
