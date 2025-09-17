@@ -1,6 +1,6 @@
 services:
   code-server:
-    image: lscr.io/linuxserver/code-server:latest
+    image: linuxserver/code-server:latest
     container_name: code-server
     restart: unless-stopped
     environment:
@@ -22,3 +22,33 @@ services:
       - APP_CLEAN_INTERVAL=30m
     ports:
       - 10444:8000
+
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    restart: unless-stopped
+    ports:
+      - 10445:80
+
+  # dashy:
+  #   container_name: Dashy
+  #   image: lissy93/dashy
+  #   ports:
+  #     - 4000:8080
+  #   environment:
+  #     - NODE_ENV=production
+  #   restart: unless-stopped
+
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - ALLOW_INTERNAL_REQUESTS=true
+    volumes:
+      - ./heimdall_config:/config
+    ports:
+      - 10446:443
