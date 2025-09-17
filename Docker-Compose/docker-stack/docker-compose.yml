@@ -15,6 +15,43 @@ services:
     # ports:
     #   - 9095:8080
 
+  # Web interface for docker-compose
+  dockge:
+    image: louislam/dockge:1
+    container_name: dockge
+    restart: unless-stopped
+    volumes:
+      - ./dockge_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker stacks directory on host:container
+      - /home/lifailon/docker:/home/lifailon/docker
+    environment:
+      - VIRTUAL_HOST=dockge.local
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      # Доступ к консоли dockge
+      - DOCKGE_ENABLE_CONSOLE=true
+    ports:
+      - 5001:5001
+
+  # Web interface for docker manager on remote hosts via lazydocker or ctop
+  docker-web-manager:
+    image: lifailon/docker-web-manager:latest
+    container_name: docker-web-manager
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+    environment:
+      - VIRTUAL_HOST=docker.local
+      - WEB_USERNAME=admin
+      - WEB_PASSWORD=admin
+      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
+      - SSH_USER=lifailon
+      - SSH_PORT=2121
+      - DOCKER_CLIENT=lazydocker
+    ports:
+      - 3333:3333
+
   # Web interface for docker logs
   dozzle:
     image: amir20/dozzle:latest
@@ -53,7 +90,7 @@ services:
     volumes:
       - /var/log:/logs
 
-  # Web interface for container metrics
+  # Web interface for monitoring hosts and containers metrics
   beszel-server:
     image: henrygd/beszel:latest
     container_name: beszel-server
@@ -67,7 +104,7 @@ services:
     ports:
       - 8090:8090
 
-  # Agent for get metrics from containers
+  # Agent for monitoring
   beszel-agent:
     image: henrygd/beszel-agent:latest
     container_name: beszel-agent
@@ -83,26 +120,6 @@ services:
     # ports:
     #   - 45876:45876
 
-  # Web interface for docker compose
-  dockge:
-    image: louislam/dockge:1
-    container_name: dockge
-    restart: unless-stopped
-    volumes:
-      # mkdir dockge_data
-      - ./dockge_data:/app/data
-      # Stacks directory
-      - /home/lifailon/docker:/home/lifailon/docker
-      # Docker API
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - VIRTUAL_HOST=dockge.local
-      - DOCKGE_STACKS_DIR=/home/lifailon/docker
-      # Доступ к консоли dockge
-      - DOCKGE_ENABLE_CONSOLE=true
-    ports:
-      - 5001:5001
-
   # Web interface for kompose (compose to k8s manifest converter)
   kompose-ui:
     image: jadcham/komposeui
@@ -110,22 +127,3 @@ services:
     restart: unless-stopped
     ports:
       - 5002:8000
-
-  # Web interface for docker manager on remote hosts via lazydocker or ctop
-  docker-web-manager:
-    image: lifailon/docker-web-manager:latest
-    container_name: docker-web-manager
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
-    environment:
-      - VIRTUAL_HOST=docker.local
-      - WEB_USERNAME=admin
-      - WEB_PASSWORD=admin
-      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
-      - SSH_USER=lifailon
-      - SSH_PORT=2121
-      - DOCKER_CLIENT=lazydocker
-    ports:
-      - 3333:3333

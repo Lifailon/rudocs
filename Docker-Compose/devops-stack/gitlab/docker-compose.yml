@@ -2,8 +2,8 @@ services:
   gitlab:
     image: gitlab/gitlab-ce:latest
     container_name: gitlab
-    hostname: gitlab.local
     restart: unless-stopped
+    hostname: gitlab.local
     environment:
       GITLAB_OMNIBUS_CONFIG: |
         external_url 'http://localhost'
@@ -11,8 +11,8 @@ services:
         nginx['listen_https'] = false
         gitlab_rails['gitlab_shell_ssh_port'] = 2222
     ports:
-      - "8888:80"     # Web
-      - "2222:22"     # SSH
+      - 8888:80 # Web
+      - 2222:22 # SSH
     volumes:
       - ./gitlab/config:/etc/gitlab
       - ./gitlab/logs:/var/log/gitlab
@@ -40,5 +40,6 @@ services:
     volumes:
       - ./redis/data:/data
 
-# login: root
-# docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password
+# Login: root
+# Password:
+# docker exec -it gitlab cat /etc/gitlab/initial_root_password | grep -E ^Pass | sed "s/Password:\s//g"
