@@ -28,4 +28,4 @@ if [ -n "${WEB_USERNAME}" ] && [ -n "${WEB_PASSWORD}" ]; then
     TTYD_OPTIONS="${TTYD_OPTIONS} -c ${WEB_USERNAME}:${WEB_PASSWORD}"
 fi
 
-ttyd "$TTYD_OPTIONS" bash -c 'SSH_HOST=$(printf "%s\n" ${SSH_HOSTS//,/ } | fzf --exact --no-sort --reverse --border) && dcm && $DOCKER_CLIENT'
+ttyd $TTYD_OPTIONS bash -c 'SSH_HOST=$(printf "%s\n" ${SSH_HOSTS//,/ } | fzf --exact --no-sort --reverse --border) && dcm && $DOCKER_CLIENT'
