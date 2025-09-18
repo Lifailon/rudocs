@@ -1,0 +1,38 @@
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__database__PATH=/data/gitea/gitea.db
+      - GITEA__server__DOMAIN=localhost
+      - GITEA__server__SSH_PORT=222
+      - GITEA__server__HTTP_PORT=3000
+    volumes:
+      - ./gitea_data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 3000:3000
+      - 222:222
+
+  gitea-act-runner:
+    image: docker.io/gitea/act_runner:nightly
+    container_name: gitea-act-runner
+    restart: unless-stopped
+    environment:
+      CONFIG_FILE: /config.yaml
+      GITEA_INSTANCE_URL: http://192.168.3.101:3000
+      # http://192.168.3.101:3000/-/admin/actions/runners
+      # or
+      # docker exec -it gitea gitea --config /data/gitea/conf/app.ini actions generate-runner-token
+      GITEA_RUNNER_REGISTRATION_TOKEN: JY1uWsuNiexmvdleG0cbftgOvuHesKlnpZeCxbQA
+    volumes:
+      - ./config.yaml:/config.yaml
+      - ./gitea_runner_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    # CD
+    network_mode: host
