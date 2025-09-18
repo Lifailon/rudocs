@@ -1,0 +1,13 @@
+container:
+  network: bridge
+
+labels:
+  - ubuntu-latest
+  - ubuntu-24.04
+  - self-hosted
+
+runner:
+  name: ubuntu-runner
+  log_level: info
+  capacity: 4
+  timeout: 3h
