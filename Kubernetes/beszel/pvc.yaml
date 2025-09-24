@@ -3,8 +3,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: beszel-pvc
 spec:
+  # storageClassName: local-path
+  storageClassName: longhorn
   accessModes:
-    - ReadWriteOnce
+    # - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 1Gi
