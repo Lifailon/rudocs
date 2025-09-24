@@ -19,9 +19,6 @@ spec:
         image: henrygd/beszel:latest
         ports:
         - containerPort: 8090
-        env:
-        - name: VIRTUAL_HOST
-          value: "beszel.local"
         volumeMounts:
         - name: beszel-data
           mountPath: /beszel_data
@@ -34,6 +31,5 @@ spec:
             cpu: "500m"
       volumes:
       - name: beszel-data
-        # emptyDir: {}
         persistentVolumeClaim:
           claimName: beszel-pvc

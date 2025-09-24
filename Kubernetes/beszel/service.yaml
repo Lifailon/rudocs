@@ -4,7 +4,7 @@ metadata:
   name: beszel-service
   annotations:
     metallb.universe.tf/address-pool: "default-pool"
-    metallb.universe.tf/loadBalancerIPs: "192.168.3.204"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.203"
 spec:
   type: LoadBalancer
   selector:
