@@ -1,0 +1,34 @@
+services:
+  # Streaming
+  sunshine:
+    image: lizardbyte/sunshine:latest-ubuntu-24.04
+    container_name: sunshine
+    restart: unless-stopped
+    volumes:
+      - ./sunshine_config:/config
+    environment:
+      - PUID=1001 # dockeruser
+      - PGID=1001 # dockergroup
+      - TZ=Etc/GMT+3
+    ports:
+      - 47984-47990:47984-47990/tcp
+      - 47998-48000:47998-48000/udp
+      - 48010:48010
+    ipc: host
+
+  # GameCube Emulator in Web via Selkies
+  dolphin:
+    image: lscr.io/linuxserver/dolphin:latest
+    container_name: dolphin
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - ./dolphin_config:/config
+      - ./dolphin_games:/games
+    ports:
+      - 3001:3001
+      - 3002:3000
+    shm_size: 1gb
