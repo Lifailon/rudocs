@@ -58,7 +58,7 @@ services:
     container_name: dozzle
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./dozzle_data:/data
     environment:
       - VIRTUAL_HOST=dozzle.local
@@ -69,6 +69,24 @@ services:
       # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
     ports:
       - 9090:8080
+
+  # dozzle-agent:
+  #   image: amir20/dozzle:latest
+  #   container_name: dozzle-agent
+  #   restart: unless-stopped
+  #   command: agent
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   # environment:
+  #   #   - DOZZLE_HOSTNAME=hv-us-101
+  #   healthcheck:
+  #     test: ["CMD", "/dozzle", "healthcheck"]
+  #     interval: 5s
+  #     retries: 5
+  #     start_period: 5s
+  #     start_interval: 5s
+  #   ports:
+  #     - 7007:7007
 
   # Container for monitoring syslog file on host
   # dozzle-syslog:
@@ -90,7 +108,7 @@ services:
     volumes:
       - /var/log:/logs
 
-  # Web interface for monitoring hosts and containers metrics
+  # Web interface for monitoring hosts and containers metrics + webhook via shoutrrr
   beszel-server:
     image: henrygd/beszel:latest
     container_name: beszel-server
@@ -99,6 +117,7 @@ services:
       - host.docker.internal:host-gateway
     volumes:
       - ./beszel_data:/beszel_data
+      - ./beszel_socket:/beszel_socket
     environment:
       - VIRTUAL_HOST=beszel.local
     ports:
@@ -112,10 +131,14 @@ services:
     network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # monitor other disks / partitions by mounting a folder in /extra-filesystems
+      - ./beszel_agent_data:/var/lib/beszel-agent
+      - ./beszel_agent_socket:/beszel_socket
       # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
     environment:
+      # HUB_URL: http://localhost:8090
+      # LISTEN: /beszel_socket/beszel.sock
       LISTEN: 45876
+      # TOKEN: <token>
       KEY: "Копируем публичный ключ из интерфейса и перезапускаем docker compose"
     # ports:
     #   - 45876:45876

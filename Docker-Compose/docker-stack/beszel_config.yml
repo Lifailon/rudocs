@@ -1,0 +1,25 @@
+systems:
+    - name: Windows (plex-01)
+      host: 192.168.3.100
+      port: 45876
+      token: wexZNlbEhSafWhfuKWVw
+      users:
+        - admin@admin.com
+    - name: node-01 (hv-us-101)
+      host: 192.168.3.101
+      port: 45876
+      token: GFYFbfTgjOOJMFbZggOY
+      users:
+        - admin@admin.com
+    - name: node-02 (rpi-105)
+      host: 192.168.3.105
+      port: 45876
+      token: QGJFHOUrfQbUZpXVmehI
+      users:
+        - admin@admin.com
+    - name: node-03 (rpi-106)
+      host: 192.168.3.106
+      port: 45876
+      token: CwCCVFespHebJwTOikEg
+      users:
+        - admin@admin.com
