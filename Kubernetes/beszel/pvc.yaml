@@ -3,7 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: beszel-pvc
 spec:
-  volumeName: beszel-pvc
   # storageClassName: local-path
   storageClassName: longhorn
   accessModes:

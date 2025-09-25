@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+spec:
+  destination:
+    namespace: longhorn-system
+    server: https://kubernetes.default.svc
+  source:
+    path: Kubernetes/longhorn
+    repoURL: https://github.com/Lifailon/PS-Commands
+    targetRevision: rsa
+  sources: []
+  project: default
+  syncPolicy:
+    automated: null
