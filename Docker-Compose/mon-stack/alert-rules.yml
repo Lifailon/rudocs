@@ -157,7 +157,7 @@ groups:
     labels:
       severity: warning
     annotations:
-      description: "Размер диска меньше 10 %"
+      description: "Размер диска меньше 10%"
 
   - alert: WIN_DISK_USAGE_CRIT
     expr: avg(ohm_hdd_load_percent{sensor="Used Space"}) by (hardware,instance) > 95
@@ -165,7 +165,7 @@ groups:
     labels:
       severity: critical
     annotations:
-      description: "Размер диска меньше 5 %"
+      description: "Размер диска меньше 5%"
 
 - name: reboot
   rules:
@@ -183,7 +183,7 @@ groups:
   #   annotations:
   #     description: "Перезагружен контейнер {{ $labels.containerName }} на {{ $labels.hostname }}"
 
-- name: ping
+- name: probe
   rules:
   - alert: ICMP_PING_ERR
     expr: avg(probe_success{job="blackbox-icmp"}) by (instance) != 1
@@ -191,3 +191,10 @@ groups:
       severity: error
     annotations:
       description: "Отсутствует ping до {{ $labels.instance }}"
+
+  - alert: HTTP_STATUS_ERR
+    expr: avg(probe_success{job="blackbox-http"}) by (instance) != 1
+    labels:
+      severity: error
+    annotations:
+      description: "Сервис {{ $labels.instance }} недоступен"

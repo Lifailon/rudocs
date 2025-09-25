@@ -22,6 +22,14 @@ scrape_configs:
     static_configs:
       - targets:
         - node-exporter:9100
+        # - 192.168.3.105:9100
+        # - 192.168.3.106:9100
+
+  # Windows
+  # - job_name: windows-ohm-graphite
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.100:4445
 
   # Docker
   - job_name: logporter
@@ -30,15 +38,27 @@ scrape_configs:
     static_configs:
       - targets:
         - logporter:9333
+        # - 192.168.3.105:9333
+        # - 192.168.3.106:9333
+
+  # - job_name: cadvisor
+  #   static_configs:
+  #     - targets:
+  #       - cadvisor:8080
+  #       - 192.168.3.106:8080
 
   # ICMP
   - job_name: blackbox-icmp
+    scrape_interval: 30s
+    scrape_timeout: 5s
     metrics_path: /probe
     params:
       module: [icmp_ping]
     static_configs:
       - targets:
           - 8.8.8.8
+          # - 192.168.3.105
+          # - 192.168.3.106
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -47,15 +67,37 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox:9115
 
-  # HTTPS
+  # TCP/SSH
+  # - job_name: blackbox-tcp
+  #   scrape_interval: 30s
+  #   scrape_timeout: 5s
+  #   metrics_path: /probe
+  #   params:
+  #     module: [tcp_ssh]
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:2121
+  #         - 192.168.3.106:2121
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: __param_target
+  #     - source_labels: [__param_target]
+  #       target_label: instance
+  #     - target_label: __address__
+  #       replacement: blackbox:9115
+
+  # HTTP/HTTPS
   - job_name: blackbox-http
+    scrape_interval: 30s
+    scrape_timeout: 5s
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets:
           - https://google.com
-          - https://telegram.org
+          # - http://192.168.3.105:9100
+          # - http://192.168.3.106:9100
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -63,3 +105,74 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: blackbox:9115
+
+  # REST API
+  # - job_name: blackbox-api
+  #   scrape_interval: 60s
+  #   scrape_timeout: 5s
+  #   metrics_path: /probe
+  #   params:
+  #     module: [rest_api]
+  #   static_configs:
+  #     - targets:
+  #         - https://torapi.vercel.app/api/provider/list
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: __param_target
+  #     - source_labels: [__param_target]
+  #       target_label: instance
+  #     - target_label: __address__
+  #       replacement: blackbox:9115
+
+  # - job_name: gatus
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:8081
+
+  # - job_name: uptime-kuma
+  #   scrape_interval: 30s
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.105:8081
+  #   basic_auth:
+  #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
+
+  # Go App
+  # - job_name: go-app
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.100:2112
+
+  # DNS
+  # - job_name: pi-hole-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:9617
+
+  # Proxy
+  # - job_name: nginx-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.105:9113
+
+  # Speedtest
+  # - job_name: speedtest-exporter
+  #   scrape_interval: 15m
+  #   scrape_timeout: 90s
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.105:9798
+
+  # CI/CD
+  # - job_name: jenkins
+  #   metrics_path: /prometheus
+  #   bearer_token: 1180f72a8cdb6eac2be7e3af10185c770a
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.101:8080
+
+  # k8s
+  # - job_name: ksm
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.101:30002

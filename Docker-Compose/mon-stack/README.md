@@ -5,7 +5,7 @@
 - [Grafana](https://github.com/grafana/grafana) для визуализации метрик и логов.
 - [Prometheus](https://github.com/prometheus/prometheus) для хранения метрик.
 - [Alertmanager](https://github.com/prometheus/alertmanager) с преднастроенными базовыми правилами и шаблоном Telegram.
-- [Blackbox Exporter](https://github.com/prometheus/blackbox_exporter/tree/master) для проверки доступности интернета и хостов в сети.
+- [Blackbox Exporter](https://github.com/prometheus/blackbox_exporter/tree/master) для проверки доступности Интернета, а также хостов и сервисов в сети.
 - [Node Exporter](https://github.com/prometheus/node_exporter) для сбора системных метрик.
 - [logporter](https://github.com/Lifailon/logporter) для сбора всех базовых метрик из контейнеров Docker (легковесная альтернатива [cAdvisor](https://github.com/google/cadvisor)).
 - [Loki](https://github.com/grafana/loki) сервер и агент `promtail` для сборка логов из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
@@ -25,7 +25,6 @@ git clone https://github.com/Lifailon/PS-Commands
 mv ./PS-Commands/Docker-Compose/mon-stack/* ./
 rm -rf PS-Commands
 chmod 644 ./*
-# mv -f prometheus-dev.yml prometheus.yml
 docker-compose up -d
 ```
 

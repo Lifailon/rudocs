@@ -65,8 +65,8 @@ services:
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
     environment:
       - VIRTUAL_HOST=alertmanager.local
-    ports:
-      - 9093:9093
+    # ports:
+    #   - 9093:9093
 
   # Агент для сбора системных метрик
   node-exporter:
@@ -92,7 +92,7 @@ services:
   #     - 9095:9091
   #   restart: unless-stopped
 
-  # Мониторинг ICMP, TCP, DNS, HTTP, HTTPS и gRPC
+  # Мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC
   # http://blackbox:9115/probe?target=https://google.com&module=http
   blackbox:
     image: prom/blackbox-exporter:latest
@@ -102,7 +102,7 @@ services:
     volumes:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
     command:
-      - '--config.file=/etc/blackbox_exporter/config.yml'
+      - --config.file=/etc/blackbox_exporter/config.yml
     restart: unless-stopped
 
   # Агент для сбора метрик из контейнеров Docker от Google (поддерживает свой Web интерфейс для визуализации метрик)
@@ -118,7 +118,7 @@ services:
   #   ports:
   #     - 8080:8080
 
-  # Легковесный агент для сбора всех базовых метрик из контейнеров Docker
+  # Легковесный агент для сбора метрик из контейнеров Docker
   logporter:
     image: lifailon/logporter:latest
     container_name: logporter
