@@ -1,0 +1,17 @@
+services:
+  keepalived:
+    image: alpine:3.18
+    container_name: keepalived
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_BROADCAST
+      - NET_RAW
+    volumes:
+      - ./keepalived.conf:/etc/keepalived/keepalived.conf:ro
+    network_mode: host
+    command: |
+      sh -c "
+        apk add --no-cache keepalived curl &&
+        keepalived --dont-fork --log-console
+      "
