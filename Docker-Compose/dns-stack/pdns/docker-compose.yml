@@ -1,0 +1,42 @@
+services:
+  powerdns-server:
+    image: powerdns/pdns-auth-49:latest
+    container_name: powerdns-server
+    restart: unless-stopped
+    environment:
+      POWERDNS_launch: gsqlite3
+      POWERDNS_gsqlite3_database: /var/lib/powerdns/pdns.sqlite
+      POWERDNS_api: yes
+      POWERDNS_api_key: power-dns-api-key
+      POWERDNS_webserver: yes
+      POWERDNS_webserver_address: 0.0.0.0
+      POWERDNS_webserver_port: 8081
+      POWERDNS_webserver_allow_from: 0.0.0.0/0,::/0
+    ports:
+      - 53:53/udp
+      - 53:53/tcp
+      - 8081:8081
+    volumes:
+      - ./powerdns_db_data:/var/lib/powerdns
+    networks:
+      - powerdns-network
+
+  powerdns-admin:
+    image: ngoduykhanh/powerdns-admin:latest
+    container_name: powerdns-admin
+    restart: unless-stopped
+    environment:
+      - PDNS_API_URL=http://powerdns-server:8081
+      - PDNS_API_KEY=power-dns-api-key
+      - PDNS_VERSION=4.9.0
+    ports:
+      - 9191:80
+    volumes:
+      - ./powerdns_admin_data:/var/lib/powerdns-admin
+    networks:
+      - powerdns-network
+    depends_on:
+      - powerdns-server
+
+networks:
+  powerdns-network:
