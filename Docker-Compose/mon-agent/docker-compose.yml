@@ -82,3 +82,16 @@ services:
       - WATCHTOWER_NOTIFICATIONS_HOSTNAME= # change agent name
       - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
     command: --interval 600
+
+  dockge:
+    image: louislam/dockge:1
+    container_name: dockge
+    restart: unless-stopped
+    volumes:
+      - ./dockge_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/lifailon/docker:/home/lifailon/docker
+    environment:
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+    ports:
+      - 5001:5001
