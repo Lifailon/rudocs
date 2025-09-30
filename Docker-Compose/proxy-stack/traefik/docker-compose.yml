@@ -1,0 +1,31 @@
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: unless-stopped
+    network_mode: host
+    # ports:
+    #   - 8080:8080   # web ui
+    #   - 80:80       # http proxy
+    #   - 443:443     # https proxy
+    #   - 4318:4318   # prometheus metrics
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # tech-dns:
+  #   image: technitium/dns-server:latest
+  #   container_name: tech-dns
+  #   restart: unless-stopped
+  #   ports:
+  #     - 5380:5380/tcp
+  #     - 53:53/udp
+  #     - 53:53/tcp
+  #   environment:
+  #     - DNS_SERVER_DOMAIN=dns-server
+  #     - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+  #     - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+  #   volumes:
+  #     - ./dns_srv_data:/etc/dns
+  #   sysctls:
+  #     - net.ipv4.ip_local_port_range=1024 65000

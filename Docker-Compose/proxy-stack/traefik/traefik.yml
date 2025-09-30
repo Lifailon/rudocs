@@ -1,0 +1,17 @@
+entryPoints:
+  web:
+    address: ":80"
+
+api:
+  insecure: true
+
+metrics:
+  addInternals: true
+  otlp:
+    pushInterval: 10s
+    http:
+      endpoint: "http://localhost:4318/v1/metrics"
+
+providers:
+  docker:
+    defaultRule: "Host(`{{ trimPrefix `/` .Name }}.docker.local`)"
