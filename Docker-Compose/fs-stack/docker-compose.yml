@@ -32,8 +32,6 @@ services:
       - ./filebrowser_data:/database  # filebrowser.db
       - ./filebrowser_conf:/config    # settings.json
     user: 1000:1000
-    environment:
-      - VIRTUAL_HOST=fs-05.local
 
   # File Synchronization
   file-syncthing:
@@ -58,11 +56,6 @@ services:
     environment:
       - PUID=0
       - PGID=0
-      - VIRTUAL_HOST=sync-05.local
-    # environment:
-    #   - PUID=1000
-    #   - PGID=1000
-    #   - VIRTUAL_HOST=sync-06.local
 
   # Web Server Index
   # h5ai:

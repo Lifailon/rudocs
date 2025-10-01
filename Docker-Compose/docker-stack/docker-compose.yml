@@ -25,8 +25,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # Docker stacks directory on host:container
       - /home/lifailon/docker:/home/lifailon/docker
+    # Disable routing for traffic
+    # labels:
+    #   - traefik.enable=false
     environment:
-      - VIRTUAL_HOST=dockge.local
+      # Enable routing for host-gen
+      # - VIRTUAL_HOST=dockge.local
       - DOCKGE_STACKS_DIR=/home/lifailon/docker
       # Доступ к консоли dockge
       - DOCKGE_ENABLE_CONSOLE=true
@@ -42,7 +46,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
     environment:
-      - VIRTUAL_HOST=docker.local
       - WEB_USERNAME=admin
       - WEB_PASSWORD=admin
       - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
@@ -61,7 +64,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./dozzle_data:/data
     environment:
-      - VIRTUAL_HOST=dozzle.local
       - DOZZLE_AUTH_PROVIDER=simple
       # Подключиться к удаленному хосту через Docker API (tcp socket)
       # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
@@ -118,8 +120,6 @@ services:
     volumes:
       - ./beszel_data:/beszel_data
       - ./beszel_socket:/beszel_socket
-    environment:
-      - VIRTUAL_HOST=beszel.local
     ports:
       - 8090:8090
 

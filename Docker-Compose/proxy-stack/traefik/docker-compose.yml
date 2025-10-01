@@ -26,6 +26,6 @@ services:
   #     - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
   #     - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
   #   volumes:
-  #     - ./dns_srv_data:/etc/dns
+  #     - ./dns_data:/etc/dns
   #   sysctls:
   #     - net.ipv4.ip_local_port_range=1024 65000

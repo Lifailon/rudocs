@@ -39,6 +39,6 @@ services:
       # - DNS_SERVER_FORWARDER_PROTOCOL=Tcp                 # Параметры протокола пересылки: Udp, TCP, Tls, HTTPS, HttpsJson.
       # - DNS_SERVER_LOG_USING_LOCAL_TIME=true              # Включите этот параметр, чтобы использовать локальное время вместо UTC для ведения журнала.
     volumes:
-      - ./dns_srv_data:/etc/dns
+      - ./dns_data:/etc/dns
     sysctls:
       - net.ipv4.ip_local_port_range=1024 65000

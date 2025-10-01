@@ -12,7 +12,6 @@ services:
     ports:
       - 9091:3000
     environment:
-      - VIRTUAL_HOST=grafana.local
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       # - GF_DATABASE_TYPE=postgres
@@ -47,8 +46,6 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alert-rules.yml:/etc/prometheus/alert.yml
       - ./prometheus_data:/prometheus
-    environment:
-      - VIRTUAL_HOST=prometheus.local
     ports:
       - 9092:9090
 
@@ -63,8 +60,6 @@ services:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
-    environment:
-      - VIRTUAL_HOST=alertmanager.local
     # ports:
     #   - 9093:9093
 
@@ -138,8 +133,6 @@ services:
       - ./loki-server.yml:/etc/loki/loki-config.yaml
       - ./loki_data:/loki
     # Порт нужен для внешних агентов и api: http://loki-server:3100/loki/api/v1/labels
-    environment:
-      - VIRTUAL_HOST=loki.local
     ports:
       - 3100:3100
 

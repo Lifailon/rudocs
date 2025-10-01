@@ -10,8 +10,6 @@ services:
     user: "1000:1000"
     volumes:
       - ./jenkins_home:/var/jenkins_home
-    environment:
-      - VIRTUAL_HOST=jenkins.local
     ports:
       - "8080:8080"   # Веб-интерфейс и регистрации агентов
       - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
