@@ -62,6 +62,9 @@
   - [HPA](#hpa)
   - [Ingress](#ingress)
   - [MetalLB](#metallb)
+  - [Longhorn](#longhorn)
+  - [PersistentVolume](#persistentvolume)
+  - [ArgoCD](#argocd)
   - [Kompose](#kompose)
   - [Kustomize](#kustomize)
   - [Helm](#helm)
@@ -300,7 +303,7 @@ docker run \
   container_name
 ```
 Настройка логирования в docker compose:
-```yml
+```yaml
 logging:
       driver: "json-file" # Стандартный драйвер логов Docker
       options:
@@ -336,7 +339,7 @@ logging:
 `docker run -d --restart=always --name uptime-kuma -p 8080:3001 -v uptime-kuma:/app/data louislam/uptime-kuma:1` создать и запустить контейнер на указанном томе (том создается автоматически, в дальнейшем его можно указывать при создании контейнера, если необходимо загружать из него сохраненные данные)
 
 Временная файловая система для хранения данных в оперативной памяти (исчезают после остановки контейнера):
-```yml
+```yaml
 volumes:
   ram_disk:
     driver_opts:
@@ -345,7 +348,7 @@ volumes:
       o: "size=512m,uid=1000"
 ```
 Монтирование `NFS` (без необходимости предварительного монтирования на хосте) через драйвер `opts`:
-```yml
+```yaml
 volumes:
   nfs_volume:
     driver_opts:
@@ -360,7 +363,7 @@ volumes:
 `sudo mkdir /mnt/smb_backup && sudo chown -R 1000:1000 /mnt/smb_backup` создать директорию для монтирования \
 `echo "//192.168.3.100/backup /mnt/smb_backup cifs username=guest,password=,uid=1000,gid=1000,rw,vers=3.0 0 0" | sudo tee -a /etc/fstab` \
 `mount -a && systemctl daemon-reload && df -h` примонтировать (применить все записи из fstab)
-```yml
+```yaml
 volumes:
   - /mnt/smb_backup:/data
 ```
@@ -1428,10 +1431,23 @@ spec:
 ### MetalLB
 
 [MetalLB](https://github.com/metallb/metallb) - балансировщик нагрузки для локальных кластеров, эмулирующий работу облачных провайдеров. Настраивается пул адресов, и в случае падения ноды, переводит IP-адреса сервисов на другую ноду. Для сервисов LoadBalancer (включая Ingress-контроллер) выдается один внешний виртуальный ip-адрес, который прописывается на внешнем DNS сервере.
+```bash
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native.yaml
+```
+Разрешить анонсирование IP-адресов из `default-pool` в локальной сети через протокол ARP на уровне L2/Ethernet:
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - default-pool
+```
+`kubectl apply -f l2-advertisement.yaml`
 
-`kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native.yaml` установка в кластер из манифеста
-
-Настройка пула адресов:
+Создаем новый пул адресов:
 ```yaml
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
@@ -1440,34 +1456,132 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  - 192.168.3.201/32
-  # - 192.168.3.201-192.168.3.210
-  # autoAssign: false # требует аннотации пула или указания адреса в Service
-
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: torapi-service
-#   namespace: rest-api
-#   annotations:
-#     metallb.universe.tf/address-pool: "default-pool"      # Использовать указанный пул
-#     metallb.universe.tf/loadBalancerIPs: "192.168.3.201"  # Привязка адреса из пула
+  # - 192.168.3.201/32
+  - 192.168.3.201-192.168.3.210
+  autoAssign: false # требует аннотации пула и указания адреса в service
 ```
 `kubectl apply -f ip-address-pool.yaml`
 
-Анонсировать адреса из `default-pool` в сети через протокол ARP на уровне L2/Ethernet:
+Добавляем annotations на нужном сервисе:
 ```yaml
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
+kind: Service
+apiVersion: v1
 metadata:
-  name: default
-  namespace: metallb-system
-spec:
-  ipAddressPools:
-  - default-pool
+  name: headlamp
+  namespace: kubernetes-dashboard
+  annotations:
+    metallb.universe.tf/address-pool: "default-pool"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.201"
 ```
-`kubectl apply -f l2-advertisement.yaml`
+### Longhorn
 
+[Longhorn](https://github.com/longhorn/longhorn) — это распределённая блочная система хранения данных для Kubernetes с поддержкой управления через Web UI, которая превращает локальные диски нод в кластерное хранилище за счет репликации. Pod обращается к тому через Engine -> Engine записывает данные во все реплики синхронно -> Чтение может происходить из любой реплики
+```bash
+kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.9.2/deploy/longhorn.yaml
+# Сделить за процессом установки
+kubectl get pods \
+--namespace longhorn-system \
+--watch
+# Отобразить все доступные хранилища
+kubectl get storageclass
+```
+Требуется установить зависимости на нодах:
+```bash
+sudo apt-get install -y nfs-common # установка NFS клиента для доступа в режиме ReadWriteMany
+sudo apt-get install -y open-iscsi # установка iSCSI клента для размещения томов как тергетов на нодах для подключения к ним подам как клиентов (чаще предустановлен на серверных ОС)
+iscsiadm --version
+sudo systemctl enable iscsid
+sudo systemctl start iscsid
+sudo systemctl status iscsid
+```
+Доступ к данным:
+```bash
+# Директория хранения данных на нодах
+ls ls /var/lib/longhorn
+lsof /var/lib/longhorn/replicas/pvc-eef4de6d-94b1-4e89-95e1-6a12fba607fa-1b4fe8ac/volume-head-000.img # проверить, что образ используется процессом longhorn
+# Просмотреть содержимое образа
+cp /var/lib/longhorn/replicas/pvc-eef4de6d-94b1-4e89-95e1-6a12fba607fa-1b4fe8ac/volume-head-000.img /var/lib/longhorn/replicas/pvc-eef4de6d-94b1-4e89-95e1-6a12fba607fa-1b4fe8ac/volume-head-000-backup.img # скопировать образ
+losetup -f -P --show /var/lib/longhorn/replicas/pvc-eef4de6d-94b1-4e89-95e1-6a12fba607fa-1b4fe8ac/volume-head-000-backup.img # создать виртуальный диск
+mkdir -p /mnt/loops && mount /dev/loop2 /mnt/loops # примонтировать диск
+debugfs /dev/loop2 # поключиться к фс без монтирования
+umount /mnt/loops # отмонтировать
+losetup -d /dev/loop2 # отключить диск
+```
+### PersistentVolume
+Настройка `NFS` сервера:
+```bash
+# Установка NFS сервера
+sudo apt update && sudo apt install nfs-kernel-server -y
+# Создание директории
+sudo mkdir -p /k8s_data
+sudo chown nobody:nogroup /k8s_data
+sudo chmod 777 /k8s_data
+# Настройка экспорта
+echo "/k8s_data *(rw,sync,no_subtree_check,no_root_squash)" | sudo tee -a /etc/exports
+# Применение настроек
+sudo exportfs -ra
+sudo systemctl enable nfs-kernel-server
+sudo systemctl restart nfs-kernel-server
+# Установка NFS клиента на всех узлах Kubernetes
+sudo apt install nfs-common -y
+```
+Создание `PersistentVolume` в кластере (хранилище):
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nfs
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    server: 192.168.3.101
+    path: /k8s_data
+    readOnly: false
+```
+`kubectl apply -f pv-nfs.yaml`
+
+`kubectl get pv`
+
+Создание `PersistentVolumeClaim` для использования подом:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-nfs
+spec:
+  volumeName: pvc-test-volume
+  storageClassName: nfs
+  accessModes:
+    # - ReadWriteOnce # подключен к одной ноде в режиме чтения-записи
+    # - ReadOnlyMany # подключен к многим нодам в режиме только на чтение
+    - ReadWriteMany # подключен к многим нодам в режиме чтения-записи
+  resources:
+    requests:
+      storage: 1Gi
+```
+`kubectl apply -f pvc-nfs.yaml`
+
+`kubectl get pvc`
+
+### ArgoCD
+
+[Argo CD](https://github.com/argoproj/argo-cd) - это декларативный инструмент непрерывного развертывания Kubernetes, использующий методологию GitOps, где Git репозиторий является единственным источником правды.
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# Включить режим LB
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+# Зайти и изменить порт
+port: 8466
+port: 8467
+# Получить пароль
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
 ### Kompose
 
 [Kompose](https://github.com/kubernetes/kompose) - инструмент, который конвертируемт спецификацию `docker-compose` в манифесты Kubernetes.
@@ -1483,6 +1597,8 @@ curl -sSL https://github.com/kubernetes/kompose/releases/download/$version/kompo
 chmod +x $HOME/.local/bin/kompose
 ```
 `kompose --file docker-compose.yaml convert` конвертация
+
+`docker-compose bridge convert` встроенный конвертер в `compose` на базе [шаблонов helm](https://github.com/docker/compose-bridge-transformer).
 
 ### Kustomize
 
