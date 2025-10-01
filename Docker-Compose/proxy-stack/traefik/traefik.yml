@@ -1,17 +1,42 @@
 entryPoints:
   web:
     address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+  traefik:
+    address: ":8080"
+  metrics:
+    address: ":4318"
 
 api:
+  dashboard: true
   insecure: true
 
 metrics:
-  addInternals: true
-  otlp:
-    pushInterval: 10s
-    http:
-      endpoint: "http://localhost:4318/v1/metrics"
+  prometheus:
+    entryPoint: metrics
+    addRoutersLabels: true
+    addServicesLabels: true
+
+accessLog:
+  format: "common"
+  filters:
+    statusCodes:
+      - "200-299"
+      - "300-399"
+      - "400-499"
+      - "500-599"
 
 providers:
   docker:
-    defaultRule: "Host(`{{ trimPrefix `/` .Name }}.docker.local`)"
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: true
+    defaultRule: "Host(`{{ .Name }}.docker.local`)"

@@ -127,13 +127,13 @@ scrape_configs:
   # - job_name: gatus
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.105:8081
+  #         - 192.168.3.101:8081
 
   # - job_name: uptime-kuma
   #   scrape_interval: 30s
   #   static_configs:
   #     - targets:
-  #       - 192.168.3.105:8081
+  #       - 192.168.3.101:8081
   #   basic_auth:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 
@@ -147,13 +147,18 @@ scrape_configs:
   # - job_name: pi-hole-exporter
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.105:9617
+  #         - 192.168.3.101:9617
 
   # Proxy
   # - job_name: nginx-exporter
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.105:9113
+  #         - 192.168.3.101:9113
+
+  # - job_name: traefik
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.101:4318
 
   # Speedtest
   # - job_name: speedtest-exporter
@@ -161,7 +166,7 @@ scrape_configs:
   #   scrape_timeout: 90s
   #   static_configs:
   #     - targets:
-  #       - 192.168.3.105:9798
+  #       - 192.168.3.101:9798
 
   # CI/CD
   # - job_name: jenkins
