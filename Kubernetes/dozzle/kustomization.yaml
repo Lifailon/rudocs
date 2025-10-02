@@ -6,7 +6,7 @@ metadata:
   name: dozzle-kustomization
 
 resources:
-- namespace.yaml
+# - namespace.yaml
 - service-account.yaml
 - cluster-role.yaml
 - cluster-role-binding.yaml

@@ -6,4 +6,5 @@ metadata:
   name: dashboard-kustomization
 
 resources:
+# - namespace.yaml
 - deployment.yaml

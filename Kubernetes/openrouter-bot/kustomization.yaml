@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: telegram
 
 resources:
+# - namespace.yaml
 # - configmap.yaml
 - deployment.yaml
 
@@ -11,7 +12,7 @@ configMapGenerator:
   # Передать содержимое файла в configMap
   files:
     - .env
-  # Определить переменные окружения вручную (- key=value)
+  # Определить переменные окружения вручную
   # literals:
   #   - LOG_MODE=DEBUG
   # Определить переменные окружения из env файла

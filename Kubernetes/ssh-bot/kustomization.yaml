@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: telegram
 
 resources:
+# - namespace.yaml
 # - configmap.yaml
 # - secrets.yaml
 - deployment.yaml
