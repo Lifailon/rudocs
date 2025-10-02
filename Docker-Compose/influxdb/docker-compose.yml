@@ -1,0 +1,47 @@
+services:
+  # Database
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - 8086:8086
+    volumes:
+      - ./influxdb_data:/var/lib/influxdb
+      - ./ssl:/etc/ssl/
+    environment:
+      - INFLUXDB_DB=ohm
+      # Auth
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      # SSL (optionals)
+      # - INFLUXDB_HTTP_HTTPS_ENABLED=true
+      # - INFLUXDB_HTTP_HTTPS_CERTIFICATE=/etc/ssl/ohm.crt
+      # - INFLUXDB_HTTP_HTTPS_PRIVATE_KEY=/etc/ssl/ohm.key
+
+  # Web (like Grafana)
+  chronograf:
+    image: chronograf:1.8
+    container_name: chronograf
+    restart: unless-stopped
+    ports:
+      - 8888:8888
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_USERNAME=admin
+      - INFLUXDB_PASSWORD=admin
+    depends_on:
+      - influxdb
+
+  # Agent
+  telegraf:
+    image: telegraf
+    container_name: telegraf
+    restart: unless-stopped
+    user: :109 # grep docker /etc/group
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - influxdb
