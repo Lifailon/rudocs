@@ -332,6 +332,7 @@
   - [Service](#service)
   - [PSInfluxDB](#psinfluxdb)
 - [Telegraf](#telegraf)
+- [Graphite](#graphite)
 - [Elasticsearch](#elasticsearch)
 - [CData](#cdata)
   - [ADO.NET Assembly](#adonet-assembly)
@@ -347,6 +348,7 @@
   - [NLA](#nla)
 - [Regedit](#regedit)
 - [Performance](#performance)
+  - [PerformanceCounter](#performancecounter)
 - [SNMP](#snmp)
   - [Setup SNMP Service](#setup-snmp-service)
   - [Setting SNMP Service via Regedit](#setting-snmp-service-via-regedit)
@@ -6201,6 +6203,110 @@ Get-Service $Service_Name | Set-Service -StartupType Automatic
 `USE telegraf` \
 `SELECT usage_idle,usage_system,usage_user FROM cpu`
 
+## Graphite
+
+Graphite - это система хранения метрик временных рядов.
+
+Графит состоит из трех основных компонентов:
+
+- [Graphite Web](https://github.com/graphite-project/graphite-web) - django приложение для визуализации метрик на графиках.
+- [Carbon](https://github.com/graphite-project/carbon) и `StatsD` - прием метрик по сети (кэширует и записывает данные в БД).
+- [Whisper](https://github.com/graphite-project/whisper) - файловая БД для временных рядов (хранит данные в .wsp файлах) на python.
+
+Запустить стек Graphite с веб-интерфейсом для визуализации метрик:
+```yaml
+services:
+  graphite:
+    image: graphiteapp/graphite-statsd
+    container_name: graphite
+    restart: unless-stopped
+    ports:
+      - 2025:80
+      - 2003-2004:2003-2004
+      - 2023-2024:2023-2024
+      - 8125:8125/udp
+      - 8126:8126
+```
+Примеры отправки данных в Linux:
+```bash
+# StatsD (UDP)
+# Формат: метрика:значение|type
+# Хранятся в stats и stats_counts по указанном пути через точку
+while true; do echo "test.dev.random:$(($RANDOM % 100))|c" | nc -u 127.0.0.1 8125; sleep 1; done
+
+# Carbon (TCP) Plain Text Protocol
+# Формат: метрика значение timestamp
+while true; do echo "test.dev.random $(($RANDOM % 100)) $(date +%s)" | nc -w 1 127.0.0.1 2003; sleep 1; done
+
+# Суммарная загрузка процессора в процентах
+while true; do
+    echo "server.$(hostname).cpu $(cat /proc/stat | grep 'cpu ' | awk '{print ($2+$4)*100/($2+$4+$5)}') $(date +%s)" | nc -w 1 127.0.0.1 2003
+    sleep 5
+done
+```
+Пример отправки данных в Windows:
+```PowerShell
+$graphiteAddress = "192.168.3.101"
+$graphitePort = 2003
+while ($true) {
+    $timestamp = [int][double]::Parse((Get-Date -UFormat %s))
+    $metric = $(Get-CimInstance -Class Win32_PerfFormattedData_PerfOS_Processor | Where-Object name -eq "_Total").PercentProcessorTime
+    $data = "server.$($env:COMPUTERNAME).cpu $metric $timestamp"
+    try {
+        $client = New-Object System.Net.Sockets.TcpClient($graphiteAddress, $graphitePort)
+        $stream = $client.GetStream()
+        $bytes = [System.Text.Encoding]::ASCII.GetBytes($data + "`n")
+        $stream.Write($bytes, 0, $bytes.Length)
+    }
+    catch {
+        Write-Host $($_.Exception.Message) -ForegroundColor Red
+    }
+    finally {
+        $client.Close()
+    }
+    Start-Sleep -Seconds 5
+}
+```
+Пример отправки random-данных через `Pickle Protocol` на 2004 порт в Python (формат списка кортежей: `[(path, (timestamp, value)), ...]`):
+```Python
+import pickle
+import socket
+import time
+from datetime import datetime
+import random
+import signal
+import sys
+
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+SERVER_HOST = 'localhost'
+SERVER_PORT = 2004
+
+while True:
+    data = [
+        ('server.cpu.load', (int(time.time()), random.randint(1, 100))),
+        ('server.memory.used', (int(time.time()), random.randint(1, 100))),
+    ]
+    payload = pickle.dumps(data)
+
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+        sock.connect((SERVER_HOST, SERVER_PORT))
+        sock.sendall(payload)
+
+    except socket.error as e:
+        print(e)
+
+    finally:
+        if 'sock' in locals():
+            sock.close()
+    
+    time.sleep(1)
+```
 ## Elasticsearch
 
 `Install-Module -Name Elastic.Console -AllowPrerelease` [github source](https://github.com/elastic/powershell/blob/master/Elastic.Console/README.md) \
@@ -6448,7 +6554,11 @@ Windows Registry Editor Version 5.00
 ```
 ## Performance
 
-`lodctr /R` пересоздать счетчиков производительности из системного хранилища архивов (так же исправляет счетчики для CIM, например, для cpu Win32_PerfFormattedData_PerfOS_Processor и iops Win32_PerfFormattedData_PerfDisk_PhysicalDisk) \
+`lodctr /R` пересоздать счетчики производительности из системного хранилища архивов (так же исправляет счетчики для CIM, например, для cpu Win32_PerfFormattedData_PerfOS_Processor и iops Win32_PerfFormattedData_PerfDisk_PhysicalDisk). Ошибка 5 - нужны права Администратора, ошибка 2 - файлы счетчиков повреждены. \
+`sfc /scannow` сканируем систему (если ошибка 2), для восстановления поврежденных счетчиков \
+`lodctr /S:PerfStringBackupTemp.ini` сохраняет текущие информацию о счетчиках из реестра в указанном файле \
+`lodctr /R:PerfStringBackupTemp.ini` восстановление из файла
+
 `(Get-Counter -ListSet *).CounterSetName` вывести список всех доступных счетчиков производительности в системе \
 `(Get-Counter -ListSet *memory*).Counter` поиск по wildcard-имени во всех счетчиках (включая дочернии) \
 `Get-Counter "\Memory\Available MBytes"` объем свободной оперативной памяти \
@@ -6476,6 +6586,16 @@ Write-Output "WARNING: $($NetworkUtilisation) % Network utilisation, $($Transfer
 }
 Write-Output "OK: $($NetworkUtilisation) % Network utilisation, $($TransferRate.ToString('N0')) b/s"   
 #exit 0
+```
+### PerformanceCounter
+```PowerShell
+$cpuCounter = New-Object System.Diagnostics.PerformanceCounter
+$cpuCounter.CategoryName = "Processor"          # Категория
+$cpuCounter.CounterName = "% Processor Time"    # Счетчик  
+$cpuCounter.InstanceName = "_Total"             # Экземпляр
+$value1 = $cpuCounter.NextValue()               # Первое чтение (обычно 0)
+Start-Sleep -Milliseconds 500                   # Ждем накопления данных
+$value2 = $cpuCounter.NextValue()               # Реальное значение
 ```
 ## SNMP
 
