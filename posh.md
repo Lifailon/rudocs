@@ -309,6 +309,8 @@
   - [Системные БД](#системные-бд)
   - [Регламентные операции](#регламентные-операции)
 - [InfluxDB](#influxdb)
+  - [SSL](#ssl)
+  - [Install Docker](#install-docker)
   - [Install Windows](#install-windows)
   - [Install Ubuntu](#install-ubuntu)
   - [API](#api)
@@ -3008,7 +3010,7 @@ This is a test email from OpenSSL
 ### Swaks
 
 [Swaks](https://github.com/jetmore/swaks) - SMTP клиент на Perl
-```bash
+```Bash
 swaks --from fromUserName@yandex.ru \
     --to toUserName@yandex.ru \
     --server smtp.yandex.ru \
@@ -5874,8 +5876,55 @@ MODIFY FILE (NAME = temp2, FILENAME = 'F:\tempdb_mssql_2.ndf' , SIZE = 1048576KB
 ## InfluxDB
 
 [Download InfluxDB 1.x Open Source](https://www.influxdata.com/downloads)
-[InfluxDB-Studio](https://github.com/CymaticLabs/InfluxDBStudio)
 
+[InfluxDB Studio 1.x](https://github.com/CymaticLabs/InfluxDBStudio)
+
+### SSL
+
+Выпуск самоподписанного сертификата в Linux:
+```Bash
+mkdir influxdb
+cd influxdb
+hostname=hv-us-101
+ip=192.168.3.101
+mkdir ssl
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout ssl/ohm.key -out ssl/ohm.crt -subj "/CN=$hostname" \
+  -addext "subjectAltName=DNS:$hostname,IP:$ip"
+```
+Импорт сертификата в Windows для OhmGraphite:
+```PowerShell
+Import-Certificate -FilePath .\ohm.crt -CertStoreLocation 'Cert:\LocalMachine\Root'
+```
+Импорт сертификата в контейнер Grafana для подключения нового источника данных через https:
+```Bash
+docker cp /home/lifailon/influxdb/ssl/ohm.crt grafana:/etc/ssl/certs/
+docker exec -u root grafana update-ca-certificates
+docker restart grafana
+```
+### Install Docker
+```yaml
+services:
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb_data:/var/lib/influxdb
+      - ./ssl:/etc/ssl/
+    environment:
+      - INFLUXDB_DB=ohm
+      # Auth
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      # SSL (optionals)
+      - INFLUXDB_HTTP_HTTPS_ENABLED=true
+      - INFLUXDB_HTTP_HTTPS_CERTIFICATE=/etc/ssl/ohm.crt
+      - INFLUXDB_HTTP_HTTPS_PRIVATE_KEY=/etc/ssl/ohm.key
+```
 ### Install Windows
 ```PowerShell
 Invoke-RestMethod "https://dl.influxdata.com/influxdb/releases/influxdb-1.8.10_windows_amd64.zip" -OutFile "$home\Downloads\influxdb-1.8.10_windows_amd64.zip"
@@ -5905,7 +5954,7 @@ nano /etc/influxdb/influxdb.conf
 systemctl restart influxdb
 ```
 ### Chronograf
-```
+```Bash
 wget https://dl.influxdata.com/chronograf/releases/chronograf-1.10.2_windows_amd64.zip -UseBasicParsing -OutFile chronograf-1.10.2_windows_amd64.zip
 Expand-Archive .\chronograf-1.10.2_windows_amd64.zip -DestinationPath 'C:\Program Files\InfluxData\chronograf\'
 
@@ -6177,15 +6226,32 @@ Get-Service $Service_Name | Set-Service -StartupType Automatic
 `cd C:\Telegraf` \
 `.\telegraf.exe -sample-config --input-filter cpu:mem:dns_query --output-filter influxdb > telegraf_nt.conf` создать конфигурацию с выбарнными плагинами для сбора метрик \
 `Start-Process notepad++ C:\Telegraf\telegraf_nt.conf`
-```
+```toml
+[agent]
+  interval = "10s"
+  hostname = "hv-us-01"
+
 [[outputs.influxdb]]
-  urls = ["http://192.168.3.104:8086"]
-  database = "telegraf_nt"
-  username = "user"
-  password = "pass"
+  urls = ["http://influxdb:8086"]
+  database = "telegraf"
+  timeout = "5s"
+  username = "admin"
+  password = "admin"
+
 [[inputs.cpu]]
-  percpu = false
+  percpu = true
   totalcpu = true
+  collect_cpu_time = false
+[[inputs.disk]]
+[[inputs.diskio]]
+[[inputs.kernel]]
+[[inputs.mem]]
+[[inputs.processes]]
+[[inputs.swap]]
+[[inputs.system]]
+[[inputs.netstat]]
+[[inputs.net]]
+
 [[inputs.dns_query]]
   servers = ["8.8.8.8"]
   network = "udp"
@@ -6193,6 +6259,10 @@ Get-Service $Service_Name | Set-Service -StartupType Automatic
   record_type = "A"
   port = 53
   timeout = "2s"
+
+[[inputs.docker]]
+  endpoint = "unix:///var/run/docker.sock"
+  timeout = "5s"
 ```
 `.\telegraf.exe --test -config C:\Telegraf\telegraf_nt.conf` тест конфигурации (получения метрик с выводом в консоль) \
 `C:\Telegraf\telegraf.exe -config C:\Telegraf\telegraf_nt.conf` запустить telegraf (тест отправки данных) \
@@ -6228,7 +6298,7 @@ services:
       - 8126:8126
 ```
 Примеры отправки данных в Linux:
-```bash
+```Bash
 # StatsD (UDP)
 # Формат: метрика:значение|type
 # Хранятся в stats и stats_counts по указанном пути через точку
@@ -8332,7 +8402,7 @@ llama-3.2-3b-instruct
 text-embedding-nomic-embed-text-v1.5
 ```
 Режим чата (когда `stream` установлен в `True`, ответ приходит по частям):
-```bash
+```Bash
 curl http://127.0.0.1:1234/v1/chat/completions `
     -H "Content-Type: application/json" `
     -d '{
