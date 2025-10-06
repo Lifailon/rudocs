@@ -1,0 +1,48 @@
+services:
+  minio1:
+    image: minio/minio
+    container_name: minio1
+    hostname: minio1
+    command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: MinioAdmin
+    volumes:
+      - ./minio1_data:/data
+    ports:
+      - 9000:9000 # API
+      - 9001:9001 # WebUI
+    networks:
+      minio-cluster:
+        aliases:
+          - minio1
+
+  minio2:
+    image: minio/minio
+    container_name: minio2
+    hostname: minio2  
+    command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: MinioAdmin
+    volumes:
+      - ./minio2_data:/data
+    ports:
+      - 9002:9000
+      - 9003:9001
+    networks:
+      minio-cluster:
+        aliases:
+          - minio2
+
+networks:
+  minio-cluster:
+    driver: bridge
+
+# sudo apt install -y s3fs
+# sudo mkdir -p /mnt/s3
+# echo "admin:MinioAdmin" > /tmp/s3_cred
+# chmod 600 /tmp/s3_cred
+# sudo s3fs docker-bucket /mnt/s3 -o url=http://localhost:9000 -o use_path_request_style -o passwd_file=/tmp/s3_cred
+# mount | grep /mnt/s3
+# sudo umount /mnt/s3
