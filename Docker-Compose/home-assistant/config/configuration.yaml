@@ -1,0 +1,26 @@
+default_config:
+
+homeassistant:
+  name: Home
+  latitude: 55.7558
+  longitude: 37.6173
+  elevation: 0
+  unit_system: metric
+  time_zone: Europe/Moscow
+
+frontend:
+
+history:
+
+logger:
+  default: info
+  logs:
+    homeassistant.components: info
+
+map:
+
+developer_tools:
+
+system_health:
+
+updater:
