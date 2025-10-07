@@ -15,7 +15,38 @@ services:
     # ports:
     #   - 9095:8080
 
-  # Web interface for docker-compose
+  # Docker Image Update Notifier
+  diun:
+    image: crazymax/diun:latest
+    container_name: diun
+    restart: unless-stopped
+    volumes:
+      - ./diun_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=Etc/GMT+3
+      - LOG_LEVEL=info
+      - LOG_JSON=false
+      - DIUN_WATCH_WORKERS=20
+      - DIUN_WATCH_SCHEDULE=0 */6 * * *
+      - DIUN_WATCH_JITTER=30s
+      - DIUN_PROVIDERS_DOCKER=true
+      - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
+      - DIUN_NOTIF_TELEGRAM_TOKEN=
+      - DIUN_NOTIF_TELEGRAM_CHATIDS=
+      # https://crazymax.dev/diun/faq/?h=entry#notification-template
+      - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
+    labels:
+      - diun.enable=true
+    command: serve
+    healthcheck:
+      test: ["CMD", "diun", "notif", "test"]
+      interval: 24h
+      timeout: 10s
+      retries: 1
+      start_period: 30s
+
+  # Web interface for Docker Compose
   dockge:
     image: louislam/dockge:1
     container_name: dockge
@@ -81,12 +112,6 @@ services:
   #     - /var/run/docker.sock:/var/run/docker.sock:ro
   #   # environment:
   #   #   - DOZZLE_HOSTNAME=hv-us-101
-  #   healthcheck:
-  #     test: ["CMD", "/dozzle", "healthcheck"]
-  #     interval: 5s
-  #     retries: 5
-  #     start_period: 5s
-  #     start_interval: 5s
   #   ports:
   #     - 7007:7007
 
@@ -118,8 +143,7 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
-      - ./beszel_data:/beszel_data
-      - ./beszel_socket:/beszel_socket
+      - ./beszel_server_data:/beszel_data
     ports:
       - 8090:8090
 
@@ -132,7 +156,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./beszel_agent_data:/var/lib/beszel-agent
-      - ./beszel_agent_socket:/beszel_socket
       # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
     environment:
       # HUB_URL: http://localhost:8090
