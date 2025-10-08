@@ -68,6 +68,28 @@ services:
     ports:
       - 5001:5001
 
+  # Web interface for Docker (like Dockge)
+  # dockman:
+  #   container_name: dockman
+  #   image: ghcr.io/ra341/dockman:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     - DOCKMAN_MACHINE_ADDR=192.168.3.101
+  #     - DOCKMAN_PORT=8866
+  #     - DOCKMAN_COMPOSE_ROOT=/home/lifailon/docker
+  #     - DOCKMAN_AUTH_ENABLE=true
+  #     - DOCKMAN_AUTH_USERNAME=admin
+  #     - DOCKMAN_AUTH_PASSWORD=admin
+  #     - DOCKMAN_LOG_LEVEL=debug
+  #     - DOCKMAN_LOG_VERBOSE=true
+  #   network_mode: host
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /home/lifailon/docker:/home/lifailon/docker
+  #     - ./config:/config
+  #   ports:
+  #     - 8866:8866
+
   # Web interface for docker manager on remote hosts via lazydocker or ctop
   docker-web-manager:
     image: lifailon/docker-web-manager:latest
@@ -165,11 +187,3 @@ services:
       KEY: "Копируем публичный ключ из интерфейса и перезапускаем docker compose"
     # ports:
     #   - 45876:45876
-
-  # Web interface for kompose (compose to k8s manifest converter)
-  kompose-ui:
-    image: jadcham/komposeui
-    container_name: kompose-ui
-    restart: unless-stopped
-    ports:
-      - 5002:8000
