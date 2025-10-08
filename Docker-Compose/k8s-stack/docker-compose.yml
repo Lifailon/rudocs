@@ -1,0 +1,34 @@
+services:
+  # Web interface for kompose (compose to k8s manifest converter)
+  kompose-ui:
+    image: jadcham/komposeui
+    container_name: kompose-ui
+    restart: unless-stopped
+    ports:
+      - 5005:8000
+
+  # Web interface for k3s/k8s
+  headlamp:
+    image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
+    container_name: headlamp
+    restart: unless-stopped
+    command: ["--kubeconfig","/headlamp/config/config", "--port","64446", "--enable-dynamic-clusters"]
+    volumes:
+      - /etc/rancher/k3s/k3s.yaml:/headlamp/config/kubeconfig.yaml:ro
+    network_mode: host
+    # ports:
+    #   - 64446:64446
+    #   - 30000-32000:30000-32000
+
+  # rancher:
+  #   image: rancher/rancher:latest
+  #   container_name: rancher
+  #   restart: unless-stopped
+  #   ports:
+  #   - 5006:80
+  #   - 5007:443
+  #   volumes:
+  #   - ./rancher_data:/var/lib/rancher
+  #   privileged: true
+  #   # Password:
+  #   # docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"

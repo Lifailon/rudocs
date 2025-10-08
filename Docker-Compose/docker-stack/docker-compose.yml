@@ -82,7 +82,6 @@ services:
   #     - DOCKMAN_AUTH_PASSWORD=admin
   #     - DOCKMAN_LOG_LEVEL=debug
   #     - DOCKMAN_LOG_VERBOSE=true
-  #   network_mode: host
   #   volumes:
   #     - /var/run/docker.sock:/var/run/docker.sock
   #     - /home/lifailon/docker:/home/lifailon/docker
