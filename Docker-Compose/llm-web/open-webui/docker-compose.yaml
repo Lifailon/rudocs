@@ -4,25 +4,32 @@ services:
   #   container_name: ollama
   #   restart: unless-stopped
   #   tty: true
+  #   # ports:
+  #   #   - 12345:12345
   #   volumes:
   #     - ./ollama_data:/root/.ollama
+
+  # docker exec -it ollama bash
+  # ollama pull deepseek-r1:8b
+  # ollama list
+  # ollama run deepseek-r1:8b
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     restart: unless-stopped
     ports:
-      - 3000:8080
+      - 2025:8080
     environment:
-      - WEBUI_SECRET_KEY=$WEBUI_SECRET_KEY
-      - OLLAMA_BASE_URL=$OLLAMA_BASE_URL
-      - OPENAI_API_BASE_URL=$OPENAI_API_BASE_URL
-      - OPENAI_API_KEY=$OPENAI_API_KEY
-      - CORS_ALLOW_ORIGIN=$CORS_ALLOW_ORIGIN
-      - FORWARDED_ALLOW_IPS=$FORWARDED_ALLOW_IPS
-      - SCARF_NO_ANALYTICS=$SCARF_NO_ANALYTICS
-      - DO_NOT_TRACK=$DO_NOT_TRACK
-      - ANONYMIZED_TELEMETRY=$ANONYMIZED_TELEMETRY
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN}
+      - FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS}
+      - SCARF_NO_ANALYTICS=${SCARF_NO_ANALYTICS}
+      - DO_NOT_TRACK=${DO_NOT_TRACK}
+      - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY}
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
