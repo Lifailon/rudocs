@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo
+    container_name: komodo-db
+    restart: unless-stopped
+    command: --quiet --wiredTigerCacheSizeGB 0.25
+    labels:
+      komodo.skip: StopAllContainers
+    # ports:
+    #   - 27017:27017
+    volumes:
+      - ./mongo_data:/data/db
+      - ./mongo_config:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${KOMODO_DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DB_PASSWORD}
+  
+  core:
+    image: ghcr.io/moghtech/komodo-core:latest
+    container_name: komodo-core
+    restart: unless-stopped
+    labels:
+      komodo.skip: StopAllContainers
+    ports:
+      - 9120:9120
+    env_file: .env
+    environment:
+      KOMODO_DATABASE_ADDRESS: mongo:27017
+      KOMODO_DATABASE_USERNAME: ${KOMODO_DB_USERNAME}
+      KOMODO_DATABASE_PASSWORD: ${KOMODO_DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      ## Store sync files on server
+      # - /path/to/syncs:/syncs
+      ## Optionally mount a custom core.config.toml
+      # - /path/to/core.config.toml:/config/config.toml
+    depends_on:
+      - mongo
+
+  ## Deploy Periphery container using this block,
+  ## or deploy the Periphery binary with systemd using 
+  ## https://github.com/moghtech/komodo/tree/main/scripts
+  periphery:
+    image: ghcr.io/moghtech/komodo-periphery:latest
+    container_name: komodo-periphery
+    restart: unless-stopped
+    labels:
+      komodo.skip: StopAllContainers
+    env_file: .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/proc
+      - /home/lifailon/docker:/etc/komodo/stacks
