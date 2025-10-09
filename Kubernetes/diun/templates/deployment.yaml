@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: diun
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: diun
+  template:
+    metadata:
+      labels:
+        app: diun
+      annotations:
+        diun.enable: "true"
+    spec:
+      serviceAccountName: diun
+      containers:
+        - name: diun
+          image: crazymax/diun:latest
+          imagePullPolicy: Always
+          args: ["serve"]
+          livenessProbe:
+            exec:
+              command: ["diun", "notif", "test"]
+            initialDelaySeconds: 30
+            periodSeconds: 86400
+            timeoutSeconds: 10
+            failureThreshold: 1
+          readinessProbe:
+            exec:
+              command: ["diun", "notif", "test"]
+            initialDelaySeconds: 30
+            periodSeconds: 86400
+            timeoutSeconds: 10
+            failureThreshold: 1
+          envFrom:
+            - configMapRef:
+                name: diun-config
+            - secretRef:
+                name: diun-secret
+          volumeMounts:
+            - mountPath: "/data"
+              name: "diun-data"
+      restartPolicy: Always
+      volumes:
+        - name: "diun-data"
+          hostPath:
+            path: "/tmp/diun-data"
+            type: DirectoryOrCreate

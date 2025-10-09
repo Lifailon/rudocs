@@ -1,0 +1,5 @@
+apiVersion: v2
+name: duin
+description: Notifications when an image is updated on a Docker registry
+version: 0.1.0
+appVersion: 4.30.0

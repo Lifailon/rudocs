@@ -1,0 +1,10 @@
+# helm template . --set secrets.telegram.token="token" --set secrets.telegram.id="12345678" # | kubectl apply -f -
+# helm template . --set secrets.telegram.token="token" --set secrets.telegram.id="12345678" # | kubectl delete -f -
+
+secrets:
+  telegram:
+    token: ""
+    id: ""
+config:
+  # If false, pods that don't have diun.enable: "true" annotation will be ignored (default false)
+  watch: "true"

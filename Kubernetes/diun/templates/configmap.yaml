@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diun-config
+  namespace: default
+data:
+  TZ: "Etc/GMT+3"
+  LOG_LEVEL: "info"
+  LOG_JSON: "false"
+  DIUN_WATCH_WORKERS: "20"
+  DIUN_WATCH_SCHEDULE: "0 */6 * * *"
+  DIUN_WATCH_JITTER: "30s"
+  DIUN_PROVIDERS_KUBERNETES: "true"
+  DIUN_PROVIDERS_KUBERNETES_WATCHBYDEFAULT: "{{ .Values.config.watch }}"
