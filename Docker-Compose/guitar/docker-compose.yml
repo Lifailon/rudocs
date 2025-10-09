@@ -1,0 +1,10 @@
+services:
+  # Web based tab viewer and player (like Songsterr) from Uptime-Kuma/Dockge
+  its-mytabs:
+    image: louislam/its-mytabs:1
+    container_name: its-mytabs
+    restart: unless-stopped
+    ports:
+      - "47777:47777"
+    volumes:
+      - ./data:/app/data # db and tabs
