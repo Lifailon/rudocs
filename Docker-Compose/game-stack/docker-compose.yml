@@ -16,7 +16,25 @@ services:
       - 48010:48010
     ipc: host
 
-  # GameCube Emulator in Web via Selkies
+  # A web-based frontend for RetroArch
+  emulator.js:
+    image: lscr.io/linuxserver/emulatorjs:latest
+    container_name: emulator.js
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - SUBFOLDER=/   # optional
+    volumes:
+      - ./config:/config
+      - ./data:/data  # path to store roms/artwork
+    ports:
+      - 80:80
+      - 3000:3000
+      - 4001:4001     # optional
+
+  # GameCube/Wii Emulator in Web via Selkies
   dolphin:
     image: lscr.io/linuxserver/dolphin:latest
     container_name: dolphin
