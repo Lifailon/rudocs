@@ -31,10 +31,17 @@ services:
       - 10445:80
 
   draw.io:
-    image: jgraph/drawio:latest # :28.2.5
+    image: jgraph/drawio:latest
     container_name: draw.io
+    restart: unless-stopped
     stdin_open: true
     tty: true
     ports:
       - 10446:8080
-      - 10447:8443
+
+  d2-playground:
+    image: lifailon/d2-playground:latest
+    container_name: d2-playground
+    restart: unless-stopped
+    ports:
+      - 10447:9090
