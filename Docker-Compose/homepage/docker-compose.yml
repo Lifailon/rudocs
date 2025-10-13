@@ -1,0 +1,56 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: "*"
+      PUID: 0
+      PGID: 0
+    ports:
+      - 5005:3000
+    volumes:
+      - ./homepage_config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  # dashy:
+  #   image: lissy93/dashy:latest
+  #   container_name: dashy
+  #   restart: unless-stopped
+  #   ports:
+  #     - 5005:8080
+  #   environment:
+  #     - NODE_ENV=production
+
+  # heimdall:
+  #   image: lscr.io/linuxserver/heimdall:latest
+  #   container_name: heimdall
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/GMT+3
+  #     - ALLOW_INTERNAL_REQUESTS=true
+  #   volumes:
+  #     - ./heimdall_config:/config
+  #   ports:
+  #     - 5005:443
+
+  # flame:
+  #   image: pawelmalak/flame
+  #   container_name: flame
+  #   volumes:
+  #     - ./flame_data:/app/data
+  #     - /var/run/docker.sock:/var/run/docker.sock # for Docker integration
+  #   ports:
+  #     - 5005:5005
+  #   secrets:
+  #     - password
+  #   environment:
+  #     - PASSWORD=FlamePassword
+  #     - PASSWORD_FILE=/run/secrets/password
+  #   restart: unless-stopped
+
+# secrets:
+#   password:
+#     file: ./password

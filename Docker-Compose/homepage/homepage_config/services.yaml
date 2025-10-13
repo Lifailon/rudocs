@@ -1,0 +1,439 @@
+- Hubs:
+    - GitLab:
+        icon: gitlab.png
+        href: https://gitlab.com/Lifailon
+    - Vercel:
+        icon: vercel.png
+        href: https://vercel.com
+        ping: https://vercel.com
+        siteMonitor: https://vercel.com
+    - Swagger Hub:
+        icon: swagger.png
+        href: https://app.swaggerhub.com/undefined/home?query=lifailon
+    - Docker Hub:
+        icon: docker.png
+        href: https://hub.docker.com/u/lifailon
+    - Artifact Hub:
+        icon: helm.png
+        href: https://artifacthub.io/packages/helm/openrouter-bot/openrouter-bot
+    - Grafana Dashboards:
+        icon: grafana.png
+        href: https://grafana.com/grafana/dashboards/23848-docker-exporter-logporter
+    - NuGet:
+        icon: https://nuget.org/favicon.ico
+        href: https://nuget.org/profiles/Lifailon
+    - NPM:
+        icon: npm.png
+        href: https://npmjs.com/~lifailon
+    - PyPi:
+        icon: python.png
+        href: https://pypi.org/user/Lifailon/
+    - Go Packages:
+        icon: go.png
+        href: https://pkg.go.dev/github.com/Lifailon/lazyjournal
+    - Killercoda Playground:
+        icon: https://killercoda.com/favicon.ico
+        href: https://killercoda.com/creator/scenarios/lazyjournal
+    - Homebrew:
+        icon: https://formulae.brew.sh/assets/img/homebrew.svg
+        href: https://formulae.brew.sh/formula/lazyjournal
+    - Anaconda:
+        icon: https://anaconda.org/static/img/apple-touch-icon.png
+        href: https://anaconda.org/conda-forge/lazyjournal
+    - Arch:
+        icon: arch-linux.png
+        href: https://aur.archlinux.org/packages/lazyjournal
+    - Alpine:
+        icon: alpine-linux.png
+        href: https://pkgs.alpinelinux.org/packages
+    - Homepage Widgets:
+        icon: homepage.png
+        href: https://gethomepage.dev/widgets
+    - Wox Pluggins:
+        icon: http://wox.one/favicon.ico
+        href: http://wox.one/u/7083
+    - Mozilla Firefox Addons:
+        icon: firefox.png
+        href: https://addons.mozilla.org/ru/firefox/user/18561955
+    - Google Chrome Extensions:
+        icon: google-chrome.png
+        href: https://chromewebstore.google.com
+    - Visual Studio Marketplace:
+        icon: vscode.png
+        href: https://marketplace.visualstudio.com
+    - Microsoft Store:
+        icon: microsoft.png
+        href: https://apps.microsoft.com/collections/computed/apps/TopFree?hl=ru-RU&gl=RU
+    - SourceForge:
+        icon: https://a.fsdn.com/con/img/sandiego/svg/originals/sf-icon-orange-no_sf.svg
+        href: https://sourceforge.net/directory/windows
+    - Social:
+        - X:
+            icon: x.png
+            href: https://x.com/Lifailon
+        - Habr:
+            icon: https://assets.habr.com/habr-web/img/favicons/favicon-32.png
+            href: https://habr.com/ru/users/Lifailon/articles
+        - 4pda:
+            icon: https://4pda.to/s/qirteGIz2xz1z2QCGA5T63Cd0wY.ico
+            href: https://4pda.to/forum/index.php?showtopic=1050842
+        - Stack Overflow:
+            icon: https://cdn.sstatic.net/Sites/ru/Img/favicon.ico
+            href: https://ru.stackoverflow.com/users/583135/lifailon
+        - Reddit:
+            icon: reddit.png
+            href: https://reddit.com/user/Lifailon
+        - Product Hunt:
+            icon: https://ph-static.imgix.net/ph-favicon-brand-500.svg
+            href: https://producthunt.com/@lifailon
+        - Dev.to:
+            icon: https://www.faviconextractor.com/favicon/dev.to
+            href: https://dev.to/lifailon
+        - Medium:
+            icon: https://www.faviconextractor.com/favicon/medium.com
+            href: https://lifailon.medium.com
+
+- AI:
+    - ChatGPT:
+        icon: chatgpt.png
+        href: https://chatgpt.com
+        siteMonitor: https://chatgpt.com
+    - DeepSeek:
+        icon: deepseek.png
+        href: https://chat.deepseek.com
+    - QWEN:
+        icon: qwen.png
+        href: https://chat.qwen.ai
+    - Mistral:
+        icon: https://chat.mistral.ai/favicon.ico
+        href: https://chat.mistral.ai/chat
+    - Google Gemini:
+        icon: google-gemini.png
+        href: https://gemini.google.com
+    - GitHub Copilot:
+        icon: https://github.com/favicons/favicon-copilot-dark.svg
+        href: https://github.com/copilot
+    - Perplexity:
+        icon: https://www.faviconextractor.com/favicon/perplexity.ai?larger=true
+        href: https://perplexity.ai
+    - OpenRouter:
+        icon: https://openrouter.ai/favicon.ico
+        href: https://openrouter.ai
+    - Translators:
+        - Google Translate:
+            icon: google-translate.png
+            href: https://translate.google.com/?sl=en&tl=ru
+        - DeepL:
+            icon: deepl.png
+            href: https://deepl.com/ru/translator
+        - Reverso:
+            icon: https://reverso.net/assets/images/favicon.ico
+            href: https://reverso.net
+    - Google:
+        - Gmail:
+            icon: gmail.png
+            href: https://mail.google.com/mail/u/0/
+        - Google Maps:
+            icon: google-maps.png
+            href: https://www.google.ru/maps/place/japan
+        - Google Drive:
+            icon: google-drive.png
+            href: https://drive.google.com/drive/my-drive
+        - Google Photos:
+            icon: google-photos.png
+            href: https://photos.google.com
+    - Games:
+        - Steam:
+            icon: steam.png
+            href: https://store.steampowered.com/?l=russian
+        - EpicGames:
+            icon: https://static-assets-prod.epicgames.com/epic-store/static/favicon.ico
+            href: https://store.epicgames.com/en-US/free-games
+    - Trackers:
+        - Kinozal:
+            icon: https://kinozal.tv/pic/favicon.ico
+            href: https://kinozal.tv
+        - RuTracker:
+            icon: https://rutracker.org/favicon.ico
+            href: https://rutracker.org
+        - RuTor:
+            icon: https://cdnbunny.org/favicon.ico
+            href: https://rutor.info
+        - NoNaMe Club:
+            icon: https://nnmstatic.win/favicon.ico
+            href: https://nnmclub.to
+        - RSLoad:
+            icon: https://rsload.net/favicon.png
+            href: https://rsload.net
+        - Diakov:
+            icon: https://diakov.net/favicon.ico
+            href: https://diakov.net
+        - 1progs:
+            icon: https://1progs.ru/favicon.ico
+            href: https://1progs.ru
+        - Nintendo Moy:
+            icon: https://nintendo.moy.su/favicon.ico
+            href: https://nintendo.moy.su
+        - Emu Land:
+            icon: https://www.emu-land.net/favicon.png
+            href: https://www.emu-land.net
+
+- Development:
+    - Go Playground:
+        icon: https://go.dev/images/favicon-gopher.png
+        href: https://go.dev/play
+    - Better Go Playground:
+        icon: go.png
+        href: https://goplay.tools
+    - TypeScript Playground:
+        icon: typescript.png
+        href: https://www.typescriptlang.org/play
+    - JavaScript Playground:
+        icon: javascript.png
+        href: https://runjs.app/play
+        # href: https://jsplayground.dev
+        # href: https://developer.mozilla.org/ru/play
+    - Mozilla Developer:
+        icon: https://developer.mozilla.org/favicon.svg
+        href: https://developer.mozilla.org/ru/docs/Web/HTTP/Reference/Status
+    - Reference Cheat Sheets:
+        icon: https://cheatsheets.zip/images/favicon.png
+        href: https://cheatsheets.zip
+    - IT Tools:
+        icon: https://it-tools.tech/favicon.ico
+        href: https://it-tools.tech
+    - Transform Web Converter:
+        icon: https://transform.tools/static/favicon.png
+        href: https://transform.tools
+    - JSON Crack:
+        icon: https://jsoncrack.com/favicon.ico
+        href: https://jsoncrack.com/editor
+    - d2 Playground:
+        icon: https://play.d2lang.com/assets/icons/d2-logo.svg
+        href: https://play.d2lang.com
+    - Draw.io:
+        icon: draw-io.svg
+        href: https://app.diagrams.net
+    - Cobalt Media Downloader:
+        icon: cobalt.svg
+        href: https://cobalt.tools
+    - Text to ASCII Art Generator:
+        icon: https://patorjk.com/candy.png
+        href: https://patorjk.com
+    - Favicon Generator:
+        icon: https://favicongenerator.io/favicon.ico
+        href: https://favicongenerator.io
+    - Favicon Extractor:
+        icon: https://www.faviconextractor.com/favicon/faviconextractor.com
+        href: https://faviconextractor.com
+    - Network:
+        - IP Info:
+            icon: https://ipinfo.io/favicon.ico
+            href: https://ipinfo.io
+        - IP Check:
+            icon: https://ipcheck.ing/favicon.svg
+            href: https://ipcheck.ing
+        - Web Check:
+            icon: web-check.png
+            href: https://web-check.xyz
+        - Proxy Check:
+            icon: https://proxy-seller.com/local/templates/dvsproxytools/img/favicon/favicon.ico
+            href: https://proxy-seller.com/tools/proxy-checker
+        - Check Host:
+            icon: https://check-host.net/checkhost-favicon.png
+            href: https://check-host.net
+        - Zone Master:
+            icon: https://zonemaster.net/en/assets/favicon/zonemaster_32x32.png
+            href: https://zonemaster.net/en/run-test
+        - Looking Glass:
+            icon: https://looking.house/favicon.ico
+            href: https://looking.house/looking-glass
+        - Ookla SpeedTest:
+            icon: https://www.speedtest.net/favicon.ico
+            href: https://speedtest.net
+        - CloudFlare SpeedTest:
+            icon: https://cloudflare.com/favicon.ico
+            href: https://speed.cloudflare.com
+        # - Libre SpeedTest:
+        #     icon: https://librespeed.org/favicon.ico
+        #     href: https://librespeed.org
+        # - Open SpeedTest:
+        #     icon: https://open.cachefly.net/assets/images/icons/favicon.ico
+        #     href: https://openspeedtest.com
+
+- Nodes:
+    - 🐧 hv-us-101:
+        ping: 192.168.3.101
+    - 🍒 rpi-105:
+        ping: 192.168.3.105
+    - ⌨ rpi-106:
+        ping: 192.168.3.106
+    - Web Apps:
+        - Plex:
+            icon: plex.png
+            href: http://192.168.3.100:32400
+            siteMonitor: http://192.168.3.100:32400
+            widget:
+              type: plex
+              url: http://192.168.3.100:32400
+              key: dXeUhXD7aPusqCsd9e21
+        - qBittorrent:
+            icon: qbittorrent.png
+            href: http://192.168.3.100:8888
+            siteMonitor: http://192.168.3.100:8888
+            widget:
+              type: qbittorrent
+              url: http://192.168.3.100:8888
+              username: lifailon
+              password: RestApi
+              enableLeechProgress: true
+        # - Transmission:
+        #     icon: transmission.png
+        #     href: http://192.168.3.100:9091
+        #     siteMonitor: http://192.168.3.100:9091/transmission/web
+        #     widget:
+        #       type: transmission
+        #       url: http://192.168.3.100:9091
+        #       username: lifailon
+        #       password: RestApi
+        # - Jackett:
+        #     icon: jackett.png
+        #     href: http://192.168.3.100:9117
+        #     siteMonitor: http://192.168.3.100:9117
+        #     widget:
+        #       type: jackett
+        #       url: http://192.168.3.100:9117
+        #       password: JaCkett
+        # - Sonarr:
+        #     icon: sonarr.png
+        #     href: http://192.168.3.100:8989
+        #     siteMonitor: http://192.168.3.100:8989
+        #     widget:
+        #       type: sonarr
+        #       url: http://192.168.3.100:8989
+        #       key: 6548a75f92d54dc39b9421905563888c
+    - Kubernetes Apps:
+        - Headlamp:
+            icon: headlamp.png
+            href: http://192.168.3.101:30001
+            siteMonitor: http://192.168.3.101:30001
+            # namespace: kubernetes-dashboard
+            # app: headlamp
+        - Traefik:
+            icon: traefik.png
+            href: http://traefik.k8s.local/dashboard/
+            siteMonitor: http://192.168.3.105:8888/dashboard/
+            # namespace: default
+            # app: traefik
+            widget:
+              type: traefik
+              url: http://192.168.3.105:8888
+        - Argo CD:
+            icon: argo-cd.png
+            href: https://192.168.3.101:32479
+            siteMonitor: https://192.168.3.101:32479
+            # namespace: argocd
+            # app: argocd-server
+            # widget:
+            #   type: argocd
+            #   url: https://192.168.3.101:32479
+            #   key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJob21lcGFnZTphcGlLZXkiLCJuYmYiOjE3NjAyODQ2MjcsImlhdCI6MTc2MDI4NDYyNywianRpIjoiYjMxYTQzMDUtN2JhYS00MzM1LTlmYjktZGI4ZWJhZTUyOTljIn0.4ms3UXzt7j9rWHQFBxvCRaQPFm6q5Eq7DGvHO0frua4
+        - Longhorn:
+            icon: longhorn.png
+            href: http://192.168.3.101:30050
+            siteMonitor: http://192.168.3.101:30050
+            # namespace: longhorn-system
+            # app: longhorn-ui
+    - Docker Containers:
+        - Dockge:
+            icon: dockge.png
+            server: local
+            container: dockge
+            href: http://192.168.3.101:5001
+        - Dozzle:
+            icon: dozzle.png
+            server: local
+            container: dozzle
+            href: http://192.168.3.101:9090
+        - beszel:
+            icon: beszel.png
+            server: local
+            container: beszel-server
+            href: http://192.168.3.101:8090
+            widget:
+              type: beszel
+              url: http://192.168.3.101:8090
+              version: 2
+              username: admin@admin.com
+              password: BeszelAdmin
+        - Watchtower:
+            icon: watchtower.png
+            server: local
+            container: watchtower
+            widget:
+              type: watchtower
+              url: http://192.168.3.101:8088
+              key: demotoken
+        - diun:
+            icon: diun.png
+            server: local
+            container: diun
+        - lazyjournal:
+            server: local
+            container: lazyjournal
+            href: http://192.168.3.101:5555
+        - lazydocker:
+            server: local
+            container: docker-web-manager
+            href: http://192.168.3.101:3333
+        - DNS Server:
+            icon: https://technitium.com/favicon.ico
+            server: local
+            container: tech-dns
+            href: http://192.168.3.101:5380
+            widget:
+              type: technitium
+              url: http://192.168.3.101:5380
+              key: 2b88eab3a13ee94869fed6326ccaae3f625e6b91bb3eb84b155a90e1435f7ebb
+              range: LastDay
+        - Traefik:
+            icon: traefik.png
+            server: local
+            container: traefik
+            href: http://192.168.3.101:8080
+            widget:
+              type: traefik
+              url: http://192.168.3.101:8080
+        - Gitea:
+            icon: gitea.png
+            server: local
+            container: gitea
+            href: http://192.168.3.101:3000
+            widget:
+              type: gitea
+              url: http://192.168.3.101:3000
+              key: 19d5d3b649e27107125393962339ff0ebb3bb42c
+        - Prometheus:
+            icon: prometheus.png
+            server: local
+            container: prometheus
+            href: http://192.168.3.101:9092
+            widget:
+              type: prometheus
+              url: http://192.168.3.101:9092
+        - Grafana:
+            icon: grafana.png
+            server: local
+            container: grafana
+            href: http://192.168.3.101:9091
+            widget:
+              type: grafana
+              version: 1
+              url: http://192.168.3.101:9091
+              username: admin
+              password: GrafanaAdmin
+        - Loki:
+            icon: loki.png
+            server: local
+            container: loki-server
+            href: http://192.168.3.101:3100/loki/api/v1/labels

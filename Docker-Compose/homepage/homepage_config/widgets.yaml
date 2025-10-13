@@ -1,0 +1,32 @@
+- resources:
+    cpu: true
+    memory: true
+    disk:
+      - /
+      # - /mnt/backup
+    cputemp: true
+    units: metric
+    tempmin: 0
+    tempmax: 80
+    refresh: 3000
+    diskUnits: bytes
+    network: true
+    uptime: true
+
+# - search:
+#     # provider: google
+#     provider: custom
+#     url: https://yandex.ru/search/?text=
+
+- openmeteo:
+    label: Moscow
+    latitude: 55.45
+    longitude: 37.37
+    units: metric
+    cache: 10
+
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      hourCycle: h23

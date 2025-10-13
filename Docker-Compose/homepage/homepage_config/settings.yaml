@@ -1,0 +1,5 @@
+statusStyle: dot # or basic
+
+providers:
+  openweathermap: openweathermapapikey
+  weatherapi: weatherapiapikey
