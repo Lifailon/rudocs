@@ -14,3 +14,19 @@ services:
       - ./netalertx_db:/app/db
     tmpfs:
       - /app/api
+
+  web-check:
+    image: lissy93/web-check:latest
+    container_name: web-check
+    restart: unless-stopped
+    ports:
+      - 10448:3000
+
+  ip-check:
+    container_name: ip-check
+    image: jason5ng32/myip:latest
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+        - 10449:18966
