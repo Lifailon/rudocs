@@ -1,4 +1,95 @@
 services:
+  # Web interface for Docker Compose
+  dockge:
+    image: louislam/dockge:1
+    container_name: dockge
+    restart: unless-stopped
+    volumes:
+      - ./dockge_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker stacks directory on host:container
+      - /home/lifailon/docker:/home/lifailon/docker
+    # Enable routing for traffic
+    # labels:
+    #   - traefik.enable=true
+    environment:
+      # Enable routing for docker-gen
+      # - VIRTUAL_HOST=dockge.local
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      # Доступ к консоли dockge
+      - DOCKGE_ENABLE_CONSOLE=true
+    ports:
+      - 5001:5001
+
+  # Web interface for docker manager on remote hosts via lazydocker or ctop
+  docker-web-manager:
+    image: lifailon/docker-web-manager:latest
+    container_name: docker-web-manager
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+    environment:
+      - WEB_USERNAME=admin
+      - WEB_PASSWORD=admin
+      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
+      - SSH_USER=lifailon
+      - SSH_PORT=2121
+      - DOCKER_CLIENT=lazydocker
+    ports:
+      - 3333:3333
+
+  # Web interface for Docker (like Dockge)
+  # dockman:
+  #   container_name: dockman
+  #   image: ghcr.io/ra341/dockman:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     - DOCKMAN_MACHINE_ADDR=192.168.3.101
+  #     - DOCKMAN_PORT=8866
+  #     - DOCKMAN_COMPOSE_ROOT=/home/lifailon/docker
+  #     - DOCKMAN_AUTH_ENABLE=true
+  #     - DOCKMAN_AUTH_USERNAME=admin
+  #     - DOCKMAN_AUTH_PASSWORD=admin
+  #     - DOCKMAN_LOG_LEVEL=debug
+  #     - DOCKMAN_LOG_VERBOSE=true
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /home/lifailon/docker:/home/lifailon/docker
+  #     - ./config:/config
+  #   ports:
+  #     - 8866:8866
+
+  # Web interface for docker managing containers
+  # dweebui:
+  #   image: lllllllillllllillll/dweebui:latest
+  #   container_name: dweebui
+  #   restart: unless-stopped
+  #   environment:
+  #     - PORT=8000
+  #     - SECRET=AdminSecret # for registration
+  #   ports:
+  #     - 8000:8000
+  #   volumes:
+  #     - ./dweebui:/app/config
+  #     - /var/run/docker.sock:/var/run/docker.sock
+
+  # Web interface for docker containers (defining traefik tags and image updates, without control)
+  # dockpeek:
+  #   image: ghcr.io/dockpeek/dockpeek:latest
+  #   container_name: dockpeek
+  #   restart: unless-stopped
+  #   environment:
+  #     - SECRET_KEY=AdminSecret
+  #     - USERNAME=admin
+  #     - PASSWORD=admin
+  #   ports:
+  #     - 3420:8000
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+
+################################################### Images ###################################################
+
   # Auto-update docker images and restart containers
   watchtower:
     image: containrrr/watchtower
@@ -11,9 +102,9 @@ services:
       - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
       - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
       - WATCHTOWER_HTTP_API_TOKEN=demotoken
-    command: --interval 600 # --http-api-metrics # --http-api-token demotoken # --http-api-update
-    # ports:
-    #   - 9095:8080
+    command: --interval 600 --http-api-metrics # --http-api-update
+    ports:
+      - 8088:8080
 
   # Docker Image Update Notifier
   diun:
@@ -46,66 +137,7 @@ services:
       retries: 1
       start_period: 30s
 
-  # Web interface for Docker Compose
-  dockge:
-    image: louislam/dockge:1
-    container_name: dockge
-    restart: unless-stopped
-    volumes:
-      - ./dockge_data:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Docker stacks directory on host:container
-      - /home/lifailon/docker:/home/lifailon/docker
-    # Disable routing for traffic
-    # labels:
-    #   - traefik.enable=false
-    environment:
-      # Enable routing for host-gen
-      # - VIRTUAL_HOST=dockge.local
-      - DOCKGE_STACKS_DIR=/home/lifailon/docker
-      # Доступ к консоли dockge
-      - DOCKGE_ENABLE_CONSOLE=true
-    ports:
-      - 5001:5001
-
-  # Web interface for Docker (like Dockge)
-  # dockman:
-  #   container_name: dockman
-  #   image: ghcr.io/ra341/dockman:latest
-  #   restart: unless-stopped
-  #   environment:
-  #     - DOCKMAN_MACHINE_ADDR=192.168.3.101
-  #     - DOCKMAN_PORT=8866
-  #     - DOCKMAN_COMPOSE_ROOT=/home/lifailon/docker
-  #     - DOCKMAN_AUTH_ENABLE=true
-  #     - DOCKMAN_AUTH_USERNAME=admin
-  #     - DOCKMAN_AUTH_PASSWORD=admin
-  #     - DOCKMAN_LOG_LEVEL=debug
-  #     - DOCKMAN_LOG_VERBOSE=true
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - /home/lifailon/docker:/home/lifailon/docker
-  #     - ./config:/config
-  #   ports:
-  #     - 8866:8866
-
-  # Web interface for docker manager on remote hosts via lazydocker or ctop
-  docker-web-manager:
-    image: lifailon/docker-web-manager:latest
-    container_name: docker-web-manager
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
-    environment:
-      - WEB_USERNAME=admin
-      - WEB_PASSWORD=admin
-      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
-      - SSH_USER=lifailon
-      - SSH_PORT=2121
-      - DOCKER_CLIENT=lazydocker
-    ports:
-      - 3333:3333
+################################################### Logs ###################################################
 
   # Web interface for docker logs
   dozzle:
@@ -155,6 +187,8 @@ services:
     restart: unless-stopped
     volumes:
       - /var/log:/logs
+
+################################################### Monitoring ###################################################
 
   # Web interface for monitoring hosts and containers metrics + webhook via shoutrrr
   beszel-server:
