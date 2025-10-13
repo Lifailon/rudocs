@@ -1,0 +1,7 @@
+services:
+  gocd:
+    image: gocd/gocd-server:v24.3.0
+    container_name: gocd
+    restart: unless-stopped
+    ports:
+      - 8153:8153
