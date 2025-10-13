@@ -5,9 +5,9 @@ services:
     container_name: kompose-ui
     restart: unless-stopped
     ports:
-      - 5005:8000
+      - 3001:8000
 
-  # Web interface for k3s/k8s
+  # Web interface for k8s/k3s (like kubernetes/dashboard)
   headlamp:
     image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
     container_name: headlamp
@@ -15,10 +15,20 @@ services:
     command: ["--kubeconfig","/headlamp/config/config", "--port","64446", "--enable-dynamic-clusters"]
     volumes:
       - /etc/rancher/k3s/k3s.yaml:/headlamp/config/kubeconfig.yaml:ro
-    network_mode: host
+    network_mode: host # use for k3s cluster on localhost
     # ports:
     #   - 64446:64446
     #   - 30000-32000:30000-32000
+
+  # Web interface for Helm
+  helm-dashboard:
+    image: komodorio/helm-dashboard:latest
+    container_name: helm-dashboard
+    restart: unless-stopped
+    ports:
+      - 3002:8080
+    volumes:
+      - ./kubeconfig.yaml:/root/.kube/config:ro
 
   # rancher:
   #   image: rancher/rancher:latest
