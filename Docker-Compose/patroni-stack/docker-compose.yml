@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Patroni Cluster Web Manager
   ivory:
@@ -17,9 +15,9 @@ services:
     container_name: haproxy
     restart: unless-stopped
     ports:
-      - "5430:5430" # Write endpoint (master)
-      - "5431:5431" # Read endpoint (replicas)
-      - "7000:7000" # Stats dashboard
+      - 5430:5430 # Write endpoint (master)
+      - 5431:5431 # Read endpoint (replicas)
+      - 7000:7000 # Stats dashboard
     networks:
       - patroni-net
     volumes:

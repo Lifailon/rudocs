@@ -13,7 +13,7 @@ services:
       - 9091:3000
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin # grafana-cli admin reset-admin-password newpassword
       # - GF_DATABASE_TYPE=postgres
       # - GF_DATABASE_HOST=postgres:5432
       # - GF_DATABASE_NAME=grafana
