@@ -12,7 +12,7 @@ services:
       - ./vscode_config:/config
       - $HOME:/home
     ports:
-      - 10443:8443
+      - 9443:8443
 
   go-playground:
     image: x1unix/go-playground:latest
@@ -21,14 +21,36 @@ services:
     environment:
       - APP_CLEAN_INTERVAL=30m
     ports:
-      - 10444:8000
+      - 9444:8000
+
+  # API client in Web (like Postman/Hoppscotch)
+  yaade:
+    image: esperotech/yaade:latest 
+    container_name: yaade
+    restart: unless-stopped
+    ports:
+      - 9339:9339
+    environment:
+      - YAADE_ADMIN_USERNAME=admin
+      - YAADE_ADMIN_PASSWORD=password
+    volumes:
+      - ./yaade:/app/data
+
+  # SSH, SFTP, RDP and VNC  client in Web
+  nexterm:
+    image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
+    restart: unless-stopped
+    container_name: nexterm
+    ports:
+      - 6989:6989
+    volumes:
+      - ./nexterm_data:/app/data
 
   it-tools:
     image: corentinth/it-tools:latest
     container_name: it-tools
-    restart: unless-stopped
     ports:
-      - 10445:80
+      - 9445:80
 
   draw.io:
     image: jgraph/drawio:latest
@@ -37,11 +59,11 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - 10446:8080
+      - 9446:8080
 
   d2-playground:
     image: lifailon/d2-playground:latest
     container_name: d2-playground
     restart: unless-stopped
     ports:
-      - 10447:9090
+      - 9447:9090
