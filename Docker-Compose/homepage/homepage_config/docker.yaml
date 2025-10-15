@@ -1,10 +1,10 @@
 local:
   socket: /var/run/docker.sock
 
-# rpi-105:
-#   host: 192.168.3.105
-#   port: 2375
+rpi-105:
+  host: 192.168.3.105
+  port: 2375
 
-# rpi-106:
-#   host: 192.168.3.106
-#   port: 2375
+rpi-106:
+  host: 192.168.3.106
+  port: 2375

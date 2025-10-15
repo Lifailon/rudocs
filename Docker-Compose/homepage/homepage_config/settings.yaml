@@ -1,5 +1,4 @@
-statusStyle: dot # or basic
-
-providers:
-  openweathermap: openweathermapapikey
-  weatherapi: weatherapiapikey
+showStats: false
+fullWidth: true
+maxGroupColumns: 6
+statusStyle: dot # or default

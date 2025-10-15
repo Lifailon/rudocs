@@ -13,13 +13,26 @@
     network: true
     uptime: true
 
+- kubernetes:
+    cluster:
+      show: true
+      cpu: true
+      memory: true
+      showLabel: true
+      label: "cluster"
+    nodes:
+      show: true
+      cpu: true
+      memory: true
+      showLabel: true
+
 # - search:
 #     # provider: google
 #     provider: custom
 #     url: https://yandex.ru/search/?text=
 
 - openmeteo:
-    label: Moscow
+    label: MSK
     latitude: 55.45
     longitude: 37.37
     units: metric
