@@ -1,4 +1,13 @@
 services:
+  nexterm:
+    image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
+    restart: unless-stopped
+    container_name: nexterm
+    ports:
+      - 6989:6989
+    volumes:
+      - ./nexterm_data:/app/data
+
   code-server:
     image: linuxserver/code-server:latest
     container_name: code-server
@@ -23,7 +32,6 @@ services:
     ports:
       - 9444:8000
 
-  # API client in Web (like Postman/Hoppscotch)
   yaade:
     image: esperotech/yaade:latest 
     container_name: yaade
@@ -34,17 +42,7 @@ services:
       - YAADE_ADMIN_USERNAME=admin
       - YAADE_ADMIN_PASSWORD=password
     volumes:
-      - ./yaade:/app/data
-
-  # SSH, SFTP, RDP and VNC  client in Web
-  nexterm:
-    image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
-    restart: unless-stopped
-    container_name: nexterm
-    ports:
-      - 6989:6989
-    volumes:
-      - ./nexterm_data:/app/data
+      - ./yaade_data:/app/data
 
   it-tools:
     image: corentinth/it-tools:latest
