@@ -1,0 +1,51 @@
+# Generate app key: echo -n 'base64:'; openssl rand -base64 32;
+# Default credentials: admin@example.com:password
+
+services:
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    container_name: speedtest-tracker
+    restart: unless-stopped
+    ports:
+      - 8778:80
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.speedtest-tracker.rule=Host(`speedtest.docker.local`)
+    #   - traefik.http.services.speedtest-tracker.loadbalancer.server.port=80
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - APP_KEY=base64:e6otzoFWjt0GoEOL/QlPQw2Xgm63OMU3lA5V4nLgXJ4=
+      - APP_URL=http://192.168.3.101
+      # - APP_URL=http://speedtest.docker.local
+      - DB_CONNECTION=sqlite
+      # - DB_CONNECTION=pgsql
+      # - DB_HOST=speedtest-db
+      # - DB_PORT=5432
+      # - DB_DATABASE=speedtest_tracker
+      # - DB_USERNAME=speedtest
+      # - DB_PASSWORD=PgAdmin
+    volumes:
+      - ./speedtest_config:/config
+      - ./ssl:/config/keys
+    # depends_on:
+    #   - speedtest-db
+
+  # speedtest-db:
+  #   image: postgres:17
+  #   container_name: speedtest-db
+  #   restart: unless-stopped
+  #   # ports:
+  #   #   - 5432:5432
+  #   environment:
+  #     - POSTGRES_DB=speedtest_tracker
+  #     - POSTGRES_USER=speedtest
+  #     - POSTGRES_PASSWORD=PgAdmin
+  #   volumes:
+  #     - ./speedtest_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 5s
+  #     retries: 5
+  #     timeout: 5s

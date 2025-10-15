@@ -1,12 +1,12 @@
 services:
-  openspeedtest:
+  open-speedtest:
     image: openspeedtest/latest:latest
+    container_name: opens-peedtest
     restart: unless-stopped
-    container_name: openspeedtest
     # environment:
     #   - ENABLE_LETSENCRYPT=True
     #   - DOMAIN_NAME=speedtest.domain.com
     #   - USER_EMAIL=name@domain.com
     ports:
-      - '3000:3000'
-      - '3001:3001' # HTTPS
+      - 3000:3000
+      - 3001:3001

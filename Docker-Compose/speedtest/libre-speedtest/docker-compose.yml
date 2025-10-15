@@ -1,8 +1,8 @@
 services:
-  librespeedtest:
+  libre-speedtest:
     image: lscr.io/linuxserver/librespeed:latest
+    container_name: libre-speedtest
     restart: unless-stopped
-    container_name: librespeedtest
     environment:
       - PUID=1000
       - PGID=1000
