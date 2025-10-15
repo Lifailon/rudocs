@@ -4,11 +4,14 @@ services:
     container_name: vaultwarden
     restart: unless-stopped
     environment:
-      - DOMAIN=http://vault.local:1338
-      - ROCKET_ADDRESS=0.0.0.0
-      - ROCKET_PORT=1338
+      - DOMAIN=http://vaultwarden.docker.local
+      # - ROCKET_ADDRESS=0.0.0.0
+      # - ROCKET_PORT=1338
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.myapp.rule=Host(`vaultwarden.docker.local`)
+    # Access via proxy
+    # ports:
+    #   - 1338:1338
     volumes:
       - ./vw_data/:/data/
-    # network_mode: host
-    ports:
-      - 1338:1338

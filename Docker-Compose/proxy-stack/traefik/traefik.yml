@@ -26,6 +26,9 @@ metrics:
     addRoutersLabels: true
     addServicesLabels: true
 
+log:
+  level: "INFO"
+
 accessLog:
   format: "common"
   filters:
@@ -39,4 +42,7 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: true
-    defaultRule: "Host(`{{ .Name }}.docker.local`)"
+    # Default format for compose: <service_name>-<project_name>
+    # defaultRule: "Host(`{{ .Name }}.docker.local`)"
+    # Template format for index function: index <map> <key>
+    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .Name }}.docker.local`)"

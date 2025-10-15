@@ -2,7 +2,7 @@ services:
   traefik:
     image: traefik:v3
     container_name: traefik
-    restart: unless-stopped
+    restart: always
     network_mode: host
     # ports:
     #   - 8080:8080   # web ui
@@ -13,10 +13,10 @@ services:
       - ./traefik.yml:/etc/traefik/traefik.yml
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-  # tech-dns:
+  # tech-dns-srv:
   #   image: technitium/dns-server:latest
-  #   container_name: tech-dns
-  #   restart: unless-stopped
+  #   container_name: tech-dns-srv
+  #   restart: always
   #   ports:
   #     - 5380:5380/tcp
   #     - 53:53/udp
@@ -29,3 +29,10 @@ services:
   #     - ./dns_data:/etc/dns
   #   sysctls:
   #     - net.ipv4.ip_local_port_range=1024 65000
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
+  #     - traefik.http.routers.tech-dns-srv.middlewares=auth
+  #     # htpasswd -nbB admin admin
+  #     - traefik.http.middlewares.auth.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW
+  #     - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
