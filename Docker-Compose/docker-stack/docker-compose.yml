@@ -3,7 +3,7 @@ services:
   dockge:
     image: louislam/dockge:1
     container_name: dockge
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./dockge_data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -104,7 +104,7 @@ services:
       - WATCHTOWER_HTTP_API_TOKEN=demotoken
     command: --interval 600 --http-api-metrics # --http-api-update
     ports:
-      - 8088:8080
+      - 8088:8080 # api
 
   # Docker Image Update Notifier
   diun:
@@ -136,6 +136,15 @@ services:
       timeout: 10s
       retries: 1
       start_period: 30s
+
+  # Watcher containers and registries and performing actions
+  # wud:
+  #   image: getwud/wud
+  #   container_name: wud
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - 5002:3000
 
 ################################################### Logs ###################################################
 
