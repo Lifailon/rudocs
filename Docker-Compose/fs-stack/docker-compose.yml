@@ -1,14 +1,14 @@
 services:
-  # SMB/CIFS server
+  # SMB/CIFS Server
   samba:
     image: dperson/samba
     container_name: samba
     restart: unless-stopped
+    volumes:
+      - /home/lifailon/docker:/share
     ports:
       - 139:139
       - 445:445
-    volumes:
-      - /home/lifailon/docker:/share
     environment:
       - USERID=1000
       - GROUPID=1000
@@ -25,25 +25,73 @@ services:
     image: filebrowser/filebrowser
     container_name: file-browser
     restart: unless-stopped
-    ports:
-      - 8888:80
+    user: 0:0
     volumes:
       - /home/lifailon:/srv           # root directory
       - ./filebrowser_data:/database  # filebrowser.db
       - ./filebrowser_conf:/config    # settings.json
-    user: 1000:1000
+    ports:
+      - 8300:80
+
+  # Backup server for encrypted, incremental, compressed backups on local storage, cloud storage and remote file servers (FTP/S, SSH/SFTP and others)
+  duplicati:
+    image: lscr.io/linuxserver/duplicati:latest
+    container_name: duplicati
+    restart: unless-stopped
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC+3
+      - SETTINGS_ENCRYPTION_KEY=DuplicatiKey
+      - DUPLICATI__WEBSERVICE_PASSWORD=DuplicatiAdmin
+      - CLI_ARGS=
+    volumes:
+      - ./duplicati_config:/config
+      - ./duplicati_backup:/backups
+      - /home/lifailon/docker:/source:ro
+      - ./duplicati_restore:/restore
+    ports:
+      - 8200:8200
+
+  # Backup server + WebUI based on cli
+  # kopia:
+  #   image: kopia/kopia:latest
+  #   container_name: kopia
+  #   restart: unless-stopped
+  #   ports:
+  #     - 51515:51515
+  #   command:
+  #     - server
+  #     - start
+  #     - --disable-csrf-token-checks
+  #     - --insecure
+  #     - --address=0.0.0.0:51515
+  #     - --server-username=admin
+  #     - --server-password=KopiaAdmin
+  #   environment:
+  #     - KOPIA_PASSWORD=KopiaAdmin
+  #     - USER=User
+  #   volumes:
+  #       - ./kopia_config:/app/config
+  #       - ./kopia_cache:/app/cache
+  #       - ./kopia_logs:/app/logs
+  #       - ./kopia_backup:/repository
+  #       - /home/lifailon/docker:/data:ro
 
   # File Synchronization
   file-syncthing:
     image: syncthing/syncthing
     container_name: file-syncthing
     restart: unless-stopped
-    ports:
-      - 8384:8384         # Web UI
-      - 22000:22000/tcp   # TCP file transfers
-      - 22000:22000/udp   # QUIC file transfers
-      - 21027:21027/udp   # Receive local discovery broadcasts
     network_mode: host
+    # ports:
+    #   - 8384:8384         # Web UI
+    #   - 22000:22000/tcp   # TCP file transfers
+    #   - 22000:22000/udp   # QUIC file transfers
+    #   - 21027:21027/udp   # Receive local discovery broadcasts
+    environment:
+      - PUID=0
+      - PGID=0
     volumes:
       - ./syncthing_data:/var/syncthing   # configs
       - $HOME/docker:/sync_data           # src sync data on server
@@ -53,20 +101,12 @@ services:
       interval: 1m
       timeout: 10s
       retries: 3
-    environment:
-      - PUID=0
-      - PGID=0
 
   # Web Server Index
   # h5ai:
   #   image: awesometic/h5ai
   #   container_name: h5ai
   #   restart: unless-stopped
-  #   ports:
-  #     - 8889:80
-  #   volumes:
-  #     - ./h5ai_data:/h5ai
-  #     - ./h5ai_conf:/config
   #   environment:
   #     - PUID=1000
   #     - PGID=1000
@@ -74,3 +114,17 @@ services:
   #     - HTPASSWD=false
   #     - HTPASSWD_USER=admin
   #     - HTPASSWD_PW=admin
+  #   volumes:
+  #     - $HOME/docker:/h5ai    # public data
+  #     - ./h5ai_conf:/config
+  #   ports:
+  #     - 8889:80
+
+  # FTP/S, SSH/SFTP, WebDAV and S3 server
+  # sftpgo:
+  #   image: drakkan/sftpgo:edge
+  #   container_name: sftpgo
+  #   restart: unless-stopped
+  #   ports:
+  #     - 2022:2022
+  #     - 8088:8080
