@@ -1,0 +1,16 @@
+services:
+  gravity:
+    image: ghcr.io/beryju/gravity:stable
+    container_name: gravity
+    restart: unless-stopped
+    # Important for this to be static and unique
+    hostname: gravity-01
+    network_mode: host
+    user: root
+    volumes:
+      - ./gravity_data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

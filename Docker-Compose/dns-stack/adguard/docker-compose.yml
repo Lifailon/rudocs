@@ -1,11 +1,11 @@
 services:
-  adguard:
+  adguardhome-server:
     image: adguard/adguardhome
-    container_name: adguard
+    container_name: adguardhome-server
     restart: unless-stopped
     volumes:
-      - ./adguard_data:/opt/adguardhome/work
-      - ./adguard_conf:/opt/adguardhome/conf
+      - ./adguardhome_server_data:/opt/adguardhome/work
+      - ./adguardhome_server_conf:/opt/adguardhome/conf
     ports:
       # DNS
       - "53:53/tcp"
@@ -28,14 +28,32 @@ services:
       #  DNSCrypt⁠
       # - "5443:5443/tcp"
       # - "5443:5443/udp"
-    networks:
-      - adguard_net
-
-networks:
-  adguard_net:
-    driver: bridge
 
 # Reset password by hash:
 # sudo apt-get install apache2
 # htpasswd -B -C 10 -n -b admin AdHuardHome
 # sudo nano adguard_conf/AdGuardHome.yaml
+
+  adguardhome-sync:
+    image: ghcr.io/bakito/adguardhome-sync
+    container_name: adguardhome-sync
+    restart: unless-stopped
+    command: run --config /config/adguardhome-sync.yaml
+    volumes:
+      - ./adguardhome-sync.yaml:/config/adguardhome-sync.yaml
+    ports:
+      - 8080:8080 # api + prometheus metrics
+
+  # adguardhome-sync:
+  #   image: lscr.io/linuxserver/adguardhome-sync:latest
+  #   container_name: adguardhome-sync
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/UTC+3
+  #     - CONFIGFILE=/config/adguardhome-sync.yaml
+  #   volumes:
+  #     - ./adguardhome-sync.yaml:/config/adguardhome-sync.yaml
+  #   ports:
+  #     - 8080:8080
