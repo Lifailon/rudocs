@@ -3,7 +3,7 @@ kind: Kustomization
 
 namespace: monitoring
 metadata:
-  name: dozzle-kustomization
+  name: gatus-kustomization
 
 resources:
 # - configmap.yaml

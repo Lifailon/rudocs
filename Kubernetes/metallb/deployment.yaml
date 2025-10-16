@@ -1954,6 +1954,7 @@ spec:
           name: monitoring
         - containerPort: 7946
           name: memberlist-tcp
+        # Disable UDP via patch in kustomize
         - containerPort: 7946
           name: memberlist-udp
           protocol: UDP

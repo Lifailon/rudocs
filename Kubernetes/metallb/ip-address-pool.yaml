@@ -5,9 +5,9 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  # - 192.168.3.201/32
-  - 192.168.3.201-192.168.3.210
-  autoAssign: false # требует аннотации пула и указания адреса в service
+  # - 192.168.3.200/32
+  - 192.168.3.200-192.168.3.210
+  autoAssign: false # требует в ручную добавлять аннотацию пула и адреса в манифесте service
 
 # kind: Service
 # apiVersion: v1

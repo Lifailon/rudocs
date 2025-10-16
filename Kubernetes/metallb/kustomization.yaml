@@ -10,3 +10,6 @@ resources:
 - deployment.yaml
 - ip-address-pool.yaml
 - l2-advertisement.yaml
+
+patchesStrategicMerge:
+  - patch-disable-udp.yaml

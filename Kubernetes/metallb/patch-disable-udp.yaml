@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: speaker
+  namespace: metallb-system
+spec:
+  template:
+    spec:
+      containers:
+      - name: speaker
+        ports:
+        - name: memberlist-udp
+          $patch: delete
