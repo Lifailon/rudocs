@@ -1,0 +1,56 @@
+services:
+  pangolin:
+    image: fosrl/pangolin:1.4.0
+    container_name: pangolin
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
+      interval: "3s"
+      timeout: "3s"
+      retries: 15
+ 
+  gerbil:
+    image: fosrl/gerbil:1.0.0
+    container_name: gerbil
+    restart: unless-stopped
+    command:
+      - --reachableAt=http://gerbil:3003
+      - --generateAndSaveKeyTo=/var/config/key
+      - --remoteConfig=http://pangolin:3001/api/v1/gerbil/get-config
+      - --reportBandwidthTo=http://pangolin:3001/api/v1/gerbil/receive-bandwidth
+    volumes:
+      - ./config/:/var/config
+    ports:
+      - 51820:51820/udp
+      # Порты из traefik через network_mode
+      - 443:443
+      - 80:80
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    depends_on:
+      pangolin:
+        condition: service_healthy
+ 
+  traefik:
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
+    # Порты для сервиса gerbil
+    network_mode: service:gerbil
+    command:
+      - --configFile=/etc/traefik/traefik_config.yml
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./letsencrypt:/letsencrypt
+    depends_on:
+      pangolin:
+        condition: service_healthy
+
+networks:
+  default:
+    driver: bridge
+    name: pangolin
