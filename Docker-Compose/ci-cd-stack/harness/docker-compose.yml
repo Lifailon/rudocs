@@ -1,0 +1,11 @@
+services:
+  harness:
+    image: harness/harness
+    container_name: harness
+    restart: unless-stopped
+    ports:
+      - 3021:3000
+      - 3022:3022
+    volumes:
+      - ./harness_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
