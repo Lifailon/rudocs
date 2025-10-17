@@ -1,0 +1,77 @@
+services:
+  authentik-postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: authentik-postgres
+    restart: unless-stopped
+    env_file:
+    - .env
+    # ports:
+    #   - 5432:5432
+    volumes:
+    - ./authentik_database:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
+
+  authentik-redis:
+    image: docker.io/library/redis:alpine
+    restart: unless-stopped
+    container_name: authentik-redis
+    command: --save 60 1 --loglevel warning
+    # ports:
+    #   - 6379:6379
+    volumes:
+    - ./redis_data:/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - redis-cli ping | grep PONG
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      timeout: 3s
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2025.8.4
+    restart: unless-stopped
+    container_name: authentik-server
+    command: server
+    env_file:
+    - .env
+    ports:
+    - 9000:9000
+    - 9443:9443
+    volumes:
+    - ./authentik_media:/media
+    - ./authentik_custom-templates:/templates
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2025.8.4
+    restart: unless-stopped
+    container_name: authentik-worker
+    command: worker
+    env_file:
+    - .env
+    user: root
+    volumes:
+    - ./authentik_media:/media
+    - ./authentik_certs:/certs
+    - ./authentik_custom-templates:/templates
+    - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+
+# Go on http://authentik-server:9000/if/flow/initial-setup
