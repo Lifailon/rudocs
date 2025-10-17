@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cruise xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cruise-config.xsd" schemaVersion="139">
+  <server agentAutoRegisterKey="dc76247f-995a-4768-8e4b-68136a475b2b" webhookSecret="62343edf-a96b-440e-a7a6-e86f5e090bef" serverId="496b5d8c-202b-41e3-8810-e53a2e3bb96f" tokenGenerationKey="a68f9887-8c45-49be-8464-696343795784">
+    <artifacts>
+      <artifactsDir>artifacts</artifactsDir>
+    </artifacts>
+  </server>
+  <pipelines group="defaultGroup">
+    <pipeline name="Go-CI">
+      <params>
+        <param name="VERSION">latest</param>
+      </params>
+      <environmentvariables>
+        <variable name="VAR">
+          <value>this is variable</value>
+        </variable>
+        <variable name="PASSWORD" secure="true">
+          <encryptedValue>AES:R4Zql66mpQ3w2A5LIae24A==:Ve4iS074bsxSKD7BaThQ8g==</encryptedValue>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="https://github.com/Lifailon/lazyjournal" branch="main" />
+      </materials>
+      <stage name="stageCheck">
+        <jobs>
+          <job name="jobCheckFiles">
+            <tasks>
+              <exec command="pwd">
+                <runif status="passed" />
+              </exec>
+              <exec command="ls">
+                <arg>-lha</arg>
+              </exec>
+            </tasks>
+          </job>
+          <job name="jobCheckEnv">
+            <tasks>
+              <exec command="sh">
+                <arg>-c</arg>
+                <arg>echo $VAR</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="sh">
+                <arg>-c</arg>
+                <arg>echo $PASSWORD</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="stageGo">
+        <environmentvariables>
+          <variable name="CGO_ENABLED">
+            <value>0</value>
+          </variable>
+          <variable name="GOARCH">
+            <value>amd64</value>
+          </variable>
+        </environmentvariables>
+        <jobs>
+          <job name="goInstall" timeout="5">
+            <tasks>
+              <exec command="apk">
+                <arg>add</arg>
+                <arg>go</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="go">
+                <arg>version</arg>
+              </exec>
+            </tasks>
+          </job>
+          <job name="goTest">
+            <tasks>
+              <exec command="go">
+                <arg>test</arg>
+                <arg>-v</arg>
+                <arg>-cover</arg>
+                <arg>--run</arg>
+                <arg>TestMainInterface</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+          </job>
+          <job name="goWinBuild">
+            <environmentvariables>
+              <variable name="GOOS">
+                <value>windows</value>
+              </variable>
+            </environmentvariables>
+            <tasks>
+              <exec command="go">
+                <arg>build</arg>
+                <arg>-o</arg>
+                <arg>bin/lazyjournal-#{VERSION}-windows-amd64.exe</arg>
+                <arg>main.go</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+            <artifacts>
+              <artifact type="build" src="bin/*win*" />
+            </artifacts>
+          </job>
+          <job name="goLinuxBuild">
+            <environmentvariables>
+              <variable name="GOOS">
+                <value>linux</value>
+              </variable>
+            </environmentvariables>
+            <tasks>
+              <exec command="go">
+                <arg>build</arg>
+                <arg>-o</arg>
+                <arg>bin/lazyjournal-#{VERSION}-linux-amd64</arg>
+                <arg>main.go</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+            <artifacts>
+              <artifact type="build" src="bin/*linux*" />
+            </artifacts>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+  <environments>
+    <environment name="GTEST" />
+  </environments>
+</cruise>

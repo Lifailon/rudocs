@@ -1,7 +1,26 @@
 services:
-  gocd:
+  gocd-server:
     image: gocd/gocd-server:v24.3.0
-    container_name: gocd
+    container_name: gocd-server
     restart: unless-stopped
     ports:
       - 8153:8153
+    user: 0:0
+    volumes:
+      - ./godata_server:/godata
+      - ./godata_server_home:/home/go
+
+  gocd-agent:
+    image: gocd/gocd-agent-alpine:v25.3.0
+    container_name: gocd-agent
+    restart: unless-stopped
+    environment:
+      - GO_SERVER_URL=http://gocd-server:8153/go
+      - AGENT_AUTO_REGISTER_KEY=d4a80630-99de-4bc4-a89b-95a9884d43a3 # cat ./godata_server/config/cruise-config.xml
+      - AGENT_AUTO_REGISTER_HOSTNAME=hv-us-101
+    user: 0:0
+    volumes:
+      - ./godata_agent:/godata
+      - ./godata_agent_home:/home/go
+    depends_on:
+      - gocd-server
