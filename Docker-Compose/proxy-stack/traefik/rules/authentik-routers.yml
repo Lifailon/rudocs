@@ -1,0 +1,24 @@
+http:
+  routers:
+    homepage-src:
+      rule: "Host(`home.docker.local`)"
+      service: homepage-dst
+      entryPoints:
+        - websecure
+      middlewares:
+        - authentik
+    dns-src:
+      rule: "Host(`dns.docker.local`)"
+      service: dns-dst
+      entryPoints:
+        - websecure
+
+  services:
+    homepage-dst:
+      loadBalancer:
+        servers:
+          - url: http://172.26.0.2:3000
+    dns-dst:
+      loadBalancer:
+        servers:
+          - url: http://192.168.3.101:5380
