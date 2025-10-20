@@ -27,6 +27,7 @@ metrics:
     addServicesLabels: true
 
 log:
+  # level: "DEBUG"
   level: "INFO"
 
 accessLog:
@@ -46,3 +47,7 @@ providers:
     # defaultRule: "Host(`{{ .Name }}.docker.local`)"
     # Template format for index function: index <map> <key>
     defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .Name }}.docker.local`)"
+
+  file:
+    directory: /rules
+    watch: true
