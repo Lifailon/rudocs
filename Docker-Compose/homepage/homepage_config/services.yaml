@@ -249,6 +249,9 @@
     - Draw.io:
         icon: draw-io.svg
         href: https://app.diagrams.net
+    - Grist (Excel):
+        icon: grist.svg
+        href: https://docs.getgrist.com
     # - Sweet Home 3D:
     #     icon: draw-io.svg
     #     href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
@@ -284,7 +287,16 @@
 
 - Nodes:
     - 🐧 node-01 (hv-us-101):
+        href: http://192.168.3.101:61208
         ping: 192.168.3.101
+        widget:
+          type: glances
+          url: http://192.168.3.101:61208
+          version: 4
+          chart: true
+          username: admin
+          password: admin
+          metric: containers # info/cpu/memory/process/containers/network:<interface_name>/sensor:<sensor_id>/fs:<mnt_point>/disk:<disk_id>/gpu:<gpu_id>
     - 🍒 node-02 (rpi-105):
         ping: 192.168.3.105
     - ⌨ node-03 (rpi-106):
@@ -488,17 +500,27 @@
         widget:
           type: traefik
           url: http://192.168.3.101:8080
-    - SpeedTest Tracker:
-        icon: speedtest-tracker.png
-        server: local
-        container: speedtest-tracker
-        href: http://192.168.3.101:8778
-        widget:
-          type: speedtest
-          version: 2
-          url: http://192.168.3.101:8778
-          key: kuDlHzAvzJS0ogD3yv2Jw4mLbRw9GeWMevGr3b9x4c751498
-    - Prometheus:
+    # - Authentik:
+    #     icon: authentik.png
+    #     server: local
+    #     container: authentik-server
+    #     href: http://192.168.3.101:9000
+    #     widget:
+    #         type: authentik
+    #         url: http://192.168.3.101:9000
+    #         version: 2
+    #         key: WtBGKAGamul6ff21IvBRKz2prJPECQWaKKHdd0AjHy0N4HDasyMJuxEMW7xK
+    # - SpeedTest Tracker:
+    #     icon: speedtest-tracker.png
+    #     server: local
+    #     container: speedtest-tracker
+    #     href: http://192.168.3.101:8778
+    #     widget:
+    #       type: speedtest
+    #       version: 2
+    #       url: http://192.168.3.101:8778
+    #       key: kuDlHzAvzJS0ogD3yv2Jw4mLbRw9GeWMevGr3b9x4c751498
+    - Prometheus Server:
         icon: prometheus.png
         server: local
         container: prometheus
@@ -506,7 +528,7 @@
         widget:
           type: prometheus
           url: http://192.168.3.101:9092
-    - Temperature:
+    - Prometheus Metrics:
         icon: prometheus.png
         widget:
           type: prometheusmetric
@@ -515,10 +537,19 @@
           metrics:
             - label: node-01
               query: round(ohm_cpu_celsius{sensor="CPU Package"})
+              format:
+                type: number
+                suffix: " °C"
             - label: node-02
               query: round(node_hwmon_temp_celsius{sensor="temp0",instance="192.168.3.105:9100"})
+              format:
+                type: number
+                suffix: " °C"
             - label: node-03
               query: round(node_hwmon_temp_celsius{sensor="temp0",instance="192.168.3.106:9100"})
+              format:
+                type: number
+                suffix: " °C"
     - Grafana:
         icon: grafana.png
         server: local

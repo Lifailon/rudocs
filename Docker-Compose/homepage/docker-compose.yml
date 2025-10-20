@@ -16,7 +16,20 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.homepage.rule=Host(`home.docker.local`)
-      - traefik.http.routers.homepage.middlewares=auth
-      # htpasswd -nbB admin admin
-      - traefik.http.middlewares.auth.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW
-      - traefik.http.services.homepage.loadbalancer.server.port=3000
+      - traefik.http.routers.homepage.middlewares=authentik@file
+
+  glances:
+    image: nicolargo/glances:latest-full
+    container_name: glances
+    restart: unless-stopped
+    pid: host
+    # stdin_open: true
+    # tty: true
+    # network_mode: host
+    environment:
+      - GLANCES_OPT=-w
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro
+    ports:
+      - 61208-61209:61208-61209

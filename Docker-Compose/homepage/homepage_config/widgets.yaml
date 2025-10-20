@@ -3,7 +3,6 @@
     memory: true
     disk:
       - /
-      # - /mnt/backup
     cputemp: true
     units: metric
     tempmin: 0
@@ -26,8 +25,21 @@
       memory: true
       showLabel: true
 
+# - glances:
+#     url: http://192.168.3.101:61208
+#     username: admin
+#     password: admin
+#     version: 4
+#     cpu: true
+#     mem: true
+#     cputemp: true
+#     uptime: true
+#     disk: /
+#     diskUnits: bytes
+#     expanded: true
+#     label: node-01
+
 # - search:
-#     # provider: google
 #     provider: custom
 #     url: https://yandex.ru/search/?text=
 
