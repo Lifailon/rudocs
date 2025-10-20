@@ -68,11 +68,11 @@ services:
   #   environment:
   #     - PORT=8000
   #     - SECRET=AdminSecret # for registration
-  #   ports:
-  #     - 8000:8000
   #   volumes:
   #     - ./dweebui:/app/config
   #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - 8000:8000
 
   # Web interface for docker containers (defining traefik tags and image updates, without control)
   # dockpeek:
@@ -83,10 +83,10 @@ services:
   #     - SECRET_KEY=AdminSecret
   #     - USERNAME=admin
   #     - PASSWORD=admin
-  #   ports:
-  #     - 3420:8000
   #   volumes:
   #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - 3420:8000
 
 ################################################### Images ###################################################
 
@@ -95,6 +95,7 @@ services:
     image: containrrr/watchtower
     container_name: watchtower
     restart: unless-stopped
+    command: --interval 600 --http-api-metrics # --http-api-update
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -102,7 +103,6 @@ services:
       - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
       - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
       - WATCHTOWER_HTTP_API_TOKEN=demotoken
-    command: --interval 600 --http-api-metrics # --http-api-update
     ports:
       - 8088:8080 # api
 
@@ -111,6 +111,7 @@ services:
     image: crazymax/diun:latest
     container_name: diun
     restart: unless-stopped
+    command: serve
     volumes:
       - ./diun_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -129,7 +130,6 @@ services:
       - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
     labels:
       - diun.enable=true
-    command: serve
     healthcheck:
       test: ["CMD", "diun", "notif", "test"]
       interval: 24h
@@ -182,12 +182,12 @@ services:
   #   image: alpine
   #   container_name: dozzle-syslog
   #   restart: unless-stopped
-  #   volumes:
-  #     - /var/log/syslog:/var/log/custom.log
   #   command:
   #     - tail
   #     - -f
   #     - /var/log/custom.log
+  #   volumes:
+  #     - /var/log/syslog:/var/log/custom.log
 
   # Container for monitoring files from /var/log on host
   dozzle-varlog:
