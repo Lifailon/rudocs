@@ -78,6 +78,29 @@ services:
   #       - ./kopia_backup:/repository
   #       - /home/lifailon/docker:/data:ro
 
+  # WebUI for Restic
+  # backrest:
+  #   image: garethgeorge/backrest:latest
+  #   container_name: backrest
+  #   restart: unless-stopped
+  #   hostname: backrest
+  #   volumes:
+  #     - ./backrest/data:/data
+  #     - ./backrest/config:/config
+  #     - ./backrest/cache:/cache
+  #     - ./backrest/tmp:/tmp
+  #     - ./backrest/rclone:/root/.config/rclone  # Mount for rclone config (needed when using rclone remotes)
+  #     - /path/to/backup/data:/userdata          # Mount local paths to backup
+  #     - /path/to/local/repos:/repos             # Mount local repos (optional for remote storage)
+  #   environment:
+  #     - BACKREST_DATA=/data
+  #     - BACKREST_CONFIG=/config/config.json
+  #     - XDG_CACHE_HOME=/cache
+  #     - TMPDIR=/tmp
+  #     - TZ=Etc/UTC+3
+  #   ports:
+  #     - 9898:9898
+
   # File Synchronization
   file-syncthing:
     image: syncthing/syncthing
