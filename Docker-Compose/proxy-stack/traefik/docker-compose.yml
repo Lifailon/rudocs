@@ -6,14 +6,20 @@ services:
     # Используем режим хоста для доступа к сети всех контейнеров 
     network_mode: host
     # ports:
-    #   - 8080:8080   # web ui
-    #   - 80:80       # http proxy
-    #   - 443:443     # https proxy
-    #   - 4318:4318   # prometheus metrics
+    #   - 8080:8080   # Web UI
+    #   - 80:80       # HTTP Proxy
+    #   - 443:443     # HTTPS Proxy
+    #   - 4318:4318   # Prometheus Metrics
     volumes:
       - ./traefik.yml:/etc/traefik/traefik.yml
       - ./rules:/rules
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: wget -qO- http://127.0.0.1:8080/ping
+      start_period: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 5
     labels:
       # Включаем маршрутизацию и определяем имя хоста
       - traefik.enable=true
@@ -32,6 +38,14 @@ services:
       # - traefik.http.routers.traefik.middlewares=authentik@docker
       # Включаем авторизацию через Authentik из провайдера file
       # - traefik.http.routers.traefik.middlewares=authentik@file
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: jaeger
+    restart: always
+    ports:
+      - 16686:16686 # UI
+      - 4317:4317   # Collector
 
   tech-dns-srv:
     image: technitium/dns-server:latest

@@ -16,28 +16,43 @@ entryPoints:
   metrics:
     address: ":4318"
 
+# Dashboard
 api:
   dashboard: true
   insecure: true
 
+# Healthcheck
+ping:
+  terminatingStatusCode: 204
+
+# Jaeger
+tracing:
+  serviceName: traefik
+  otlp:
+    grpc:
+      endpoint: 192.168.3.101:4317
+      insecure: true
+
+# Prometheus
 metrics:
   prometheus:
     entryPoint: metrics
     addRoutersLabels: true
     addServicesLabels: true
 
-log:
-  # level: "DEBUG"
-  level: "INFO"
-
 accessLog:
   format: "common"
   filters:
+    minDuration: "1ms"
     statusCodes:
       - "200-299"
       - "300-399"
       - "400-499"
       - "500-599"
+
+log:
+  format: "common"  # common or json
+  level: "INFO"     # DEBUG, INFO, WARN, ERROR, FATAL and PANIC
 
 providers:
   docker:
