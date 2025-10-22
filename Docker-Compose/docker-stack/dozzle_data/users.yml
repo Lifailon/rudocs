@@ -1,7 +1,10 @@
-# Получить пароль в формате sha-256
+# Сгенерировать пароль:
 # echo -n DozzleAdmin | shasum -a 256
+# Сгенерировать пользователя:
+# docker run -it --rm amir20/dozzle generate --name admin --email admin@admin.com --password admin admin1
 
 users:
   admin:
+    email: admin@admin.com
     name: "admin"
     password: "a800c3ee4dac5102ed13ba673589077cf0a87a7ddaff59882bb3c08f275a516e"

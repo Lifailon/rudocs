@@ -157,8 +157,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./dozzle_data:/data
     environment:
+      # Отключить сбор и отправку аналитики
+      - DOZZLE_NO_ANALYTICS=true
+      # Включить действия (start/stop/restart)
+      - DOZZLE_ENABLE_ACTIONS=true
+      # Добавить возможность подключения к работающим контейнерам
+      - DOZZLE_ENABLE_SHELL=true
+      # Включить базовую авторизацию из файла /data/users.yml
       - DOZZLE_AUTH_PROVIDER=simple
-      # Подключиться к удаленному хосту через Docker API (tcp socket)
+      # Подключиться к удаленному хосту через Docker Socket API
       # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
       # Подключиться к удаленному хосту через Dozzle Agent
       # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
