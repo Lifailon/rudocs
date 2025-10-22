@@ -11,19 +11,22 @@ spec:
     targetRevision: master
     helm:
       # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
-      values: |
+      valueFiles:
+        - values.yaml
+      values: |-
         service:
           type: LoadBalancer
           annotations:
             metallb.universe.tf/address-pool: "default-pool"
-        ports:
-          traefik:
-            port: 8080
-            exposedPort: 8001
-          web:
-            port: 8000
-          websecure:
-            port: 8443
+      parameters:
+        - name: ingressRoute.dashboard.enabled
+          value: 'true'
+        - name: ports.traefik.port
+          value: '8080'
+        - name: ports.traefik.exposedPort
+          value: '8888'
+        - name: ports.traefik.hostPort
+          value: '30005'
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
