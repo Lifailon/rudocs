@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+metadata:
+  name: traefik-kustomization
+
+resources:
+- cluster-role-binding.yaml
+- cluster-role.yaml
+- service-account.yaml
+- deployment.yaml
+- ingress-class.yaml
+- ingress-route.yaml
+- service.yaml

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  namespace: default
+  annotations:
+    metallb.universe.tf/address-pool: "default-pool"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.200"
+spec:
+  type: LoadBalancer
+  selector:
+    app: traefik
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: websecure
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  - name: admin
+    port: 8888
+    protocol: TCP
+    targetPort: 8080

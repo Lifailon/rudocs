@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: traefik
+  name: traefik
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      containers:
+        - name: traefik
+          image: traefik:v3.5.3
+          args:
+            - --api.dashboard=true
+            - --api.insecure=true
+            - --entrypoints.web.address=:80
+            - --entrypoints.websecure.address=:443
+            - --providers.kubernetescrd=true
+            - --providers.kubernetesingress=true
+            - --providers.kubernetesingress.ingressclass=traefik
+            - --metrics.prometheus=true
+            - --metrics.prometheus.entryPoint=traefik
+            - --metrics.prometheus.addEntryPointsLabels=true
+            - --metrics.prometheus.addServicesLabels=true
+          ports:
+            - name: web
+              containerPort: 80
+              # hostPort: 80
+            - name: websecure
+              containerPort: 443
+              # hostPort: 8443
+            - name: admin
+              containerPort: 8080
+              hostPort: 8888
+          livenessProbe:
+            httpGet:
+              path: /dashboard/
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /dashboard/
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
