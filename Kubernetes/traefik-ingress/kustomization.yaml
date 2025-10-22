@@ -13,3 +13,4 @@ resources:
 - ingress-class.yaml
 - ingress-route.yaml
 - service.yaml
+- auth.yaml
