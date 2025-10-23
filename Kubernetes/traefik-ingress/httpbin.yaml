@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin
+  template:
+    metadata:
+      labels:
+        app: httpbin
+    spec:
+      containers:
+      - name: httpbin
+        image: mccutchen/go-httpbin:2.18
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /status/200
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /status/200
+            port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+spec:
+  selector:
+    app: httpbin
+  ports:
+  - name: web
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+---
+# apiVersion: traefik.io/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: httpbin
+# spec:
+#   entryPoints:
+#   - web
+#   routes:
+#   - match: Host(`httpbin.k8s.local`)
+#     kind: Rule
+#     services:
+#     - name: httpbin
+#       port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: httpbin
+  namespace: default
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: httpbin.k8s.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: httpbin
+            port:
+              number: 80
