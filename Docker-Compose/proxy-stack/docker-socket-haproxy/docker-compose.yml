@@ -1,6 +1,5 @@
 services:
   docker-socket-haproxy:
-    # image: lscr.io/linuxserver/socket-proxy:latest
     image: lifailon/docker-socket-haproxy:latest
     build:
       context: .
@@ -8,37 +7,38 @@ services:
     container_name: docker-socket-haproxy
     restart: unless-stopped
     environment:
-      - INFO=1
-      - CONTAINERS=1
-      - IMAGES=1
-      - PING=1
-      - POST=1
-      - VERSION=1
-      # Required for container updates
-      - ALLOW_RESTARTS=1
-      - ALLOW_START=1
-      - ALLOW_STOP=1
-      - NETWORKS=1
-      # Optionals (default values)
-      - LOG_LEVEL=info
-      - SOCKET_PATH=/var/run/docker.sock
-      - AUTH=0
-      - BUILD=0
-      - COMMIT=0
-      - CONFIGS=0
-      - DISTRIBUTION=0
-      - EVENTS=1
-      - EXEC=0
-      - GRPC=0
-      - NODES=0
-      - PLUGINS=0
-      - SECRETS=0
-      - SERVICES=0
-      - SESSION=0
-      - SWARM=0
-      - SYSTEM=0
-      - TASKS=0
-      - VOLUMES=0
+      - SOCKET_PATH=/var/run/docker.sock # Path to the Docker socket inside the container
+      - LOG_LEVEL=info      # HAProxy proxy logging level (debug|info|warn|error)
+      # Enabled by default
+      - INFO=1              # /info — general information about the Docker daemon, version, plugins, limits
+      - PING=1              # /_ping — check for Docker API availability
+      - VERSION=1           # /version — get the API version and server information
+      # Disabled by default
+      - POST=0              # HTTP POST requests (e.g., to create containers)
+      - GRPC=0              # /grpc — Docker gRPC interface (experimental)
+      - EXEC=0              # /exec — running commands inside containers
+      - ALLOW_RESTARTS=0    # /containers/.../(restart|kill) — restart or stop the container
+      - ALLOW_START=0       # /containers/.../start — start stopped containers
+      - ALLOW_STOP=0        # /containers/.../stop — stop running containers
+      - AUTH=0              # /auth — responsible for logging in Registry via the Docker API
+      - CONTAINERS=0        # /containers — list of containers, their creation, deletion, inspection, etc.
+      - IMAGES=0            # /images — viewing, downloading, and deleting Docker images
+      - NETWORKS=0          # /networks — viewing, creating, and deleting Docker networks
+      - BUILD=0             # /build — building images via the API
+      - COMMIT=0            # /commit — creating an image from a container (docker commit)
+      - DISTRIBUTION=0      # /distribution — accessing the registry API (e.g., image metadata)
+      - EVENTS=1            # /events — Docker event stream (creating, starting, deleting containers)
+      - PLUGINS=0           # /plugins — managing Docker plugins
+      - VOLUMES=0           # /volumes — managing Docker volumes (creating, deleting, (view)
+      - SESSION=0           # /session — terminal sessions and interactive APIs
+      # Swarm
+      - SWARM=0             # /swarm — Swarm cluster settings and status
+      - NODES=0             # /nodes — information about nodes in the Swarm
+      - CONFIGS=0           # /configs — used in Swarm for configurations
+      - SECRETS=0           # /secrets — Docker Swarm secrets
+      - SERVICES=0          # /services — Docker Swarm service management
+      - SYSTEM=0            # /system — general Docker system information (resources, usage)
+      - TASKS=0             # /tasks — Swarm tasks (containers within services)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
