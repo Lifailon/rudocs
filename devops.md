@@ -33,6 +33,7 @@
   - [Diff](#diff)
   - [Docker Socket API](#docker-socket-api)
   - [Docker TCP API](#docker-tcp-api)
+  - [Docker Socket Proxy](#docker-socket-proxy)
   - [Context](#context)
   - [dcm](#dcm)
   - [ctop](#ctop)
@@ -44,7 +45,9 @@
 - [Dockerfile](#dockerfile)
 - [Docker Compose](#docker-compose)
   - [Uptime-Kuma](#uptime-kuma)
+  - [Dockge](#dockge)
   - [Dozzle](#dozzle)
+  - [Beszel](#beszel)
   - [Watchtower](#watchtower)
   - [Portainer](#portainer)
 - [Docker.DotNet](#dockerdotnet)
@@ -228,7 +231,7 @@ Environment="HTTPS_PROXY=http://docker:password@192.168.3.100:9090"
 
 ### Nexus
 
-Разрешает небезопасные HTTP-соединения с Nexus сервером (если не использует HTTPS):
+небезопасные HTTP-соединения с Nexus сервером (если не использует HTTPS):
 ```bash
 echo -e '{\n  "insecure-registries": ["http://192.168.3.105:8882"]\n}' | sudo tee "/etc/docker/daemon.json"
 sudo systemctl restart docker
@@ -460,6 +463,53 @@ systemctl restart docker
 ```
 `curl http://192.168.3.102:9323/metrics`
 
+### Docker Socket Proxy
+
+Проксирование локального сокета Docker на базе HAProxy (не требуется внесение изменений в системные файлы, такие как `daemon.json` и `docker.service`) с контролем доступа к конечным точкам с использованием переменных среды.
+```yaml
+services:
+  docker-socket-haproxy:
+    image: lifailon/docker-socket-haproxy:latest
+    container_name: docker-socket-haproxy
+    restart: unless-stopped
+    ports:
+      - 2375:2375
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - SOCKET_PATH=/var/run/docker.sock  # Путь к Docker сокету внутри контейнера
+      - LOG_LEVEL=info      # Уровень логирования HAProxy-прокси (debug|info|warn|error)
+      # Включено по умолчанию
+      - INFO=1              # /info — общая информация о Docker демоне, версия, плагины, лимиты
+      - PING=1              # /_ping — проверку доступности Docker API
+      - VERSION=1           # /version — получение версии API и информации о сервере
+      # Отключено по умолчанию
+      - POST=0              # HTTP POST-запросы (например, для создания контейнеров)
+      - GRPC=0              # /grpc — gRPC интерфейс Docker (экспериментальный)
+      - EXEC=0              # /exec — запуск команд внутри контейнеров
+      - ALLOW_RESTARTS=0    # /containers/.../(restart|kill) — перезапуск или остановку контейнера
+      - ALLOW_START=0       # /containers/.../start — запуск остановленных контейнеров
+      - ALLOW_STOP=0        # /containers/.../stop — остановку запущенных контейнеров
+      - AUTH=0              # /auth — отвечает за логин к registry через Docker API
+      - CONTAINERS=0        # /containers — список контейнеров, их создание, удаление, inspect и т.п.
+      - IMAGES=0            # /images — просмотр, загрузка и удаление Docker-образов
+      - NETWORKS=0          # /networks — просмотр, создание и удаление сетей Docker
+      - BUILD=0             # /build — сборка образов через API
+      - COMMIT=0            # /commit — создание образа из контейнера (docker commit)
+      - DISTRIBUTION=0      # /distribution — доступ к registry API (например, метаданные образов)
+      - EVENTS=1            # /events — поток событий Docker (создание, запуск, удаление контейнеров)
+      - PLUGINS=0           # /plugins — управление Docker плагинами
+      - VOLUMES=0           # /volumes — управление Docker томами (создание, удаление, просмотр)
+      - SESSION=0           # /session — сессии терминалов и интерактивные API
+      # Swarm
+      - SWARM=0             # /swarm — настройки и статус Swarm кластера
+      - NODES=0             # /nodes — информация о нодах в Swarm
+      - CONFIGS=0           # /configs — используется в Swarm для конфигураций
+      - SECRETS=0           # /secrets — секреты Docker Swarm
+      - SERVICES=0          # /services — управление сервисами Docker Swarm
+      - SYSTEM=0            # /system — общая системная информация Docker (ресурсы, usage)
+      - TASKS=0             # /tasks — задачи Swarm (контейнеры внутри сервисов)
+```
 ### Context
 
 `docker context create rpi-106 --docker "host=tcp://192.168.3.106:2375"` добавить подключение к удаленному хосту через протокол `TCP` \
@@ -772,13 +822,39 @@ TOKEN=$(curl -sS -X POST http://192.168.3.101:8082/login/access-token --data "us
 curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://192.168.3.101:8082/monitors | jq .
 curl -s -X GET -H "Authorization: Bearer ${TOKEN}" http://192.168.3.101:8082/monitors/1 | jq '.monitor | "\(.name) - \(.active)"'
 ```
+### Dockge
+
+[Dockge](https://github.com/louislam/dockge) - веб интерфейс для управления стеками Docker Compose от создателя Uptime Kuma.
+```yaml
+services:
+  dockge:
+    image: louislam/dockge:1
+    container_name: dockge
+    restart: always
+    volumes:
+      - ./dockge_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker stacks directory on host:container
+      - /home/lifailon/docker:/home/lifailon/docker
+    # Enable routing for traffic
+    # labels:
+    #   - traefik.enable=true
+    environment:
+      # Enable routing for docker-gen
+      # - VIRTUAL_HOST=dockge.local
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      # Доступ к консоли dockge
+      - DOCKGE_ENABLE_CONSOLE=true
+    ports:
+      - 5001:5001
+```
 ### Dozzle
 
 Dozzle (https://github.com/amir20/dozzle) - легковесное приложение с веб-интерфейсом для мониторинга журналов Docker (без хранения).
 
 `mkdir dozzle && cd dozzle && mkdir dozzle_data`
 
-`echo -n DozzleAdmin | shasum -a 256` получить пароль в формате sha-256 и передать в конфигурацию
+`echo -n DozzleAdmin | shasum -a 256` сгенерировать пароль в формате sha-256 и передать в конфигурацию
 
 `nano ./dozzle_data/users.yml`
 ```yaml
@@ -786,6 +862,10 @@ users:
   admin:
     name: "admin"
     password: "a800c3ee4dac5102ed13ba673589077cf0a87a7ddaff59882bb3c08f275a516e"
+```
+Или сгенерировать пользователя в формате `yaml` конфигурации:
+```
+docker run -it --rm amir20/dozzle generate --name admin --email admin@admin.com --password admin admin1
 ```
 Запускаем контейнер:
 ```yaml
@@ -795,15 +875,21 @@ services:
     container_name: dozzle
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./dozzle_data:/data
     environment:
-      - VIRTUAL_HOST=dozzle.local
+      # Отключить сбор и отправку аналитики
+      - DOZZLE_NO_ANALYTICS=true
+      # Включить действия (start/stop/restart)
+      - DOZZLE_ENABLE_ACTIONS=true
+      # Добавить возможность подключения к работающим контейнерам
+      - DOZZLE_ENABLE_SHELL=true
+      # Включить базовую авторизацию из файла /data/users.yml
       - DOZZLE_AUTH_PROVIDER=simple
-      # Подключиться к удаленному хосту через Docker API (tcp socket)
+      # Подключиться к удаленному хосту через Docker Socket API
       # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
       # Подключиться к удаленному хосту через Dozzle Agent
-      # - DOZZLE_REMOTE_AGENT=192.168.3.106:7007
+      # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
     ports:
       - 9090:8080
 
@@ -849,6 +935,42 @@ services:
       start_interval: 5s
     ports:
       - 7007:7007
+```
+### Beszel
+
+[Beszel](https://github.com/henrygd/beszel) - веб-интерфейс (как Grafana) для мониторинга хостов и контейнеров (как node_exporter и cAdvisor вместе), backend на базе [Pocket Base](https://github.com/pocketbase/pocketbase) для хранения данных, также поддерживает оповещения в Telegram и другие мессенджеры через вебхук [shoutrrr](https://github.com/containrrr/shoutrrr) (от создателя Watchtower).
+```yaml
+services:
+  # Сервер (веб-интерфейс и бэкенд)
+  beszel-server:
+    image: henrygd/beszel:latest
+    container_name: beszel-server
+    restart: unless-stopped
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./beszel_server_data:/beszel_data
+    ports:
+      - 8090:8090
+
+  # Агент
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./beszel_agent_data:/var/lib/beszel-agent
+      # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
+    environment:
+      # HUB_URL: http://localhost:8090
+      # LISTEN: /beszel_socket/beszel.sock
+      LISTEN: 45876
+      # TOKEN: <token>
+      KEY: "Копируем публичный ключ из интерфейса и перезапускаем docker compose"
+    # ports:
+    #   - 45876:45876
 ```
 ### Watchtower
 
@@ -899,19 +1021,45 @@ docker run -d --name kinozal-bot \
   kinozal-bot
 ```
 ### Portainer
+```yaml
+services:
+  agent:
+    image: portainer/agent:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
 
-`curl -L https://downloads.portainer.io/portainer-agent-stack.yml -o portainer-agent-stack.yml` скачать yaml файл \
-`version_update=$(cat portainer-agent-stack.yml | sed "s/2.11.1/latest/g")` \
-`printf "%s\n" "$version_update" > portainer-agent-stack.yml` обновить версию в yaml файле на последнюю доступную в Docker Hub (2.19.5) \
-`docker stack deploy -c portainer-agent-stack.yml portainer` развернуть в кластере swarm (на каждом node будет установлен агент, который будет собирать данные, а на manager будет установлен сервер с web панелью) \
+  portainer:
+    image: portainer/portainer-ce:latest
+    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    ports:
+      - 9443:9443
+      - 9000:9000
+      - 8000:8000
+    volumes:
+      - ./portainer_data:/data
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+```
+`docker stack deploy -c portainer-agent-stack.yml portainer` развернуть в кластере swarm (на каждом node будет установлен агент, который будет собирать данные, а на manager будет установлен сервер с web панелью)
+
 https://192.168.3.101:9443
 
-`docker run -d --name portainer_agent -p 9001:9001 --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker/volumes:/var/lib/docker/volumes portainer/agent:2.19.5` установить агент на удаленный хост \
+`docker run -d --name portainer_agent -p 9001:9001 --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/docker/volumes:/var/lib/docker/volumes portainer/agent:latest` установить агент на удаленный хост
+
 https://192.168.3.101:9443/#!/endpoints добавить удаленный хост по URL 192.168.3.102:9001
 
 `docker volume create portainer_data` создать volume для установки локального контейнера (не в кластер swarm) \
 `docker create -it --name=portainer -p 9000:9000 --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer` создать локальный контейнер \
-`docker start portainer` \
+`docker start portainer`
+
 http://192.168.3.101:9000
 
 ## Docker.DotNet
