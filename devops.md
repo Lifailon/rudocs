@@ -117,6 +117,7 @@
 - [Graylog](#graylog)
 - [HAProxy](#haproxy)
 - [Keepalive](#keepalive)
+- [GlusterFS](#glusterfs)
 
 ---
 
@@ -4437,3 +4438,53 @@ vrrp_instance web {
 `journalctl -u keepalived` \
 `cat /var/log/messages | grep -i keepalived` \
 `tail /var/run/keepalived.INSTANCE.web.state`
+
+## GlusterFS
+```bash
+# Определить имена хостов для всех нод
+echo '
+192.168.3.101  hv-us-101
+192.168.3.105  rpi-105
+192.168.3.106  rpi-106
+' >> /etc/hosts
+
+# Установить сервер на все ноды
+add-apt-repository ppa:gluster/glusterfs-11
+apt update
+apt install glusterfs-server -y
+systemctl start glusterd
+systemctl enable glusterd
+systemctl status glusterd
+
+# Подключить (peer detach для отключения) все узлы к пулу Trusted Server Pool (TSP)
+gluster peer probe rpi-105
+gluster peer probe rpi-106
+gluster peer status
+gluster pool list
+
+# Создать директорию хранения на всех нодах
+mkdir /gluster
+
+# Создать том в пуле и запустить его
+gluster volume create docker-fs replica 3 hv-us-01:/gluster rpi-105:/gluster rpi-106:/gluster force
+gluster volume start docker-fs
+gluster volume status docker-fs
+gluster volume info docker-fs
+gluster volume list
+
+echo 'localhost:/docker-fs /mnt glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0' >> /etc/fstab
+mount localhost:/docker-fs /mnt
+df -h
+
+# Монтирование с помощью клиента
+apt install -y glusterfs-client
+mount -t glusterfs server1:/gv0 /mnt/gluster-volume
+
+# Включение модуля NFS для удаленного монтирования
+gluster volume set docker-fs nfs.disable off
+mount -t nfs hv-us-101:/docker-fs /mnt/gluster-nfs
+
+# Включить CIFS/SMB протокол
+gluster volume set docker-fs storage.brick-multiplex off
+gluster volume set docker-fs server.allow-insecure on
+```
