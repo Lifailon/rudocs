@@ -25,6 +25,10 @@
   - [Stats](#stats)
   - [Logs](#logs)
   - [Volume](#volume)
+    - [tmpfs](#tmpfs)
+    - [nfs](#nfs)
+    - [cifs](#cifs)
+    - [mount](#mount)
   - [Network](#network)
   - [Inspect](#inspect)
   - [Exec](#exec)
@@ -60,6 +64,8 @@
   - [Headlamp](#headlamp)
   - [k9s](#k9s)
   - [kubectl](#kubectl)
+  - [JSONPath](#jsonpath)
+  - [Go Template](#go-template)
   - [Deployment and Service](#deployment-and-service)
   - [Proxy and forward](#proxy-and-forward)
   - [HPA](#hpa)
@@ -292,7 +298,7 @@ alias docker-all-restart='docker ps -aq | xargs -P 4 -I {} docker restart {}' # 
 
 ### Logs
 
-`docker logs uptime-kuma --tail 100` показать логи конкретного запущенного контейнера в терминале (последние 100 строк) \
+`docker logs uptime-kuma --tail 100` отобразить логи конкретного запущенного контейнера в терминале (последние 100 строк) \
 `docker system events` предоставляют события от демона dockerd в реальном времени \
 `journalctl -xeu docker.service` \
 `docker system df` отобразить сводную информацию занятого пространства образами и контейнерами \
@@ -341,29 +347,48 @@ logging:
 `docker volume rm test` удалить том \
 `docker run -d --restart=always --name uptime-kuma -p 8080:3001 -v uptime-kuma:/app/data louislam/uptime-kuma:1` создать и запустить контейнер на указанном томе (том создается автоматически, в дальнейшем его можно указывать при создании контейнера, если необходимо загружать из него сохраненные данные)
 
+#### tmpfs
+
 Временная файловая система для хранения данных в оперативной памяти (исчезают после остановки контейнера):
 ```yaml
 volumes:
   ram_disk:
     driver_opts:
-      type: "tmpfs"
-      device: "tmpfs"
+      type: tmpfs
+      device: tmpfs
       o: "size=512m,uid=1000"
 ```
+#### nfs
+
 Монтирование `NFS` (без необходимости предварительного монтирования на хосте) через драйвер `opts`:
 ```yaml
 volumes:
   nfs_volume:
     driver_opts:
-      type: "nfs"
+      type: nfs
       o: "addr=192.168.3.106,nolock,soft,nfsvers=4"
       device: ":/backup" # путь к NFS-шаре на сервере
 ```
-Монтирование `SMB` каталога:
+#### cifs
+```yaml
+services:
+  app:
+    image: nginx
+    volumes:
+      - smb_volume/app_data:/data
+volumes:
+  smb_volume:
+    driver_opts:
+      type: cifs
+      o: username=guest,password=,uid=1000,gid=1000
+      device: //192.168.3.100/docker-data
+```
+#### mount
 
-`sudo apt install cifs smbclient -y` \
-`smbclient //192.168.3.100/backup -U guest%` првоерить гостевой доступ \
+`sudo apt install cifs-utils smbclient -y` \
+`smbclient //192.168.3.100/backup -U guest%` проверить гостевой доступ \
 `sudo mkdir /mnt/smb_backup && sudo chown -R 1000:1000 /mnt/smb_backup` создать директорию для монтирования \
+`mount -t cifs //192.168.3.100/backup /mnt/smb_backup -o user=guest` примонтировать (до перезагрузки) \
 `echo "//192.168.3.100/backup /mnt/smb_backup cifs username=guest,password=,uid=1000,gid=1000,rw,vers=3.0 0 0" | sudo tee -a /etc/fstab` \
 `mount -a && systemctl daemon-reload && df -h` примонтировать (применить все записи из fstab)
 ```yaml
@@ -383,7 +408,7 @@ volumes:
 ### Inspect
 
 `docker inspect uptime-kuma` подробная информация о контейнере (например, конфигурация NetworkSettings) \
-`docker inspect uptime-kuma --format='{{.LogPath}}'` показать, где хранятся логи для конкретного контейнера в локальной системе \
+`docker inspect uptime-kuma --format='{{.LogPath}}'` отобразить, где хранятся логи для конкретного контейнера в локальной системе \
 `docker inspect uptime-kuma | grep LogPath` \
 `docker inspect $(docker ps -q) --format='{{.NetworkSettings.Ports}}'` отобразить TCP порты всех запущенных контейнеров \
 `docker inspect $(docker ps -q) --format='{{.NetworkSettings.Ports}}' | grep -Po "[0-9]+(?=}])"` отобразить порты хоста (внешние) \
@@ -1308,52 +1333,85 @@ kubectl create token headlamp-admin -n kube-system --duration=43800h # выпу�
 
 ### kubectl
 
-`kubectl get nodes` отобразить список `node` и их статус работы, роль (`master` или `node`), время запуска и версию
+`echo "source <(kubectl completion bash)" >> ~/.bashrc` включить автодополнение для kubectl в bash \
+`echo "alias k=kubectl && complete -F __start_kubectl k" >> ~/.bashrc` добавить псевдоним `k` для команды kubectl \
+`kubectl completion fish | source` автодополнение в [fish shell](https://github.com/fish-shell/fish-shell)
 
-`kubectl get namespaces` вывести список все доступных пространств имен (`namespace`)
 `kubectl config view` отобразить текущую конфигурацию (настройка подключения kubectl к Kubernetes, которое взаимодействует с приложением через конечные точки `REST API`) \
-`kubectl config set-context --current --namespace=kubernetes-dashboard` сменить context в конфигурации
+`KUBECONFIG=~/.kube/config:~/.kube/config2` использовать несколько файлов kubeconfig одновременно и посмотреть объединённую конфигурацию из этих файлов
 
-`kubectl create deployment torapi --image=torapi --replicas=3 --dry-run=client -o yaml` генерация манифеста `deployment.yaml` \
-`kubectl create service loadbalancer torapi --tcp=8444:8443 --dry-run=client -o yaml` генерация манифеста `service.yaml` (`<port>:<targetPort>`)
+`kubectl config get-contexts` отобразить список контекстов \
+`kubectl config current-context` отобразить текущий контекст \
+`kubectl config use-context default` установить контекст `default` как контекст по умолчанию
+
+`kubectl cluster-info`отобразить адреса главного узла и сервисов \
+`kubectl cluster-info dump` вывести состояние текущего кластера \
+`kubectl cluster-info dump --output-directory=./cluster-state` выгрузить состояние текущего кластера в директорию `cluster-state` (информация для отладки)
+
+`kubectl api-resources` отобразить все поддерживаемые типы ресурсов
+
+`kubectl get events --sort-by=.metadata.creationTimestamp` вывести все логи, отсортированные по времени
+
+`kubectl get nodes` отобразить список `node` и их статус работы, роль (`master` или `node`), время запуска и версию \
+`kubectl get node --selector='!node-role.kubernetes.io/master'` отобразить все рабочие узлы (с помощью селектора исключаем узлы с меткой `master`) \
+`kubectl describe nodes rpi-105` отобразить детальную информацию по конкретной ноде (labels, annotations, системная информация, запущенные поды и используемые ими и суммарно нодой ресурсы, а также логи - events) \
+`kubectl top nodes` отобразить метрики всех нод
+
+`kubectl get namespaces` вывести список все доступных пространств имен
+
+`kubectl get jobs -A` проверить статус выполнения заданий во всех namespace
+
+`kubectl get pv --sort-by=.spec.capacity.storage` вывести список `PersistentVolumes` (физический или логический том, например, NFS или локальное хранилища на конкретной ноде), отсортированные по емкости \
+`kubectl get pvc -A` отобразить все `PersistentVolumeClaim` (запрос PV для использования в контейнерах для хранения данных) во всех неймспейсах
+
+`kubectl create deployment torapi --image=lifailon/torapi:latest --replicas=3 --dry-run=client -o yaml` генерация манифеста `deployment.yaml` \
+`kubectl create service loadbalancer torapi --tcp=8444:8443 --dry-run=client -o yaml` генерация манифеста `service.yaml` в режиме балансировки нагрузки (`port:targetPort (порт контейнера)`)
+
+`kubectl diff -f ./deployment.yaml` сравнить текущее состояние кластера с состоянием, в котором находился бы кластер в случае применения манифеста
 
 `kubectl get deployments` отобразить статус всех Deployments в указанном namespace (`-n kubernetes-dashboard`), которые в свою очередь управляют Pod-ами (`RADY` - текущее количество желаемых реплик в рабочем состояние, например, 2 из 2 и `UP-TO-DATE` — количество реплик, обновленных до последней версии)
 
-`kubectl get pods` статус всех подов \
-`kubectl get pods -o wide` отобразить количество всех подов и на какой ноде он работает (у каждого пода свой ip-адрес) \
-`kubectl get pods -o json` отобразить подробный вывод в формате `json` \
-`kubectl get pods -o jsonpath='{range .items[*]}{.spec.nodeName}{": "}{.metadata.name}{"\n"}{end}'` фильтрация по `json` как в `jq` \
-`kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}'` получить список имен всех под через шаблон фильтра
+`kubectl get pods` отобразить статус всех подов \
+`kubectl get pods --show-labels` отобразить все заданные `lables` в подах \
+`kubectl get pods --field-selector=status.phase=Running` отобразить все запущенные поды (фильтрация по статусу) \
+`kubectl get pods -o name` отобразить только имена в формате `pod/<podName>`
+`kubectl get pods -o wide` выводит дополнительную информации в текстовом формате (для подов это внутренний ip-адрес и название ноды, на которой он работает) \
+`kubectl get pods -o json` отобразить подробный вывод в формате `json` или `yaml` \
+`kubectl get pods -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName` отобразить нужные поля таблицы вывода в пользовательском формате
+
+`kubectl top pods` отобразить нагрузку на подах \
+`kubectl top pods --containers` отобразить метрики вместе с используемыми в подах контейнерами
+
+`KUBE_EDITOR="nano" kubectl edit deployments.apps/torapi` отредактировать манифест Deployment в редакторе `nano`
+
+`kubectl get rs` состояние реплик (`ReplicaSet`) для всех подов (`DESIRED` - желаемое количество экземпляров-реплик и `CURRENT` - текущее количество реплик) \
+`kubectl scale deployments/torapi --replicas=3` масштабировать или уменьшить количество подов в deployment до указанного числа реплик \
+`kubectl patch deployment/torapi --type=json -p '[{"op":"replace","path":"/spec/replicas","value":3}]'` пропатчить текущую конфигурацию \
+`kubectl events rs/torapi` изменения фиксируется в логах `ReplicaSet` (`Scaled up replica set torapi-54775d94b8 from 2 to 3`) \
+`kubectl describe deployments.apps/torapi` отобразить подробную конфигурацию развертвывания (шаблон и логи) \
+`kubectl autoscale deployment torapi --min=2 --max=10` автоматически масштабировать развёртывание в диапазоне от 2 до 10 подов
 
 `kubectl get services` отобразить список сервисов (их `TYPE`, `CLUSTER-IP`, `EXTERNAL-IP` и `PORT(S)`), которые принимают внешний трафик \
-`kubectl describe services torapi-service` отобразить настройки сервиса для внешнего доступа (ip, тип сервиса и конечные точки) \
 `kubectl get endpoints torapi-service` отобразить на какие адреса (ip и порт) подов перенаправляется трафик сервиса
 
-`kubectl describe pods torapi-54775d94b8-t2dhm` отобразить какие контейнеры находятся внутри пода и на каких нодах запущены \
-`kubectl logs torapi-54775d94b8-t2dhm` отобразить логи выбранного контейнера в поде (сообщения, которые приложение отправляет в `stdout`) \
-`kubectl logs -l app=torapi --follow` выводить лог для всех запущенных репликах подов в реальном времени
+`kubectl delete service torapi-service` удалить service
 
-`kubectl exec torapi-54775d94b8-t2dhm -c torapi -- ls -lha` выполнить команду в указанноv контейнере внутри пода \
-`kubectl exec torapi-54775d94b8-t2dhm -c torapi -- env` отобразить список глобальных переменных в контейнере \
+`kubectl logs torapi-54775d94b8-t2dhm` отобразить логи выбранного пода (сообщения, которые приложение отправляет в `stdout`) \
+`kubectl logs -l app=torapi --follow` выводить лог на всех запущенных репликах подов (фильтрация по `label`) в реальном времени (`--follow`)
+
+`kubectl attach pods/torapi-54775d94b8-t2dhm`
+
+`kubectl exec torapi-54775d94b8-t2dhm -c torapi -- ls -lha` выполнить команду в указанноv контейнере внутри указанного пода \
+`kubectl exec torapi-54775d94b8-t2dhm -c torapi -- env` отобразить список глобальных переменных в контейнере (например определить `$HOME`) \
 `kubectl exec -it torapi-54775d94b8-t2dhm -c torapi -- curl http://localhost:8443/api/provider/list` проверить доступность приложения внутри контейнера \
 `kubectl exec -it torapi-54775d94b8-t2dhm -c torapi -- sh` запустить `sh` или `bash` сессию в контейнере пода
 
-`kubectl get rs` состояние реплик (`ReplicaSet`) для всех deployment (`DESIRED` - желаемое количество экземпляров-реплик и `CURRENT` - текущее количество реплик) \
-`kubectl scale deployments/torapi --replicas=3` масштабировать (или уменьшить) deployment до указанного числа реплик подов \
-`kubectl describe deployments/torapi` изменения фиксируется в конфигурации deployment - Events: `Scaled up replica set torapi-54775d94b8 from 2 to 3`
+`kubectl -n $NS exec $pod -c $container -- sh -c "for i in \$(seq 1 $cpuCount); do yes $procName > /dev/null 2>&1 & done"` запустить нагрузку \
+`kubectl -n $NS exec $pod -c $container -- sh -c "grep $procName /proc/[0-9]*/cmdline | awk -F'/proc/' '{split(\$2,a,\"/\");sum=sum\" \"a[1]}END{print sum}' | xargs kill"` остановить нагрузку \
+`kubectl -n $NS exec $pod -c $container -- sh -c "echo \"Количество процессов нагрузки: \"\$((\$(grep $procName /proc/[0-9]*/cmdline 2>&1 | wc -l)-3))"` получить количество процессов нагрузки (1 yes процесс = 1 vCPU)
 
-`kubectl delete service torapi-service` удалить service \
-`kubectl delete deployment torapi` удалить deployment
-
-`kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1` \
-`kubectl expose deployment/kubernetes-bootcamp --type="NodePort" --port 3088` \
-`kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=docker.io/jocatalin/kubernetes-bootcamp:v2` выполнение плавающего обновления версии образа работающего контейнера \
-`kubectl rollout status deployments/kubernetes-bootcamp` проверить статус обновления \
-`kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=gcr.io/google-samples/kubernetes-bootcamp:v10` выполнить обновление на несуществующую версию \
-`kubectl rollout undo deployments/kubernetes-bootcamp` откатить deployment к последней работающей версии (к предыдущему известному состоянию в образе v2)
-
-`kubectl get configmap` получить все ConfigMap \
-`kubectl describe configmap kube-root-ca.crt` отобразить содержимое ConfigMap (на примере корневого сертифика)
+`kubectl get cm` получить все ConfigMap \
+`kubectl describe cm kube-root-ca.crt` отобразить содержимое ConfigMap (на примере корневого сертифика)
 
 `kubectl create secret generic admin-password --from-literal=username=admin --from-literal=password=pass` создать секрет в формате ключ-значение \
 `kubectl create secret generic api-key --from-file=api-key.txt` создать секрет из содержимого файла \
@@ -1363,8 +1421,65 @@ kubectl create token headlamp-admin -n kube-system --duration=43800h # выпу�
 `kubectl get secret admin-password -o jsonpath="{.data.password}" | base64 --decode` декодировать содержимое секрета \
 `kubectl delete secret admin-password` удалить секрет
 
-`kubectl get jobs -n kube-system` проверить статус выполнения заданий (job)
+`kubectl set image deployments/openrouter-bot openrouter-bot=lifailon/openrouter-bot:0.5.0` выполнить плавающие обновление образа работающих контейнеров (формат: `containerName=imagePath:tag` ) \
+`kubectl rollout status deployments/openrouter-bot` проверить статус обновления \
+`kubectl set image deployments/openrouter-bot openrouter-bot=lifailon/openrouter-bot:0.1.0` выполнить обновление на несуществующую версию \
+`kubectl rollout undo deployments/openrouter-bot` откатить deployment к редыдущему развёртыванию (к предыдущему известному и работающему состоянию) \
+`kubectl rollout history deployment/openrouter-bot` отобразить историю образов \
+`kubectl rollout undo deployments/openrouter-bot --to-revision=1` откатиться к определённой ревизии из истории
 
+`kubectl label pods podName new-label=awesome` добавить метку \
+`kubectl annotate pods podName icon-url=http://goo.gl/XXBTWq` добавить аннотацию
+
+Ключевые уровни детального вывода для отладки в Kubectl:
+
+`--v=3`	Расширенная информация об изменениях \
+`--v=6`	Показать запрашиваемые ресурсы \
+`--v=9`	Показать содержимого HTTP-запроса в полном виде (включая заголовки)
+
+### JSONPath
+
+`kubectl get nodes -o=jsonpath='{.items[*].status.addresses[*].address}'` отобразить ip-адреса всех node \
+`kubectl config view -o jsonpath='{.users[*].name}'` получить список пользователей в конфигурации \
+`kubectl config view -o jsonpath='{.users[?(@.name == "test")].user.password}'` получить пароль для пользователя test
+
+| Функция             | Описание                                        | Пример                                                          | Результат                                       |
+| -                   | -                                               | -                                                               | -                                               |
+| `text`              | обычный текст	                                  | `kind is {.kind}`                                               | kind is List                                    |
+| `@`	                | текущий объект	                                | `{@}`	                                                          | то же, что и ввод                               |
+| `.` или `[]`        | оператор выбора по ключу	                      | `{.kind}, {['kind']}` или `{['name\.type']}`                    | List                                            |
+| `..`	              | рекурсивный спуск	                              | `{..name}`                                                      | 127.0.0.1 127.0.0.2 myself e2e                  |
+| `*`	                | шаблон подстановки для получение всех объектов  | `{.items[*].metadata.name}`                                     | [127.0.0.1 127.0.0.2]                           |
+| `[start:end:step]`  | оператор индексирования                         | `{.users[0].name}`                                              | myself                                          |
+| `[,]`               | оператор объединения                            | `{.items[*]['metadata.name', 'status.capacity']}`               | 127.0.0.1 127.0.0.2 map[cpu:4] map[cpu:8]       |
+| `?()`               | фильтрация                                      | `{.users[?(@.name=="e2e")].user.password}`                      | secret                                          |
+| `range` и `end`     | перебор списка (цикл)                           | `{range .items[*]}[{.metadata.name}, {.status.capacity}] {end}` | [127.0.0.1, map[cpu:4]] [127.0.0.2, map[cpu:8]] |
+| `''`	              | интерпретируемая в кавычках строка              | `{range .items[*]}{.metadata.name}{'\t'}{end}`                  | 127.0.0.1 127.0.0.2                             |
+
+### Go Template
+
+`kubectl get pods -o jsonpath='{range .items[*]}{.spec.nodeName}{": "}{.metadata.name}{"\n"}{end}'` отобразить в формате `nodeName: podeName` \
+`kubectl get pods -o go-template --template '{{range .items}}{{.spec.nodeName}}: {{.metadata.name}}{{"\n"}}{{end}}'` тоже самое, используя [Go template](https://pkg.go.dev/text/template)
+
+[Go Template Playground Online](https://repeatit.io)
+
+Пример условия и цикла:
+```go
+{{ range .Items -}}
+    {{ if eq  . "sleep" -}}
+        pause
+  {{- else -}}
+        Go {{ . -}}
+    {{ end }}
+{{ end }}
+```
+Для шаблона:
+```yaml
+Items:
+  - start
+  - sleep
+  - stop
+```
 ### Deployment and Service
 ```yaml
 apiVersion: v1
@@ -1528,13 +1643,10 @@ kind: Ingress
 metadata:
   name: torapi-ingress
   namespace: rest-api
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  ingressClassName: nginx
-  # ingressClassName: traefik
+  ingressClassName: traefik
   rules:
-  - host: torapi.local # доменное имя (которое необходимо прописать на DNS сервере)
+  - host: torapi.k8s.local
     http:
       paths:
       - path: /
