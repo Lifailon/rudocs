@@ -8,9 +8,10 @@ metadata:
     metallb.universe.tf/loadBalancerIPs: "192.168.3.205"
 spec:
   type: LoadBalancer
-  selector:
-    app: gatus
   ports:
     - port: 80
       targetPort: 8080
-      nodePort: 30070
+      nodePort: 30050
+      protocol: TCP
+  selector:
+    app: gatus
