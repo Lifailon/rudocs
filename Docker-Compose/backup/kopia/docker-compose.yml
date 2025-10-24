@@ -1,0 +1,24 @@
+services:
+  kopia:
+    image: kopia/kopia:latest
+    container_name: kopia
+    restart: unless-stopped
+    ports:
+      - 51515:51515
+    command:
+      - server
+      - start
+      - --disable-csrf-token-checks
+      - --insecure
+      - --address=0.0.0.0:51515
+      - --server-username=admin
+      - --server-password=KopiaAdmin
+    environment:
+      - KOPIA_PASSWORD=KopiaAdmin
+      - USER=User
+    volumes:
+        - ./kopia_config:/app/config
+        - ./kopia_cache:/app/cache
+        - ./kopia_logs:/app/logs
+        - ./kopia_backup:/repository
+        - /home/lifailon/docker:/data:ro

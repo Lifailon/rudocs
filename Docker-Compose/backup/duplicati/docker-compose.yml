@@ -1,0 +1,19 @@
+services:
+  duplicati:
+    image: lscr.io/linuxserver/duplicati:latest
+    container_name: duplicati
+    restart: unless-stopped
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC+3
+      - SETTINGS_ENCRYPTION_KEY=DuplicatiKey
+      - DUPLICATI__WEBSERVICE_PASSWORD=DuplicatiAdmin
+      - CLI_ARGS=
+    volumes:
+      - ./duplicati_config:/config
+      - ./duplicati_backup:/backups
+      - /home/lifailon/docker:/source:ro
+      - ./duplicati_restore:/restore
+    ports:
+      - 8200:8200
