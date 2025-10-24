@@ -1,27 +1,42 @@
 services:
-  # Web (frontend)
   uptime-kuma:
-    container_name: uptime-kuma
     image: louislam/uptime-kuma:latest
-    ports:
-      - "8081:3001"
+    container_name: uptime-kuma
     restart: unless-stopped
+    ports:
+      - 3001:3001
     volumes:
       - ./kuma_data:/app/data
 
-  # API (backend)
-  uptime-kuma-api:
-    container_name: uptime-kuma-api
-    image: medaziz11/uptimekuma_restapi
-    volumes:
-      - ./kuma_api:/db
-    restart: unless-stopped
-    environment:
-      - KUMA_SERVER=http://uptime-kuma:3001
-      - KUMA_USERNAME=admin
-      - KUMA_PASSWORD=KumaAdmin
-      - ADMIN_PASSWORD=KumaApiAdmin
-    depends_on:
-      - uptime-kuma
-    ports:
-      - "8082:8000"
+  # uptime-kuma-api:
+  #   image: medaziz11/uptimekuma_restapi
+  #   container_name: uptime-kuma-api
+  #   restart: unless-stopped
+  #   environment:
+  #     - KUMA_SERVER=http://uptime-kuma:3001
+  #     - KUMA_USERNAME=admin
+  #     - KUMA_PASSWORD=KumaAdmin
+  #     - ADMIN_PASSWORD=KumaApiAdmin
+  #   ports:
+  #     - 3002:8000
+  #   volumes:
+  #     - ./kuma_api:/db
+  #   depends_on:
+  #     - uptime-kuma
+
+  # uptime-robot:
+  #   image: overclockedllama/uptimerobot
+  #   container_name: uptime-robot
+  #   restart: unless-stopped
+  #   environment: 
+  #     - PORT=3000
+  #     - LOG_LEVEL=info
+  #     - CRON_TIME=*/1 * * * *
+  #     - UPTIME_ROBOT_API=
+  #     - UPTIME_ROBOT_NAME_PATTERN=%name
+  #     - WEBSITE_TITLE=
+  #     - WEBSITE_COPYRIGHT=
+  #   ports: 
+  #     - 3003:3000
+  #   volumes: 
+  #     - ./uptimerobot_config:/app/config
