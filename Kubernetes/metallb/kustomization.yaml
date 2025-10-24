@@ -6,10 +6,6 @@ metadata:
   name: metallb-kustomization
 
 resources:
-# - github.com/metallb/metallb/config/native?ref=v0.15.2
 - deployment.yaml
 - ip-address-pool.yaml
 - l2-advertisement.yaml
-
-patchesStrategicMerge:
-  - patch-disable-udp.yaml

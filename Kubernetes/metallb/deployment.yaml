@@ -1807,6 +1807,22 @@ spec:
     targetPort: 9443
   selector:
     component: controller
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: metallb-monitoring
+#   namespace: metallb-system
+# spec:
+#   type: NodePort
+#   ports:
+#     - name: monitoring
+#       port: 444
+#       targetPort: 7472
+#       nodePort: 30472
+#       protocol: TCP
+#   selector:
+#     component: controller
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1955,9 +1971,9 @@ spec:
         - containerPort: 7946
           name: memberlist-tcp
         # Disable UDP via patch in kustomize
-        - containerPort: 7946
-          name: memberlist-udp
-          protocol: UDP
+        # - containerPort: 7946
+        #   name: memberlist-udp
+        #   protocol: UDP
         readinessProbe:
           failureThreshold: 3
           httpGet:

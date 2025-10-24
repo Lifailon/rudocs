@@ -6,7 +6,6 @@ metadata:
   name: gatus-kustomization
 
 resources:
-# - configmap.yaml
 - service-account.yaml
 - deployment.yaml
 - service.yaml

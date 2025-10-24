@@ -3,13 +3,10 @@ kind: Ingress
 metadata:
   name: torapi-ingress
   namespace: rest-api
-  # annotations:
-  #   nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  # ingressClassName: nginx
   ingressClassName: traefik
   rules:
-  - host: torapi.local # доменное имя (которое необходимо прописать на DNS сервере)
+  - host: torapi.k8s.local
     http:
       paths:
       - path: /
