@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openrouter-bot
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Lifailon/openrouter-bot
+    path: chart
+    targetRevision: main
+    helm:
+      parameters:
+        - name: ADMIN_IDS
+          value: '7777777777'
+        - name: ALLOWED_USER_IDS
+          value: 7777777777,8888888888
+        - name: API_KEY
+          value: >-
+            sk-or-v1-XXX
+        - name: MODEL
+          value: qwen/qwen-2.5-72b-instruct:free
+        - name: TELEGRAM_BOT_TOKEN
+          value: 7777777777:XXX
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: telegram
+  syncPolicy:
+    automated: null
+    syncOptions:
+      - CreateNamespace=true

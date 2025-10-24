@@ -2,7 +2,6 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: diun
-  namespace: default
 spec:
   project: default
   source:
@@ -15,12 +14,13 @@ spec:
         - values.yaml
       parameters:
         - name: secrets.telegram.id
-          value: test
+          value: 'test'
         - name: secrets.telegram.token
           value: test
   destination:
     server: https://kubernetes.default.svc
     namespace: default
   syncPolicy:
+    automated: null
     syncOptions:
       - CreateNamespace=true
