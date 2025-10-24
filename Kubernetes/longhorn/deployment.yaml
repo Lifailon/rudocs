@@ -4922,7 +4922,7 @@ spec:
       protocol: TCP
       port: 80
       targetPort: http
-      nodePort: 30060
+      nodePort: 30040
 ---
 # Source: longhorn/templates/services.yaml
 apiVersion: v1
