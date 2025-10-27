@@ -48,6 +48,8 @@ services:
       - ./prometheus_data:/prometheus
     ports:
       - 9092:9090
+    # dns:
+    #   - 192.168.3.101
 
   # Система оповещений (в т.ч. Telegram, поддерживает свой Web интерфейс)
   alertmanager:

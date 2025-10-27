@@ -150,15 +150,15 @@ scrape_configs:
   #         - 192.168.3.101:9617
 
   # Proxy
-  # - job_name: nginx-exporter
-  #   static_configs:
-  #     - targets:
-  #         - 192.168.3.101:9113
-
   # - job_name: traefik
   #   static_configs:
   #     - targets:
   #         - 192.168.3.101:4318
+
+  # - job_name: nginx-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.101:9113
 
   # Speedtest
   # - job_name: speedtest-exporter
@@ -180,4 +180,9 @@ scrape_configs:
   # - job_name: ksm
   #   static_configs:
   #     - targets:
-  #       - 192.168.3.101:30002
+  #       - ksm.k8s.local/metrics
+
+  # - job_name: metallb
+  #   static_configs:
+  #     - targets:
+  #       - metallb.k8s.local

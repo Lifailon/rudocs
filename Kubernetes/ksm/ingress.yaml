@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ksm-ingress
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: ksm.k8s.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kube-state-metrics
+            port:
+              number: 80
