@@ -1,0 +1,8 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: metallb-metrics
+  namespace: metallb-system
+spec:
+  replacePath:
+    path: /metrics

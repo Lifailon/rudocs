@@ -6,10 +6,16 @@ metadata:
   name: metallb-kustomization
 
 resources:
-- all.yaml
+- crd.yaml
+- webhook.yaml
+- service-account.yaml
+- roles.yaml
+- role-binding.yaml
+- configmap.yaml
 - deployment.yaml
 - daemon-set.yaml
 - service.yaml
-- ingress.yaml
+- metrics-ingress.yaml
+- metrics-middleware.yaml
 - ip-address-pool.yaml
 - l2-advertisement.yaml
