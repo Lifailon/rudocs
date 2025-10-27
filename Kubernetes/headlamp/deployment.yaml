@@ -27,12 +27,14 @@ spec:
             - "-in-cluster"
             - "-plugins-dir=/headlamp/plugins"
           env:
-            - name: HEADLAMP_CONFIG_TRACING_ENABLED
-              value: "true"
+            # Prometheus
             - name: HEADLAMP_CONFIG_METRICS_ENABLED
               value: "true"
+            # Jaeger
+            - name: HEADLAMP_CONFIG_TRACING_ENABLED
+              value: "true"
             - name: HEADLAMP_CONFIG_OTLP_ENDPOINT
-              value: "otel-collector:4317"
+              value: "192.168.3.101:4317"
             - name: HEADLAMP_CONFIG_SERVICE_NAME
               value: "headlamp"
             - name: HEADLAMP_CONFIG_SERVICE_VERSION

@@ -6,7 +6,7 @@ metadata:
   name: beszel-kustomization
 
 resources:
-# - namespace.yaml
 - pvc.yaml
 - deployment.yaml
 - service.yaml
+- ingress.yaml

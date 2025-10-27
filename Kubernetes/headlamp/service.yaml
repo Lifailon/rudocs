@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: headlamp
+  name: headlamp-service
   namespace: kubernetes-dashboard
   annotations:
     metallb.universe.tf/address-pool: "default-pool"
