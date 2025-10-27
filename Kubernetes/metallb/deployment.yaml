@@ -81,5 +81,5 @@ spec:
       nodeSelector:
         'kubernetes.io/os': linux
         'kubernetes.io/arch': amd64
-        'kubernetes.io/hostname': hv-us-101
-        'node-role.kubernetes.io/master': true
+        # 'kubernetes.io/hostname': hv-us-101
+        # 'node-role.kubernetes.io/master': true

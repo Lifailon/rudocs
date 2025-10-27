@@ -10,5 +10,6 @@ resources:
 - deployment.yaml
 - daemon-set.yaml
 - service.yaml
+- ingress.yaml
 - ip-address-pool.yaml
 - l2-advertisement.yaml
