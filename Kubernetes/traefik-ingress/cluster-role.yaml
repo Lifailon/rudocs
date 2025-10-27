@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: traefik-ingress-roles
+  name: traefik-ingress-controller
 rules:
   - apiGroups: [""]
     resources:

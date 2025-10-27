@@ -58,7 +58,7 @@ metadata:
   name: httpbin
   namespace: default
 spec:
-  ingressClassName: traefik-ingress-controller
+  ingressClassName: traefik
   rules:
   - host: httpbin.k8s.local
     http:
