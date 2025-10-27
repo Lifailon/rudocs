@@ -1,0 +1,62 @@
+services:
+  # REST API Client (поддерживает импорт коллекций из OpenAPI и Postman)
+  yaade:
+    image: esperotech/yaade:latest 
+    container_name: yaade
+    restart: unless-stopped
+    ports:
+      - 9339:9339
+    environment:
+      - YAADE_ADMIN_USERNAME=admin
+      - YAADE_ADMIN_PASSWORD=password
+    volumes:
+      - ./yaade_data:/app/data
+
+  # API для тестирования HTTP-запросов и ответов
+  httpbin:
+    image: ghcr.io/mccutchen/go-httpbin
+    container_name: httpbin
+    restart: unless-stopped
+    ports:
+      - 8888:8080
+
+  # Браузер для спецификации OpenAPI (поддерживает загрузку любой переданной спецификации через url)
+  swagger-ui:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    container_name: swagger-ui
+    restart: unless-stopped
+    ports:
+      - 8889:8080
+    environment:
+      - PORT=8080
+      - SWAGGER_JSON=/app/swagger.json
+      - SWAGGER_JSON_URL=
+      - API_KEY=**None**
+    volumes:
+      - ./docs/httpbin.json:/app/swagger.json:ro
+    depends_on:
+      - httpbin
+
+  # Редактор Swagger документации
+  swagger-editor:
+    image: docker.swagger.io/swaggerapi/swagger-editor
+    container_name: swagger-editor
+    restart: unless-stopped
+    ports:
+      - 8890:8080
+    environment:
+      - PORT=8080
+      - BASE_URL=/
+      - URL=http://192.168.3.101:8889/swagger.json
+    depends_on:
+      - httpbin
+
+  # Прокси сервер для перехвата, анализа и изменения HTTP-трафика
+  # mitmproxy:
+  #   image: mitmproxy/mitmproxy:latest
+  #   container_name: mitmproxy
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8880:8080 # Proxy
+  #     - 8881:8081 # Web UI
+  #   command: mitmweb --web-host 0.0.0.0 --listen-host 0.0.0.0
