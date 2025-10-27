@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metallb-webhook-service
+  namespace: metallb-system
+spec:
+  ports:
+  - name: web
+    port: 443
+    targetPort: 9443
+    protocol: TCP
+  - name: monitoring
+    port: 7472
+    targetPort: 7472
+    protocol: TCP
+  selector:
+    component: controller

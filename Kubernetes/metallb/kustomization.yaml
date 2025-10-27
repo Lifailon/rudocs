@@ -8,5 +8,7 @@ metadata:
 resources:
 - all.yaml
 - deployment.yaml
+- daemon-set.yaml
+- service.yaml
 - ip-address-pool.yaml
 - l2-advertisement.yaml
