@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: traefik
+  name: traefik-service
   namespace: default
   annotations:
     metallb.universe.tf/address-pool: "default-pool"
