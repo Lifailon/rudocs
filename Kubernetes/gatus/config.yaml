@@ -1,41 +1,278 @@
 metrics: true
+
+alerting:
+  telegram:
+    token: 7777777777:XXX
+    id: 7777777777
+
+# storage:
+#   type: sqlite
+#   path: /data/data.db
+
+# htpasswd -bnBC 9 admin admin
+# security:
+#   basic:
+#     username: admin
+#     password-bcrypt-base64: $2y$09$3LKTEpAOqeUYt9YPuzGxxOr.Zpl0oVzlmjdbLAjJ3BWJ1zROx7s4e
+
 endpoints:
-  - name: Google
-    group: ping
-    url: "icmp://8.8.8.8"
+  - name: "Google"
+    group: external
+    url: icmp://8.8.8.8
+    interval: 10s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "Google DNS"
+    group: external
+    url: 8.8.8.8
+    interval: 10s
+    dns:
+      query-name: google.com
+      query-type: A
+    conditions:
+      - "[CONNECTED] == true"
+      - "[DNS_RCODE] == NOERROR"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "YouTube"
+    group: external
+    url: https://youtube.com
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 5s"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: "GitHub"
+    group: external
+    url: https://github.com
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2s"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "Docker Hub"
+    group: external
+    url: https://hub.docker.com
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2s"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "Kinozal Vercel Proxy"
+    group: external
+    url: https://kinozal.vercel.app
+    interval: 10m
+    headers:
+      User-Agent: "curl/8.9.1"
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2s"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+      - "[BODY] == pat(*forum.kinozal.tv*)"
+
+  - name: "Kinozal CORS Proxy"
+    group: external
+    url: https://cors-anywhere.herokuapp.com/https://kinozal.tv
+    interval: 10m
+    headers:
+      Origin: "https://robwu.nl"
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2s"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+      - "[BODY] == pat(*forum.kinozal.tv*)"
+
+  - name: "HTTPBin Basic Auth"
+    group: test
+    url: https://httpbingo.org/basic-auth/admin/admin
+    interval: 10m
+    headers:
+      Authorization: "Basic YWRtaW46YWRtaW4="
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2s"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+      - "[BODY].authorized == true"
+      - "[BODY].user == admin"
+
+  - name: "HTTPBin Anything"
+    group: test
+    url: https://httpbingo.org/anything
+    interval: 10m
+    headers:
+      User-Agent: "curl/8.9.1"
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2s"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+      - "len([BODY].headers) > 10"
+      - "[BODY].headers.User-Agent == [curl/8.9.1]"
+      - "has([BODY].method) == true"
+      - "[BODY].method == GET"
+      - "[BODY].url == pat(https://httpbin*)"
+      - "[BODY].url == any(https://httpbingo.org/anything,https://httpbin.org/anything)"
+
+  - name: "node-01 (hv-us-101)"
+    group: internal
+    url: icmp://192.168.3.101
     interval: 5s
     conditions:
       - "[CONNECTED] == true"
-  - name: "Kinozal Proxy"
-    group: vercel
-    url: "https://kinozal.vercel.app"
-    interval: 5m
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-02 (rpi-105)"
+    group: internal
+    url: icmp://192.168.3.105
+    interval: 5s
     conditions:
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-      - "[RESPONSE_TIME] < 2s"
-      - "[BODY] == pat(*only curl agent*)"
-  - name: "TorAPI Provider List"
-    group: vercel
-    url: "https://torapi.vercel.app/api/provider/list"
-    interval: 5m
+      - "[CONNECTED] == true"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-02 (rpi-105) TCP"
+    group: internal
+    url: tcp://192.168.3.105:2121
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-02 (rpi-105) SSH"
+    group: internal
+    url: ssh://192.168.3.105:2121
+    interval: 1m
+    ssh:
+      username: "username"
+      password: "password"
+    conditions:
+      - "[STATUS] == 0"
+      - "[CONNECTED] == false"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-02 (rpi-105) HTTP"
+    group: internal
+    url: http://192.168.3.105:9100
+    interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-      - "[RESPONSE_TIME] < 2s"
-      - "len([BODY]) == 4"
-      - "len([BODY].[0].Urls) == 3"
-      - "[BODY].[0].Provider == RuTracker"
-      - "[BODY].[0].Provider == pat(*Tracker)"
-      - "[BODY].[0].Provider == any(rutracker, RuTracker)"
-  - name: "TorAPI Provider Check"
-    group: vercel
-    url: "https://torapi.vercel.app/api/provider/list"
-    interval: 5m
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-03 (rpi-106)"
+    group: internal
+    url: icmp://192.168.3.106
+    interval: 5s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-03 (rpi-106) TCP"
+    group: internal
+    url: tcp://192.168.3.106:2121
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-03 (rpi-106) SSH"
+    group: internal
+    url: ssh://192.168.3.106:2121
+    interval: 1m
+    ssh:
+      username: "username"
+      password: "password"
+    conditions:
+      - "[STATUS] == 0"
+      - "[CONNECTED] == false"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
+
+  - name: "node-03 (rpi-106) HTTP"
+    group: internal
+    url: http://192.168.3.106:9100
+    interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-      - "[RESPONSE_TIME] < 2s"
-      - "has([BODY].0.RuTracker) == true"
-      - "has([BODY].0.Kinozal) == true"
-      - "has([BODY].0.RuTor) == true"
-      - "has([BODY].0.NoNameClub) == true"
+    alerts:
+      - type: telegram
+        enabled: true
+        failure-threshold: 3
+        success-threshold: 3
+        minimum-reminder-interval: 30m
+        send-on-resolved: true
