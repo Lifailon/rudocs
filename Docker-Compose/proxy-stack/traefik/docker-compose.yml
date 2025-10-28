@@ -10,6 +10,8 @@ services:
     #   - 80:80       # HTTP Proxy
     #   - 443:443     # HTTPS Proxy
     #   - 4318:4318   # Prometheus Metrics
+    dns:
+      - 127.0.0.1
     volumes:
       - ./traefik.yml:/etc/traefik/traefik.yml
       - ./rules:/rules
