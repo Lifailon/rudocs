@@ -1,0 +1,33 @@
+port = 2020
+storage_dir = "/app/storage"
+config_dir = "/app/configs"
+plugin_dir = "/app/plugins"
+max_disk_usage = 100
+debug_log_stdout = false
+
+
+[[plugin]]
+name = "auth_basic"
+enable = false
+
+[[plugin]]
+name = "auth_none"
+enable = true
+
+[[plugin]]
+name = "motion"
+enable = false
+
+[[plugin]]
+name = "object_detection"
+enable = false
+
+[[plugin]]
+name = "thumb_scale"
+enable = false
+
+[[plugin]]
+name = "mqtt"
+enable = false
+host = "127.0.0.1"
+port = 1883

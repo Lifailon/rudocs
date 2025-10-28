@@ -1,0 +1,15 @@
+services:
+  sentryshot:
+    image: codeberg.org/sentryshot/sentryshot:v0.3.8
+    container_name: sentryshot
+    restart: unless-stopped
+    ports:
+      - 2020:2020   # http://ip:2020/live
+      # - 1883:1883 # API
+    environment:
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./sentryshot_conf:/app/configs
+      - ./sentryshot_data:/app/storage
+    # devices:
+    #   - "/sys/bus/usb/devices/x"

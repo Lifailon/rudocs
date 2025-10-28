@@ -1,0 +1,20 @@
+services:
+  zoneminder:
+    image: zoneminderhq/zoneminder:latest-ubuntu18.04
+    container_name: zoneminder
+    restart: unless-stopped
+    tty: true
+    shm_size: 512m
+    ports:
+      - 1080:80
+    environment:
+      - TZ=Etc/UTC+3
+      # - ZM_DB_USER=zmuser
+      # - ZM_DB_PASS=zmpassword
+      # - ZM_DB_NAME=zoneminder_database
+      # - ZM_DB_HOST=my_central_db_server
+    volumes:
+      - ./zoneminder/mysql:/var/lib/mysql
+      - ./zoneminder/images:/var/cache/zoneminder/images
+      - ./zoneminder/events:/var/cache/zoneminder/events
+      - ./zoneminder/logs:/var/log/zm
