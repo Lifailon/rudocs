@@ -1,0 +1,67 @@
+services:
+  nextcloud:
+    image: nextcloud
+    container_name: nextcloud
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST=nextcloud-db
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      # - POSTGRES_PASSWORD=NextCloudAdmin
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      # - MYSQL_HOST=nextcloud-db
+      # - MYSQL_DATABASE=nextcloud
+      # - MYSQL_USER=nextcloud
+      # - MYSQL_PASSWORD=NextCloudAdmin
+    volumes:
+      # - smb_volume_web:/var/www/html
+      - ./nextcloud_data/web:/var/www/html
+    ports:
+      - 8866:80
+    depends_on:
+      - nextcloud-db
+
+  nextcloud-db:
+    image: postgres:15
+    container_name: nextcloud-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      # - POSTGRES_PASSWORD=NextCloudAdmin
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+    volumes:
+      # - smb_volume_db:/var/lib/postgresql/data
+      - ./nextcloud_data/db:/var/lib/postgresql/data
+    secrets:
+      - postgres_password
+
+  # nextcloud-db:
+  #   image: mariadb:10.6
+  #   container_name: nextcloud-db
+  #   restart: unless-stopped
+  #   command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+  #   environment:
+  #     - MYSQL_DATABASE=nextcloud
+  #     - MYSQL_USER=nextcloud
+  #     - MYSQL_PASSWORD=NextCloudAdmin
+  #     - MYSQL_ROOT_PASSWORD=NextCloudAdmin
+  #   volumes:
+  #     - smb_volume_db:/var/lib/mysql
+
+secrets:
+  postgres_password:
+    file: ./postgres_password
+
+# volumes:
+#   smb_volume_web:
+#     driver_opts:
+#       type: cifs
+#       o: username=guest,password=,uid=1000,gid=1000
+#       device: //192.168.3.100/docker-data/nextcloud/web
+
+#   smb_volume_db:
+#     driver_opts:
+#       type: cifs
+#       o: username=guest,password=,uid=1000,gid=1000
+#       device: //192.168.3.100/docker-data/nextcloud/db
