@@ -30,6 +30,10 @@
     - [cifs](#cifs)
     - [mount](#mount)
   - [Network](#network)
+    - [bridge](#bridge)
+    - [host](#host)
+    - [macvlan](#macvlan)
+    - [ipvlan](#ipvlan)
   - [Inspect](#inspect)
   - [Exec](#exec)
   - [Prune](#prune)
@@ -406,6 +410,85 @@ volumes:
 `docker network connect network_test uptime-kuma` подключить работающий контейнер к указанной сети \
 `docker network disconnect network_test uptime-kuma` отключить от сети
 
+#### bridge
+
+Контейнеры взаимодействуют между собой через виртуальный мост (используя `container_name` для связи, в т.ч. с другими контейнерами через проброс сети в помощью `external`), и используют NAT для выхода в Интернет.
+```yaml
+services:
+  nginx:
+    image: nginx
+    container_name: nginx
+    dns:
+      - 8.8.8.8
+    networks:
+      - nginx_net
+      - dns-stack_default
+
+networks:
+  nginx_net:
+    driver: bridge
+  dns-stack_default:
+    external: true
+```
+#### host
+
+В сетевом режиме `host` используется сеть хоста напрямую (порты через секцию `ports` не пробрасываются).
+```yaml
+services:
+  nginx:
+    image: nginx
+    container_name: nginx
+    network_mode: host
+```
+#### macvlan
+
+`macvlan` - это сетевой драйвер, который работает на уровне L2, где контейнеры получают свои MAC и IP адреса во внешней сети хоста (линкуется по названию интерфейса).
+
+`sudo ip link set eth0 promisc on` включить режим promisc на интерфейсе хоста, что бы иметь возможность принимать все пакеты, проходящие через хост, независимо от MAC-адреса.
+
+`Set-VMNetworkAdapter -VMName hv-us-101 -MacAddressSpoofing On` включить режим promisc на виртуальной машине Hyper-V
+```yaml
+services:
+  macvlan-service:
+    image: nginx
+    container_name: nginx
+    networks:
+      macvlan_net:
+        ipv4_address: 192.168.3.110
+
+networks:
+  macvlan_net:
+    driver: macvlan
+    driver_opts:
+      parent: eth0
+    ipam:
+      config:
+        - subnet: 192.168.3.0/24
+          gateway: 192.168.3.1
+```
+#### ipvlan
+
+`ipvlan` не создаёт отдельные MAC-адреса, поэтому может работать на `wlan` (Wi-Fi) интерфейсах хоста.
+```yaml
+services:
+  macvlan-service:
+    image: nginx
+    container_name: nginx
+    networks:
+      ipvlan_net:
+        ipv4_address: 192.168.3.110
+
+networks:
+  ipvlan_net:
+    driver: ipvlan
+    driver_opts:
+      parent: wlan0
+      mode: l2
+    ipam:
+      config:
+        - subnet: 192.168.3.0/24
+          gateway: 192.168.3.1
+```
 ### Inspect
 
 `docker inspect uptime-kuma` подробная информация о контейнере (например, конфигурация NetworkSettings) \

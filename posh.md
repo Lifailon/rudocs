@@ -5580,7 +5580,7 @@ $rowsAffected = $SqlCommand.ExecuteNonQuery();` для запросов INSERT/U
 $SqlConnection.Close()
 ```
 ### SSMS INSERT
-```
+```sql
 USE [db_test]
 GO
 INSERT INTO [dbo].[table_test]
@@ -5608,7 +5608,7 @@ FROM [db_test].[dbo].[table_test]
 - DCL (Data Control Language / Язык управления доступа к данным). К этому типу относят команды, которые управляют правами по доступу к данным. \
 `GRANT` предоставляет права для доступа к данным \
 `REVOKE` отзывает права на доступ к данным
-```
+```sql
 -- Переменные
 DECLARE @text NVARCHAR(20), @int INT;
 SET @text='Test';
