@@ -4,20 +4,47 @@ services:
     container_name: gitea
     restart: unless-stopped
     environment:
+      - USER=git
       - USER_UID=1000
       - USER_GID=1000
-      - GITEA__database__DB_TYPE=sqlite3
-      - GITEA__database__PATH=/data/gitea/gitea.db
       - GITEA__server__DOMAIN=localhost
       - GITEA__server__SSH_PORT=222
       - GITEA__server__HTTP_PORT=3000
+      # SQLite
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__database__PATH=/data/gitea/gitea.db
+      # PostgreSQL
+      # - GITEA__database__DB_TYPE=postgres
+      # - GITEA__database__HOST=gitea-db:5432
+      # - GITEA__database__NAME=gitea
+      # - GITEA__database__USER=gitea
+      # - GITEA__database__PASSWD=gitea
     volumes:
-      - ./gitea_data:/data
+      - ./gitea_data/server:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - 3000:3000
-      - 222:222
+      - 222:222   # SSH
+      - 3000:3000 # HTTP
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gitea.rule=Host(`git.docker.local`)
+      - traefik.http.services.gitea.loadbalancer.server.port=3000
+    # depends_on:
+    #   - gitea-db
+
+  # gitea-db:
+  #   image: docker.io/library/postgres:14
+  #   container_name: gitea-db
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=gitea
+  #     - POSTGRES_PASSWORD=gitea
+  #     - POSTGRES_DB=gitea
+  #   networks:
+  #     - gitea
+  #   volumes:
+  #     - ./gitea_postgres_data:/var/lib/postgresql/data
 
   gitea-act-runner:
     image: docker.io/gitea/act_runner:nightly
@@ -32,7 +59,8 @@ services:
       GITEA_RUNNER_REGISTRATION_TOKEN: JY1uWsuNiexmvdleG0cbftgOvuHesKlnpZeCxbQA
     volumes:
       - ./config.yaml:/config.yaml
-      - ./gitea_runner_data:/data
+      - ./gitea_data/runner:/data
       - /var/run/docker.sock:/var/run/docker.sock
-    # CD
     network_mode: host
+    depends_on:
+      - gitea
