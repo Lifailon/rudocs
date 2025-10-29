@@ -19,7 +19,7 @@ ENV LOG_LEVEL=info \
     CONFIGS=0 \
     CONTAINERS=0 \
     DISTRIBUTION=0 \
-    EVENTS=1 \
+    EVENTS=0 \
     EXEC=0 \
     GRPC=0 \
     IMAGES=0 \
@@ -36,6 +36,9 @@ ENV LOG_LEVEL=info \
     SYSTEM=0 \
     TASKS=0 \
     VERSION=1 \
-    VOLUMES=0
+    VOLUMES=0 \
+    STATS_URI=/ \
+    STATS_USER=admin \
+    STATS_PASS=admin
 
 ENTRYPOINT ["haproxy", "-f", "/proxy/haproxy.cfg"]

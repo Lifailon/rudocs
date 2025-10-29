@@ -1,0 +1,50 @@
+services:
+  docker-socket-proxy:
+    image: lifailon/docker-socket-proxy:amd64 # or arm64 tag
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docker-socket-proxy
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 2375:2375 # Docker API
+      - 2376:2376 # HAProxy stats
+    environment:
+      - SOCKET_PATH=/var/run/docker.sock # Path to the Docker socket inside the container
+      - LOG_LEVEL=info      # HAProxy proxy logging level (debug|info|warn|error)
+      # Enabled by default
+      - INFO=1              # /info — general information about the Docker daemon, version, plugins, limits
+      - PING=1              # /_ping — check for Docker API availability
+      - VERSION=1           # /version — get the API version and server information
+      # Disabled by default
+      - POST=1              # HTTP POST requests (e.g., to create containers)
+      - GRPC=1              # /grpc — Docker gRPC interface (experimental)
+      - EXEC=1              # /exec — running commands inside containers
+      - ALLOW_RESTARTS=1    # /containers/.../(restart|kill) — restart or stop the container
+      - ALLOW_START=1       # /containers/.../start — start stopped containers
+      - ALLOW_STOP=1        # /containers/.../stop — stop running containers
+      - AUTH=1              # /auth — responsible for logging in Registry via the Docker API
+      - CONTAINERS=1        # /containers — list of containers, their creation, deletion, inspection, etc.
+      - IMAGES=1            # /images — viewing, downloading, and deleting Docker images
+      - NETWORKS=1          # /networks — viewing, creating, and deleting Docker networks
+      - BUILD=1             # /build — building images via the API
+      - COMMIT=1            # /commit — creating an image from a container (docker commit)
+      - DISTRIBUTION=1      # /distribution — accessing the registry API (e.g., image metadata)
+      - EVENTS=1            # /events — Docker event stream (creating, starting, deleting containers)
+      - PLUGINS=1           # /plugins — managing Docker plugins
+      - VOLUMES=1           # /volumes — managing Docker volumes (creating, deleting, (view)
+      - SESSION=1           # /session — terminal sessions and interactive APIs
+      # Swarm
+      - SWARM=0             # /swarm — Swarm cluster settings and status
+      - NODES=0             # /nodes — information about nodes in the Swarm
+      - CONFIGS=0           # /configs — used in Swarm for configurations
+      - SECRETS=0           # /secrets — Docker Swarm secrets
+      - SERVICES=0          # /services — Docker Swarm service management
+      - SYSTEM=0            # /system — general Docker system information (resources, usage)
+      - TASKS=0             # /tasks — Swarm tasks (containers within services)
+      # HAProxy stats
+      - STATS_URI=/
+      - STATS_USER=admin
+      - STATS_PASS=admin

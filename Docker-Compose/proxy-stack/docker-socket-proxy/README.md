@@ -1,11 +1,18 @@
+# Docker Socket Proxy
+
+Proxying a local docker socket based on HAProxy (no daemon or service system file modifications required) with endpoints access control using environment variables and connection statistics.
+
+```yaml
 services:
   docker-socket-haproxy:
-    image: lifailon/docker-socket-haproxy:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: lifailon/docker-socket-haproxy:amd64 # or arm64 tag
     container_name: docker-socket-haproxy
-    restart: unless-stopped
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 2375:2375 # Docker API
+      - 2376:2376 # HAProxy stats
     environment:
       - SOCKET_PATH=/var/run/docker.sock # Path to the Docker socket inside the container
       - LOG_LEVEL=info      # HAProxy proxy logging level (debug|info|warn|error)
@@ -27,7 +34,7 @@ services:
       - BUILD=0             # /build — building images via the API
       - COMMIT=0            # /commit — creating an image from a container (docker commit)
       - DISTRIBUTION=0      # /distribution — accessing the registry API (e.g., image metadata)
-      - EVENTS=1            # /events — Docker event stream (creating, starting, deleting containers)
+      - EVENTS=0            # /events — Docker event stream (creating, starting, deleting containers)
       - PLUGINS=0           # /plugins — managing Docker plugins
       - VOLUMES=0           # /volumes — managing Docker volumes (creating, deleting, (view)
       - SESSION=0           # /session — terminal sessions and interactive APIs
@@ -39,7 +46,8 @@ services:
       - SERVICES=0          # /services — Docker Swarm service management
       - SYSTEM=0            # /system — general Docker system information (resources, usage)
       - TASKS=0             # /tasks — Swarm tasks (containers within services)
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 2375:2375
+      # HAProxy stats
+      - STATS_URI=/
+      - STATS_USER=admin
+      - STATS_PASS=admin
+```
