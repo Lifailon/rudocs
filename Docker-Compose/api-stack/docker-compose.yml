@@ -1,16 +1,39 @@
 services:
-  # REST API Client (поддерживает импорт коллекций из OpenAPI и Postman)
-  yaade:
-    image: esperotech/yaade:latest 
-    container_name: yaade
+  # REST API Reference & Client
+  scalar:
+    image: scalarapi/api-reference:latest
+    container_name: scalar
     restart: unless-stopped
     ports:
-      - 9339:9339
+      - 4005:8080
     environment:
-      - YAADE_ADMIN_USERNAME=admin
-      - YAADE_ADMIN_PASSWORD=password
+      API_REFERENCE_CONFIG: |
+        {
+          "theme": "purple"
+        }
     volumes:
-      - ./yaade_data:/app/data
+      - ./docs:/docs:ro
+
+  # REST API Client (поддерживает импорт коллекций из OpenAPI и экспорт в Postman и Insomnia)
+  restfox:
+    image: flawiddsouza/restfox:latest
+    container_name: restfox
+    restart: unless-stopped
+    ports:
+      - 4004:4004
+
+  # REST API Client
+  # yaade:
+  #   image: esperotech/yaade:latest 
+  #   container_name: yaade
+  #   restart: unless-stopped
+  #   ports:
+  #     - 9339:9339
+  #   environment:
+  #     - YAADE_ADMIN_USERNAME=admin
+  #     - YAADE_ADMIN_PASSWORD=password
+  #   volumes:
+  #     - ./yaade_data:/app/data
 
   # API для тестирования HTTP-запросов и ответов
   httpbin:
