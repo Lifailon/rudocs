@@ -37,8 +37,9 @@ ENV LOG_LEVEL=info \
     TASKS=0 \
     VERSION=1 \
     VOLUMES=0 \
-    STATS_URI=/ \
     STATS_USER=admin \
-    STATS_PASS=admin
+    STATS_PASS=admin \
+    STATS_URI=/ \
+    METRICS_URI=/metrics
 
 ENTRYPOINT ["haproxy", "-f", "/proxy/haproxy.cfg"]

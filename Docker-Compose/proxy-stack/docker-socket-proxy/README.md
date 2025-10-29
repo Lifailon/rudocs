@@ -1,6 +1,6 @@
 # Docker Socket Proxy
 
-Proxying a local docker socket based on HAProxy (no daemon or service system file modifications required) with endpoints access control using environment variables and connection statistics.
+Proxying a local docker socket based on HAProxy (no daemon or service system file modifications required) with endpoints access control using environment variables, connection statistics and prometheus metrics.
 
 ```yaml
 services:
@@ -12,7 +12,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 2375:2375 # Docker API
-      - 2376:2376 # HAProxy stats
+      - 2376:2376 # HAProxy stats and Prometheus metrics
     environment:
       - SOCKET_PATH=/var/run/docker.sock # Path to the Docker socket inside the container
       - LOG_LEVEL=info      # HAProxy proxy logging level (debug|info|warn|error)
@@ -46,8 +46,9 @@ services:
       - SERVICES=0          # /services — Docker Swarm service management
       - SYSTEM=0            # /system — general Docker system information (resources, usage)
       - TASKS=0             # /tasks — Swarm tasks (containers within services)
-      # HAProxy stats
-      - STATS_URI=/
+      # HAProxy stats and Prometheus metrics
       - STATS_USER=admin
       - STATS_PASS=admin
+      - STATS_URI=/
+      - METRICS_URI=/metrics
 ```
