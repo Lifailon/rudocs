@@ -1,0 +1,26 @@
+services:
+  headers-proxy:
+    image: haproxy:3.2.4-alpine
+    container_name: headers-proxy
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=cors-anywhere.herokuapp.com:443
+      - HEADER_HOST=cors-anywhere.herokuapp.com
+      - HEADER_ORIGIN=https://robwu.nl
+      - HEADER_USER_AGENT=curl/8.9.1
+    ports:
+      - 1995:1995
+    volumes:
+      - ./haproxy.cfg:/haproxy.cfg
+    command:
+      - haproxy
+      - -f
+      - /haproxy.cfg
+      - -d
+
+  # cors-proxy:
+  #   image: redocly/cors-anywhere
+  #   container_name: cors-anywhere
+  #   restart: unless-stopped
+  #   ports:
+  #     - 9116:8080
