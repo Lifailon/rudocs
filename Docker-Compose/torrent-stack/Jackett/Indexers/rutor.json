@@ -1,0 +1,54 @@
+[
+  {
+    "id": "sitelink",
+    "type": "inputstring",
+    "name": "Site Link",
+    "value": "https://rutor.info/"
+  },
+  {
+    "id": "cookieheader",
+    "type": "hiddendata",
+    "name": "CookieHeader",
+    "value": ""
+  },
+  {
+    "id": "lasterror",
+    "type": "hiddendata",
+    "name": "LastError",
+    "value": null
+  },
+  {
+    "id": "stripcyrillicletters",
+    "type": "inputbool",
+    "name": "Strip Cyrillic Letters",
+    "value": false
+  },
+  {
+    "id": "addrustoendofalltitlestoimprovelanguagedetectionbysonarrandradarr.willcauseenglish-onlyresultstobemisidentified.",
+    "type": "inputbool",
+    "name": "Add RUS to end of all titles to improve language detection by Sonarr and Radarr. Will cause English-only results to be misidentified.",
+    "value": false
+  },
+  {
+    "id": "sortrequestedfromsite(appliesonlytosearchwithkeywords)",
+    "type": "inputselect",
+    "name": "Sort requested from site (Applies only to Search with Keywords)",
+    "value": "0",
+    "options": {
+      "0": "created desc",
+      "1": "created asc",
+      "2": "seeders desc",
+      "3": "seeders asc",
+      "6": "size desc",
+      "7": "size asc",
+      "8": "title desc",
+      "9": "title asc"
+    }
+  },
+  {
+    "id": "tags",
+    "type": "inputtags",
+    "name": "Tags",
+    "value": ""
+  }
+]

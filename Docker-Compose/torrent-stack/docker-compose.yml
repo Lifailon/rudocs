@@ -1,3 +1,10 @@
+volumes:
+  smb_volume:
+    driver_opts:
+      type: cifs
+      o: username=guest,password=,uid=1000,gid=1000
+      device: //192.168.3.100/docker-data/torrent
+
 services:
   jackett:
     image: lscr.io/linuxserver/jackett:latest
@@ -8,92 +15,70 @@ services:
       - PGID=1000
       - TZ=Etc/GMT+3
     volumes:
-      - ./jackett_data:/config
-      - ./torrent_files:/downloads
+      - ./jackett_conf:/config
     ports:
       - 9117:9117
-    networks:
-      - tor-network
 
-  sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
-    container_name: sonarr
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
     restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-    volumes:
-      - ./sonnar_data:/config
-      - /mnt/plex-content:/tv
-      - ./sonarr_downloads:/downloads
-    ports:
-      - 8989:8989
-    networks:
-      - tor-network
-
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    container_name: overseerr
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-    volumes:
-      - ./overseerr_config:/config
-    ports:
-      - 5055:5055
-    networks:
-      - tor-network
-
-  cloud-torrent:
-    image: jpillora/cloud-torrent:latest
-    container_name: cloud-torrent
-    restart: unless-stopped
-    ports:
-      - 3010:3000
-    volumes:
-      - /mnt/plex-content:/downloads
-
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    restart: unless-stopped\
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/GMT+3
-      - WEBUI_PORT=3240
-      - TORRENTING_PORT=6881
+      - USER=
+      - PASS=
     volumes:
-      - ./qbittorrent_data:/config
-      - /mnt/plex-content:/downloads
+      - ./transmission_conf:/config
+      - ./torrent_watch:/watch
+      - smb_volume:/downloads
     ports:
-      - 3240:3240
-      - 6881:6881
-      - 6881:6881/udp
+      - 9118:9091
+      - 51413:51413
+      - 51413:51413/udp
 
-  # transmission:
-  #   image: lscr.io/linuxserver/transmission:latest
-  #   container_name: transmission
+  # qbittorrent:
+  #   image: lscr.io/linuxserver/qbittorrent:latest
+  #   container_name: qbittorrent
   #   restart: unless-stopped
   #   environment:
   #     - PUID=1000
   #     - PGID=1000
   #     - TZ=Etc/GMT+3
-  #     - USER=admin
-  #     - PASS=admin
+  #     - WEBUI_PORT=3240
+  #     - TORRENTING_PORT=6881
   #   volumes:
-  #     - ./transmission_data:/config
-  #     - ./torrent_files:/watch            # Директория для отслеживания торрент файлов на загрузку (синхронизация с Jackett)
-  #     - /mnt/jellyfin-content:/downloads  # Директория для хранения загруженных файлов (синхронизация с Jellyfin)
+  #     - ./qbittorrent_conf:/config
+  #     - smb_volume:/downloads
   #   ports:
-  #     - 9091:9091
-  #     - 51413:51413
-  #     - 51413:51413/udp
-  #   networks:
-  #     - tor-network
+  #     - 3240:3240
+  #     - 6881:6881
+  #     - 6881:6881/udp
+
+  # cloud-torrent:
+  #   image: jpillora/cloud-torrent:latest
+  #   container_name: cloud-torrent
+  #   restart: unless-stopped
+  #   ports:
+  #     - 3010:3000
+  #   volumes:
+  #     - smb_volume:/downloads
+
+  # sonarr:
+  #   image: lscr.io/linuxserver/sonarr:latest
+  #   container_name: sonarr
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/UTC+3
+  #   volumes:
+  #     - ./sonnar_conf:/config
+  #     - smb_volume:/tv
+  #     - ./sonarr_downloads:/downloads
+  #   ports:
+  #     - 8989:8989
 
   # jellyfin:
   #   image: lscr.io/linuxserver/jellyfin:latest
@@ -104,40 +89,34 @@ services:
   #     - PGID=1000
   #     - TZ=Etc/GMT+3
   #   volumes:
-  #     - ./jellyfin_data/jellyfin:/config
-  #     - /mnt/jellyfin-content:/data/tvshows           # Директория для хранения сериалов (синхронизация с Sonnar и Transmission/qBittorrent)
-  #     - /mnt/jellyfin-content/movies:/data/movies     # Директория для хранения фильмов
+  #     - ./jellyfin_conf/jellyfin:/config
+  #     - ./jellyfin-content/tvshows:/data/tvshows
+  #     - ./jellyfin-content/movies:/data/movies
   #   ports:
-  #     - 8096:8096                         # Веб интерфейс
-  #     - 7359:7359/udp                     # Позволяет клиентам найти сервер Jellyfin в локальной сети (опционально)
-  #     - 1900:1900/udp                     # Обнаружение служб используемых DNLA (опционально)
-  #   networks:
-  #     - tor-network
+  #     - 8096:8096
+  #     - 7359:7359/udp
+  #     - 1900:1900/udp
 
-  plex:
-    image: lscr.io/linuxserver/plex:latest
-    container_name: plex
-    network_mode: host
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-      - VERSION=docker
-    volumes:
-      - ./plex_data:/config
-      - /mnt/plex-content:/movies
-    ports:
-      - 32400:32400
-      - 1900:1900/udp
-      - 5353:5353/udp
-      - 8324:8324
-      - 32410:32410/udp
-      - 32412:32412/udp
-      - 32413:32413/udp
-      - 32414:32414/udp
-      - 32469:32469
-
-networks:
-  tor-network:
-    driver: bridge
+  # plex:
+  #   image: lscr.io/linuxserver/plex:latest
+  #   container_name: plex
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/GMT+3
+  #     - VERSION=docker
+  #   volumes:
+  #     - ./plex_conf:/config
+  #     - smb_volume:/movies
+  #   ports:
+  #     - 32400:32400
+  #     - 1900:1900/udp
+  #     - 5353:5353/udp
+  #     - 8324:8324
+  #     - 32410:32410/udp
+  #     - 32412:32412/udp
+  #     - 32413:32413/udp
+  #     - 32414:32414/udp
+  #     - 32469:32469

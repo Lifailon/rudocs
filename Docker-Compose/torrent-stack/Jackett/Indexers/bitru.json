@@ -1,0 +1,55 @@
+[
+  {
+    "id": "sitelink",
+    "type": "inputstring",
+    "name": "Site Link",
+    "value": "https://bitru.org/"
+  },
+  {
+    "id": "cookieheader",
+    "type": "hiddendata",
+    "name": "CookieHeader",
+    "value": null
+  },
+  {
+    "id": "lasterror",
+    "type": "hiddendata",
+    "name": "LastError",
+    "value": "Exception (bitru): Challenge detected but FlareSolverr is not configured: Challenge detected but FlareSolverr is not configured"
+  },
+  {
+    "id": "stripcyrillicletters",
+    "type": "inputbool",
+    "name": "Strip Cyrillic Letters",
+    "value": false
+  },
+  {
+    "id": "addrustoendofalltitlestoimprovelanguagedetectionbysonarrandradarr.willcauseenglish-onlyresultstobemisidentified.",
+    "type": "inputbool",
+    "name": "Add RUS to end of all titles to improve language detection by Sonarr and Radarr. Will cause English-only results to be misidentified.",
+    "value": false
+  },
+  {
+    "id": "includeadvertising",
+    "type": "inputbool",
+    "name": "Include Advertising",
+    "value": true
+  },
+  {
+    "id": "sortrequestedfromsite",
+    "type": "inputselect",
+    "name": "Sort requested from site",
+    "value": "_",
+    "options": {
+      "_": "created",
+      "seeders": "seeders",
+      "size": "size"
+    }
+  },
+  {
+    "id": "tags",
+    "type": "inputtags",
+    "name": "Tags",
+    "value": ""
+  }
+]
