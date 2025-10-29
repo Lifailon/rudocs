@@ -1,8 +1,19 @@
 services:
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    restart: unless-stopped
+    ports:
+      - 6990:80
+
   nexterm:
-    image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
+    image: germannewsmaker/nexterm:latest
     restart: unless-stopped
     container_name: nexterm
+    environment:
+      # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
+      # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
+      - ENCRYPTION_KEY=9dbde894647845ab33e13a9334cdbadc5f8d22abe42df0b3daff431eec0df870
     ports:
       - 6989:6989
     volumes:
@@ -32,23 +43,21 @@ services:
     ports:
       - 9444:8000
 
-  yaade:
-    image: esperotech/yaade:latest 
-    container_name: yaade
+  go-template-playground:
+    image: lifailon/go-template-playground:latest
+    build:
+      context: .
+    container_name: go-template-playground
     restart: unless-stopped
     ports:
-      - 9339:9339
-    environment:
-      - YAADE_ADMIN_USERNAME=admin
-      - YAADE_ADMIN_PASSWORD=password
-    volumes:
-      - ./yaade_data:/app/data
+      - 9445:8080
 
-  it-tools:
-    image: corentinth/it-tools:latest
-    container_name: it-tools
+  d2-playground:
+    image: lifailon/d2-playground:latest
+    container_name: d2-playground
+    restart: unless-stopped
     ports:
-      - 9445:80
+      - 9446:9090
 
   draw.io:
     image: jgraph/drawio:latest
@@ -57,11 +66,4 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - 9446:8080
-
-  d2-playground:
-    image: lifailon/d2-playground:latest
-    container_name: d2-playground
-    restart: unless-stopped
-    ports:
-      - 9447:9090
+      - 9447:8080

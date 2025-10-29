@@ -1,0 +1,9 @@
+services:
+  go-template-playground:
+    image: lifailon/go-template-playground:latest
+    build:
+      context: .
+    container_name: go-template-playground
+    restart: unless-stopped
+    ports:
+      - 9088:8080
