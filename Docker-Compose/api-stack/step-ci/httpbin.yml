@@ -1,0 +1,525 @@
+version: "1.0"
+name: httpbin.org
+config:
+  http:
+    baseURL: https://httpbingo.org
+tests:
+  Redirects:
+    name: Returns different redirect responses
+    steps:
+      - name: Absolutely 302 Redirects n times.
+        http:
+          url: /absolute-redirect/[object Object]
+          method: GET
+          check:
+            status: 302
+      - name: 302/3XX Redirects to the given URL.
+        http:
+          url: /redirect-to
+          method: GET
+          params:
+            url: est anim laboris velit
+            status_code: {}
+          check:
+            status: 302
+      - name: 302/3XX Redirects to the given URL.
+        http:
+          url: /redirect-to
+          method: PUT
+          headers:
+            Content-Type: multipart/form-data
+          formData:
+            url: qui consequat pariatur
+            status_code: {}
+          check:
+            status: 302
+      - name: 302/3XX Redirects to the given URL.
+        http:
+          url: /redirect-to
+          method: POST
+          headers:
+            Content-Type: multipart/form-data
+          formData:
+            url: proident dolor laboris
+            status_code: {}
+          check:
+            status: 302
+      - name: 302/3XX Redirects to the given URL.
+        http:
+          url: /redirect-to
+          method: DELETE
+          check:
+            status: 302
+      - name: 302/3XX Redirects to the given URL.
+        http:
+          url: /redirect-to
+          method: PATCH
+          check:
+            status: 302
+      - name: 302 Redirects n times.
+        http:
+          url: /redirect/[object Object]
+          method: GET
+          check:
+            status: 302
+      - name: Relatively 302 Redirects n times.
+        http:
+          url: /relative-redirect/[object Object]
+          method: GET
+          check:
+            status: 302
+  Anything:
+    name: Returns anything that is passed to request
+    steps:
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything
+          method: GET
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything
+          method: PUT
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything
+          method: POST
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything
+          method: DELETE
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything
+          method: PATCH
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything/{anything}
+          method: GET
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything/{anything}
+          method: PUT
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything/{anything}
+          method: POST
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything/{anything}
+          method: DELETE
+          check:
+            status: 200
+      - name: Returns anything passed in request data.
+        http:
+          url: /anything/{anything}
+          method: PATCH
+          check:
+            status: 200
+  Dynamic data:
+    name: Generates random and dynamic data
+    steps:
+      - name: Decodes base64url-encoded string.
+        http:
+          url: /base64/SFRUUEJJTiBpcyBhd2Vzb21l
+          method: GET
+          check:
+            status: 200
+      - name: Returns n random bytes generated with given seed
+        http:
+          url: /bytes/[object Object]
+          method: GET
+          check:
+            status: 200
+      - name: Returns a delayed response (max of 10 seconds).
+        http:
+          url: /delay/[object Object]
+          method: GET
+          check:
+            status: 200
+      - name: Returns a delayed response (max of 10 seconds).
+        http:
+          url: /delay/[object Object]
+          method: PUT
+          check:
+            status: 200
+      - name: Returns a delayed response (max of 10 seconds).
+        http:
+          url: /delay/[object Object]
+          method: POST
+          check:
+            status: 200
+      - name: Returns a delayed response (max of 10 seconds).
+        http:
+          url: /delay/[object Object]
+          method: DELETE
+          check:
+            status: 200
+      - name: Returns a delayed response (max of 10 seconds).
+        http:
+          url: /delay/[object Object]
+          method: PATCH
+          check:
+            status: 200
+      - name: Drips data over a duration after an optional initial delay.
+        http:
+          url: /drip
+          method: GET
+          params:
+            duration: 2
+            numbytes: 10
+            code: 200
+            delay: 2
+          check:
+            status: 200
+      - name: Generate a page containing n links to other pages which do the same.
+        http:
+          url: /links/[object Object]/[object Object]
+          method: GET
+          check:
+            status: 200
+      - name: >-
+          Streams n random bytes generated with given seed, at given chunk size
+          per packet.
+        http:
+          url: /range/[object Object]
+          method: GET
+          check:
+            status: 200
+      - name: >-
+          Streams n random bytes generated with given seed, at given chunk size
+          per packet.
+        http:
+          url: /stream-bytes/[object Object]
+          method: GET
+          check:
+            status: 200
+      - name: Stream n JSON responses
+        http:
+          url: /stream/[object Object]
+          method: GET
+          check:
+            status: 200
+      - name: Return a UUID4.
+        http:
+          url: /uuid
+          method: GET
+          check:
+            status: 200
+  Auth:
+    name: Auth methods
+    steps:
+      - name: Prompts the user for authorization using HTTP Basic Auth.
+        http:
+          url: /basic-auth/Lorem dolor magna/ea magna labore consequat irure
+          method: GET
+          check:
+            status: 200
+      - name: Prompts the user for authorization using bearer authentication.
+        http:
+          url: /bearer
+          method: GET
+          headers:
+            Authorization: {}
+          check:
+            status: 200
+      - name: Prompts the user for authorization using Digest Auth.
+        http:
+          url: /digest-auth/amet fugiat do ex sunt/do occaecat/esse
+          method: GET
+          check:
+            status: 200
+      - name: Prompts the user for authorization using Digest Auth + Algorithm.
+        http:
+          url: >-
+            /digest-auth/reprehenderit non in velit occaecat/aliquip ullamco
+            nulla Ut/anim/MD5
+          method: GET
+          check:
+            status: 200
+      - name: Prompts the user for authorization using Digest Auth + Algorithm.
+        http:
+          url: /digest-auth/officia/ut eu dolor/qui dolor tempor minim/MD5/never
+          method: GET
+          check:
+            status: 200
+      - name: Prompts the user for authorization using HTTP Basic Auth.
+        http:
+          url: /hidden-basic-auth/Lorem/consectetur nulla tempor nisi
+          method: GET
+          check:
+            status: 200
+  Response formats:
+    name: Returns responses in different data formats
+    steps:
+      - name: Returns Brotli-encoded data.
+        http:
+          url: /brotli
+          method: GET
+          check:
+            status: 200
+      - name: Returns Deflate-encoded data.
+        http:
+          url: /deflate
+          method: GET
+          check:
+            status: 200
+      - name: Returns page denied by robots.txt rules.
+        http:
+          url: /deny
+          method: GET
+          check:
+            status: 200
+      - name: Returns a UTF-8 encoded body.
+        http:
+          url: /encoding/utf8
+          method: GET
+          check:
+            status: 200
+      - name: Returns GZip-encoded data.
+        http:
+          url: /gzip
+          method: GET
+          check:
+            status: 200
+      - name: Returns a simple HTML document.
+        http:
+          url: /html
+          method: GET
+          check:
+            status: 200
+      - name: Returns a simple JSON document.
+        http:
+          url: /json
+          method: GET
+          check:
+            status: 200
+      - name: Returns some robots.txt rules.
+        http:
+          url: /robots.txt
+          method: GET
+          check:
+            status: 200
+      - name: Returns a simple XML document.
+        http:
+          url: /xml
+          method: GET
+          check:
+            status: 200
+  Response inspection:
+    name: Inspect the response data like caching and headers
+    steps:
+      - name: >-
+          Returns a 304 if an If-Modified-Since header or If-None-Match is
+          present. Returns the same as a GET otherwise.
+        http:
+          url: /cache
+          method: GET
+          headers:
+            If-Modified-Since: {}
+            If-None-Match: {}
+          check:
+            status: 200
+      - name: Sets a Cache-Control header for n seconds.
+        http:
+          url: /cache/44243206
+          method: GET
+          check:
+            status: 200
+      - name: >-
+          Assumes the resource has the given etag and responds to If-None-Match
+          and If-Match headers appropriately.
+        http:
+          url: /etag/{etag}
+          method: GET
+          headers:
+            If-None-Match: {}
+            If-Match: {}
+          check:
+            status: 200
+      - name: Returns a set of response headers from the query string.
+        http:
+          url: /response-headers
+          method: GET
+          params:
+            freeform: {}
+          check:
+            status: 200
+      - name: Returns a set of response headers from the query string.
+        http:
+          url: /response-headers
+          method: POST
+          params:
+            freeform: {}
+          check:
+            status: 200
+  Cookies:
+    name: Creates, reads and deletes Cookies
+    steps:
+      - name: Returns cookie data.
+        http:
+          url: /cookies
+          method: GET
+          check:
+            status: 200
+      - name: >-
+          Deletes cookie(s) as provided by the query string and redirects to
+          cookie list.
+        http:
+          url: /cookies/delete
+          method: GET
+          params:
+            freeform: {}
+          check:
+            status: 200
+      - name: >-
+          Sets cookie(s) as provided by the query string and redirects to cookie
+          list.
+        http:
+          url: /cookies/set
+          method: GET
+          params:
+            freeform: {}
+          check:
+            status: 200
+      - name: Sets a cookie and redirects to cookie list.
+        http:
+          url: /cookies/set/irure ex fugiat est officia/ut Duis anim Ut labore
+          method: GET
+          check:
+            status: 200
+  HTTP Methods:
+    name: Testing different HTTP verbs
+    steps:
+      - name: The request's DELETE parameters.
+        http:
+          url: /delete
+          method: DELETE
+          check:
+            status: 200
+      - name: The request's query parameters.
+        http:
+          url: /get
+          method: GET
+          check:
+            status: 200
+      - name: The request's PATCH parameters.
+        http:
+          url: /patch
+          method: PATCH
+          check:
+            status: 200
+      - name: The request's POST parameters.
+        http:
+          url: /post
+          method: POST
+          check:
+            status: 200
+      - name: The request's PUT parameters.
+        http:
+          url: /put
+          method: PUT
+          check:
+            status: 200
+  Request inspection:
+    name: Inspect the request data
+    steps:
+      - name: Return the incoming request's HTTP headers.
+        http:
+          url: /headers
+          method: GET
+          check:
+            status: 200
+      - name: Returns the requester's IP Address.
+        http:
+          url: /ip
+          method: GET
+          check:
+            status: 200
+      - name: Return the incoming requests's User-Agent header.
+        http:
+          url: /user-agent
+          method: GET
+          check:
+            status: 200
+  Images:
+    name: Returns different image formats
+    steps:
+      - name: Returns a simple image of the type suggest by the Accept header.
+        http:
+          url: /image
+          method: GET
+          check:
+            status: 200
+      - name: Returns a simple JPEG image.
+        http:
+          url: /image/jpeg
+          method: GET
+          check:
+            status: 200
+      - name: Returns a simple PNG image.
+        http:
+          url: /image/png
+          method: GET
+          check:
+            status: 200
+      - name: Returns a simple SVG image.
+        http:
+          url: /image/svg
+          method: GET
+          check:
+            status: 200
+      - name: Returns a simple WEBP image.
+        http:
+          url: /image/webp
+          method: GET
+          check:
+            status: 200
+  Status codes:
+    name: Generates responses with given status code
+    steps:
+      - name: Return status code or random status code if more than one are given
+        http:
+          url: /status/[object Object]
+          method: GET
+          check:
+            status: 100
+      - name: Return status code or random status code if more than one are given
+        http:
+          url: /status/[object Object]
+          method: PUT
+          check:
+            status: 100
+      - name: Return status code or random status code if more than one are given
+        http:
+          url: /status/[object Object]
+          method: POST
+          check:
+            status: 100
+      - name: Return status code or random status code if more than one are given
+        http:
+          url: /status/[object Object]
+          method: DELETE
+          check:
+            status: 100
+      - name: Return status code or random status code if more than one are given
+        http:
+          url: /status/[object Object]
+          method: PATCH
+          check:
+            status: 100
