@@ -1,0 +1,9 @@
+services:
+  tinyproxy:
+    image: vimagick/tinyproxy
+    container_name: tinyproxy
+    restart: unless-stopped
+    ports:
+      - 1080:8888
+    volumes:
+      - ./tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf

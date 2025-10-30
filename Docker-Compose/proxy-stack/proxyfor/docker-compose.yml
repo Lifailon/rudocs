@@ -1,0 +1,19 @@
+services:
+  proxyfor:
+    image: sigoden/proxyfor
+    container_name: proxyfor
+    restart: unless-stopped
+    volumes:
+      - ~/.proxyfor:/.proxyfor
+    # ports:
+    #   - 1080:8080
+    network_mode: host
+    command: --listen 1080 --web
+
+# Install Certificate Authority
+# Linux
+# sudo curl http://localhost:1080/__proxyfor__/certificate/proxyfor-ca-cert.pem -o /usr/local/share/ca-certificates/proxyfor.crt
+# sudo update-ca-certificates
+# Windows
+# Invoke-RestMethod http://192.168.3.101:1080/__proxyfor__/certificate/proxyfor-ca-cert.cer -OutFile $HOME/Downloads/proxyfor-ca-cert.cer
+# certutil -addstore root $HOME/Downloads/proxyfor-ca-cert.cer
