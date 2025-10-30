@@ -209,11 +209,13 @@
 
 - Development:
     - Go Playground:
-        icon: https://go.dev/images/favicon-gopher.png
-        href: https://go.dev/play
-    - Better Go Playground:
         icon: go.png
         href: https://goplay.tools
+        # href: https://go.dev/play
+    - Go Template Playground:
+        icon: https://repeatit.io/logo.svg
+        href: https://repeatit.io
+        # href: https://gotemplate.io
     - TypeScript Playground:
         icon: typescript.png
         href: https://typescriptlang.org/play
@@ -222,51 +224,83 @@
         href: https://runjs.app/play
         # href: https://jsplayground.dev
         # href: https://developer.mozilla.org/ru/play
-    - Hoppscotch API Client:
-        icon: hoppscotch.png
-        href: https://hoppscotch.io
-    - Mozilla Developer:
-        icon: https://developer.mozilla.org/favicon.svg
-        href: https://developer.mozilla.org/ru/docs/Web/HTTP/Reference/Status
-    - Reference Cheat Sheets:
-        icon: https://cheatsheets.zip/images/favicon.png
-        href: https://cheatsheets.zip
     - PowerShell Commands:
         icon: https://lifailon.github.io/favicon.png
         href: https://lifailon.github.io
+    - Reference Cheat Sheets:
+        icon: https://cheatsheets.zip/images/favicon.png
+        href: https://cheatsheets.zip
     - IT Tools:
-        icon: https://it-tools.tech/favicon.ico
+        icon: https://it-tools.tech/favicon-32x32.png
         href: https://it-tools.tech
     - Transform Web Converter:
         icon: https://transform.tools/static/favicon.png
         href: https://transform.tools
-    - JSON Crack:
-        icon: https://jsoncrack.com/favicon.ico
-        href: https://jsoncrack.com/editor
+    - Grist (Excel):
+        icon: grist.svg
+        href: https://docs.getgrist.com
+    - Cobalt Media Downloader:
+        icon: cobalt.svg
+        href: https://cobalt.tools
     - d2 Playground:
         icon: https://play.d2lang.com/assets/icons/d2-logo.svg
         href: https://play.d2lang.com
     - Draw.io:
         icon: draw-io.svg
         href: https://app.diagrams.net
-    - Grist (Excel):
-        icon: grist.svg
-        href: https://docs.getgrist.com
     # - Sweet Home 3D:
     #     icon: draw-io.svg
     #     href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
-    - Cobalt Media Downloader:
-        icon: cobalt.svg
-        href: https://cobalt.tools
-    - Text to ASCII Art Generator:
-        icon: https://patorjk.com/candy.png
-        href: https://patorjk.com
+    # - Text to ASCII Art Generator:
+    #     icon: https://patorjk.com/candy.png
+    #     href: https://patorjk.com
     # - Favicon Generator:
     #     icon: https://favicongenerator.io/favicon.ico
     #     href: https://favicongenerator.io
     # - Favicon Extractor:
     #     icon: https://www.faviconextractor.com/favicon/faviconextractor.com
     #     href: https://faviconextractor.com
+    - REST API:
+        - Restfox API Client:
+            icon: https://restfox.dev/favicon.png
+            href: https://restfox.dev
+        # - Hoppscotch API Client:
+        #     icon: hoppscotch.png
+        #     href: https://hoppscotch.io
+        # - HTTPie API Client:
+        #     icon: https://httpie.io/app/Favicons/favicon-32x32.png
+        #     href: https://httpie.io/app
+        # - Scalar API Client:
+        #     icon: https://scalar.com/favicon.png
+        #     href: https://client.scalar.com/workspace/default/collection/em6mWePHogMKWZesWxFmD/overview
+        - Scalar API Reference:
+            icon: https://docs.scalar.com/favicon.png
+            href: https://docs.scalar.com/editor#/reference
+        # - Swagger UI Explore:
+        #     icon: swagger.png
+        #     href: https://petstore.swagger.io   
+        - Swagger Editor:
+            icon: swagger.png
+            href: https://editor.swagger.io
+        - Postman to OpenAPI:
+            icon: https://postman.com/_ar-assets/images/favicon-1-32.png
+            href: https://kevinswiber.github.io/postman2openapi
+        - Gatus API Tester:
+            icon: gatus.png
+            href: https://gatus.io/demo
+        - Step CI Playground:
+            icon: https://stepci.com/logo.svg
+            href: https://stepci.com
+        - HTTP Headers:
+            icon: https://static.modheader.com/favicons/favicon-96x96.png
+            href: https://modheader.com/headers
+            # href: https://httpbingo.org/anything
+        - Mozilla Developer:
+            icon: https://developer.mozilla.org/favicon.svg
+            href: https://developer.mozilla.org/ru/docs/Web/HTTP/Reference/Status
+        - JSON Crack:
+            icon: https://jsoncrack.com/favicon.ico
+            href: https://jsoncrack.com/editor
     - Docker Registry:
         - Docker Hub:
             icon: docker.png
@@ -314,9 +348,11 @@
             siteMonitor: http://192.168.3.200:8888/dashboard/
             namespace: default
             app: traefik
-            widget:
-              type: traefik
-              url: http://192.168.3.105:8888
+            # widget:
+            #   type: traefik
+            #   url: http://192.168.3.105:8888
+            #   username: admin
+            #   password: admin
         - Argo CD:
             icon: argo-cd.png
             href: https://192.168.3.101:32479
@@ -329,10 +365,29 @@
             #   key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJob21lcGFnZTphcGlLZXkiLCJuYmYiOjE3NjAyODQ2MjcsImlhdCI6MTc2MDI4NDYyNywianRpIjoiYjMxYTQzMDUtN2JhYS00MzM1LTlmYjktZGI4ZWJhZTUyOTljIn0.4ms3UXzt7j9rWHQFBxvCRaQPFm6q5Eq7DGvHO0frua4
         - Longhorn:
             icon: longhorn.png
-            href: http://192.168.3.101:30050
-            siteMonitor: http://192.168.3.101:30050
+            href: http://192.168.3.101:30040
+            siteMonitor: http://192.168.3.101:30040
             namespace: longhorn-system
             app: longhorn
+        - Gatus:
+            icon: gatus.png
+            href: http://gatus.k8s.local
+            siteMonitor: http://192.168.3.205
+            namespace: monitoring
+            app: gatus
+            widget:
+              type: gatus
+              url: http://192.168.3.205
+        # - Uptime Kuma:
+        #     icon: uptime-kuma.png
+        #     href: http://uptime-kuma.k8s.local
+        #     siteMonitor: http://192.168.3.206
+        #     namespace: monitoring
+        #     app: uptime-kuma
+        #     widget:
+        #       type: uptimekuma
+        #       url: http://192.168.3.206
+        #       slug: test
     - Web Apps:
         - Plex:
             icon: plex.png
@@ -407,18 +462,24 @@
             icon: youtube.png
             href: https://youtube.com
             siteMonitor: https://youtube.com
-        - Gmail:
-            icon: gmail.png
-            href: https://mail.google.com/mail/u/0/
         - Maps:
             icon: google-maps.png
             href: https://www.google.ru/maps/place/japan
+        - Gmail:
+            icon: gmail.png
+            href: https://mail.google.com/mail/u/0/
         - Drive:
             icon: google-drive.png
             href: https://drive.google.com/drive/my-drive
         - Photos:
             icon: google-photos.png
             href: https://photos.google.com
+        - Calendar:
+            icon: google-calendar.png
+            href: https://calendar.google.com/calendar/u/0/r
+        - Tasks:
+            icon: https://www.gstatic.com//tasks/f5cfbf604fef12b05341c945d745fff2/favicon.ico
+            href: https://keep.google.com
         - Keep:
             icon: google-keep.png
             href: https://keep.google.com
@@ -500,6 +561,11 @@
         widget:
           type: traefik
           url: http://192.168.3.101:8080
+    - Jaeger:
+        icon: jaeger.png
+        server: local
+        container: jaeger
+        href: http://192.168.3.101:16686/search
     # - Authentik:
     #     icon: authentik.png
     #     server: local
@@ -575,8 +641,3 @@
           type: gitea
           url: http://192.168.3.101:3000
           key: 19d5d3b649e27107125393962339ff0ebb3bb42c
-    - GoCD:
-        icon: https://gocd.org/assets/images/favicon.ico
-        server: local
-        container: gocd-server
-        href: http://192.168.3.101:8153/go/pipelines
