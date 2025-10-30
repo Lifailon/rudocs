@@ -51,7 +51,7 @@
   - [Push](#push)
   - [Buildx](#buildx)
 - [Dockerfile](#dockerfile)
-- [Docker Compose](#docker-compose)
+- [Compose](#compose)
   - [Uptime-Kuma](#uptime-kuma)
   - [Dockge](#dockge)
   - [Dozzle](#dozzle)
@@ -206,8 +206,9 @@
 `systemctl start docker` \
 `systemctl enable docker` \
 `iptables -t nat -N DOCKER` \
-`docker -v` \
-`docker -h`
+`docker -v`
+
+`docker events` отобразить все происходящие события в процессе работы
 
 `sudo usermod -aG docker lifailon` добавить пльзователя в группу docker \
 `newgrp docker` применить изменения в группах
@@ -244,7 +245,7 @@ Environment="HTTPS_PROXY=http://docker:password@192.168.3.100:9090"
 
 ### Nexus
 
-небезопасные HTTP-соединения с Nexus сервером (если не использует HTTPS):
+Небезопасные HTTP-соединения с Nexus сервером (если не использует HTTPS):
 ```bash
 echo -e '{\n  "insecure-registries": ["http://192.168.3.105:8882"]\n}' | sudo tee "/etc/docker/daemon.json"
 sudo systemctl restart docker
@@ -850,7 +851,7 @@ docker run -d --name TorAPI -p 8443:8443 --restart=unless-stopped \
   -e PASSWORD="TorAPI" \
   torapi
 ```
-## Docker Compose
+## Compose
 ```bash
 mkdir -p $HOME/.local/bin
 version=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
@@ -4459,73 +4460,79 @@ Get-Service winlogbeat | Start-Service
 
 ## HAProxy
 
-`apt install haproxy` \
-`systemctl status haproxy`
+Запускаем HAProxy в контейнере Docker:
+```yml
+services:
+  httpbin-proxy:
+    image: haproxy:3.2.4-alpine
+    container_name: httpbin-proxy
+    restart: unless-stopped
+    ports:
+      - 8089:8080
+      - 2376:2376
+    volumes:
+      - ./haproxy.cfg:/haproxy.cfg
+    command:
+      - haproxy
+      - -f
+      - /haproxy.cfg
+      - -d
+    environment:
+      - STATS_USER=admin
+      - STATS_PASS=admin
+      - STATS_URI=/
+      - METRICS_URI=/metrics
 
-`/etc/default/haproxy`
+  httpbin-go:
+    image: ghcr.io/mccutchen/go-httpbin
+    container_name: httpbin-go
+    restart: unless-stopped
 ```
-ENABLED=1
-```
-`/etc/haproxy/haproxy.cfg`
+Конфигурация с проверкой тела ответа:
 ```conf
 global
-log 127.0.0.1 local0 notice
-maxconn 10000
-nbproc 1
-user haproxy
-group haproxy
-daemon
+    log stdout format raw daemon info
+    maxconn 4096
 
 defaults
-log global
-maxconn global
-timeout client 5s
-timeout server 5s
-timeout connect 5s
+    mode http
+    maxconn global
+    log global
+    option httplog
+    option log-health-checks
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
 
-frontend http_front
-mode http
-bind *:8081
-#bind *:443 ssl crt /etc/ssl/domain.ru/cert.pem 
-option httplog
-###mode tcp
-###bind *:3389
-###option tcplog
-use_backend http_back
+frontend metrics
+    bind *:2376
+    mode http
+    stats enable
+    stats uri "$STATS_URI"
+    stats auth "$STATS_USER":"$STATS_PASS"
+    stats refresh 5s
+    http-request use-service prometheus-exporter if { path "$METRICS_URI" }
+    no log
 
-backend http_back
-mode http
-balance roundrobin
-###mode tcp
-###balance leastconn
-option httpchk GET / HTTP/1.1\r\nHost:\ localhost
-###option tcp-check
-###tcp-check connect port 3389
-#server term1.domain.ru 192.168.55.30:443 ssl verify none weight 100 check inter 5s fall 5 rise 3
-#server term2.domain.ru 192.168.55.35:443 ssl verify none weight 100 check inter 5s fall 5 rise 3
-server pi-hole-01 192.168.3.101:8081 weight 100 check inter 5s fall 5 rise 3
-server netbox-01 192.168.3.104:8081 weight 100 check inter 5s fall 5 rise 3
+frontend frontend_httpbin
+    bind *:8080
+    default_backend backend_httpbin
 
-listen stats
-bind *:8082
-#bind *:8080 ssl crt /etc/ssl/domain.ru/cert.pem 
-mode http
-stats enable
-stats uri /
-stats auth admin:password
-stats show-legends
-stats show-node
-stats refresh 5s
+backend backend_httpbin
+    mode http
+    balance roundrobin
+
+    timeout check 10s
+    default-server inter 5s fall 3 rise 3
+    option httpchk GET /get
+    http-check expect status 200
+    http-check expect string "origin"
+
+    server internal-httpbin-go httpbin-go:8080 check weight 20
+    # server external-httpbin-go httpbingo.org:443 ssl verify none check weight 10
+    server external-httpbin httpbin.org:443 ssl verify none check weight 10
+
 ```
-`haproxy -f /etc/haproxy/haproxy.cfg -c` проверить синтаксис (Configuration file is valid) \
-`systemctl restart haproxy` применить настройки (перечитать конфигурацию) \
-`ss -lpn | grep 8081` \
-`curl http://192.168.3.102:8081` проверка http-трафика \
-`http://192.168.3.102:8082` статистика \
-`cat /var/log/haproxy.log` \
-`journalctl -eu haproxy` \
-`systemctl stop apache2` отключить на 101
-
 - options:
 
 `maxconn` максимальное количество одновременных соединений \
