@@ -77,6 +77,8 @@
   - [MetalLB](#metallb)
   - [Longhorn](#longhorn)
   - [PersistentVolume](#persistentvolume)
+  - [S3](#s3)
+  - [Velero](#velero)
   - [ArgoCD](#argocd)
   - [Kompose](#kompose)
   - [Kustomize](#kustomize)
@@ -371,22 +373,24 @@ volumes:
   nfs_volume:
     driver_opts:
       type: nfs
-      o: "addr=192.168.3.106,nolock,soft,nfsvers=4"
-      device: ":/backup" # путь к NFS-шаре на сервере
+      o: "addr=192.168.3.101,nolock,soft,nfsvers=4"
+      device: ":/backup"
 ```
 #### cifs
 ```yaml
 services:
-  app:
+  nginx:
     image: nginx
+    container_name: nginx
     volumes:
-      - smb_volume/app_data:/data
+      - smb_volume:/data
+
 volumes:
   smb_volume:
     driver_opts:
       type: cifs
       o: username=guest,password=,uid=1000,gid=1000
-      device: //192.168.3.100/docker-data
+      device: //192.168.3.100/docker-data/nginx
 ```
 #### mount
 
@@ -449,7 +453,7 @@ services:
 `Set-VMNetworkAdapter -VMName hv-us-101 -MacAddressSpoofing On` включить режим promisc на виртуальной машине Hyper-V
 ```yaml
 services:
-  macvlan-service:
+  nginx:
     image: nginx
     container_name: nginx
     networks:
@@ -471,7 +475,7 @@ networks:
 `ipvlan` не создаёт отдельные MAC-адреса, поэтому может работать на `wlan` (Wi-Fi) интерфейсах хоста.
 ```yaml
 services:
-  macvlan-service:
+  nginx:
     image: nginx
     container_name: nginx
     networks:
@@ -577,14 +581,15 @@ systemctl restart docker
 Проксирование локального сокета Docker на базе HAProxy (не требуется внесение изменений в системные файлы, такие как `daemon.json` и `docker.service`) с контролем доступа к конечным точкам с использованием переменных среды.
 ```yaml
 services:
-  docker-socket-haproxy:
-    image: lifailon/docker-socket-haproxy:latest
-    container_name: docker-socket-haproxy
-    restart: unless-stopped
-    ports:
-      - 2375:2375
+  docker-socket-proxy:
+    image: lifailon/docker-socket-proxy:amd64
+    container_name: docker-socket-proxy
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 2375:2375 # Docker API
+      - 2376:2376 # HAProxy статистика
     environment:
       - SOCKET_PATH=/var/run/docker.sock  # Путь к Docker сокету внутри контейнера
       - LOG_LEVEL=info      # Уровень логирования HAProxy-прокси (debug|info|warn|error)
@@ -593,23 +598,23 @@ services:
       - PING=1              # /_ping — проверку доступности Docker API
       - VERSION=1           # /version — получение версии API и информации о сервере
       # Отключено по умолчанию
-      - POST=0              # HTTP POST-запросы (например, для создания контейнеров)
-      - GRPC=0              # /grpc — gRPC интерфейс Docker (экспериментальный)
-      - EXEC=0              # /exec — запуск команд внутри контейнеров
-      - ALLOW_RESTARTS=0    # /containers/.../(restart|kill) — перезапуск или остановку контейнера
-      - ALLOW_START=0       # /containers/.../start — запуск остановленных контейнеров
-      - ALLOW_STOP=0        # /containers/.../stop — остановку запущенных контейнеров
-      - AUTH=0              # /auth — отвечает за логин к registry через Docker API
-      - CONTAINERS=0        # /containers — список контейнеров, их создание, удаление, inspect и т.п.
-      - IMAGES=0            # /images — просмотр, загрузка и удаление Docker-образов
-      - NETWORKS=0          # /networks — просмотр, создание и удаление сетей Docker
-      - BUILD=0             # /build — сборка образов через API
-      - COMMIT=0            # /commit — создание образа из контейнера (docker commit)
-      - DISTRIBUTION=0      # /distribution — доступ к registry API (например, метаданные образов)
+      - POST=1              # HTTP POST-запросы (например, для создания контейнеров)
+      - GRPC=1              # /grpc — gRPC интерфейс Docker (экспериментальный)
+      - EXEC=1              # /exec — запуск команд внутри контейнеров
+      - ALLOW_RESTARTS=1    # /containers/.../(restart|kill) — перезапуск или остановку контейнера
+      - ALLOW_START=1       # /containers/.../start — запуск остановленных контейнеров
+      - ALLOW_STOP=1        # /containers/.../stop — остановку запущенных контейнеров
+      - AUTH=1              # /auth — отвечает за логин к registry через Docker API
+      - CONTAINERS=1        # /containers — список контейнеров, их создание, удаление, inspect и т.п.
+      - IMAGES=1            # /images — просмотр, загрузка и удаление Docker-образов
+      - NETWORKS=1          # /networks — просмотр, создание и удаление сетей Docker
+      - BUILD=1             # /build — сборка образов через API
+      - COMMIT=1            # /commit — создание образа из контейнера (docker commit)
+      - DISTRIBUTION=1      # /distribution — доступ к registry API (например, метаданные образов)
       - EVENTS=1            # /events — поток событий Docker (создание, запуск, удаление контейнеров)
-      - PLUGINS=0           # /plugins — управление Docker плагинами
-      - VOLUMES=0           # /volumes — управление Docker томами (создание, удаление, просмотр)
-      - SESSION=0           # /session — сессии терминалов и интерактивные API
+      - PLUGINS=1           # /plugins — управление Docker плагинами
+      - VOLUMES=1           # /volumes — управление Docker томами (создание, удаление, просмотр)
+      - SESSION=1           # /session — сессии терминалов и интерактивные API
       # Swarm
       - SWARM=0             # /swarm — настройки и статус Swarm кластера
       - NODES=0             # /nodes — информация о нодах в Swarm
@@ -618,6 +623,10 @@ services:
       - SERVICES=0          # /services — управление сервисами Docker Swarm
       - SYSTEM=0            # /system — общая системная информация Docker (ресурсы, usage)
       - TASKS=0             # /tasks — задачи Swarm (контейнеры внутри сервисов)
+      # HAProxy stats
+      - STATS_URI=/
+      - STATS_USER=admin
+      - STATS_PASS=admin
 ```
 ### Context
 
@@ -1911,6 +1920,91 @@ spec:
 `kubectl apply -f pvc-nfs.yaml`
 
 `kubectl get pvc`
+
+### S3
+
+[MinIO](https://github.com/minio/minio) — это высокопроизводительное, совместимое с S3 решение для хранения объектов.
+```yaml
+services:
+  minio1:
+    image: minio/minio
+    container_name: minio1
+    hostname: minio1
+    command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=MinioAdmin
+    volumes:
+      - ./minio_node1_data:/data
+    ports:
+      - 9000:9000 # API
+      - 9001:9001 # WebUI
+
+  minio2:
+    image: minio/minio
+    container_name: minio2
+    hostname: minio2  
+    command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: MinioAdmin
+    volumes:
+      - ./minio_node2_data:/data
+    ports:
+      - 9002:9000
+      - 9003:9001
+```
+[s3fs](https://github.com/s3fs-fuse/s3fs-fuse) - это файловый интерфейс для S3, который позволяет использовать хранилище s3 как локальную файловую систему.
+
+`sudo apt install -y s3fs` установка \
+`sudo mkdir -p /mnt/s3` создать директорию для монтирования \
+`echo "admin:MinioAdmin" > /tmp/s3cred && chmod 600 /tmp/s3cred` сохранить авторизационные данные для подключения к s3 \
+`sudo s3fs docker-bucket /mnt/s3 -o url=http://localhost:9000 -o use_path_request_style -o passwd_file=/tmp/s3_cred` монтировать файловую систему \
+`mount | grep /mnt/s3` отобразить точки монтирования \
+`sudo umount /mnt/s3` отмонтировать
+
+### Velero
+
+[Velero](https://github.com/vmware-tanzu/velero) (ранее Heptio Ark) - это инструменты для резервного копирования и восстановления ресурсов кластера Kubernetes и постоянных томов.
+```bash
+curl -sSL https://github.com/vmware-tanzu/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz -o velero-linux-amd64.tar.gz
+tar -xvf velero-linux-amd64.tar.gz
+mv velero-*/velero ~/.local/bin/
+rm -rf velero-*
+velero version
+```
+Создаем креды для подключения к s3 хранилищу [minio](https://github.com/minio/minio):
+```
+cat <<EOF > velero-minio.env
+[default]
+aws_access_key_id=admin
+aws_secret_access_key=MinioAdmin
+EOF
+```
+Установка в кластер:
+```bash
+velero install \
+    --provider aws \
+    --plugins velero/velero-plugin-for-aws:v1.13.0 \
+    --bucket velero \
+    --secret-file ./velero-minio.env \
+    --backup-location-config region=minio,s3ForcePathStyle=true,s3Url=http://192.168.3.101:9000 \
+    --namespace velero
+```
+`kubectl get pods -n velero` проверяем, что под запущен \
+`kubectl logs deploy/velero -n velero` проверяем, что нет ошибок подключения к s3
+
+`velero backup-location get` отобразить статус BSL (Backup Storage Location) (`PHASE` - `Available`) \
+`velero backup create telegram-bot-backup --include-namespaces telegram` запустить backup \
+`velero schedule create telegram-daily --schedule "0 3 * * *" --include-namespaces telegram --ttl 168h` запускать каждый день в 03:00 (ttl определяет автоматическуое удаление всех созданных velero ресурсов через 7 дней) \
+`velero backup describe telegram-bot-backup --details` отобразить статус резервного копирования (ключевое - статус, продолжительность копирования и список ресурсов) \
+`velero backup get` отобразить список всех бэкапов, их статус (`Completed`, `Failed`, `InProgress`) и namespace
+
+`velero restore create --from-backup telegram-bot-backup --include-namespaces telegram` восстанавливает все ресурсы из указанного бэкапа \
+`kubectl get deployments -n telegram --show-labels` отобразить все доступные `lables` в deployments \
+`kubectl get all -n telegram --show-labels` отобразить все доступные ресурсы в указанном namespace \
+`velero restore create --from-backup telegram-bot-backup --include-namespaces telegram --include-resources deployments,configmaps --selector app=your-deployment-name` восстановить только конкретные ресурсы с фильтрацией по `lables` \
+`velero restore get` отобразить статус восстановления
 
 ### ArgoCD
 
