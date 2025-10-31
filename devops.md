@@ -103,6 +103,7 @@
   - [httpRequest](#httprequest)
   - [Active Choices Parameter](#active-choices-parameter)
   - [Vault](#vault)
+  - [withVault](#withvault)
   - [Email Extension](#email-extension)
   - [Parallel](#parallel)
 - [Groovy](#groovy)
@@ -2627,26 +2628,28 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 ```
 ### Plugins
 
-| Плагин                                                                         | Описание                                                                                                      |
-| -                                                                              | -                                                                                                             |
-| [Pipeline: Stage View](https://plugins.jenkins.io/pipeline-stage-view)         | Визуализация шагов (stages) в интерфейсе проекта с временем их выполнения.                                    |
-| [Rebuilder](https://plugins.jenkins.io/rebuild)                                | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке.         |
-| [Schedule Build](https://plugins.jenkins.io/schedule-build)                    | Позволяет запланировать сборку на указанный момент времени.                                                   |
-| [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)       | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.    |
-| [Export Job Parameters](https://plugins.jenkins.io/export-job-parameters)      | Добавляет кнопку `Export Job Parameters` для конвертации все параметров в декларативный синтаксис Pipeline.   |
-| [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                     | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                            |
-| [Active Choices](https://plugins.jenkins.io/uno-choice)                        | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                            |
-| [File Parameters](https://plugins.jenkins.io/file-parameters)                  | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).          |
-| [Ansible](https://plugins.jenkins.io/ansible)                                  | Параметраризует запуск `ansible-playbook` (требуется установка на агенте) через метод `ansiblePlaybook`.      |
-| [HTTP Request](https://plugins.jenkins.io/http_request)                        | Простой REST API Client для отправки и обработки `GET` и `POST` запросов через метод `httpRequest`.           |
-| [Pipeline Utility Steps](https://plugins.jenkins.io/pipeline-utility-steps)    | Добавляет методы `readJSON` и `writeJSON`.                                                                    |
-| [ANSI Color](https://plugins.jenkins.io/ansicolor)                             | Добавляет поддержку стандартных escape-последовательностей ANSI для покраски вывода.                          |
-| [Email Extension](https://plugins.jenkins.io/email-ext)                        | Отправка сообщений на почту из Pipeline.                                                                      |
-| [Test Results Analyzer](https://plugins.jenkins.io/test-results-analyzer)      | Показывает историю результатов сборки `junit` тестов в табличном древовидном виде.                            |
-| [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status)  | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                     |
-| [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                    | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.                |
-| [Web Monitoring](https://plugins.jenkins.io/monitoring)                        | Добавляет конечную точку `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                 |
-| [CloudBees Disk Usage](https://plugins.jenkins.io/cloudbees-disk-usage-simple) | Отображает использование диска всеми заданиями во вкладке `Manage-> Disk usage`.                              |
+| Плагин                                                                          | Описание                                                                                                    |
+| -                                                                               | -                                                                                                           |
+| [Pipeline Stage View](https://plugins.jenkins.io/pipeline-stage-view)           | Визуализация шагов (stages) в интерфейсе проекта с временем их выполнения.                                  |
+| [Rebuilder](https://plugins.jenkins.io/rebuild)                                 | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке.       |
+| [Schedule Build](https://plugins.jenkins.io/schedule-build)                     | Позволяет запланировать сборку на указанный момент времени.                                                 |
+| [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)        | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.  |
+| [Export Job Parameters](https://plugins.jenkins.io/export-job-parameters)       | Добавляет кнопку `Export Job Parameters` для конвертации все параметров в декларативный синтаксис Pipeline. |
+| [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                      | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                          |
+| [Active Choices](https://plugins.jenkins.io/uno-choice)                         | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                          |
+| [File Parameters](https://plugins.jenkins.io/file-parameters)                   | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).        |
+| [Custom Tools](https://plugins.jenkins.io/custom-tools-plugin)                  | Позволяет загружать пакеты из интернета с помощью предустановленного набора команд.                         |
+| [Ansible](https://plugins.jenkins.io/ansible)                                   | Параметраризует запуск `ansible-playbook` (требуется установка на агенте) через метод `ansiblePlaybook`.    |
+| [HashiCorp Vault](https://plugins.jenkins.io/hashicorp-vault-plugin)            | Автоматизирует процесс получения содержимого значений из Vault с помощью метода `withVault`                 |
+| [HTTP Request](https://plugins.jenkins.io/http_request)                         | Простой REST API Client для отправки и обработки `GET` и `POST` запросов через метод `httpRequest`.         |
+| [Pipeline Utility Steps](https://plugins.jenkins.io/pipeline-utility-steps)     | Добавляет методы `readJSON` и `writeJSON`.                                                                  |
+| [ANSI Color](https://plugins.jenkins.io/ansicolor)                              | Добавляет поддержку стандартных escape-последовательностей ANSI для покраски вывода.                        |
+| [Email Extension](https://plugins.jenkins.io/email-ext)                         | Отправка сообщений на почту из Pipeline.                                                                    |
+| [Test Results Analyzer](https://plugins.jenkins.io/test-results-analyzer)       | Показывает историю результатов сборки `junit` тестов в табличном древовидном виде.                          |
+| [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status)   | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                   |
+| [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                     | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.              |
+| [Web Monitoring](https://plugins.jenkins.io/monitoring)                         | Добавляет конечную точку `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.               |
+| [CloudBees Disk Usage](https://plugins.jenkins.io/cloudbees-disk-usage-simple)  | Отображает использование диска всеми заданиями во вкладке `Manage-> Disk usage`.                            |
 
 ### SSH Steps and Artifacts
 
@@ -3049,6 +3052,130 @@ pipeline {
     }
 }
 ```
+### withVault
+
+Получение секретов (на примере содержимого `kubeconfig`) с помощью метода `withVault`:
+```Groovy
+// Вывести  список custom tools
+// import org.jenkinsci.plugins.customtools.CustomTool
+// CustomTool.getAllDescriptors().each { descriptor ->
+//     println descriptor.displayName
+// }
+
+def log = {
+    def m = [:]
+    m.info = { text -> echo "\u001B[34m${text}\u001B[0m" }
+    m.success = { text -> echo "\u001B[32m${text}\u001B[0m" }
+    m.error = { text -> echo "\u001B[31m${text}\u001B[0m" }
+    return m
+}()
+
+pipeline {
+    agent any
+    options {
+        ansiColor("xterm")
+        timestamps()
+        timeout(time: 10, unit: "MINUTES")
+    }
+    parameters {
+        booleanParam(
+            name: "checkConfig",
+            defaultValue: false,
+            description: "Проверить содержимое kubeconfig и версию kubectl"
+        )
+    }
+    environment {
+        KUBECONFIG = "${WORKSPACE}/kubeconfig"
+        KUBECTLPATH = tool(
+            name: 'kubectl-amd64-1.33.3',
+            type: 'org.jenkinsci.plugins.customtools.CustomTool'
+        )
+    }
+    stages {
+        // stage("Checkout") {
+        //     steps {
+        //         script {
+        //             checkout scm
+        //         }
+        //     }
+        // }
+        stage("Get kubeconfig from Vault") {
+            steps {
+                script {
+                    // Конфигурация для подключения к Vault
+                    def vaultConfiguration = [
+                        vaultUrl:           "http://192.168.3.101:8200",
+                        vaultCredentialId:  "kube_approle",
+                        engineVersion:      1
+                    ]
+                    // Переменные для извлечения секретов
+                    def vaultSecrets  = [
+                        [
+                            path:  "kv/kube",
+                            engineVersion: 1,
+                            secretValues: [
+                                [
+                                    envVar: "kubeconfig", // название переменной
+                                    vaultKey: "config"    // ключ в Vault
+                                ]
+                            ]
+                        ]
+                    ]
+                    // Метод извлечения секретов из Vault
+                    withVault(
+                        [
+                            configuration:  vaultConfiguration,
+                            vaultSecrets:   vaultSecrets
+                        ]
+                    ) {
+                        // Записываем содержимое в файл
+                        writeFile(
+                            file: "${WORKSPACE}/kubeconfig", // Не принимает переопределенные env
+                            text: kubeconfig
+                        )
+                    }
+                }
+            }
+        }
+        stage("Check kubeconfig and kubectl") {
+            when {
+                expression { params.checkConfig }
+            }
+            steps {
+                script {
+                    log.success("Проверяем содержимое kubeconfig:")
+                    def kubeconfig = readFile(
+                        file: KUBECONFIG
+                    )
+                    log.success(kubeconfig)
+                    log.info("Проверяем версию kubectl:")
+                    sh(
+                        script: """
+                            export PATH="${KUBECTLPATH}:${PATH}"
+                            kubectl version --output=json
+                        """,
+                        returnStatus: true, // Не возвращаем статус (игнорируем ошибки)
+                        returnStdout: false // Выводим stdout
+                    )
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                sh(
+                    script: """
+                        ls -lh
+                        rm -rf ./*
+                        ls -lh
+                    """
+                )
+            }
+        }
+    }
+}
+```
 ### Email Extension
 
 Для отправки на почту и настроить SMTP сервер в настройках Jenkins (`System` => `Extended E-mail Notification`)
@@ -3378,6 +3505,8 @@ new File("file.txt").write("text")              // перезаписывает 
 new File("file.txt").setText("text")            // аналог write() => void
 new File("file.txt").bytes = [1, 2, 3]          // записывает массив байтов => void
 new File("file.txt") << "text"                  // добавляет текст в конец файла => void
+
+(versions[1].toInteger() + 1).toString().padLeft(4, '0') // 0019 + 1 = 0020 ("19".padLeft(4, '0') -> "0019")
 ```
 ## Ansible
 
@@ -4178,7 +4307,7 @@ docker exec -it vault vault status
 docker exec -it vault vault login hvs.rxlYkJujkX6Fdxq2XAP3cd3a
 ```
 `Secrets Engines` -> `Enable new engine` + `KV` \
-API Swagger: http://192.168.3.100:8200/ui/vault/tools/api-explorer
+API Swagger: http://192.168.3.101:8200/ui/vault/tools/api-explorer
 ```PowerShell
 $TOKEN = "hvs.rxlYkJujkX6Fdxq2XAP3cd3a"
 $Headers = @{
@@ -4203,11 +4332,11 @@ $Body = @{
     options = @{}
     version = 0
 } | ConvertTo-Json
-$urlUpdate = "http://192.168.3.100:8200/v1/kv/data/main-path"
+$urlUpdate = "http://192.168.3.101:8200/v1/kv/data/main-path"
 Invoke-RestMethod -Uri $urlUpdate -Method POST -Headers $Headers -Body $Body
 
 # Удалить все секреты
-Invoke-RestMethod -Uri "http://192.168.3.100:8200/v1/kv/data/main-path" -Method DELETE -Headers $Headers
+Invoke-RestMethod -Uri "http://192.168.3.101:8200/v1/kv/data/main-path" -Method DELETE -Headers $Headers
 ```
 Vault client:
 ```bash
