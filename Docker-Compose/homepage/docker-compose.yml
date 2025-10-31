@@ -21,7 +21,7 @@ services:
   glances:
     image: nicolargo/glances:latest-full
     container_name: glances
-    restart: unless-stopped
+    restart: always
     pid: host
     # stdin_open: true
     # tty: true

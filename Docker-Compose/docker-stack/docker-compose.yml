@@ -25,7 +25,7 @@ services:
   docker-web-manager:
     image: lifailon/docker-web-manager:latest
     container_name: docker-web-manager
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
@@ -43,7 +43,7 @@ services:
   # dockman:
   #   container_name: dockman
   #   image: ghcr.io/ra341/dockman:latest
-  #   restart: unless-stopped
+  #   restart: always
   #   environment:
   #     - DOCKMAN_MACHINE_ADDR=192.168.3.101
   #     - DOCKMAN_PORT=8866
@@ -55,8 +55,9 @@ services:
   #     - DOCKMAN_LOG_VERBOSE=true
   #   volumes:
   #     - /var/run/docker.sock:/var/run/docker.sock
+  #     # Stack directory
   #     - /home/lifailon/docker:/home/lifailon/docker
-  #     - ./config:/config
+  #     - ./dockman_config:/config
   #   ports:
   #     - 8866:8866
 
@@ -64,12 +65,12 @@ services:
   # dweebui:
   #   image: lllllllillllllillll/dweebui:latest
   #   container_name: dweebui
-  #   restart: unless-stopped
+  #   restart: always
   #   environment:
   #     - PORT=8000
   #     - SECRET=AdminSecret # for registration
   #   volumes:
-  #     - ./dweebui:/app/config
+  #     - ./dweebui_data:/app/config
   #     - /var/run/docker.sock:/var/run/docker.sock
   #   ports:
   #     - 8000:8000
@@ -78,7 +79,7 @@ services:
   # dockpeek:
   #   image: ghcr.io/dockpeek/dockpeek:latest
   #   container_name: dockpeek
-  #   restart: unless-stopped
+  #   restart: always
   #   environment:
   #     - SECRET_KEY=AdminSecret
   #     - USERNAME=admin
@@ -94,8 +95,8 @@ services:
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
-    restart: unless-stopped
-    command: --interval 600 --http-api-metrics # --http-api-update
+    restart: always
+    command: --interval 600 --http-api-metrics --http-api-update
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -107,35 +108,35 @@ services:
       - 8088:8080 # api
 
   # Docker Image Update Notifier
-  diun:
-    image: crazymax/diun:latest
-    container_name: diun
-    restart: unless-stopped
-    command: serve
-    volumes:
-      - ./diun_data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - TZ=Etc/GMT+3
-      - LOG_LEVEL=info
-      - LOG_JSON=false
-      - DIUN_WATCH_WORKERS=20
-      - DIUN_WATCH_SCHEDULE=0 */6 * * *
-      - DIUN_WATCH_JITTER=30s
-      - DIUN_PROVIDERS_DOCKER=true
-      - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
-      - DIUN_NOTIF_TELEGRAM_TOKEN=
-      - DIUN_NOTIF_TELEGRAM_CHATIDS=
-      # https://crazymax.dev/diun/faq/?h=entry#notification-template
-      - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
-    labels:
-      - diun.enable=true
-    healthcheck:
-      test: ["CMD", "diun", "notif", "test"]
-      interval: 24h
-      timeout: 10s
-      retries: 1
-      start_period: 30s
+  # diun:
+  #   image: crazymax/diun:latest
+  #   container_name: diun
+  #   restart: always
+  #   command: serve
+  #   volumes:
+  #     - ./diun_data:/data
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - TZ=Etc/GMT+3
+  #     - LOG_LEVEL=info
+  #     - LOG_JSON=false
+  #     - DIUN_WATCH_WORKERS=20
+  #     - DIUN_WATCH_SCHEDULE=0 */6 * * *
+  #     - DIUN_WATCH_JITTER=30s
+  #     - DIUN_PROVIDERS_DOCKER=true
+  #     - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
+  #     - DIUN_NOTIF_TELEGRAM_TOKEN=
+  #     - DIUN_NOTIF_TELEGRAM_CHATIDS=
+  #     # https://crazymax.dev/diun/faq/?h=entry#notification-template
+  #     - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
+  #   labels:
+  #     - diun.enable=true
+  #   healthcheck:
+  #     test: ["CMD", "diun", "notif", "test"]
+  #     interval: 24h
+  #     timeout: 10s
+  #     retries: 1
+  #     start_period: 30s
 
   # Watcher containers and registries and performing actions
   # wud:
@@ -152,7 +153,7 @@ services:
   dozzle:
     image: amir20/dozzle:latest
     container_name: dozzle
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./dozzle_data:/data
@@ -161,12 +162,12 @@ services:
       - DOZZLE_NO_ANALYTICS=true
       # Включить действия (start/stop/restart)
       - DOZZLE_ENABLE_ACTIONS=true
-      # Добавить возможность подключения к работающим контейнерам
+      # Включить доступ к терминалу работающих контейнеров
       - DOZZLE_ENABLE_SHELL=true
       # Включить базовую авторизацию из файла /data/users.yml
       - DOZZLE_AUTH_PROVIDER=simple
       # Подключиться к удаленному хосту через Docker Socket API
-      # - DOZZLE_REMOTE_HOST=tcp://192.168.3.101:2375|us-101
+      # - DOZZLE_REMOTE_HOST=tcp://192.168.3.105:2375|rpi-105,tcp://192.168.3.106:2375|rpi-106
       # Подключиться к удаленному хосту через Dozzle Agent
       # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
     ports:
@@ -175,7 +176,7 @@ services:
   # dozzle-agent:
   #   image: amir20/dozzle:latest
   #   container_name: dozzle-agent
-  #   restart: unless-stopped
+  #   restart: always
   #   command: agent
   #   volumes:
   #     - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -188,19 +189,19 @@ services:
   # dozzle-syslog:
   #   image: alpine
   #   container_name: dozzle-syslog
-  #   restart: unless-stopped
+  #   restart: always
+  #   volumes:
+  #     - /var/log/syslog:/var/log/custom.log
   #   command:
   #     - tail
   #     - -f
   #     - /var/log/custom.log
-  #   volumes:
-  #     - /var/log/syslog:/var/log/custom.log
 
   # Container for monitoring files from /var/log on host
   dozzle-varlog:
     image: lifailon/dozzle-varlog:latest
     container_name: dozzle-varlog
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/log:/logs
 
@@ -210,7 +211,7 @@ services:
   beszel-server:
     image: henrygd/beszel:latest
     container_name: beszel-server
-    restart: unless-stopped
+    restart: always
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
@@ -222,17 +223,62 @@ services:
   beszel-agent:
     image: henrygd/beszel-agent:latest
     container_name: beszel-agent
-    restart: unless-stopped
-    network_mode: host
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./beszel_agent_data:/var/lib/beszel-agent
       # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
     environment:
-      # HUB_URL: http://localhost:8090
-      # LISTEN: /beszel_socket/beszel.sock
-      LISTEN: 45876
-      # TOKEN: <token>
-      KEY: "Копируем публичный ключ из интерфейса и перезапускаем docker compose"
+      - KEY=Копируем публичный ключ из интерфейса и перезапускаем docker compose
+      - HUB_URL=http://beszel-server:8090
+      - LISTEN=45876
     # ports:
     #   - 45876:45876
+
+################################################### Proxy ###################################################
+
+  docker-socket-proxy:
+    image: lifailon/docker-socket-proxy:amd64
+    container_name: docker-socket-proxy
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 2375:2375 # Docker API
+      - 2376:2376 # HAProxy stats and Prometheus metrics
+    environment:
+      - SOCKET_PATH=/var/run/docker.sock
+      - LOG_LEVEL=info
+      - INFO=1
+      - PING=1
+      - VERSION=1
+      - POST=1
+      - GRPC=1
+      - EXEC=1
+      - ALLOW_RESTARTS=1
+      - ALLOW_START=1
+      - ALLOW_STOP=1
+      - AUTH=1
+      - CONTAINERS=1
+      - IMAGES=1
+      - NETWORKS=1
+      - BUILD=1
+      - COMMIT=1
+      - DISTRIBUTION=1
+      - EVENTS=1
+      - PLUGINS=1
+      - VOLUMES=1
+      - SESSION=1
+      # Swarm
+      - SWARM=0             
+      - NODES=0             
+      - CONFIGS=0           
+      - SECRETS=0           
+      - SERVICES=0          
+      - SYSTEM=0            
+      - TASKS=0             
+      # HAProxy stats and Prometheus metrics
+      - STATS_USER=admin
+      - STATS_PASS=admin
+      - STATS_URI=/
+      - METRICS_URI=/metrics

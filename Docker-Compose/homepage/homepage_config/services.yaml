@@ -224,6 +224,9 @@
         href: https://runjs.app/play
         # href: https://jsplayground.dev
         # href: https://developer.mozilla.org/ru/play
+    # - Groovy Playground:
+    #     icon: https://groovy-lang.org/img/groovy-logo-white.svg
+    #     href: https://groovyide.com/playground
     - PowerShell Commands:
         icon: https://lifailon.github.io/favicon.png
         href: https://lifailon.github.io
@@ -231,7 +234,7 @@
         icon: https://cheatsheets.zip/images/favicon.png
         href: https://cheatsheets.zip
     - IT Tools:
-        icon: https://it-tools.tech/favicon-32x32.png
+        icon: it-tools.png
         href: https://it-tools.tech
     - Transform Web Converter:
         icon: https://transform.tools/static/favicon.png
