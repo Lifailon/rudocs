@@ -1,0 +1,25 @@
+services:
+  httpbin-proxy:
+    image: haproxy:3.2.4-alpine
+    container_name: httpbin-proxy
+    restart: unless-stopped
+    ports:
+      - 8089:8080
+      - 2376:2376
+    volumes:
+      - ./haproxy.cfg:/haproxy.cfg
+    command:
+      - haproxy
+      - -f
+      - /haproxy.cfg
+      - -d
+    environment:
+      - STATS_USER=admin
+      - STATS_PASS=admin
+      - STATS_URI=/
+      - METRICS_URI=/metrics
+
+  httpbin-go:
+    image: ghcr.io/mccutchen/go-httpbin
+    container_name: httpbin-go
+    restart: unless-stopped
