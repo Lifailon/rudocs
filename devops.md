@@ -236,11 +236,11 @@ Environment="HTTPS_PROXY=http://docker:password@192.168.3.100:9090"
 
 ### Mirror
 
-`echo '{ "registry-mirrors": ["https://dockerhub.timeweb.cloud"] }' > "/etc/docker/daemon.json"` \
-`echo '{ "registry-mirrors": ["https://huecker.io"] }' > "/etc/docker/daemon.json"` \
-`echo '{ "registry-mirrors": ["https://mirror.gcr.io"] }' > "/etc/docker/daemon.json"` \
-`echo '{ "registry-mirrors": ["https://daocloud.io"] }' > "/etc/docker/daemon.json"` \
-`echo '{ "registry-mirrors": ["https://c.163.com"] }' > "/etc/docker/daemon.json"`
+`echo '{ "registry-mirrors": ["https://dockerhub.timeweb.cloud"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://huecker.io"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://mirror.gcr.io"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://daocloud.io"] }' > "/etc/docker/daemon.json"` \
+`echo '{ "registry-mirrors": ["https://c.163.com"] }' > "/etc/docker/daemon.json"`
 
 `systemctl restart docker`
 
@@ -3054,14 +3054,15 @@ pipeline {
 ```
 ### withVault
 
+Команда (скрипт) для загрузки `kubectl` в Custom tool:
+```bash
+mkdir -p ./bin
+curl https://dl.k8s.io/release/v1.33.3/bin/linux/amd64/kubectl -sSLo ./bin/kubectl
+chmod +x ./bin/kubectl
+# Домашний каталог утилиты: bin
+```
 Получение секретов (на примере содержимого `kubeconfig`) с помощью метода `withVault`:
 ```Groovy
-// Вывести  список custom tools
-// import org.jenkinsci.plugins.customtools.CustomTool
-// CustomTool.getAllDescriptors().each { descriptor ->
-//     println descriptor.displayName
-// }
-
 def log = {
     def m = [:]
     m.info = { text -> echo "\u001B[34m${text}\u001B[0m" }
@@ -3078,18 +3079,25 @@ pipeline {
         timeout(time: 10, unit: "MINUTES")
     }
     parameters {
-        booleanParam(
-            name: "checkConfig",
-            defaultValue: false,
-            description: "Проверить содержимое kubeconfig и версию kubectl"
-        )
+        booleanParam(name: "checkConfig", defaultValue: false, description: "Проверить содержимое kubeconfig и версию kubectl")
+        // string(name: "text", defaultValue: "text")
+        // text(name: "notes", defaultValue: "notes")
+        // choice(name: "addresses", choices: ["192.168.3.105","192.168.3.106"])
+        // password(name: "token", defaultValue: "YWRtaW4K")
+        // credentials(name: "sshKey", credentialType: "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey", defaultValue: "d5da50fc-5a98-44c4-8c55-d009081a861a", required: true)
+        // credentials(name: "vaultAppRole", credentialType: "com.datapipe.jenkins.vault.credentials.VaultAppRoleCredential", defaultValue: "main_approle")
+        // activeChoice(name: "activeChoicesParameter", choiceType: "PT_CHECKBOX", filterable: true,
+        // script: [$class: "GroovyScript", script: [script: '''return["1","2","3"]''']]) // PT_MULTI_SELECT/PT_SINGLE_SELECT
+        // reactiveChoice(name: "activeChoicesReactiveParameter", choiceType: "PT_RADIO", filterable: false, referencedParameters: "activeChoicesParameter",
+        // script: [$class: "GroovyScript", script: [script: '''return [activeChoicesParameter]''']])
     }
     environment {
         KUBECONFIG = "${WORKSPACE}/kubeconfig"
         KUBECTLPATH = tool(
-            name: 'kubectl-amd64-1.33.3',
-            type: 'org.jenkinsci.plugins.customtools.CustomTool'
+            name: "kubectl-amd64-1.33.3",
+            type: "com.cloudbees.jenkins.plugins.customtools.CustomTool"
         )
+        PATH = "${KUBECTLPATH}:${env.PATH}"
     }
     stages {
         // stage("Checkout") {
@@ -3105,7 +3113,7 @@ pipeline {
                     // Конфигурация для подключения к Vault
                     def vaultConfiguration = [
                         vaultUrl:           "http://192.168.3.101:8200",
-                        vaultCredentialId:  "kube_approle",
+                        vaultCredentialId:  "main_approle",
                         engineVersion:      1
                     ]
                     // Переменные для извлечения секретов
@@ -3143,15 +3151,21 @@ pipeline {
             }
             steps {
                 script {
-                    log.success("Проверяем содержимое kubeconfig:")
+                    log.info("Проверяем содержимое kubeconfig")
                     def kubeconfig = readFile(
                         file: KUBECONFIG
                     )
-                    log.success(kubeconfig)
-                    log.info("Проверяем версию kubectl:")
+                    if (kubeconfig.trim().length() == 0) {
+                        log.error("Конфигурация отсутствует (файл kubeconfig пустой)")
+                    } else {
+                        // log.success(kubeconfig)
+                        def firstLine = kubeconfig.split("\n")[0]
+                        log.success("Конфигурация получена")
+                        log.success(firstLine)
+                    }
+                    log.info("Проверяем версию kubectl")
                     sh(
                         script: """
-                            export PATH="${KUBECTLPATH}:${PATH}"
                             kubectl version --output=json
                         """,
                         returnStatus: true, // Не возвращаем статус (игнорируем ошибки)
