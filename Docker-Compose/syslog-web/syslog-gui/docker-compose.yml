@@ -1,0 +1,31 @@
+services:
+  # RSyslog server and WebUI based on PimpMyLog 
+  rsyslog-gui:
+    image: aguyonnet/rsyslog-gui
+    container_name: rsyslog-gui
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - logger -n localhost -t rsyslog-gui -p user.info "healthcheck"
+      start_period: 20s
+      interval: 3s
+      retries: 3
+      timeout: 3s
+    volumes:
+      - ./rsyslog_data:/var/log/net
+    ports:
+      - 5141:80
+      - 514:514/udp
+    environment:
+      - SYSLOG_USERNAME=admin
+      - SYSLOG_PASSWORD=admin
+
+  # log-analyzer:
+  #   image: aguyonnet/loganalyzer
+  #   container_name: log-analyzer
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/log/syslog:/var/log/syslog
+  #   ports:
+  #     - 5142:80

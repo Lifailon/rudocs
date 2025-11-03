@@ -15,17 +15,16 @@ services:
       dockerfile: Dockerfile
     container_name: toolong-web
     restart: unless-stopped
-    volumes:
-      - /var/log:/var/log
-    env_file:
-      - .env
     environment:
       - PORT=4444
-      - USERNAME=admin
-      - PASSWORD=admin
-      - LOGPATH=$/var/log/syslog*
+      - USERNAME=
+      - PASSWORD=
+      # - LOGPATH=/var/log/syslog*
+      - LOGPATH=/var/log/*log*
     ports:
-      - ${PORT}:${PORT}
+      - 4444:4444
+    volumes:
+      - /var/log:/var/log:ro
 ```
 
 `docker-compose up -d`
