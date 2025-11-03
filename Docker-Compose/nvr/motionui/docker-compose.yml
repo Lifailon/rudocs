@@ -1,0 +1,14 @@
+services:
+  motionui:
+    image: lbr38/motionui:latest
+    container_name: motionui
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    environment:
+      FQDN: motion.docker.local
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./motionui_data:/var/lib/motionui
+      - ./motionui_captures:/var/lib/motion
+      # - ./motion.conf:/etc/motion/motion.conf

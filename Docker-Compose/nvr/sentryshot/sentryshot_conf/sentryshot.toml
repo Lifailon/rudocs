@@ -5,7 +5,6 @@ plugin_dir = "/app/plugins"
 max_disk_usage = 100
 debug_log_stdout = false
 
-
 [[plugin]]
 name = "auth_basic"
 enable = false
@@ -23,7 +22,7 @@ name = "object_detection"
 enable = false
 
 [[plugin]]
-name = "thumb_scale"
+name = "motion"
 enable = false
 
 [[plugin]]

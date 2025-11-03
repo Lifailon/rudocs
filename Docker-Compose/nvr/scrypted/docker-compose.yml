@@ -3,21 +3,15 @@ services:
     image: ghcr.io/koush/scrypted
     container_name: scrypted
     restart: unless-stopped
-    # environment:
-    #   - SCRYPTED_WEBHOOK_UPDATE_AUTHORIZATION=Bearer ${WATCHTOWER_HTTP_API_TOKEN:-env_missing_fallback}
-    #   - SCRYPTED_WEBHOOK_UPDATE=http://localhost:10444/v1/update
-    # labels:
-    #   - "com.centurylinklabs.watchtower.scope=scrypted"
     volumes:
       - ./scrypted_volume:/server/volume
     devices: []
-    network_mode: host # https://ip:10443
+    network_mode: host # http://ip:11080 or https://ip:10443
     dns:
       - 1.1.1.1
       - 8.8.8.8
     logging:
-      driver: "none"
-      # driver: "json-file"
-      # options:
-      #     max-size: "10m"
-      #     max-file: "10"
+      driver: json-file
+      options:
+          max-size: 10m
+          max-file: 5

@@ -9,12 +9,38 @@ services:
       - 1080:80
     environment:
       - TZ=Etc/UTC+3
-      # - ZM_DB_USER=zmuser
-      # - ZM_DB_PASS=zmpassword
-      # - ZM_DB_NAME=zoneminder_database
-      # - ZM_DB_HOST=my_central_db_server
+      - ZM_DB_HOST=zoneminder-db
+      - ZM_DB_NAME=zm
+      - ZM_DB_USER=zm
+      - ZM_DB_PASS=zmPassword
     volumes:
       - ./zoneminder/mysql:/var/lib/mysql
       - ./zoneminder/images:/var/cache/zoneminder/images
       - ./zoneminder/events:/var/cache/zoneminder/events
       - ./zoneminder/logs:/var/log/zm
+    depends_on:
+      zoneminder-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/zm/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  zoneminder-db:
+    image: mariadb:latest
+    container_name: zm-mariadb
+    restart: always
+    environment:
+      - MYSQL_DATABASE=zm
+      - MYSQL_USER=zm
+      - MYSQL_PASSWORD=zmPassword
+      - MYSQL_ROOT_PASSWORD=rootPassword
+    volumes:
+      - ./zoneminder/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
