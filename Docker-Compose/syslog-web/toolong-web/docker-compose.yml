@@ -1,0 +1,19 @@
+services:
+  toolong-web:
+    image: lifailon/toolong-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: toolong-web
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log
+    env_file:
+      - .env
+    environment:
+      - PORT=4444
+      - USERNAME=admin
+      - PASSWORD=admin
+      - LOGPATH=$/var/log/syslog*
+    ports:
+      - ${PORT}:${PORT}
