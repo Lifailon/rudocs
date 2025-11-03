@@ -1,0 +1,29 @@
+services:
+  opendj:
+    image: openidentityplatform/opendj:latest
+    container_name: opendj
+    restart: unless-stopped
+    hostname: ldap.docker.local
+    stdin_open: true
+    tty: true
+    ports:
+      - 1389:1389
+      - 1636:1636
+      - 4444:4444
+    command:
+      - -b
+      - dc=openam,dc=openidentityplatform,dc=org
+      - -D
+      - "cn=Directory Manager"
+      - -h
+      - opendj
+      - -p
+      - "4444"
+      - -w
+      - passw0rd
+      - -l
+      - /opt/opendj/import-data/data.ldif
+    volumes:
+      - ./data.ldif:/opt/opendj/import-data/data.ldif
+    entrypoint:
+      - /opt/opendj/bin/import-ldif
