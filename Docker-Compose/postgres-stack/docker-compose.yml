@@ -31,13 +31,26 @@ services:
       postgresql:
         condition: service_healthy
 
-  # REST API Client
+  pgadmin4:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin4
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+       - ./pgadmin_data:/var/lib/pgadmin
+    ports:
+      - 5050:80
+
+  # REST API
   postgrest:
     image: postgrest/postgrest
     container_name: postgrest
     restart: unless-stopped
     ports:
-      - 4000:3000
+      - 3000:3000
     environment:
       PGRST_DB_URI: postgres://dbuser:dbpass@postgresql:5432/dbname
       PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3000
@@ -48,7 +61,7 @@ services:
   swagger:
     image: swaggerapi/swagger-ui
     ports:
-      - 4001:8080
+      - 3001:8080
     expose:
       - 8080
     environment:
@@ -57,7 +70,7 @@ services:
       - postgresql
       - postgrest
 
-  # Monitoring & Backup
+  # Backup
   postgresus:
     image: rostislavdugin/postgresus:latest
     container_name: postgresus
