@@ -1,10 +1,9 @@
 services:
-  motionui:
+  motion:
     image: lbr38/motionui:latest
-    container_name: motionui
+    container_name: motion
     restart: unless-stopped
     privileged: true
-    network_mode: host
     environment:
       FQDN: motion.docker.local
     volumes:
@@ -12,3 +11,11 @@ services:
       - ./motionui_data:/var/lib/motionui
       - ./motionui_captures:/var/lib/motion
       # - ./motion.conf:/etc/motion/motion.conf
+      # - ./camera01.conf:/etc/motion/camera01.conf
+      # - ./cam01_data:/etc/motion/cam01
+    ports:
+      - 8181:8080
+      - 8182:8081
+
+# Username: admin
+# Password: motionui
