@@ -4984,6 +4984,30 @@ spec:
     port: 9503
     targetPort: recov-backend
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: longhorn-ingress
+  namespace: longhorn-system
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/instance: longhorn
+    app.kubernetes.io/version: v1.9.2
+    app: longhorn-ingress
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: longhorn.k8s.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: longhorn-frontend
+            port:
+              number: 80
+---
 # Source: longhorn/templates/daemonset-sa.yaml
 apiVersion: apps/v1
 kind: DaemonSet
@@ -5244,6 +5268,3 @@ spec:
       - emptyDir: {}
         name: var-run
       priorityClassName: "longhorn-critical"
----
-# Source: longhorn/templates/validate-psp-install.yaml
-#

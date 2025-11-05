@@ -1,18 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: gatus-ingress
-  namespace: monitoring
+  name: velero-ui-ingress
+  namespace: velero-ui
 spec:
   ingressClassName: traefik
   rules:
-  - host: gatus.k8s.local
+  - host: velero.k8s.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: gatus-service
+            name: velero-ui
             port:
               number: 80
