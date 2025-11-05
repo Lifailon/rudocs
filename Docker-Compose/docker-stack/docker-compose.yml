@@ -1,26 +1,4 @@
 services:
-  # Web interface for Docker Compose
-  dockge:
-    image: louislam/dockge:1
-    container_name: dockge
-    restart: always
-    volumes:
-      - ./dockge_data:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Docker stacks directory on host:container
-      - /home/lifailon/docker:/home/lifailon/docker
-    # Enable routing for traffic
-    # labels:
-    #   - traefik.enable=true
-    environment:
-      # Enable routing for docker-gen
-      # - VIRTUAL_HOST=dockge.local
-      - DOCKGE_STACKS_DIR=/home/lifailon/docker
-      # Доступ к консоли dockge
-      - DOCKGE_ENABLE_CONSOLE=true
-    ports:
-      - 5001:5001
-
   # Web interface for docker manager on remote hosts via lazydocker or ctop
   docker-web-manager:
     image: lifailon/docker-web-manager:latest
@@ -38,28 +16,6 @@ services:
       - DOCKER_CLIENT=lazydocker
     ports:
       - 3333:3333
-
-  # Web interface for Docker (like Dockge)
-  # dockman:
-  #   container_name: dockman
-  #   image: ghcr.io/ra341/dockman:latest
-  #   restart: always
-  #   environment:
-  #     - DOCKMAN_MACHINE_ADDR=192.168.3.101
-  #     - DOCKMAN_PORT=8866
-  #     - DOCKMAN_COMPOSE_ROOT=/home/lifailon/docker
-  #     - DOCKMAN_AUTH_ENABLE=true
-  #     - DOCKMAN_AUTH_USERNAME=admin
-  #     - DOCKMAN_AUTH_PASSWORD=admin
-  #     - DOCKMAN_LOG_LEVEL=debug
-  #     - DOCKMAN_LOG_VERBOSE=true
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     # Stack directory
-  #     - /home/lifailon/docker:/home/lifailon/docker
-  #     - ./dockman_config:/config
-  #   ports:
-  #     - 8866:8866
 
   # Web interface for docker managing containers
   # dweebui:
@@ -88,6 +44,69 @@ services:
   #     - /var/run/docker.sock:/var/run/docker.sock
   #   ports:
   #     - 3420:8000
+
+################################################### Compose ###################################################
+
+  # Web interface for Docker Compose
+  dockge:
+    image: louislam/dockge:1
+    container_name: dockge
+    restart: always
+    volumes:
+      - ./dockge_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker stacks directory on host:container
+      - /home/lifailon/docker:/home/lifailon/docker
+    # Enable routing for traffic
+    # labels:
+    #   - traefik.enable=true
+    environment:
+      # Enable routing for docker-gen
+      # - VIRTUAL_HOST=dockge.local
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      # Доступ к консоли dockge
+      - DOCKGE_ENABLE_CONSOLE=true
+    ports:
+      - 5001:5001
+
+  # Web interface to manage Docker containers, compose, files, databases, websites and LLMs
+  1panel:
+    image: moelin/1panel:latest
+    container_name: 1panel
+    restart: always
+    ports:
+      - 10086:10086 # http://1panel.docker.local/entrance 1panel:1panel_password
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      # - /home/lifailon/docker:/etc/docker  # Docker Compose root directroy
+      - /home/lifailon/docker:/opt/1panel/docker/compose  # Docker Compose root directroy
+      - /opt:/opt
+      # - /root:/root
+    labels:
+      createdBy: Apps
+
+  # Web interface for Docker (like Dockge)
+  # dockman:
+  #   container_name: dockman
+  #   image: ghcr.io/ra341/dockman:latest
+  #   restart: always
+  #   environment:
+  #     - DOCKMAN_MACHINE_ADDR=192.168.3.101
+  #     - DOCKMAN_PORT=8866
+  #     - DOCKMAN_COMPOSE_ROOT=/home/lifailon/docker
+  #     - DOCKMAN_AUTH_ENABLE=true
+  #     - DOCKMAN_AUTH_USERNAME=admin
+  #     - DOCKMAN_AUTH_PASSWORD=admin
+  #     - DOCKMAN_LOG_LEVEL=debug
+  #     - DOCKMAN_LOG_VERBOSE=true
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     # Stack directory
+  #     - /home/lifailon/docker:/home/lifailon/docker
+  #     - ./dockman_config:/config
+  #   ports:
+  #     - 8866:8866
 
 ################################################### Images ###################################################
 
