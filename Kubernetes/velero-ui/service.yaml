@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+spec:
+  type: ClusterIP
+  selector:
+    name: velero-ui
+  ports:
+  - port: 80
+    name: http
+    targetPort: http
+    protocol: TCP

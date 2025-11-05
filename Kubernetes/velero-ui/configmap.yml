@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+data:
+  policies.csv: |
+    # Please refer to https://velero-ui.docs.otwld.com/ to configure policies
+    # g,*,manage,all
+    # u,*,manage,all

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+spec:
+  selector:
+    matchLabels:
+      name: velero-ui
+  template:
+    metadata:
+      labels:
+        name: velero-ui
+    spec:
+      serviceAccountName: velero-ui
+      containers:
+      - name: velero-ui
+        image: otwld/velero-ui:latest
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+        env:
+          - name: BASIC_AUTH_PASSWORD
+            value: admin
+          - name: VELERO_UI_NAMESPACE
+            value: velero-ui
+          - name: POLICY_FILE_PATH
+            value: /policies/policies.csv
+        volumeMounts:
+          - name: policies
+            mountPath: "/policies"
+            readOnly: true
+      volumes:
+        - name: policies
+          configMap:
+            name: velero-ui
+            items:
+              - key: policies.csv
+                path: policies.csv

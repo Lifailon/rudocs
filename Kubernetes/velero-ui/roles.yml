@@ -1,0 +1,39 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods/log
+      - pods/status
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: velero-ui
+  namespace: velero
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods/log
+      - pods/status
+      - pods
+      - secrets
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups: ["velero.io"]
+    resources: ["*"]
+    verbs:
+      - "*"
+

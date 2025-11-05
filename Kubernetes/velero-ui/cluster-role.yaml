@@ -1,0 +1,22 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velero-ui
+rules:
+  - verbs:
+      - get
+    nonResourceURLs:
+      - '/readyz'
+      - '/healthz'
+      - '/livez'
+      - '/version'
+  - apiGroups: [ "" ]
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+  - apiGroups: ["velero.io"]
+    resources: ["*"]
+    verbs:
+      - "*"

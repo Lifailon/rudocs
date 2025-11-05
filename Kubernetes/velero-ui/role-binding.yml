@@ -1,0 +1,28 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+subjects:
+  - kind: ServiceAccount
+    namespace: velero-ui
+    name: velero-ui
+roleRef:
+  kind: Role
+  name: velero-ui
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velero-ui
+  namespace: velero
+subjects:
+  - kind: ServiceAccount
+    namespace: velero-ui
+    name: velero-ui
+roleRef:
+  kind: Role
+  name: velero-ui
+  apiGroup: rbac.authorization.k8s.io
