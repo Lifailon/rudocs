@@ -3,7 +3,7 @@ volumes:
     driver_opts:
       type: cifs
       o: username=guest,password=,uid=1000,gid=1000
-      device: //192.168.3.100/docker-data/torrent
+      device: //192.168.3.100/plex-content
 
 services:
   jackett:
@@ -13,48 +13,58 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Etc/GMT+3
+      - TZ=Etc/UTC+3
     volumes:
       - ./jackett_conf:/config
     ports:
       - 9117:9117
 
-  transmission:
-    image: lscr.io/linuxserver/transmission:latest
-    container_name: transmission
+  kinozal-bot:
+    image: lifailon/kinozal-bot:latest
+    container_name: kinozal-bot
+    restart: unless-stopped
+    volumes:
+      - ./torrents:/kinozal-bot/torrents
+      - ./kinozal-bot.conf:/kinozal-bot/kinozal-bot.conf
+
+################################################### Torrent Clients ###################################################
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
     restart: unless-stopped
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Etc/GMT+3
-      - USER=
-      - PASS=
+      - TZ=Etc/UTC+3
+      - WEBUI_PORT=3240
+      - TORRENTING_PORT=6881
     volumes:
-      - ./transmission_conf:/config
-      - ./torrent_watch:/watch
+      - ./qbittorrent_conf:/config
       - smb_volume:/downloads
     ports:
-      - 9118:9091
-      - 51413:51413
-      - 51413:51413/udp
+      - 3240:3240
+      - 6881:6881
+      - 6881:6881/udp
 
-  # qbittorrent:
-  #   image: lscr.io/linuxserver/qbittorrent:latest
-  #   container_name: qbittorrent
+  # transmission:
+  #   image: lscr.io/linuxserver/transmission:latest
+  #   container_name: transmission
   #   restart: unless-stopped
   #   environment:
   #     - PUID=1000
   #     - PGID=1000
-  #     - TZ=Etc/GMT+3
-  #     - WEBUI_PORT=3240
-  #     - TORRENTING_PORT=6881
+  #     - TZ=Etc/UTC+3
+  #     - USER=
+  #     - PASS=
   #   volumes:
-  #     - ./qbittorrent_conf:/config
+  #     - ./transmission_conf:/config
   #     - smb_volume:/downloads
+  #     - ./torrent_watch:/watch
   #   ports:
-  #     - 3240:3240
-  #     - 6881:6881
-  #     - 6881:6881/udp
+  #     - 9118:9091
+  #     - 51413:51413
+  #     - 51413:51413/udp
 
   # cloud-torrent:
   #   image: jpillora/cloud-torrent:latest
@@ -64,6 +74,84 @@ services:
   #     - 3010:3000
   #   volumes:
   #     - smb_volume:/downloads
+
+################################################### Media Server ###################################################
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - VERSION=docker
+    volumes:
+      - ./plex_conf:/config
+      - smb_volume:/tv
+      - smb_volume:/movies
+    ports:
+      - 32400:32400
+      - 1900:1900/udp
+      - 5353:5353/udp
+      - 8324:8324
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+      - 32469:32469
+
+  # Plex Monitoring
+  # tautulli:
+  #   image: lscr.io/linuxserver/tautulli:latest
+  #   container_name: tautulli
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/UTC+3
+  #   volumes:
+  #     - ./tautulli_conf:/config
+  #   ports:
+  #     - 8181:8181
+
+  # jellyfin:
+  #   image: lscr.io/linuxserver/jellyfin:latest
+  #   container_name: jellyfin
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/UTC+3
+  #   volumes:
+  #     - ./jellyfin_conf/jellyfin:/config
+  #     - ./jellyfin-content/tvshows:/data/tvshows
+  #     - ./jellyfin-content/movies:/data/movies
+  #   ports:
+  #     - 8096:8096
+  #     - 7359:7359/udp
+  #     - 1900:1900/udp
+
+  # ums:
+  #   image: universalmediaserver/ums
+  #   container_name: ums
+  #   restart: unless-stopped
+  #   environment:
+  #     - TZ=Etc/UTC+3
+  #     - UMS_PROFILE=/profile
+  #   volumes:
+  #     - ./ums_conf:/profile
+  #     - ./ums-content:/media:ro
+  #   ports:
+  #     - 1044:1044
+  #     - 5001:5001
+  #     - 9001:9001
+  #     - 1900:1900/udp
+  #     - 2869:2869
+  #     - 8000-8010:8000-8010
+
+################################################### PVR (Personal Video Recorder) ###################################################
 
   # sonarr:
   #   image: lscr.io/linuxserver/sonarr:latest
@@ -80,43 +168,30 @@ services:
   #   ports:
   #     - 8989:8989
 
-  # jellyfin:
-  #   image: lscr.io/linuxserver/jellyfin:latest
-  #   container_name: jellyfin
+  # radarr:
+  #   image: lscr.io/linuxserver/radarr:latest
+  #   container_name: radarr
   #   restart: unless-stopped
   #   environment:
   #     - PUID=1000
   #     - PGID=1000
-  #     - TZ=Etc/GMT+3
+  #     - TZ=Etc/UTC+3
   #   volumes:
-  #     - ./jellyfin_conf/jellyfin:/config
-  #     - ./jellyfin-content/tvshows:/data/tvshows
-  #     - ./jellyfin-content/movies:/data/movies
-  #   ports:
-  #     - 8096:8096
-  #     - 7359:7359/udp
-  #     - 1900:1900/udp
-
-  # plex:
-  #   image: lscr.io/linuxserver/plex:latest
-  #   container_name: plex
-  #   network_mode: host
-  #   restart: unless-stopped
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - TZ=Etc/GMT+3
-  #     - VERSION=docker
-  #   volumes:
-  #     - ./plex_conf:/config
+  #     - ./radarr_con:/config
   #     - smb_volume:/movies
+  #     - ./sonarr_downloads:/downloads
   #   ports:
-  #     - 32400:32400
-  #     - 1900:1900/udp
-  #     - 5353:5353/udp
-  #     - 8324:8324
-  #     - 32410:32410/udp
-  #     - 32412:32412/udp
-  #     - 32413:32413/udp
-  #     - 32414:32414/udp
-  #     - 32469:32469
+  #     - 7878:7878
+
+  # overseerr:
+  #   image: lscr.io/linuxserver/overseerr:latest
+  #   container_name: overseerr
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/UTC+3
+  #   volumes:
+  #     - ./overseerr_conf:/config
+  #   ports:
+  #     - 5055:5055
