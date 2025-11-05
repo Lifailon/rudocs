@@ -36,4 +36,3 @@ rules:
     resources: ["*"]
     verbs:
       - "*"
-

@@ -3,6 +3,9 @@ kind: Service
 metadata:
   name: velero-ui
   namespace: velero-ui
+  annotations:
+    metallb.universe.tf/address-pool: "default-pool"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.207"
 spec:
   type: ClusterIP
   selector:

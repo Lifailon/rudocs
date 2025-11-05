@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: velero-ui
   namespace: velero-ui
+  annotations:
+    keel.sh/policy: patch
+    keel.sh/trigger: poll
 spec:
   selector:
     matchLabels:

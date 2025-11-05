@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keel
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keel-hq/keel
+    path: chart/keel
+    targetRevision: master
+    helm:
+      valueFiles:
+        - values.yaml
+      values: |-
+        service:
+          enabled: true
+          type: LoadBalancer
+          externalPort: 80
+        serviceAnnotations:
+            metallb.universe.tf/address-pool: "default-pool"
+            metallb.universe.tf/loadBalancerIPs: "192.168.3.208"
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: traefik
+          hosts:
+          - host: keel.k8s.local
+            paths:
+              - /
+        polling:
+          enabled: true
+          defaultSchedule: "@every 10m"
+        basicauth:
+          enabled: true
+          user: "admin"
+          password: "admin"
+        # use smtp_to_telegram
+        mail:
+          enabled: true
+          from: "keel"
+          to: "admin"
+          smtp:
+            server: "192.168.3.101"
+            port: 2525
+            user: "admin"
+            pass: "admin"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keel
