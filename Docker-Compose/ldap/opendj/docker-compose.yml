@@ -1,5 +1,5 @@
 services:
-  opendj:
+  ldap-server:
     image: openidentityplatform/opendj:latest
     container_name: opendj
     restart: unless-stopped
@@ -10,20 +10,38 @@ services:
       - 1389:1389
       - 1636:1636
       - 4444:4444
-    command:
-      - -b
-      - dc=openam,dc=openidentityplatform,dc=org
-      - -D
-      - "cn=Directory Manager"
-      - -h
-      - opendj
-      - -p
-      - "4444"
-      - -w
-      - passw0rd
-      - -l
-      - /opt/opendj/import-data/data.ldif
-    volumes:
-      - ./data.ldif:/opt/opendj/import-data/data.ldif
-    entrypoint:
-      - /opt/opendj/bin/import-ldif
+    environment:
+      - PORT=1389
+      - LDAPS_PORT=1636
+      - BASE_DN=dc=docker,dc=local
+      - ROOT_USER_DN=cn=admin
+      - ROOT_PASSWORD=LdapAdmin
+
+  # ldap-admin:
+  #   image: osixia/phpldapadmin:latest
+  #   container_name: phpldapadmin
+  #   restart: unless-stopped
+  #   environment:
+  #     - PHPLDAPADMIN_LDAP_HOSTS=ldap-server
+  #     - PHPLDAPADMIN_HTTPS=false
+  #   ports:
+  #     - 1443:443
+  #   depends_on:
+  #     - ldap-server
+
+  ldap-ui:
+    image: dnknth/ldap-ui
+    container_name: ldap-ui
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    environment:
+      - LDAP_URL=ldap://ldap-server/
+      - BASE_DN=dc=docker,dc=local
+      - BIND_DN=cn=admin,dc=docker,dc=local
+      - BIND_PASSWORD=LdapAdmin
+    depends_on:
+      - ldap-server
+
+# sudo apt install ldap-utils
+# ldapsearch -LLL -H ldap://localhost:1389 -D "cn=admin,dc=docker,dc=local" -w LdapAdmin -b "dc=docker,dc=local"

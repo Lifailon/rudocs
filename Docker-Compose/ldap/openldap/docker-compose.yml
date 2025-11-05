@@ -4,31 +4,56 @@ services:
     container_name: openldap
     restart: unless-stopped
     environment:
-      LDAP_ORGANISATION: "Home Lab"
-      LDAP_DOMAIN: "home.lab"
-      LDAP_ADMIN_PASSWORD: "LdapAdmin"
+      - LDAP_ORGANISATION=Docker Local
+      - LDAP_DOMAIN=docker.local
+      - LDAP_ADMIN_PASSWORD=LdapAdmin
     ports:
-      - "3893:389"
-      - "636:636"
+      - 1389:389
+      - 1636:636
     volumes:
-      - ./ldap-data:/var/lib/ldap
-      - ./ldap-config:/etc/ldap/slapd.d
+      - ./ldap_data:/var/lib/ldap
+      - ./ldap_config:/etc/ldap/slapd.d
+    # healthcheck:
+    #   test: ["CMD", "ldapsearch", "-H", "ldap://localhost:1389", "-D", "cn=admin,dc=docker,dc=local", "-w", "LdapAdmin", "-b", "dc=docker,dc=local"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
 
   ldap-frontend:
     image: osixia/phpldapadmin:latest
     container_name: phpldapadmin
     restart: unless-stopped
+    links:
+      - ldap-backend:ldap-host
     environment:
-      PHPLDAPADMIN_LDAP_HOSTS: ldap-backend
+      - PHPLDAPADMIN_LDAP_HOSTS=ldap-host
+      - PHPLDAPADMIN_HTTPS=false
     ports:
-      - "6443:443"
+      - 1443:443
+    depends_on:
+      - ldap-backend
 
-# Web UI: https://192.168.3.101:6443
-# cn=admin,dc=home,dc=lab:LdapAdmin
+  # ldap-ui:
+  #   image: dnknth/ldap-ui
+  #   container_name: ldap-ui
+  #   restart: unless-stopped
+  #   ports:
+  #     - 5000:5000
+  #   environment:
+  #     - LDAP_URL=ldap://ldap-backend/
+  #     - BASE_DN=dc=docker,dc=local
+  #     - BIND_DN=cn=admin,dc=docker,dc=local
+  #     - BIND_PASSWORD=LdapAdmin
+  #   depends_on:
+  #     - ldap-backend
+
+# Web UI: https://localhost:6443
+# Login DN: cn=admin,dc=docker,dc=local
+# Password: LdapAdmin
 
 # sudo apt install ldap-utils
-# ldapsearch -LLL -H ldap://localhost:3893 -D "cn=admin,dc=home,dc=lab" -w LdapAdmin -b "dc=home,dc=lab"
+# ldapsearch -LLL -H ldap://localhost:1389 -D "cn=admin,dc=docker,dc=local" -w LdapAdmin -b "dc=docker,dc=local"
 
 # TUI LDAP Client: https://github.com/Macmod/godap
 # brew install godap
-# godap 192.168.3.101 -P 3893 -u "cn=admin,dc=home,dc=lab" -p "LdapAdmin" -r "dc=home,dc=lab"
+# godap localhost -P 1389 -u "cn=admin,dc=docker,dc=local" -p "LdapAdmin" -r "dc=docker,dc=local"
