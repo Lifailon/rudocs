@@ -1,24 +1,4 @@
 services:
-  # SMB/CIFS Server
-  samba:
-    image: dperson/samba
-    container_name: samba
-    restart: unless-stopped
-    volumes:
-      - /home/lifailon/docker:/share
-    ports:
-      - 139:139
-      - 445:445
-    environment:
-      - USERID=1000
-      - GROUPID=1000
-      - SAMBA_USER=admin
-      - SAMBA_PASS=admin
-    command: |
-      -u "$${SAMBA_USER};$${SAMBA_PASS}"
-      -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
-      -p
-
   # Web File Browser
   # mkdir filebrowser_data filebrowser_conf && chown -R 1000:1000 filebrowser_data filebrowser_conf
   file-browser:
