@@ -1,44 +1,77 @@
 services:
-  # Web interface for kompose (compose to k8s manifest converter)
+  # Web interface for kompose (docker compose to k8s manifest converter)
   kompose-ui:
     image: jadcham/komposeui
     container_name: kompose-ui
     restart: unless-stopped
     ports:
-      - 3001:8000
-
-  # Web interface for k8s/k3s (like kubernetes/dashboard)
-  headlamp:
-    image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
-    container_name: headlamp
-    restart: unless-stopped
-    command: ["--kubeconfig","/headlamp/config/config", "--port","64446", "--enable-dynamic-clusters"]
-    volumes:
-      - /etc/rancher/k3s/k3s.yaml:/headlamp/config/kubeconfig.yaml:ro
-    network_mode: host # use for k3s cluster on localhost
-    # ports:
-    #   - 64446:64446
-    #   - 30000-32000:30000-32000
+      - 3500:8000
 
   # Web interface for Helm
   helm-dashboard:
     image: komodorio/helm-dashboard:latest
     container_name: helm-dashboard
     restart: unless-stopped
-    ports:
-      - 3002:8080
     volumes:
-      - ./kubeconfig.yaml:/root/.kube/config:ro
+      - ~/.kube/config:/root/.kube/config:ro
+    ports:
+      - 3501:8080
+
+  # Web interface for Velero
+  velero-ui:
+    image: otwld/velero-ui:latest
+    container_name: velero-ui
+    restart: unless-stopped
+    volumes:
+      # - /etc/rancher/k3s/k3s.yaml:/app/.kube/config:ro
+      - ~/.kube/config:/app/.kube/config:ro
+    environment:
+      - PORT=3502
+      - KUBE_CONFIG_PATH=/app/.kube/config
+    # network_mode: host # use for k3s cluster config on localhost
+    ports:
+      - 3502:3502 # admin:admin
+
+  # S3 storage for Velero backups
+  minio:
+    image: minio/minio
+    container_name: minio
+    hostname: minio
+    # command: server http://minio:9000/data http://192.168.3.105:9000/data --console-address ":9001"
+    command: server http://minio:9000/data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=MinioAdmin
+    volumes:
+      - ./minio1_data:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+
+  # Web interface for k8s (like Kubernetes Dashboard)
+  # headlamp:
+  #   image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
+  #   container_name: headlamp
+  #   restart: unless-stopped
+  #   command: [
+  #     "--kubeconfig", "/headlamp/.kube/config",
+  #     "--port","64446",
+  #     "--enable-dynamic-clusters"
+  #   ]
+  #   volumes:
+  #     - ~/.kube/config:/headlamp/.kube/config:ro
+  #   ports:
+  #     - 64446:64446
 
   # rancher:
   #   image: rancher/rancher:latest
   #   container_name: rancher
   #   restart: unless-stopped
-  #   ports:
-  #   - 5006:80
-  #   - 5007:443
+  #   privileged: true
   #   volumes:
   #   - ./rancher_data:/var/lib/rancher
-  #   privileged: true
+  #   ports:
+  #   - 3080:80
+  #   - 3443:443
   #   # Password:
   #   # docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"
