@@ -15,12 +15,38 @@ services:
     tmpfs:
       - /app/api
 
+  rtsptoweb:
+    image: ghcr.io/deepch/rtsptoweb:latest
+    container_name: rtsp-to-web
+    restart: unless-stopped
+    # volumes:
+    #   - ./rtsp_config/config.json:/config/config.json
+    ports:
+      - 8083:8083
+
+  networking-toolbox:
+    image: lissy93/networking-toolbox:latest
+    container_name: networking-toolbox
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+    ports:
+      - 3100:3000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      start_period: 40s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   web-check:
     image: lissy93/web-check:latest
     container_name: web-check
     restart: unless-stopped
     ports:
-      - 10448:3000
+      - 3101:3000
 
   ip-check:
     container_name: ip-check
@@ -29,4 +55,4 @@ services:
     stdin_open: true
     tty: true
     ports:
-        - 10449:18966
+      - 3102:18966

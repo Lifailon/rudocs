@@ -173,15 +173,18 @@
             icon: https://reverso.net/assets/images/favicon.ico
             href: https://reverso.net
     - Network:
-        - IP Info:
-            icon: https://ipinfo.io/favicon.ico
-            href: https://ipinfo.io
-        - IP Check:
-            icon: https://ipcheck.ing/favicon.svg
-            href: https://ipcheck.ing
+        - Networking Toolbox:
+            icon: https://raw.githubusercontent.com/Lissy93/networking-toolbox/refs/heads/main/static/icon.png
+            href: https://networkingtoolbox.net
         - Web Check:
             icon: web-check.png
             href: https://web-check.xyz
+        - IP Check:
+            icon: https://ipcheck.ing/favicon.svg
+            href: https://ipcheck.ing
+        # - IP Info:
+        #     icon: https://ipinfo.io/favicon.ico
+        #     href: https://ipinfo.io/8.8.8.8
         - Proxy Check:
             icon: https://hide-my-name.com/favicon.ico
             href: https://hide-my-name.com/proxy-checker
@@ -208,6 +211,12 @@
         #     href: https://openspeedtest.com
 
 - Development:
+    - IT Tools:
+        icon: it-tools.png
+        href: https://it-tools.tech
+    - Transform Web Converter:
+        icon: https://transform.tools/static/favicon.png
+        href: https://transform.tools
     - Go Playground:
         icon: go.png
         href: https://goplay.tools
@@ -233,15 +242,12 @@
     - Reference Cheat Sheets:
         icon: https://cheatsheets.zip/images/favicon.png
         href: https://cheatsheets.zip
-    - IT Tools:
-        icon: it-tools.png
-        href: https://it-tools.tech
-    - Transform Web Converter:
-        icon: https://transform.tools/static/favicon.png
-        href: https://transform.tools
     - Grist (Excel):
         icon: grist.svg
         href: https://docs.getgrist.com
+    - Jitsi Meet:
+        icon: jitsi-meet.png
+        href: https://meet.jit.si
     - Cobalt Media Downloader:
         icon: cobalt.svg
         href: https://cobalt.tools
@@ -315,6 +321,9 @@
         - Linux Server:
             icon: https://docs.linuxserver.io/assets/favicon.ico
             href: https://docs.linuxserver.io/images
+        - Portainer-Templates:
+            icon: portainer.png
+            href: https://portainer-templates.as93.net/
         - Artifact Hub:
             icon: artifacthub.png
             href: https://artifacthub.io/packages/helm/openrouter-bot/openrouter-bot
