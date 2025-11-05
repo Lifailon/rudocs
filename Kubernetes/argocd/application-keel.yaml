@@ -34,16 +34,15 @@ spec:
           enabled: true
           user: "admin"
           password: "admin"
-        # use smtp_to_telegram
-        mail:
-          enabled: true
-          from: "keel"
-          to: "admin"
-          smtp:
-            server: "192.168.3.101"
-            port: 2525
-            user: "admin"
-            pass: "admin"
+        # mail:
+        #   enabled: true
+        #   from: "keel@k8s.local"
+        #   to: "admin@k8s.local"
+        #   smtp:
+        #     server: "192.168.3.101"
+        #     port: 2525
+        #     user: "admin"
+        #     pass: "admin"
   destination:
     server: https://kubernetes.default.svc
     namespace: keel
