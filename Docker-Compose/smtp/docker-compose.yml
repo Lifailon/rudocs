@@ -1,0 +1,18 @@
+services:
+  smtp2telegram:
+    image: kostyaesmukov/smtp_to_telegram
+    container_name: smtp2telegram
+    restart: unless-stopped
+    environment:
+      - ST_SMTP_LISTEN=0.0.0.0:2525
+      - ST_TELEGRAM_CHAT_IDS=
+      - ST_TELEGRAM_BOT_TOKEN=
+      - "ST_TELEGRAM_MESSAGE_TEMPLATE=Subject: {subject}\\\\n\\\\n{body}"
+    ports:
+      - 2525:2525
+
+# echo -e "Subject: Test\n\nThis is test body" | curl smtp://localhost:2525 \
+#   --mail-from admin@docker.local \
+#   --mail-rcpt admin@docker.local \
+#   --user admin:admin \
+#   -T -
