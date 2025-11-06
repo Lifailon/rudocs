@@ -66,7 +66,7 @@
   - [K3s](#k3s)
   - [Dashboard](#dashboard)
   - [Headlamp](#headlamp)
-  - [TUIs](#tuis)
+  - [k9s](#k9s)
   - [kubectl](#kubectl)
   - [JSONPath](#jsonpath)
   - [Go Template](#go-template)
@@ -1421,18 +1421,82 @@ kubectl -n kube-system create serviceaccount headlamp-admin # создать с�
 kubectl create clusterrolebinding headlamp-admin --serviceaccount=kube-system:headlamp-admin --clusterrole=cluster-admin # назначить права администратора кластера для сервисного аккаунта
 kubectl create token headlamp-admin -n kube-system --duration=43800h # выпустить токен для авторизации сроком действия 5 лет
 ```
-### TUIs
+### k9s
 
-`kubebox` - терминальный интерфейс для управления kubernetes.
-
-`curl -Lo kubebox https://github.com/astefanutti/kubebox/releases/download/v0.10.0/kubebox-linux && chmod +x kubebox`
-
-[K9s](https://github.com/derailed/k9s) - это TUI интерфейс для взаимодействия с кластерами Kubernetes (управление и чтение логов).
+[K9s](https://github.com/derailed/k9s) - это TUI интерфейс для взаимодействия с кластерами Kubernetes (базовое управление и просмотр логов) с поддержкой [плагинов](https://k9scli.io/topics/plugins).
 
 `wget https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb && sudo apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb` установка в системе с архитектурой `amd64` \
 `wget https://github.com/derailed/k9s/releases/latest/download/k9s_linux_arm64.deb && sudo apt install ./k9s_linux_arm64.deb && rm k9s_linux_arm64.deb` установка в системе с архитектурой `arm64` \
 `winget install k9s || scoop install k9s || choco install k9s || curl.exe -A MS https://webinstall.dev/k9s | powershell` установка в Windows
+```bash
+EDITOR=nano k9s -A
+```
+Подключаем плагин [kubectl-node-shell](https://github.com/kvaps/kubectl-node-shell) как плагин k9s в файле `~/.config/k9s/plugins.yaml` для подключения к терминалу хоста под пользователем `root`:
+```yaml
+# Доступные переменные:
+# $RESOURCE_GROUP - выбранная группа ресурсов
+# $RESOURCE_VERSION - выбранная версия API ресурса
+# $RESOURCE_NAME - выбранное имя ресурса
+# $NAMESPACE - выбранное пространство имен ресурсов
+# $NAME - выбранное имя ресурса
+# $CONTAINER - текущее имя контейнер
+# $FILTER - текущий фильтр, если используется
+# $KUBECONFIG -  расположение KubeConfig
+# $CLUSTER - имя активного кластера
+# $CONTEXT - имя активного контекста
+# $USER - активный пользователь
+# $GROUPS - активные группы
+# $POD - в режиме просмотра контейнера
+# $COL-<RESOURCE_COLUMN_NAME> - просмотр ресурса по заданному названию столбца.
 
+plugins:
+  kubectl-node-shell:
+    shortCut: s
+    description: Open a root shell on a node using the node-shell plugin
+    scopes:
+      - nodes
+    command: kubectl
+    args:
+      - node-shell
+      - $NAME
+      - --context
+      - $CONTEXT
+    background: false
+    confirm: false
+  node-root-shell:
+    shortCut: a
+    description: Run root shell on node
+    dangerous: true
+    scopes:
+      - nodes
+    command: bash
+    background: false
+    confirm: true
+    args:
+      - -c
+      - |
+        host="$1"
+        json='
+        {
+          "apiVersion": "v1",
+          "spec": {
+            "hostIPC": true,
+            "hostNetwork": true,
+            "hostPID": true
+        '
+        if ! [[ -z "$host" ]]; then
+          json+=",
+          \"nodeSelector\" : {
+            \"kubernetes.io/hostname\" : \"$host\"
+          }
+          ";
+        fi
+        json+='
+          }
+        }
+        '
+        kubectl run -ti --image alpine:3.8 --rm --privileged --restart=Never --overrides="$json" root --command -- nsenter -t 1 -m -u -n -i -- bash -l
+```
 ### kubectl
 
 `echo "source <(kubectl completion bash)" >> ~/.bashrc` включить автодополнение для kubectl в bash \
