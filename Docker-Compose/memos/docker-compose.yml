@@ -1,0 +1,23 @@
+services:
+  # Like Google Keep with Markdown support
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    restart: unless-stopped
+    ports:
+      - 5230:5230
+    volumes:
+      - ./memos_data:/var/opt/memos
+
+  # Telegram bot for Memos
+  memogram:
+    image: lifailon/memogram:0.3.0-amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: memogram
+    restart: unless-stopped
+    environment:
+      - SERVER_ADDR=memos:5230
+      - BOT_TOKEN=
+      - ALLOWED_USERNAMES=
