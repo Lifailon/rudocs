@@ -79,7 +79,9 @@
   - [PersistentVolume](#persistentvolume)
   - [S3](#s3)
   - [Velero](#velero)
+  - [Velero UI](#velero-ui)
   - [ArgoCD](#argocd)
+  - [Keel](#keel)
   - [Kompose](#kompose)
   - [Kustomize](#kustomize)
   - [Helm](#helm)
@@ -2012,6 +2014,25 @@ velero install \
 `velero restore create --from-backup telegram-bot-backup --include-namespaces telegram --include-resources deployments,configmaps --selector app=your-deployment-name` восстановить только конкретные ресурсы с фильтрацией по `lables` \
 `velero restore get` отобразить статус восстановления
 
+### Velero UI
+
+[velero-ui](https://github.com/otwld/velero-ui) - веб-интерфейс для управления Velero (vmware-tanzu).
+```yaml
+services:
+  velero-ui:
+    image: otwld/velero-ui:latest
+    container_name: velero-ui
+    restart: unless-stopped
+    volumes:
+      - /etc/rancher/k3s/k3s.yaml:/app/.kube/config:ro
+      # - ~/.kube/config:/app/.kube/config:ro
+    environment:
+      - PORT=3502
+      - KUBE_CONFIG_PATH=/app/.kube/config
+    network_mode: host # use for k3s cluster config on localhost
+    # ports:
+    #   - 3502:3502 # admin:admin
+```
 ### ArgoCD
 
 [Argo CD](https://github.com/argoproj/argo-cd) - это декларативный инструмент непрерывного развертывания Kubernetes, использующий методологию GitOps, где Git репозиторий является единственным источником правды.
@@ -2025,6 +2046,73 @@ port: 8466
 port: 8467
 # Получить пароль
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
+### Keel
+
+[Keel](https://github.com/keel-hq/keel) — это инструмент для автоматизации обновлений образов в Kubernetes.
+
+Пример развертвывания Keel с помощью Helm Chart через ArgoCD:
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keel
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keel-hq/keel
+    path: chart/keel
+    targetRevision: master
+    helm:
+      valueFiles:
+        - values.yaml
+      values: |-
+        service:
+          enabled: true
+          type: LoadBalancer
+          externalPort: 80
+        serviceAnnotations:
+            metallb.universe.tf/address-pool: "default-pool"
+            metallb.universe.tf/loadBalancerIPs: "192.168.3.208"
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: traefik
+          hosts:
+          - host: keel.k8s.local
+            paths:
+              - /
+        polling:
+          enabled: true
+          defaultSchedule: "@every 10m"
+        basicauth:
+          enabled: true
+          user: "admin"
+          password: "admin"
+        # Используйте https://github.com/KostyaEsmukov/smtp_to_telegram для переадресации сообщений
+        # mail:
+        #   enabled: true
+        #   from: "keel@k8s.local"
+        #   to: "admin@k8s.local"
+        #   smtp:
+        #     server: "192.168.3.101"
+        #     port: 2525
+        #     user: "admin"
+        #     pass: "admin"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keel
+```
+Добавить аннотации в Deployment для отслеживания обновлений образов по major (`1.0`), minor (`1.1`) или patch (`1.1.1`) версии:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+  annotations:
+    keel.sh/policy: patch
+    keel.sh/trigger: poll
 ```
 ### Kompose
 
