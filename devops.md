@@ -82,6 +82,7 @@
   - [Velero UI](#velero-ui)
   - [ArgoCD](#argocd)
   - [Keel](#keel)
+  - [Krew](#krew)
   - [Kompose](#kompose)
   - [Kustomize](#kustomize)
   - [Helm](#helm)
@@ -2113,6 +2114,64 @@ metadata:
   annotations:
     keel.sh/policy: patch
     keel.sh/trigger: poll
+```
+### Krew
+
+[Krew](https://github.com/kubernetes-sigs/krew) — менеджер плагинов для kubectl.
+```bash
+(
+  set -x; cd "$(mktemp -d)" &&
+  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+  KREW="krew-${OS}_${ARCH}" &&
+  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+  tar zxvf "${KREW}.tar.gz" &&
+  ./"${KREW}" install krew
+) &&
+echo 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"' >> ~/.bashrc &&
+source ~/.bashrc
+```
+
+| Плагин                                                              | Описание                                                                                                  |
+| -                                                                   | -                                                                                                         |
+| [kubectx & kubens](https://github.com/ahmetb/kubectx)               | Быстрое переключение между контекстами (кластерамси) и пространствами имен (требует установку `fzf`).     |
+| [ktop](https://github.com/vladimirvivien/ktop)                      | Мониторинг нагрузки всех node и pods в реальном времени.                                                  |
+| [ketall/get-all](https://github.com/corneliusweig/ketall)           | Отображает все ресурсы Kubernetes.                                                                        |
+| [kubectl-tree](https://github.com/ahmetb/kubectl-tree)              | Отображает зависимости ресурсов в древовидном формате.                                                    |
+| [kubectl-node-shell](https://github.com/kvaps/kubectl-node-shell)   | Bash скрипт для подключения к оболочке операционной системы хоста (node, монтирует pode на базе Alpine).  |
+| [kubetail](https://github.com/johanhaleby/kubetail)                 | Bash скрипт, позволяющий объединять журналы из нескольких подов в один поток.                             |
+| [kubetail & Dashboard](https://github.com/kubetail-org/kubetail)    | Панель управления журналами в браузер и/или терминале.                                                    |
+| [stern](https://github.com/stern/stern)                             | Одновременный просмотр логов из нескольких подов в одном потоке.                                          |
+| [outdated](https://github.com/replicatedhq/outdated)                | Отображает устаревшие образы, которые доступны к обновлению.                                              |
+
+```bash
+kubectl krew install ctx ns ktop get-all tree kubectl-node-shell kubetail stern outdated
+
+kubectl ctx
+kubectl ns
+
+kubectl ktop
+
+kubectl get all -A
+kubectl get-all
+kubectl get-all --since 24h
+
+kubectl tree deployment traefik -n default
+
+kubectl get node
+kubectl node-shell rpi-105
+
+kubectl kubetail logs traefik-977b5d47-mzhwx httpbin-7c454b5b68-q2mfb
+kubectl kubetail serve
+
+kubectl stern . -n default --tail 5
+kubectl stern . --all-namespaces --tail 5 --since 10m --no-follow 100
+
+kubectl outdated
+```
+Kubetail Dashboard
+```yaml
+
 ```
 ### Kompose
 

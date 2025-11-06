@@ -225,14 +225,15 @@
         icon: https://repeatit.io/logo.svg
         href: https://repeatit.io
         # href: https://gotemplate.io
-    - TypeScript Playground:
+    - TS Playground:
         icon: typescript.png
         href: https://typescriptlang.org/play
-    - JavaScript Playground:
-        icon: javascript.png
-        href: https://runjs.app/play
-        # href: https://jsplayground.dev
-        # href: https://developer.mozilla.org/ru/play
+    # - HTML/CSS/JavaScript Playground:
+    #     icon: javascript.png
+    #     href: https://developer.mozilla.org/ru/play
+    # - Node.js Playground:
+    #     icon: nodejs.png
+    #     href: https://jsplayground.dev
     # - Groovy Playground:
     #     icon: https://groovy-lang.org/img/groovy-logo-white.svg
     #     href: https://groovyide.com/playground
@@ -304,29 +305,36 @@
             icon: https://static.modheader.com/favicons/favicon-96x96.png
             href: https://modheader.com/headers
             # href: https://httpbingo.org/anything
-        - Mozilla Developer:
+        - Mozilla Developer Docs:
             icon: https://developer.mozilla.org/favicon.svg
             href: https://developer.mozilla.org/ru/docs/Web/HTTP/Reference/Status
         - JSON Crack:
             icon: https://jsoncrack.com/favicon.ico
             href: https://jsoncrack.com/editor
-    - Docker Registry:
+    - Docker & Kubernetes:
         - Docker Hub:
             icon: docker.png
             href: https://hub.docker.com/u/lifailon
             siteMonitor: https://hub.docker.com
-        - Awesome Docker Compose:
-            icon: https://awesome-docker-compose.com/favicon.png
-            href: https://awesome-docker-compose.com/apps
         - Linux Server:
             icon: https://docs.linuxserver.io/assets/favicon.ico
             href: https://docs.linuxserver.io/images
-        - Portainer-Templates:
+        # - Chainguard:
+        #     icon: https://images.chainguard.dev/favicon-dark.ico
+        #     href: https://images.chainguard.dev
+        - Awesome Docker Compose:
+            # icon: https://awesome-docker-compose.com/favicon.png
+            icon: docker-compose.png
+            href: https://awesome-docker-compose.com/apps
+        - Portainer Templates:
             icon: portainer.png
-            href: https://portainer-templates.as93.net/
+            href: https://portainer-templates.as93.net
         - Artifact Hub:
             icon: artifacthub.png
             href: https://artifacthub.io/packages/helm/openrouter-bot/openrouter-bot
+        - Krew Plugins:
+            icon: https://krew.sigs.k8s.io/img/favicon.svg
+            href: https://krew.sigs.k8s.io/plugins
         - Kubernetes Spec Explorer:
             icon: https://kubespec.dev/favicon.ico
             href: https://kubespec.dev
