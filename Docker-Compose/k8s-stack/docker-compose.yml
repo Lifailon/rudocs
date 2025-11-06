@@ -48,6 +48,20 @@ services:
       - 9000:9000
       - 9001:9001
 
+  # Kubernetes Operational View
+  kube-ops-view:
+    image: hjacobs/kube-ops-view:latest
+    container_name: kube-ops-view
+    restart: unless-stopped
+    ports:
+      - 3503:3503
+    environment:
+      - SERVER_PORT=3503
+      - CLUSTERS=http://192.168.3.101:6443
+      - KUBECONFIG_PATH=/root/.kube/config
+    volumes:
+      - ~/.kube/config:/root/.kube/config:ro
+
   # Web interface for k8s (like Kubernetes Dashboard)
   # headlamp:
   #   image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
