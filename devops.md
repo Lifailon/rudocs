@@ -66,7 +66,7 @@
   - [K3s](#k3s)
   - [Dashboard](#dashboard)
   - [Headlamp](#headlamp)
-  - [k9s](#k9s)
+  - [TUIs](#tuis)
   - [kubectl](#kubectl)
   - [JSONPath](#jsonpath)
   - [Go Template](#go-template)
@@ -1418,7 +1418,11 @@ kubectl -n kube-system create serviceaccount headlamp-admin # создать с�
 kubectl create clusterrolebinding headlamp-admin --serviceaccount=kube-system:headlamp-admin --clusterrole=cluster-admin # назначить права администратора кластера для сервисного аккаунта
 kubectl create token headlamp-admin -n kube-system --duration=43800h # выпустить токен для авторизации сроком действия 5 лет
 ```
-### k9s
+### TUIs
+
+`kubebox` - терминальный интерфейс для управления kubernetes.
+
+`curl -Lo kubebox https://github.com/astefanutti/kubebox/releases/download/v0.10.0/kubebox-linux && chmod +x kubebox`
 
 [K9s](https://github.com/derailed/k9s) - это TUI интерфейс для взаимодействия с кластерами Kubernetes (управление и чтение логов).
 
@@ -2636,8 +2640,9 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 | [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)        | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.  |
 | [Export Job Parameters](https://plugins.jenkins.io/export-job-parameters)       | Добавляет кнопку `Export Job Parameters` для конвертации все параметров в декларативный синтаксис Pipeline. |
 | [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                      | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                          |
-| [Active Choices](https://plugins.jenkins.io/uno-choice)                         | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                          |
+| [Active Choices Parameters](https://plugins.jenkins.io/uno-choice)              | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                          |
 | [File Parameters](https://plugins.jenkins.io/file-parameters)                   | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).        |
+| [Separator Parameter](https://plugins.jenkins.io/parameter-separator)           | Параметр для разграничения набора параметров на странице сборки задания с поддержкой HTML.                  |
 | [Custom Tools](https://plugins.jenkins.io/custom-tools-plugin)                  | Позволяет загружать пакеты из интернета с помощью предустановленного набора команд.                         |
 | [Ansible](https://plugins.jenkins.io/ansible)                                   | Параметраризует запуск `ansible-playbook` (требуется установка на агенте) через метод `ansiblePlaybook`.    |
 | [HashiCorp Vault](https://plugins.jenkins.io/hashicorp-vault-plugin)            | Автоматизирует процесс получения содержимого значений из Vault с помощью метода `withVault`                 |
@@ -3079,17 +3084,52 @@ pipeline {
         timeout(time: 10, unit: "MINUTES")
     }
     parameters {
-        booleanParam(name: "checkConfig", defaultValue: false, description: "Проверить содержимое kubeconfig и версию kubectl")
-        // string(name: "text", defaultValue: "text")
-        // text(name: "notes", defaultValue: "notes")
-        // choice(name: "addresses", choices: ["192.168.3.105","192.168.3.106"])
+        separator(
+            name: "separatorVault",
+            sectionHeader: "Vault",
+            separatorStyle: "border-color: blue",
+            sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
+        )
+        string(
+            name: "vaultUrl",
+            defaultValue: "http://192.168.3.101:8200",
+            description: "Адрес Vault"
+        )
+        string(
+            name: "vaultPath",
+            defaultValue: "v1/kv/kube",
+            description: "Путь к секретам в Vault (где хранится ключ config с содержимым kubeconfig)"
+        )
+        credentials(
+            name: "vaultAppRole",
+            credentialType: "com.datapipe.jenkins.vault.credentials.VaultAppRoleCredential",
+            defaultValue: "main_approle",
+            description: "AppRole для доступа на чтение секретов из Vault"
+        )
+        separator(
+            name: "separatorDebug",
+            sectionHeader: "Debug",
+            separatorStyle: "border-color: blue",
+            sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
+        )
+        booleanParam(
+            name: "checkConfig",
+            defaultValue: true,
+            description: "Проверить содержимое kubeconfig и версию kubectl"
+        )
+        // text(name: "multiLine", defaultValue: "line1\nline2")
+        // choice(name: "addresses", choices: ["192.168.3.101", "192.168.3.105","192.168.3.106"])
         // password(name: "token", defaultValue: "YWRtaW4K")
         // credentials(name: "sshKey", credentialType: "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey", defaultValue: "d5da50fc-5a98-44c4-8c55-d009081a861a", required: true)
-        // credentials(name: "vaultAppRole", credentialType: "com.datapipe.jenkins.vault.credentials.VaultAppRoleCredential", defaultValue: "main_approle")
-        // activeChoice(name: "activeChoicesParameter", choiceType: "PT_CHECKBOX", filterable: true,
-        // script: [$class: "GroovyScript", script: [script: '''return["1","2","3"]''']]) // PT_MULTI_SELECT/PT_SINGLE_SELECT
-        // reactiveChoice(name: "activeChoicesReactiveParameter", choiceType: "PT_RADIO", filterable: false, referencedParameters: "activeChoicesParameter",
-        // script: [$class: "GroovyScript", script: [script: '''return [activeChoicesParameter]''']])
+        // activeChoice(
+        //     name: "activeChoicesParameter", choiceType: "PT_CHECKBOX", filterable: true,
+        //     script: [$class: "GroovyScript", box: true, script: [script: '''return ["1","2","3"]''']]
+        // )
+        // reactiveChoice(
+        //     name: "activeChoicesReactiveParameter", choiceType: "PT_RADIO", filterable: false,
+        //     referencedParameters: "activeChoicesParameter",
+        //     script: [$class: "GroovyScript", box: true, script: [script: '''return [activeChoicesParameter]''']]
+        // )
     }
     environment {
         KUBECONFIG = "${WORKSPACE}/kubeconfig"
@@ -3112,14 +3152,14 @@ pipeline {
                 script {
                     // Конфигурация для подключения к Vault
                     def vaultConfiguration = [
-                        vaultUrl:           "http://192.168.3.101:8200",
-                        vaultCredentialId:  "main_approle",
+                        vaultUrl:           params.vaultUrl,
+                        vaultCredentialId:  params.vaultAppRole,
                         engineVersion:      1
                     ]
-                    // Переменные для извлечения секретов
+                    // Переменная для извлечения секретов
                     def vaultSecrets  = [
                         [
-                            path:  "kv/kube",
+                            path: params.vaultPath,
                             engineVersion: 1,
                             secretValues: [
                                 [
@@ -3158,7 +3198,6 @@ pipeline {
                     if (kubeconfig.trim().length() == 0) {
                         log.error("Конфигурация отсутствует (файл kubeconfig пустой)")
                     } else {
-                        // log.success(kubeconfig)
                         def firstLine = kubeconfig.split("\n")[0]
                         log.success("Конфигурация получена")
                         log.success(firstLine)
