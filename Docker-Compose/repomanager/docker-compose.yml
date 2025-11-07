@@ -1,11 +1,8 @@
 services:
+  # Web UI and mirroring for rpm and deb packages repositories
+  # From the creator of Motion UI
   repomanager:
-    image: repomanager
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        branch: main
+    image: lbr38/repomanager:latest
     container_name: repomanager
     restart: unless-stopped
     # network_mode: host

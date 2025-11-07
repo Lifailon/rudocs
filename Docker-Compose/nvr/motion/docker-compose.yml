@@ -1,5 +1,6 @@
 services:
   motion:
+    # From the creator of Repomanager
     image: lbr38/motionui:latest
     container_name: motion
     restart: unless-stopped
