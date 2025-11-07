@@ -7,6 +7,19 @@ services:
     ports:
       - 3500:8000
 
+  # Web interface for kubectl and k9s based on gotty from 1panel
+  webkubectl:
+    image: kubeoperator/webkubectl
+    container_name: webkubectl
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - 3501:8080
+    environment:
+      - SESSION_STORAGE_SIZE=10M
+      - KUBECTL_INSECURE_SKIP_TLS_VERIFY=true
+      - GOTTY_OPTIONS=--port 8080 --permit-write --permit-arguments
+
   # Web interface for Helm
   helm-dashboard:
     image: komodorio/helm-dashboard:latest
@@ -15,7 +28,21 @@ services:
     volumes:
       - ~/.kube/config:/root/.kube/config:ro
     ports:
-      - 3501:8080
+      - 3502:8080
+
+  # Kubernetes Operational View
+  kube-ops-view:
+    image: hjacobs/kube-ops-view:latest
+    container_name: kube-ops-view
+    restart: unless-stopped
+    ports:
+      - 3503:3503
+    environment:
+      - SERVER_PORT=3503
+      - CLUSTERS=http://192.168.3.101:6443
+      - KUBECONFIG_PATH=/root/.kube/config
+    volumes:
+      - ~/.kube/config:/root/.kube/config:ro
 
   # Web interface for Velero
   velero-ui:
@@ -23,14 +50,14 @@ services:
     container_name: velero-ui
     restart: unless-stopped
     volumes:
-      # - /etc/rancher/k3s/k3s.yaml:/app/.kube/config:ro
       - ~/.kube/config:/app/.kube/config:ro
+      # - /etc/rancher/k3s/k3s.yaml:/app/.kube/config:ro
     environment:
-      - PORT=3502
+      - PORT=3504
       - KUBE_CONFIG_PATH=/app/.kube/config
     # network_mode: host # use for k3s cluster config on localhost
     ports:
-      - 3502:3502 # admin:admin
+      - 3504:3504 # admin:admin
 
   # S3 storage for Velero backups
   minio:
@@ -48,34 +75,20 @@ services:
       - 9000:9000
       - 9001:9001
 
-  # Kubernetes Operational View
-  kube-ops-view:
-    image: hjacobs/kube-ops-view:latest
-    container_name: kube-ops-view
-    restart: unless-stopped
-    ports:
-      - 3503:3503
-    environment:
-      - SERVER_PORT=3503
-      - CLUSTERS=http://192.168.3.101:6443
-      - KUBECONFIG_PATH=/root/.kube/config
-    volumes:
-      - ~/.kube/config:/root/.kube/config:ro
-
   # Web interface for k8s (like Kubernetes Dashboard)
-  # headlamp:
-  #   image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
-  #   container_name: headlamp
-  #   restart: unless-stopped
-  #   command: [
-  #     "--kubeconfig", "/headlamp/.kube/config",
-  #     "--port","64446",
-  #     "--enable-dynamic-clusters"
-  #   ]
-  #   volumes:
-  #     - ~/.kube/config:/headlamp/.kube/config:ro
-  #   ports:
-  #     - 64446:64446
+  headlamp:
+    image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
+    container_name: headlamp
+    restart: unless-stopped
+    command: [
+      "--kubeconfig", "/headlamp/.kube/config",
+      "--port","64446",
+      "--enable-dynamic-clusters"
+    ]
+    volumes:
+      - ~/.kube/config:/headlamp/.kube/config:ro
+    ports:
+      - 64446:64446
 
   # rancher:
   #   image: rancher/rancher:latest
