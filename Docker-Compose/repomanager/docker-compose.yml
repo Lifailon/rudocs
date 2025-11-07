@@ -1,0 +1,20 @@
+services:
+  repomanager:
+    image: repomanager
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        branch: main
+    container_name: repomanager
+    restart: unless-stopped
+    # network_mode: host
+    ports:
+      - 8080:8080
+    environment:
+      FQDN: repomanager.docker.local
+      MAX_UPLOAD_SIZE: 32M
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./repomanager_data:/var/lib/repomanager
+      - ./repomanager_repo:/home/repo
