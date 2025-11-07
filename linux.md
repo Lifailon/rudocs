@@ -115,6 +115,7 @@
 - [ping](#ping)
   - [fping](#fping)
   - [netping](#netping)
+  - [loadgen](#loadgen)
 - [firewall](#firewall)
   - [ufw](#ufw)
   - [show](#show)
@@ -2289,10 +2290,155 @@ function tcp-scan () {
 
 ### netping
 
-`sudo curl -s https://raw.githubusercontent.com/Lifailon/net-tools/rsa/netping.sh -o /usr/bin/netping` \
-`sudo chmod +x /usr/bin/netping` \
-`netping 192.168.3.0`
+Скрипт для параллельного ping всей подсети:
+```bash
+#!/bin/bash
+function test-ping () {
+    ping -c 1 $1 > /dev/null
+    if [ $? -eq 0 ] # check exit code
+    then
+    echo -e "$1 \t \033[32mtrue\033[0m" >> $tmp
+    else
+    echo -e "$1 \t false" >> $tmp
+    fi
+}
+tmp="/tmp/ping.tmp"
+rm $tmp 2> /dev/null # delete the file if the script was interrupted
+test_param=$(echo $1 | grep -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]")
+if [ ${#1} -eq 0 ]
+    then
+    ip=$(ip -br a | grep -Evi "lo|down" | sed -n 1p)
+    ip=$(echo $ip | awk '{print $3}' | awk -F "." '{print $1"."$2"."$3"."}')
+elif [ ${#test_param} -eq 0 ]
+    then
+    echo "Error: Parameter set incorrectly. Use the format 192.168.3.* or leave blank."
+    exit
+else
+    ip=$(echo $1 | awk -F "." '{print $1"."$2"."$3"."}')
+fi
+net=("$ip"{1..254})
+for host in ${net[@]}
+    do
+    test-ping $host &
+done
+num=$(cat $tmp | wc -l)
+#num=$(jobs -l | wc -l) # get the number of jobs running
+while :
+do
+    if [ $num -eq 254 ] # check the completion of all jobs
+        then
+        true=$(cat $tmp | grep true | wc -l)
+        false=$(cat $tmp | grep false | wc -l)
+        cat $tmp | sort -t "." -nk4 # sort by column four
+        echo
+        echo -e "Available: \t $true" 
+        echo -e "Unavailable: \t $false"
+		echo
+        rm $tmp
+        break
+    else
+        num=$(cat $tmp | wc -l)
+    fi
+done
+```
+### loadgen
 
+Генератор нагрузки на bash:
+```bash
+#!/bin/bash
+
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+    echo "Usage:    gen <RPS> <DURATION> <URL>"
+    echo "Example:  gen 20 30 https://httpbin.org/get"
+    exit 1
+fi
+
+RPS=$1
+DURATION=$2
+URL=$3
+
+SUCCESS_FILE=$(mktemp)
+FAIL_FILE=$(mktemp)
+TOTAL_FILE=$(mktemp)
+
+request() {
+    local start_time=$(date +%s%N)
+    local code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 --max-time 10 "$URL" 2>/dev/null || echo "000")
+    local end_time=$(date +%s%N)
+    local response_time=$(( (end_time - start_time) / 1000000 ))
+    if [[ "$code" =~ ^2[0-9][0-9]$ ]]; then
+        echo "$response_time" >> "$SUCCESS_FILE"
+        echo "success" >> "$TOTAL_FILE"
+    elif [ "$code" = "000" ]; then
+        echo "$response_time" >> "$FAIL_FILE"
+        echo "timeout" >> "$TOTAL_FILE"
+    else
+        echo "$response_time" >> "$FAIL_FILE"
+        echo "fail" >> "$TOTAL_FILE"
+    fi
+}
+
+START_TIME=$(date +%s)
+END_TIME=$((START_TIME + DURATION))
+INTERVAL=$(echo "scale=6; 1 / $RPS" | bc)
+
+while [ $(date +%s) -lt $END_TIME ]; do
+    CYCLE_START=$(date +%s.%N)
+    for ((i=0; i<RPS; i++)); do
+        request &
+    done
+    CYCLE_END=$(date +%s.%N)
+
+    ELAPSED=$(echo "$CYCLE_END - $CYCLE_START" | bc)
+    SLEEP_TIME=$(echo "1.000000 - $ELAPSED" | bc)
+
+    if [ $(echo "$SLEEP_TIME > 0" | bc) -eq 1 ]; then
+        sleep $SLEEP_TIME
+    fi
+done
+
+wait
+
+SUCCESS_COUNT=$(wc -l < "$SUCCESS_FILE" 2>/dev/null || echo 0)
+FAIL_COUNT=$(wc -l < "$FAIL_FILE" 2>/dev/null || echo 0)
+TOTAL_REQUESTS=$((SUCCESS_COUNT + FAIL_COUNT))
+
+if [ $SUCCESS_COUNT -gt 0 ]; then
+    sort -n "$SUCCESS_FILE" > "${SUCCESS_FILE}.sorted"
+    p95_line=$(awk -v count=$SUCCESS_COUNT 'BEGIN {v=count*0.95; print (v==int(v)?v:int(v)+1)}')
+    if [ "$p95_line" -gt "$SUCCESS_COUNT" ]; then p95_line=$SUCCESS_COUNT; fi
+    min=$(head -1 "${SUCCESS_FILE}.sorted")
+    max=$(tail -1 "${SUCCESS_FILE}.sorted")
+    p95=$(sed -n "${p95_line}p" "${SUCCESS_FILE}.sorted")
+    avg=$(awk '{sum+=$1} END {if (NR>0) printf "%.2f", sum/NR; else print 0}' "$SUCCESS_FILE")
+else
+    min=0; max=0; p95=0; avg=0
+fi
+
+echo -e "\033[32m"
+echo "==============================================================="
+echo -e "\033[0m"
+echo "URL:                  $URL"
+echo "Duration:             $DURATION sec"
+echo "RPS:                  $(echo "scale=2; $TOTAL_REQUESTS / $DURATION" | bc)/$RPS"
+echo "Total requests:       $TOTAL_REQUESTS"
+if [ "$TOTAL_REQUESTS" -gt 0 ]; then
+    echo "Success requests:     $SUCCESS_COUNT ($(echo "scale=2; $SUCCESS_COUNT * 100 / $TOTAL_REQUESTS" | bc)%)"
+    echo "Failed requests:      $FAIL_COUNT ($(echo "scale=2; $FAIL_COUNT * 100 / $TOTAL_REQUESTS" | bc)%)"
+else
+    echo "Success requests:     0 (0%)"
+    echo "Failed requests:      0 (0%)"
+fi
+echo "Response time avg:    $avg"
+echo "Response time min:    $min"
+echo "Response time max:    $max"
+echo "Response time 95%:    $p95"
+echo -e "\033[32m"
+echo "==============================================================="
+echo -e "\033[0m"
+
+rm -f "$SUCCESS_FILE" "$FAIL_FILE" "$TOTAL_FILE" "${SUCCESS_FILE}.sorted"
+```
 ## firewall
 
 ### ufw

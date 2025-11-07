@@ -417,6 +417,7 @@
   - [Uninstall-Notepad-Plus-Plus](#uninstall-notepad-plus-plus)
   - [Deploy-WinSCP](#deploy-winscp)
 - [Load Testing](#load-testing)
+  - [wrk](#wrk)
   - [Apache Benchmark](#apache-benchmark)
   - [Locust](#locust)
 - [LLM](#llm)
@@ -8209,6 +8210,11 @@ powershell -File "$PSAppDeployToolkit\Toolkit\Deploy-Application.ps1" # запу
 ```
 ## Load Testing
 
+### wrk
+```bash
+sudo apt install wrk
+wrk -t4 -c100 -d30s http://192.168.3.100:8444/api/provider/list # 4 потока и 100 соединений (100 rps) на 30 секунд
+```
 ### Apache Benchmark
 ```PowerShell
 $path = "$HOME\Downloads\apache"
@@ -8278,7 +8284,7 @@ class TorApiUser(HttpUser):
 Запуск Web-интерфейса в контейнере Docker:
 
 `mkdir locust && cd locust`
-```dockerfile
+```Dockerfile
 FROM alpine:latest
 RUN apk add --no-cache python3 py3-pip gcc musl-dev linux-headers python3-dev
 RUN python3 -m venv /venv
