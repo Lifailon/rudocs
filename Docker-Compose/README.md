@@ -1,6 +1,6 @@
 # Compose Stacks
 
-Коллекция стеков Docker Compose.
+Коллекция стеков Docker Compose (конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose)).
 
 ## Admin Stack
 
@@ -268,7 +268,7 @@ services:
 
 ### Kopia
 
-[Kopia](https://github.com/kopia/kopia) - кроссплатформенный инструмент резервного копирования для Windows, macOS и Linux с быстрым инкрементным резервным копированием, сквозным шифрованием на стороне клиента, сжатием и дедупликацией данных. Поддерживается веб интерфейс поверх cli в стиле отображения флагов для исполняемого файла.
+[Kopia](https://github.com/kopia/kopia) - кроссплатформенный инструмент резервного копирования для Windows, macOS и Linux с быстрым инкрементным резервным копированием, сквозным шифрованием на стороне клиента, сжатием и дедупликацией данных. Поддерживается Веб-интерфейс поверх cli в стиле отображения флагов для исполняемого файла.
 
 ```yaml
 services:
@@ -1469,7 +1469,7 @@ services:
       - TZ=Etc/GMT+3
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./config.yml:/app/config.yml:ro
+      - ./config.yml:/app/config.yml:ro # Custom config
 
   blocky-swagger:
     image: docker.swagger.io/swaggerapi/swagger-ui
@@ -1481,26 +1481,6 @@ services:
       - SWAGGER_JSON_URL=blocky:4000/docs/openapi.yaml
     depends_on:
       - blocky
-```
-
-`config.yml`:
-
-```yaml
-upstreams:
-  groups:
-    default:
-      - 1.1.1.1
-      - 8.8.8.8
-blocking:
-  denylists:
-    ads:
-      - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-  clientGroupsBlock:
-    default:
-      - ads
-ports:
-  dns: 53
-  http: 4000
 ```
 
 ### Gravity
@@ -1651,4 +1631,193 @@ AUTHENTIK_POSTGRESQL__USER=authentik
 AUTHENTIK_POSTGRESQL__PASSWORD=AuthentikAdmin
 AUTHENTIK_REDIS__HOST=authentik-redis
 AUTHENTIK_SECRET_KEY=J+fcRg0PtPRrILSeahxEtZwKGKM7irzJU15qp3ImG4XYoHyzsId5tnZjVoPs9XTnH5NwYaviRCVQZKSQ # openssl rand 60 | base64 -w 80
+```
+
+## LDAP
+
+### LLDAP
+
+[LLDAP](https://github.com/lldap/lldap) - облегчённый сервер аутентификации (Light LDAP), предоставляющий продуманный и упрощённый интерфейс LDAP для аутентификации и современный интерфейс управления (интегрируется со многими бэкендами, от KeyCloak до Authelia, Nextcloud и другими).
+
+```yaml
+services:
+  lldap:
+    image: lldap/lldap:stable
+    ports:
+      - 3890:3890   # LDAP
+      - 6360:6360   # LDAPS (LDAP Over SSL)
+      - 17170:17170 # Web front-end
+    volumes:
+      - ./lldap_data:/data
+    environment:
+      - UID=1000
+      - GID=1000
+      - TZ=Etc/UTC+3
+      - LLDAP_JWT_SECRET=REPLACE_WITH_RANDOM
+      - LLDAP_KEY_SEED=REPLACE_WITH_RANDOM
+      - LLDAP_LDAP_BASE_DN=dc=docker,dc=local
+      - LLDAP_LDAP_USER_PASS=LdapAdmin
+      # If using LDAPS, set enabled true and configure cert and key path
+      - LLDAP_LDAPS_OPTIONS__ENABLED=false
+      # - LLDAP_LDAPS_OPTIONS__CERT_FILE=/path/to/certfile.crt
+      # - LLDAP_LDAPS_OPTIONS__KEY_FILE=/path/to/keyfile.key
+      # Database
+      # - LLDAP_DATABASE_URL=mysql://mysql-user:password@mysql-server/my-database
+      # - LLDAP_DATABASE_URL=postgres://postgres-user:password@postgres-server/my-database
+      # SMTP
+      # - LLDAP_SMTP_OPTIONS__ENABLE_PASSWORD_RESET=true
+      # - LLDAP_SMTP_OPTIONS__SERVER=smtp.example.com
+      # - LLDAP_SMTP_OPTIONS__PORT=465
+      # - LLDAP_SMTP_OPTIONS__SMTP_ENCRYPTION=TLS
+      # - LLDAP_SMTP_OPTIONS__USER=no-reply@example.com
+      # - LLDAP_SMTP_OPTIONS__PASSWORD=PasswordGoesHere
+      # - LLDAP_SMTP_OPTIONS__FROM=no-reply <no-reply@example.com>
+      # - LLDAP_SMTP_OPTIONS__TO=admin <admin@example.com>
+```
+
+### Glauth
+
+[Glauth](https://github.com/glauth/glauth) - современный и молодой сервер аутентификации (Go-lang LDAP Authentication) с управлением через конфигурацию и поддержкой метрик Prometheus.
+
+```yaml
+services:
+  glauth:
+    image: glauth/glauth:latest
+    container_name: glauth
+    restart: unless-stopped
+    environment:
+      - TZ=UTC
+    ports:
+      - 3893:3893    # LDAP port
+      # - 3894:3894  # LDAPS port
+      - 5555:5555    # API (Web UI and metrics for Prometheus)
+    volumes:
+      - ./glauth.cfg:/app/config/config.cfg
+
+# sudo apt install ldap-utils
+# ldapsearch -LLL -H ldap://localhost:3893 -D "cn=admin1,ou=admins,dc=docker,dc=local" -w LdapAdmin -b "dc=docker,dc=local" cn=admin2
+```
+
+### OpenLDAP
+
+[OpenLDAP](https://github.com/osixia/docker-openldap) - реализация протокола Lightweight Directory Access Protocol с открытым исходным кодом. В состав входят LDAP-демон сервера (slapd) и автономный демон балансировки нагрузки LDAP (lloadd).
+
+[phpLDAPadmin](https://github.com/osixia/docker-phpLDAPadmin) - универсальный Веб-интерфейс для LDAP.
+
+```yaml
+services:
+  ldap-backend:
+    image: osixia/openldap:latest
+    container_name: openldap
+    restart: unless-stopped
+    environment:
+      - LDAP_ORGANISATION=Docker Local
+      - LDAP_DOMAIN=docker.local
+      - LDAP_ADMIN_PASSWORD=LdapAdmin
+    ports:
+      - 1389:389
+      - 1636:636
+    volumes:
+      - ./ldap_data:/var/lib/ldap
+      - ./ldap_config:/etc/ldap/slapd.d
+    # healthcheck:
+    #   test: ["CMD", "ldapsearch", "-H", "ldap://localhost:1389", "-D", "cn=admin,dc=docker,dc=local", "-w", "LdapAdmin", "-b", "dc=docker,dc=local"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+
+  ldap-frontend:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    restart: unless-stopped
+    links:
+      - ldap-backend:ldap-host
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=ldap-host
+      - PHPLDAPADMIN_HTTPS=false
+    ports:
+      - 1443:443
+    depends_on:
+      - ldap-backend
+
+  # ldap-ui:
+  #   image: dnknth/ldap-ui
+  #   container_name: ldap-ui
+  #   restart: unless-stopped
+  #   ports:
+  #     - 5000:5000
+  #   environment:
+  #     - LDAP_URL=ldap://ldap-backend/
+  #     - BASE_DN=dc=docker,dc=local
+  #     - BIND_DN=cn=admin,dc=docker,dc=local
+  #     - BIND_PASSWORD=LdapAdmin
+  #   depends_on:
+  #     - ldap-backend
+
+# Web UI: https://localhost:6443
+# Login DN: cn=admin,dc=docker,dc=local
+# Password: LdapAdmin
+
+# sudo apt install ldap-utils
+# ldapsearch -LLL -H ldap://localhost:1389 -D "cn=admin,dc=docker,dc=local" -w LdapAdmin -b "dc=docker,dc=local"
+
+# TUI LDAP Client: https://github.com/Macmod/godap
+# brew install godap
+# godap localhost -P 1389 -u "cn=admin,dc=docker,dc=local" -p "LdapAdmin" -r "dc=docker,dc=local"
+```
+
+### OpenDJ & LDAP UI
+
+[OpenDJ](https://github.com/OpenIdentityPlatform/OpenDJ) - совместимая служба каталогов, разработанная для платформы Java и обеспечивающая высокопроизводительное, высокодоступное и безопасное хранилище для идентификационных данных.
+
+[LDAP UI](https://github.com/dnknth/ldap-ui) - минималистичный Веб-интерфейс для каталогов LDAP.
+
+```yaml
+services:
+  ldap-server:
+    image: openidentityplatform/opendj:latest
+    container_name: opendj
+    restart: unless-stopped
+    hostname: ldap.docker.local
+    stdin_open: true
+    tty: true
+    ports:
+      - 1389:1389
+      - 1636:1636
+      - 4444:4444
+    environment:
+      - PORT=1389
+      - LDAPS_PORT=1636
+      - BASE_DN=dc=docker,dc=local
+      - ROOT_USER_DN=cn=admin
+      - ROOT_PASSWORD=LdapAdmin
+
+  # ldap-admin:
+  #   image: osixia/phpldapadmin:latest
+  #   container_name: phpldapadmin
+  #   restart: unless-stopped
+  #   environment:
+  #     - PHPLDAPADMIN_LDAP_HOSTS=ldap-server
+  #     - PHPLDAPADMIN_HTTPS=false
+  #   ports:
+  #     - 1443:443
+  #   depends_on:
+  #     - ldap-server
+
+  ldap-ui:
+    image: dnknth/ldap-ui
+    container_name: ldap-ui
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    environment:
+      - LDAP_URL=ldap://ldap-server/
+      - BASE_DN=dc=docker,dc=local
+      - BIND_DN=cn=admin,dc=docker,dc=local
+      - BIND_PASSWORD=LdapAdmin
+    depends_on:
+      - ldap-server
+
+# sudo apt install ldap-utils
+# ldapsearch -LLL -H ldap://localhost:1389 -D "cn=admin,dc=docker,dc=local" -w LdapAdmin -b "dc=docker,dc=local"
 ```
