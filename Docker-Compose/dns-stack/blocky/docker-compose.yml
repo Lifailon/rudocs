@@ -7,9 +7,20 @@ services:
     ports:
       - 53:53/tcp
       - 53:53/udp
-      - 4000:4000/tcp
+      - 4000:4000/tcp # RapiDoc
     environment:
       - TZ=Etc/GMT+3
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./config.yml:/app/config.yml:ro
+
+  blocky-swagger:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    container_name: blocky-swagger
+    restart: unless-stopped
+    ports:
+      - 4001:8080
+    environment:
+      - SWAGGER_JSON_URL=blocky:4000/docs/openapi.yaml
+    depends_on:
+      - blocky
