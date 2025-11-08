@@ -1,9 +1,0 @@
-services:
-  d2-playground:
-    image: lifailon/d2-playground:latest
-    build:
-      context: .
-    container_name: d2-playground
-    restart: unless-stopped
-    ports:
-      - 9089:9090
