@@ -440,6 +440,63 @@ LANG=RU
 STATS_MIN_ROLE=ADMIN
 ```
 
+### yt-dlp Telegram Bot
+
+[yt-dlp-telegram-bot](https://github.com/nonoo/yt-dlp-telegram-bot) - это Telegram бот для загрузки видео из YouTube с помощью [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+
+```yaml
+services:
+  yt-dlp-telegram-bot:
+    image: lifailon/yt-dlp-telegram-bot:latest
+    container_name: yt-dlp-telegram-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+```
+
+env:
+
+```env
+API_ID=             # get from https://my.telegram.org
+API_HASH=           # get from https://my.telegram.org
+BOT_TOKEN=          # get from https://telegram.me/BotFather
+
+ALLOWED_USERIDS=    # get from https://t.me/getmyid_bot
+ADMIN_USERIDS=      # get from https://t.me/getmyid_bot
+
+YTDLP_PATH=         # default: /tmp/yt-dlp
+ALLOWED_GROUPIDS=
+MAX_SIZE=
+YTDLP_COOKIES=
+```
+
+### yt-dlp-telegram
+
+[yt-dlp-telegram](https://github.com/ssebastianoo/yt-dlp-telegram) - это Telegram бот для загрузки видео из YouTube с ограничением 50 МБ.
+
+```yaml
+services:
+  yt-dlp-bot:
+    image: lifailon/yt-dlp-bot:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yt-dlp-bot
+    restart: unless-stopped
+    volumes:
+      - ./config:/bot/config.py
+```
+
+config:
+
+```env
+token = ""                  # Telegram api key your bot
+logs = 2390049              # Telegram your chat id
+max_filesize = 50000000     # Max file size in bytes
+
+# output_folder = "/download"
+```
+
 ## CI/CD Stack
 
 ### Jenkins
@@ -1245,17 +1302,13 @@ services:
       - ./dns_data:/etc/dns
     sysctls:
       - net.ipv4.ip_local_port_range=1024 65000
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
-      - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
 ```
 
 ### Pi-hole
 
 [Pi-hole](https://github.com/pi-hole/pi-hole) - популярное и легковесное решение для блокировки рекламы (отображает график блокировок, автоматически обновляет списки и поддерживает простое API).
 
-[Pi-hole Exporter](https://github.com/eko/pihole-exporter) - экспортер для Prometheus.
+[Pi-hole Exporter](https://github.com/eko/pihole-exporter) - экспортер метрик для Prometheus.
 
 ```yaml
 services:
@@ -1532,6 +1585,369 @@ services:
       - 8053:8080
 ```
 
+## Proxy Stack
+
+### Traefik
+
+[Traefik](https://github.com/traefik/traefik) - обратный прокси сервер с поддержкой автоматического опредиления сервисов Docker, встроенным веб интерфейсом, метриками Prometheus и трассировкой OTLP.
+
+```yaml
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: always
+    # Используем режим хоста для доступа к сети всех контейнеров 
+    network_mode: host
+    # ports:
+    #   - 8080:8080   # Web UI
+    #   - 80:80       # HTTP Proxy
+    #   - 443:443     # HTTPS Proxy
+    #   - 4318:4318   # Prometheus Metrics
+    dns:
+      - 127.0.0.1
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - ./rules:/rules
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: wget -qO- http://127.0.0.1:8080/ping
+      start_period: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    labels:
+      # Включаем маршрутизацию и определяем имя хоста
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.docker.local`)
+      # Указываем порт назначения в контейнере (если используется несколько портов)
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+      # Создаем базовую авторизацию
+      - traefik.http.middlewares.basic-auth-traefik.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW # htpasswd -nbB admin admin
+      # Включаем базовую авторизацию в маршрутизацию текущего сервиса
+      - traefik.http.routers.traefik.middlewares=basic-auth-traefik
+      # Настраиваем подключение к Authentik
+      # - traefik.http.middlewares.authentik.forwardauth.address=http://192.168.3.101:9000/outpost.goauthentik.io/auth/traefik
+      # - traefik.http.middlewares.authentik.forwardauth.trustForwardHeader=true
+      # - traefik.http.middlewares.authentik.forwardauth.authResponseHeaders=X-authentik-username,X-authentik-groups,X-authentik-entitlements,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
+      # Включаем авторизацию через Authentik из провайдера Docker
+      # - traefik.http.routers.traefik.middlewares=authentik@docker
+      # Включаем авторизацию через Authentik из провайдера file
+      # - traefik.http.routers.traefik.middlewares=authentik@file
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: jaeger
+    restart: always
+    ports:
+      - 16686:16686 # UI
+      - 4317:4317   # Collector
+
+  tech-dns-srv:
+    image: technitium/dns-server:latest
+    container_name: tech-dns-srv
+    restart: always
+    ports:
+      - 5380:5380/tcp
+      - 53:53/udp
+      - 53:53/tcp
+    environment:
+      - DNS_SERVER_DOMAIN=dns-server
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    volumes:
+      - ./dns_data:/etc/dns
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
+      - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
+```
+
+### Nginx Proxy & Docker Gen
+
+[Nginx Proxy](https://github.com/nginx-proxy/nginx-proxy) - настраивает контейнер, работающий под управлением nginx и docker-gen (docker-gen генерирует конфигурации обратного прокси-сервера для nginx и перезагружает nginx при запуске и остановке контейнеров).
+
+[Docker Gen](https://github.com/nginx-proxy/docker-gen) - это генератор файлов, который визуализирует шаблоны с использованием метаданных контейнера Docker.
+
+[ACME Companion](https://github.com/nginx-proxy/acme-companion) - используется для автоматической генерации сертификатов letsencrypt, для хостов, использующих переменную `LETSENCRYPT_HOST`.
+
+[Nginx Exporter](https://github.com/nginx/nginx-prometheus-exporter) - экспортер метрик для Prometheus.
+
+```yaml
+services:
+  # Proxy Server + docker-gen
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: nginxproxy/nginx-proxy
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./nginx-status.conf:/etc/nginx/conf.d/status.conf # конфигурация для получения статуса с помощью nginx-exporter 
+    ports:
+      - 80:80
+      - 443:443
+    # Apply config to any container on the host (not limited to the current stack in compose)
+    network_mode: host
+    # labels:
+    #   - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
+
+  # Prometheus metrics from nginx
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    restart: unless-stopped
+    command:
+      - "--nginx.scrape-uri=http://localhost:80/status"
+    ports:
+      - "9113:9113"
+    network_mode: host
+    depends_on:
+      - nginx-proxy
+
+  # Автоматическая генерация сертификатов letsencrypt, для хостов, использующих переменную LETSENCRYPT_HOST
+  # acme-companion:
+  #   image: nginxproxy/acme-companion
+  #   container_name: nginx-proxy-acme
+  #   depends_on:
+  #     - nginx-proxy
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./certs:/etc/nginx/certs
+  #     - ./html:/usr/share/nginx/html
+  #     - ./acme.sh:/etc/acme.sh
+  #   environment:
+  #     - DEFAULT_EMAIL=mail@yourdomain.tld
+```
+
+### Nginx Proxy Manager
+
+[Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager) - это веб-интерфейс для управления Nginx сервером в роли Proxy сервера.
+
+
+```yaml
+services:
+  nginx-proxy-db:
+    image: postgres:latest
+    container_name: nginx-proxy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "npm"
+      POSTGRES_PASSWORD: "npm_password"
+      POSTGRES_DB: "npm"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - nginx-network
+
+  nginx-proxy-manager:
+    image: docker.io/jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - 81:81         # Web interface
+      - 80:80         # Forward HTTP
+      - 443:443       # Forward HTTPS
+    environment:
+      - DB_POSTGRES_HOST=nginx-proxy-db
+      - DB_POSTGRES_PORT=5432
+      - DB_POSTGRES_USER=npm
+      - DB_POSTGRES_PASSWORD=npm_password
+      - DB_POSTGRES_NAME=npm
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - nginx-proxy-db
+    networks:
+      - nginx-network
+    # Auth default for Web interface:
+    # login: admin@example.com
+    # pass: changeme
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    restart: unless-stopped
+    ports:
+      - "9113:9113"
+    command:
+      - "--nginx.scrape-uri=http://nginx-proxy-manager:80/status"
+    depends_on:
+      - nginx-proxy-manager
+    networks:
+      - nginx-network
+
+networks:
+  nginx-network:
+    driver: bridge
+```
+
+### HAProxy
+
+[HAProxy](https://github.com/haproxy/haproxy) - обратный прокси сервер и "умный" балансировщик нагрузки (поддерживает healthcheck для проверки доступности).
+
+```yaml
+services:
+  httpbin-proxy:
+    image: haproxy:3.2.4-alpine
+    container_name: httpbin-proxy
+    restart: unless-stopped
+    ports:
+      - 8089:8080
+      - 2376:2376
+    volumes:
+      - ./haproxy.cfg:/haproxy.cfg
+    command:
+      - haproxy
+      - -f
+      - /haproxy.cfg
+      - -d
+    environment:
+      - STATS_USER=admin
+      - STATS_PASS=admin
+      - STATS_URI=/
+      - METRICS_URI=/metrics
+
+  httpbin-go:
+    image: ghcr.io/mccutchen/go-httpbin
+    container_name: httpbin-go
+    restart: unless-stopped
+```
+
+### Pangolin
+
+[Pangolin](https://github.com/fosrl/pangolin) — это обратный прокси-сервер с туннелированием, размещаемый на собственном сервере, с контролем доступа на основе личности и контекста, разработанный для лёгкого раскрытия и защиты приложений, работающих где угодно. Pangolin выступает в роли центрального узла и соединяет изолированные сети, даже находящиеся за строгими брандмауэрами, через зашифрованные туннели, обеспечивая лёгкий доступ к удалённым сервисам без открытия портов и использования VPN.
+
+```yaml
+services:
+  pangolin:
+    image: fosrl/pangolin:1.4.0
+    container_name: pangolin
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
+      interval: "3s"
+      timeout: "3s"
+      retries: 15
+ 
+  gerbil:
+    image: fosrl/gerbil:1.0.0
+    container_name: gerbil
+    restart: unless-stopped
+    command:
+      - --reachableAt=http://gerbil:3003
+      - --generateAndSaveKeyTo=/var/config/key
+      - --remoteConfig=http://pangolin:3001/api/v1/gerbil/get-config
+      - --reportBandwidthTo=http://pangolin:3001/api/v1/gerbil/receive-bandwidth
+    volumes:
+      - ./config/:/var/config
+    ports:
+      - 51820:51820/udp
+      # Порты из traefik через network_mode
+      - 443:443
+      - 80:80
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    depends_on:
+      pangolin:
+        condition: service_healthy
+ 
+  traefik:
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
+    # Порты для сервиса gerbil
+    network_mode: service:gerbil
+    command:
+      - --configFile=/etc/traefik/traefik_config.yml
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./letsencrypt:/letsencrypt
+    depends_on:
+      pangolin:
+        condition: service_healthy
+
+networks:
+  default:
+    driver: bridge
+    name: pangolin
+```
+
+### Tiny Proxy
+
+[tinyproxy](https://github.com/tinyproxy/tinyproxy) — легковесный прямой (forward) HTTP/HTTPS-прокси-сервер.
+
+
+```yaml
+services:
+  tinyproxy:
+    image: vimagick/tinyproxy
+    container_name: tinyproxy
+    restart: unless-stopped
+    ports:
+      - 1080:8888
+    volumes:
+      - ./tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf
+```
+
+### Proxyfor
+
+[Proxyfor](https://github.com/sigoden/proxyfor) - прямой (forward) и обратный прокси сервер с TUI и Веб-интерфейсом от создателя [dufs](https://github.com/sigoden/dufs) для отображения и фильтрации запросов и ответов.
+
+```yaml
+services:
+  proxyfor:
+    image: sigoden/proxyfor
+    container_name: proxyfor
+    restart: unless-stopped
+    volumes:
+      - ~/.proxyfor:/.proxyfor
+    # ports:
+    #   - 1080:8080
+    network_mode: host
+    command: --listen 1080 --web
+
+# Install Certificate Authority
+# Linux
+# sudo curl http://localhost:1080/__proxyfor__/certificate/proxyfor-ca-cert.pem -o /usr/local/share/ca-certificates/proxyfor.crt
+# sudo update-ca-certificates
+# Windows
+# Invoke-RestMethod http://192.168.3.101:1080/__proxyfor__/certificate/proxyfor-ca-cert.cer -OutFile $HOME/Downloads/proxyfor-ca-cert.cer
+# certutil -addstore root $HOME/Downloads/proxyfor-ca-cert.cer
+```
+
+## VRRP
+
+### KeepAlived
+
+[KeepAlived](https://github.com/acassen/keepalived) - используется для обеспечения высокой доступности (HA) за счет протокола [VRRP](https://ru.wikipedia.org/wiki/VRRP) (Virtual Router Redundancy Protocol), который поднимает один виртуальный IP-адрес для нескольких хостов с проверкой доступности и переключением адреса на другой хост в случае провального healthcheck. Чаще всего используется для отказоустойчивости балансировщиков нагрузки.
+
+```yaml
+services:
+  keepalived:
+    image: alpine:3.18
+    container_name: keepalived
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_BROADCAST
+      - NET_RAW
+    volumes:
+      - ./keepalived.conf:/etc/keepalived/keepalived.conf:ro
+    network_mode: host
+    command: |
+      sh -c "
+        apk add --no-cache keepalived curl &&
+        keepalived --dont-fork --log-console
+      "
+```
+
 ## SSO
 
 ### Authentik
@@ -1698,7 +2114,7 @@ services:
 # ldapsearch -LLL -H ldap://localhost:3893 -D "cn=admin1,ou=admins,dc=docker,dc=local" -w LdapAdmin -b "dc=docker,dc=local" cn=admin2
 ```
 
-### OpenLDAP
+### OpenLDAP & phpLDAPadmin
 
 [OpenLDAP](https://github.com/osixia/docker-openldap) - реализация протокола Lightweight Directory Access Protocol с открытым исходным кодом. В состав входят LDAP-демон сервера (slapd) и автономный демон балансировки нагрузки LDAP (lloadd).
 
@@ -1821,3 +2237,695 @@ services:
 # sudo apt install ldap-utils
 # ldapsearch -LLL -H ldap://localhost:1389 -D "cn=admin,dc=docker,dc=local" -w LdapAdmin -b "dc=docker,dc=local"
 ```
+
+## Docker Stack
+
+### Dockge
+
+[Dockge](https://github.com/louislam/dockge) - веб-интерфейс для управления стеками Docker Compose от создателя [Uptime-Kuma](https://github.com/louislam/uptime-kuma).
+
+```yaml
+services:
+  # Web interface for Docker Compose
+  dockge:
+    image: louislam/dockge:1
+    container_name: dockge
+    restart: always
+    volumes:
+      - ./dockge_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker stacks directory on host:container
+      - /home/lifailon/docker:/home/lifailon/docker
+    # Enable routing for traffic
+    # labels:
+    #   - traefik.enable=true
+    environment:
+      # Enable routing for docker-gen
+      # - VIRTUAL_HOST=dockge.local
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      # Доступ к консоли dockge
+      - DOCKGE_ENABLE_CONSOLE=true
+    ports:
+      - 5001:5001
+```
+
+### 1panel
+
+[1panel](https://github.com/1Panel-dev/1Panel) - это веб-интерфейс для управления сервером на базе Linux, файлами, базами данных, контейнерами Docker и стеками Docker Compose.
+
+```yaml
+services:
+  1panel:
+    image: moelin/1panel:latest
+    container_name: 1panel
+    restart: always
+    ports:
+      - 10086:10086 # http://1panel.docker.local/entrance 1panel:1panel_password
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      # - /home/lifailon/docker:/etc/docker  # Docker Compose root directroy
+      - /home/lifailon/docker:/opt/1panel/docker/compose  # Docker Compose root directroy
+      - /opt:/opt
+      # - /root:/root
+    labels:
+      createdBy: Apps
+```
+
+### DockMan
+
+[DockMan](https://github.com/RA341/dockman) - веб-интерфейс для управления контейнерами и файлами в стеках Docker Compose (like Dockge, но без форматирования).
+
+```yaml
+services:
+  dockman:
+    container_name: dockman
+    image: ghcr.io/ra341/dockman:latest
+    restart: always
+    environment:
+      - DOCKMAN_MACHINE_ADDR=192.168.3.101
+      - DOCKMAN_PORT=8866
+      - DOCKMAN_COMPOSE_ROOT=/home/lifailon/docker
+      - DOCKMAN_AUTH_ENABLE=true
+      - DOCKMAN_AUTH_USERNAME=admin
+      - DOCKMAN_AUTH_PASSWORD=admin
+      - DOCKMAN_LOG_LEVEL=debug
+      - DOCKMAN_LOG_VERBOSE=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Stack directory
+      - /home/lifailon/docker:/home/lifailon/docker
+      - ./dockman_config:/config
+    ports:
+      - 8866:8866
+```
+
+### Docker Web Manager
+
+[Docker Web Manager](https://hub.docker.com/r/lifailon/docker-web-manager) - это менеджер управления контекстами Docker (context manager) на базе [fzf](https://github.com/junegunn/fzf) и веб-интерфейс для [lazydocker](https://github.com/jesseduffield/lazydocker) и [ctop](https://github.com/bcicen/ctop) на базе [ttyd](https://github.com/tsl0922/ttyd) с поддержкой авторизации.
+
+```yaml
+services:
+  docker-web-manager:
+    image: lifailon/docker-web-manager:latest
+    container_name: docker-web-manager
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+    environment:
+      - WEB_USERNAME=admin
+      - WEB_PASSWORD=admin
+      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
+      - SSH_USER=lifailon
+      - SSH_PORT=2121
+      - DOCKER_CLIENT=lazydocker
+    ports:
+      - 3333:3333
+```
+
+### DweebUI
+
+[DweebUI](https://github.com/lllllllillllllillll/DweebUI) - веб-интерфейс для мониторинга ресурсов и управления контейнерамм, образами, томами и сетями, а также имеет встроенный магазин приложений (не работают логи и нет доступа к терминалу).
+
+```yaml
+services:
+  dweebui:
+    image: lllllllillllllillll/dweebui:latest
+    container_name: dweebui
+    restart: always
+    environment:
+      - PORT=8000
+      - SECRET=AdminSecret # for registration
+    volumes:
+      - ./dweebui_data:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8000:8000
+```
+
+### Dockpeek
+
+[Dockpeek](https://github.com/dockpeek/dockpeek) — это веб-интерфейс для отображения статистики и обновления образов контейнеров Docker.
+
+```yaml
+services:
+  dockpeek:
+    image: ghcr.io/dockpeek/dockpeek:latest
+    container_name: dockpeek
+    restart: always
+    environment:
+      - SECRET_KEY=AdminSecret
+      - USERNAME=admin
+      - PASSWORD=admin
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 3420:8000
+```
+
+### Watchtower
+
+[Watchtower](https://github.com/containrrr/watchtower) - система для обнаружения новых образов в реестре Docker, а также их автоматического обновления и перезапуска контейнера с отправкой уведомлений.
+
+```yaml
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    command: --interval 600 --http-api-metrics --http-api-update
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
+      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+      - WATCHTOWER_HTTP_API_TOKEN=demotoken
+    ports:
+      - 8088:8080 # api
+```
+
+### DIUN
+
+[DIUN](https://github.com/crazy-max/diun) (Docker Image Update Notifier) - система для получения уведомлений об обновлении образа Docker в реестре Docker.
+
+```yaml
+services:
+  diun:
+    image: crazymax/diun:latest
+    container_name: diun
+    restart: always
+    command: serve
+    volumes:
+      - ./diun_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=Etc/GMT+3
+      - LOG_LEVEL=info
+      - LOG_JSON=false
+      - DIUN_WATCH_WORKERS=20
+      - DIUN_WATCH_SCHEDULE=0 */6 * * *
+      - DIUN_WATCH_JITTER=30s
+      - DIUN_PROVIDERS_DOCKER=true
+      - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
+      - DIUN_NOTIF_TELEGRAM_TOKEN=
+      - DIUN_NOTIF_TELEGRAM_CHATIDS=
+      # https://crazymax.dev/diun/faq/?h=entry#notification-template
+      - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
+    labels:
+      - diun.enable=true
+    healthcheck:
+      test: ["CMD", "diun", "notif", "test"]
+      interval: 24h
+      timeout: 10s
+      retries: 1
+      start_period: 30s
+```
+
+### WUD
+
+[WUD](https://github.com/getwud/wud) (What's up Docker) - веб-интерфейс для поиска обновлений и автоматизации выполнения действий (отправки оповещений, запуска обновления и т.п.).
+
+```yaml
+services:
+  wud:
+    image: getwud/wud
+    container_name: wud
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5002:3000
+```
+
+### Dozzle
+
+[Dozzle](https://github.com/amir20/dozzle) - веб интерфейс для просмотра, анализа и фильтрации (по stream, level, а также поиск с помощью regex и sql-запросов) логов контейнеров Docker или Kubernetes. Поддерживает подключение удаленных хостов с помощью агентов или сокета Docker (например, через прокси в ограниченном режиме доступа) и файловым журналам хостовой системы с помощью кастомного контейнера, а также управление контейнерами (запуск, остановка и доступ к терминалу).
+
+```yaml
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dozzle_data:/data
+    environment:
+      # Отключить сбор и отправку аналитики
+      - DOZZLE_NO_ANALYTICS=true
+      # Включить действия (start/stop/restart)
+      - DOZZLE_ENABLE_ACTIONS=true
+      # Включить доступ к терминалу работающих контейнеров
+      - DOZZLE_ENABLE_SHELL=true
+      # Включить базовую авторизацию из файла /data/users.yml
+      - DOZZLE_AUTH_PROVIDER=simple
+      # Подключиться к удаленному хосту через Docker Socket API
+      # - DOZZLE_REMOTE_HOST=tcp://192.168.3.105:2375|rpi-105,tcp://192.168.3.106:2375|rpi-106
+      # Подключиться к удаленному хосту через Dozzle Agent
+      # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
+    ports:
+      - 9090:8080
+
+  # dozzle-agent:
+  #   image: amir20/dozzle:latest
+  #   container_name: dozzle-agent
+  #   restart: always
+  #   command: agent
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   # environment:
+  #   #   - DOZZLE_HOSTNAME=hv-us-101
+  #   ports:
+  #     - 7007:7007
+
+  # Container for monitoring syslog file on host
+  # dozzle-syslog:
+  #   image: alpine
+  #   container_name: dozzle-syslog
+  #   restart: always
+  #   volumes:
+  #     - /var/log/syslog:/var/log/custom.log
+  #   command:
+  #     - tail
+  #     - -f
+  #     - /var/log/custom.log
+
+  # Container for monitoring files from /var/log on host
+  dozzle-varlog:
+    image: lifailon/dozzle-varlog:latest
+    container_name: dozzle-varlog
+    restart: always
+    volumes:
+      - /var/log:/logs
+```
+
+### Beszel
+
+[Beszel](https://github.com/henrygd/beszel) - клиент-серверная система мониторинга не требующая настройки для контейнеров Docker и хостов, на которых они запущены. Использует [PocketBase](https://github.com/pocketbase/pocketbase) для backend, а также поддерживает оповещения в Telegram с помощью Webhook через [Shoutrrr](https://github.com/containrrr/shoutrrr).
+
+```yaml
+services:
+  # Web interface for monitoring hosts and containers metrics + webhook via shoutrrr
+  beszel-server:
+    image: henrygd/beszel:latest
+    container_name: beszel-server
+    restart: always
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./beszel_server_data:/beszel_data
+    ports:
+      - 8090:8090
+
+  # Agent for monitoring
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: beszel-agent
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./beszel_agent_data:/var/lib/beszel-agent
+      # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
+    environment:
+      - KEY=Копируем публичный ключ из интерфейса и перезапускаем docker compose
+      - HUB_URL=http://beszel-server:8090
+      - LISTEN=45876
+    # ports:
+    #   - 45876:45876
+```
+
+### Docker Socket Proxy
+
+[Docker Socket Proxy](https://hub.docker.com/r/lifailon/docker-socket-proxy) - прокси сервер для локального сокета Docker на основе HAProxy (не требуется внесение изменений в системные файлы демона или службы), который поддерживает ограничение доступа к конечным точкам с использованием переменных окружения, отображение статистики соединений и метрики Prometheus.
+
+```yaml
+services:
+  docker-socket-proxy:
+    image: lifailon/docker-socket-proxy:amd64
+    container_name: docker-socket-proxy
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 2375:2375 # Docker API
+      - 2376:2376 # HAProxy stats and Prometheus metrics
+    environment:
+      - SOCKET_PATH=/var/run/docker.sock
+      - LOG_LEVEL=info
+      - INFO=1
+      - PING=1
+      - VERSION=1
+      - POST=1
+      - GRPC=1
+      - EXEC=1
+      - ALLOW_RESTARTS=1
+      - ALLOW_START=1
+      - ALLOW_STOP=1
+      - AUTH=1
+      - CONTAINERS=1
+      - IMAGES=1
+      - NETWORKS=1
+      - BUILD=1
+      - COMMIT=1
+      - DISTRIBUTION=1
+      - EVENTS=1
+      - PLUGINS=1
+      - VOLUMES=1
+      - SESSION=1
+      # Swarm
+      - SWARM=0             
+      - NODES=0             
+      - CONFIGS=0           
+      - SECRETS=0           
+      - SERVICES=0          
+      - SYSTEM=0            
+      - TASKS=0             
+      # HAProxy stats and Prometheus metrics
+      - STATS_USER=admin
+      - STATS_PASS=admin
+      - STATS_URI=/
+      - METRICS_URI=/metrics
+```
+
+### Docker Registry
+
+```yaml
+# sudo apt install apache2-utils -y && htpasswd -Bbn admin admin > ./creds
+# mkdir certs && \
+# openssl req -x509 -new -nodes -days 365 \
+#   -out ./certs/public.pem \
+#   -keyout ./certs/private.key \
+#   -subj "/C=RU/ST=MSK/L=MSK/O=Registry/OU=Registry/CN=registry.docker.local"
+
+services:
+  docker-registry:
+    image: registry:latest
+    container_name: docker-registry
+    ports:
+      - 5000:5000
+    restart: unless-stopped
+    volumes:
+      - ./regrepo:/var/lib/registry
+      - ./certs:/certs
+      - ./creds:/creds
+    environment:
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/public.pem
+      - REGISTRY_HTTP_TLS_KEY=/certs/private.key
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM=docker-registry
+      - REGISTRY_AUTH_HTPASSWD_PATH=/creds
+```
+
+### Nexus
+
+[Nexus](https://github.com/sonatype/nexus-public) - это единый репозиторий для хранения Docker образов (Docker Registry), двоичных файлов, пакетов (например, npm или nuget) и других артефактов.
+
+```yaml
+# mkdir nexus-data && chown -R 200:200 ./nexus-data && chmod -R u+rw ./nexus-data
+# sudo cat nexus-data/admin.password
+
+services:
+  nexus:
+    image: sonatype/nexus3:latest
+    container_name: nexus
+    restart: unless-stopped
+    ports:
+      - "8881:8081"
+      - "8882:8082" # Settings => Repositories => Create repository => docker-hosted => HTTP
+    volumes:
+      - ./nexus_data:/nexus-data
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
+```
+
+## k8s Stack
+
+### Kompose UI
+
+[Kompose UI](https://github.com/HaddadJoe/komposeui) - веб-интерфейс для [kompose](https://github.com/kubernetes/kompose) (конвертирует docker-compose файлы в манифесты Kubernetes).
+
+```yaml
+services:
+  kompose-ui:
+    image: jadcham/komposeui
+    container_name: kompose-ui
+    restart: unless-stopped
+    ports:
+      - 3500:8000
+```
+
+### Web kubectl
+
+[Web kubectl](https://github.com/1Panel-dev/webkubectl) - веб-интерфейс для `kubectl` и [k9s](https://github.com/derailed/k9s) на базе [gotty](https://github.com/yudai/gotty) от создателей [1panel](https://github.com/1Panel-dev/1Panel). Загружаете собственные конфигурации и переключаетесь между ними в интерфейсе.
+
+```yaml
+services:
+  webkubectl:
+    image: kubeoperator/webkubectl
+    container_name: webkubectl
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - 3501:8080
+    environment:
+      - SESSION_STORAGE_SIZE=10M
+      - KUBECTL_INSECURE_SKIP_TLS_VERIFY=true
+      - GOTTY_OPTIONS=--port 8080 --permit-write --permit-arguments
+```
+
+### Helm Dashboard
+
+[Helm Dashboard](https://github.com/komodorio/helm-dashboard) - веб-интерфейс для просмотра установленных Helm чартов, истории их изменений и соответствующих ресурсов Kubernetes.
+
+```yaml
+services:
+  helm-dashboard:
+    image: komodorio/helm-dashboard:latest
+    container_name: helm-dashboard
+    restart: unless-stopped
+    volumes:
+      - ~/.kube/config:/root/.kube/config:ro
+    ports:
+      - 3502:8080
+```
+
+### Kube Ops View
+
+[Kube Ops View](https://codeberg.org/hjacobs/kube-ops-view) (Kubernetes Operational View) - read-only системная панель, которая позволяет удобно перемещаться между кластерами, отслеживать ноды и состояние подов (визуализирует ряд процессов, таких как создание и уничтожение подов).
+
+```yaml
+services:
+  kube-ops-view:
+    image: hjacobs/kube-ops-view:latest
+    container_name: kube-ops-view
+    restart: unless-stopped
+    ports:
+      - 3503:3503
+    environment:
+      - SERVER_PORT=3503
+      - CLUSTERS=http://192.168.3.101:6443
+      - KUBECONFIG_PATH=/root/.kube/config
+    volumes:
+      - ~/.kube/config:/root/.kube/config:ro
+```
+
+### Velero UI
+
+[Velero UI](https://github.com/otwld/velero-ui) - веб-интерфейс для управления [Velero](https://github.com/vmware-tanzu/velero) и маниторинга резервного копирования.
+
+```yaml
+services:
+  velero-ui:
+    image: otwld/velero-ui:latest
+    container_name: velero-ui
+    restart: unless-stopped
+    volumes:
+      - ~/.kube/config:/app/.kube/config:ro
+      # - /etc/rancher/k3s/k3s.yaml:/app/.kube/config:ro
+    environment:
+      - PORT=3504
+      - KUBE_CONFIG_PATH=/app/.kube/config
+    # network_mode: host # use for k3s cluster config on localhost
+    ports:
+      - 3504:3504 # admin:admin
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    hostname: minio
+    # command: server http://minio:9000/data http://192.168.3.105:9000/data --console-address ":9001"
+    command: server http://minio:9000/data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=MinioAdmin
+    volumes:
+      - ./minio1_data:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+```
+
+### Headlamp
+
+[Headlamp](https://github.com/kubernetes-sigs/headlamp) - интерфейс для управления и мониторинга кластеров Kubernetes (like [Kubernetes/Dashboard](https://github.com/kubernetes/dashboard)) от команды сообщества Special Interest Groups.
+
+```yaml
+services:
+  headlamp:
+    image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
+    container_name: headlamp
+    restart: unless-stopped
+    command: [
+      "--kubeconfig", "/headlamp/.kube/config",
+      "--port","64446",
+      "--enable-dynamic-clusters"
+    ]
+    volumes:
+      - ~/.kube/config:/headlamp/.kube/config:ro
+    ports:
+      - 64446:64446
+```
+
+### Rancher
+
+[Rancher](https://github.com/rancher/rancher) - упрощает запуск и управление Kubernetes через Веб-интерфейс.
+
+```yaml
+services:
+  rancher:
+    image: rancher/rancher:latest
+    container_name: rancher
+    restart: unless-stopped
+    privileged: true
+    volumes:
+    - ./rancher_data:/var/lib/rancher
+    ports:
+    - 3080:80
+    - 3443:443
+    # Password:
+    # docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"
+```
+
+### Kubetail Dashboard
+
+[Kubetail Dashboard](https://github.com/kubetail-org/kubetail) - веб-интерфейс и инструмент командной строки для отображения логов из разных подов в одном потоке.
+
+```yaml
+services:
+  kubetail-dashboard:
+    # image: lifailon/kubetail-dashboard:0.10.0-amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: kubetail/kubetail-dashboard:0.8.2
+    container_name: kubetail-dashboard
+    restart: unless-stopped
+    ports:
+      - 7500:7500
+    volumes:
+      - ~/.kube/config:/kubetail/.kube/config:ro
+    command:
+      [
+        "-a", ":7500",
+        "-p", "dashboard.environment:desktop",
+        "-p", "kubeconfig:/kubetail/.kube/config",
+      ]
+```
+
+## Monitoring Stack
+
+### Zabbix
+
+```yaml
+services:
+  zabbix-database:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zabbix_dn
+      POSTGRES_USER: zabbix_user
+      POSTGRES_PASSWORD: ZabbixAdmin
+    volumes:
+      - ./zabbix/database:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "zabbix_dn", "-U", "zabbix_user" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:6.4.6-ubuntu
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: zabbix-database
+      DB_SERVER_PORT: 5432
+      POSTGRES_DB: zabbix_dn
+      POSTGRES_USER: zabbix_user
+      POSTGRES_PASSWORD: ZabbixAdmin
+      ZBX_CACHESIZE: 1G
+    ports:
+      - 10051:10051
+    healthcheck:
+      test: grep -qr "zabbix_server" /proc/*/status || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    depends_on:
+      zabbix-database:
+        condition: service_healthy
+
+  zabbix-dashboard:
+    image: zabbix/zabbix-web-nginx-pgsql:6.4.6-ubuntu
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: zabbix-database
+      DB_SERVER_PORT: 5432
+      POSTGRES_DB: zabbix_dn
+      POSTGRES_USER: zabbix_user
+      POSTGRES_PASSWORD: ZabbixAdmin
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: Etc/UTC+3
+    ports:
+      - 80:8080
+      - 443:8443
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    depends_on:
+      zabbix-database:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_healthy
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:6.4.6-ubuntu
+    restart: unless-stopped
+    environment:
+      ZBX_HOSTNAME: Zabbix server
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      - zabbix-database
+      - zabbix-server
+```
+
+## FS Stack
+
+## NVR Stack
+
+## Homelab Stack
+
+### Immich
+
+### Memos
+
+### Invidious
+
+### Metube
+
+## Torrent Stack
