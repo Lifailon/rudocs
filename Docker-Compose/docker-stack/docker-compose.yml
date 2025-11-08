@@ -301,3 +301,44 @@ services:
       - STATS_PASS=admin
       - STATS_URI=/
       - METRICS_URI=/metrics
+
+################################################### Registry ###################################################
+
+  # sudo apt install apache2-utils -y && htpasswd -Bbn admin admin > ./creds
+  # mkdir certs && \
+  # openssl req -x509 -new -nodes -days 365 \
+  #   -out ./certs/public.pem \
+  #   -keyout ./certs/private.key \
+  #   -subj "/C=RU/ST=MSK/L=MSK/O=Registry/OU=Registry/CN=registry.docker.local"
+
+  # docker-registry:
+  #   image: registry:latest
+  #   container_name: docker-registry
+  #   ports:
+  #     - 5000:5000
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./regrepo:/var/lib/registry
+  #     - ./certs:/certs
+  #     - ./creds:/creds
+  #   environment:
+  #     - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/public.pem
+  #     - REGISTRY_HTTP_TLS_KEY=/certs/private.key
+  #     - REGISTRY_AUTH=htpasswd
+  #     - REGISTRY_AUTH_HTPASSWD_REALM=docker-registry
+  #     - REGISTRY_AUTH_HTPASSWD_PATH=/creds
+
+  # mkdir nexus-data && chown -R 200:200 ./nexus-data && chmod -R u+rw ./nexus-data
+  # sudo cat nexus-data/admin.password
+
+  nexus:
+    image: sonatype/nexus3:latest
+    container_name: nexus
+    restart: unless-stopped
+    ports:
+      - "8881:8081"
+      - "8882:8082" # Settings => Repositories => Create repository => docker-hosted => HTTP
+    volumes:
+      - ./nexus_data:/nexus-data
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
