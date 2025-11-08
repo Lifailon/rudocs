@@ -1,41 +1,62 @@
 services:
-    semaphore:
-        image: public.ecr.aws/semaphore/pro/server:v2.13.12
-        container_name: semaphore
-        restart: unless-stopped
-        environment:
-            SEMAPHORE_DB_DIALECT: postgres
-            SEMAPHORE_DB_HOST: semaphore-db
-            SEMAPHORE_DB_NAME: semaphore_db
-            SEMAPHORE_DB_USER: semaphore
-            SEMAPHORE_DB_PASS: semaphore
-            SEMAPHORE_ADMIN: admin
-            SEMAPHORE_ADMIN_PASSWORD: admin
-            SEMAPHORE_ADMIN_NAME: admin
-            SEMAPHORE_ADMIN_EMAIL: admin@localhost
-            SEMAPHORE_TELEGRAM_CHAT: "XXX"
-            SEMAPHORE_TELEGRAM_TOKEN: "XXX"
-            SEMAPHORE_DB_OPTIONS: "{\"sslmode\":\"disable\"}"
-        volumes:
-            - ./semaphore_data:/var/lib/semaphore
-            - ./semaphore_conf:/etc/semaphore
-        ports:
-            - 3030:3000
-        networks:
-            - semaphore_network
+  semaphore:
+    image: public.ecr.aws/semaphore/pro/server:v2.13.12
+    container_name: semaphore
+    restart: unless-stopped
+    environment:
+      - SEMAPHORE_ADMIN=admin
+      - SEMAPHORE_ADMIN_NAME=admin
+      - SEMAPHORE_ADMIN_EMAIL=admin@localhost
+      - SEMAPHORE_ADMIN_PASSWORD=admin
+      # Database
+      - SEMAPHORE_DB_DIALECT=postgres
+      - SEMAPHORE_DB_HOST=semaphore-db
+      - SEMAPHORE_DB_NAME=semaphore_db
+      - SEMAPHORE_DB_USER=semaphore
+      - SEMAPHORE_DB_PASS=semaphore
+      - SEMAPHORE_DB_OPTIONS={"sslmode":"disable"}
+      # Telegram
+      - SEMAPHORE_TELEGRAM_CHAT=
+      - SEMAPHORE_TELEGRAM_TOKEN=
+      # LDAP
+      # - SEMAPHORE_LDAP_ENABLE=yes
+      # - SEMAPHORE_LDAP_SERVER=semaphore-ldap:1389
+      # - SEMAPHORE_LDAP_BIND_DN=cn=semaphore,dc=docker,dc=local
+      # - SEMAPHORE_LDAP_BIND_PASSWORD=semaphore
+      # - SEMAPHORE_LDAP_SEARCH_DN=dc=docker,dc=local
+      # - SEMAPHORE_LDAP_SEARCH_FILTER=(&(objectClass=inetOrgPerson)(uid=%s))
+      # - SEMAPHORE_LDAP_MAPPING_MAIL={{ .cn }}@docker.local
+      # - SEMAPHORE_LDAP_MAPPING_UID=|
+      # - SEMAPHORE_LDAP_MAPPING_CN=cn
+    volumes:
+      - ./semaphore/app_data:/var/lib/semaphore
+      - ./semaphore/app_conf:/etc/semaphore
+    ports:
+      - 3030:3000
 
-    semaphore-db:
-        image: postgres
-        container_name: semaphore-db
-        restart: unless-stopped
-        environment:
-            POSTGRES_USER: semaphore
-            POSTGRES_PASSWORD: semaphore
-            POSTGRES_DB: semaphore_db
-        volumes:
-            - ./semaphore_db:/var/lib/postgresql/data
-        networks:
-            - semaphore_network
+  semaphore-db:
+    image: postgres
+    container_name: semaphore-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=semaphore
+      - POSTGRES_PASSWORD=semaphore
+      - POSTGRES_DB=semaphore_db
+    volumes:
+      - ./semaphore/db_data:/var/lib/postgresql/data
 
-networks:
-    semaphore_network: {driver: "bridge"}
+  # semaphore-ldap:
+  #   image: bitnami/openldap:latest
+  #   container_name: semaphore-ldap
+  #   environment:
+  #     - LDAP_ADMIN_USERNAME=admin
+  #     - LDAP_ADMIN_PASSWORD=LdapAdmin
+  #     - LDAP_USERS=semaphore
+  #     - LDAP_PASSWORDS=semaphore
+  #     - LDAP_ROOT=dc=docker,dc=local
+  #     - LDAP_ADMIN_DN=cn=semaphore,dc=docker,dc=local
+  #   volumes:
+  #     - ./semaphore/ldap_data:/var/lib/ldap
+  #   ports:
+  #     - 1389:1389
+  #     - 1636:1636
