@@ -60,7 +60,7 @@ services:
     depends_on:
       - httpbin
 
-  # Редактор Swagger документации
+  # Онлайн редактор Swagger документации + генератор кода (codegen) клиентов и загрушек API
   swagger-editor:
     image: docker.swagger.io/swaggerapi/swagger-editor
     container_name: swagger-editor
@@ -83,3 +83,11 @@ services:
   #     - 8880:8080 # Proxy
   #     - 8881:8081 # Web UI
   #   command: mitmweb --web-host 0.0.0.0 --listen-host 0.0.0.0
+
+  # Инструмент командной строки для тестирования GraphQL, gRPC, SOAP и REST API
+  # step-ci:
+  #   image: ghcr.io/stepci/stepci
+  #   container_name: step-ci
+  #   volumes:
+  #     - ./step-ci-tests:/tests
+  #   command: tests/httpbin.yml
