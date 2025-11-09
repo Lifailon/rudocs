@@ -1,29 +1,5 @@
 services:
-  netalertx:
-    image: ghcr.io/jokob-sk/netalertx:latest
-    container_name: netalertx
-    restart: unless-stopped
-    environment:
-      - PUID=200
-      - PGID=300
-      - TZ=Etc/GMT+3
-      - PORT=20211
-    network_mode: host
-    volumes:
-      - ./netalertx_config:/app/config
-      - ./netalertx_db:/app/db
-    tmpfs:
-      - /app/api
-
-  rtsptoweb:
-    image: ghcr.io/deepch/rtsptoweb:latest
-    container_name: rtsp-to-web
-    restart: unless-stopped
-    # volumes:
-    #   - ./rtsp_config/config.json:/config/config.json
-    ports:
-      - 8083:8083
-
+  # 100+ offline-first networking tools and utilities
   networking-toolbox:
     image: lissy93/networking-toolbox:latest
     container_name: networking-toolbox
@@ -41,6 +17,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # All-in-one OSINT tool for analysing any Web site.
   web-check:
     image: lissy93/web-check:latest
     container_name: web-check
@@ -48,6 +25,7 @@ services:
     ports:
       - 3101:3000
 
+  # IP Toolbox (check DNS, website availability, speedtest, ping and mtr tests)
   ip-check:
     container_name: ip-check
     image: jason5ng32/myip:latest
@@ -56,3 +34,40 @@ services:
     tty: true
     ports:
       - 3102:18966
+
+  # Network scaner and alerts
+  netalertx:
+    image: ghcr.io/jokob-sk/netalertx:latest
+    container_name: netalertx
+    restart: unless-stopped
+    environment:
+      - PUID=200
+      - PGID=300
+      - TZ=Etc/GMT+3
+      - PORT=20211
+    network_mode: host
+    volumes:
+      - ./netalertx_config:/app/config
+      - ./netalertx_db:/app/db
+    tmpfs:
+      - /app/api
+
+  # Notifications Manager
+  apprise:
+    image: caronc/apprise:latest
+    container_name: apprise
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    volumes:
+      - ./apprise_config:/config
+
+  # RTSP Client
+  rtsptoweb:
+    image: ghcr.io/deepch/rtsptoweb:latest
+    container_name: rtsp-to-web
+    restart: unless-stopped
+    # volumes:
+    #   - ./rtsp_config/config.json:/config/config.json
+    ports:
+      - 8083:8083
