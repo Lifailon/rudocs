@@ -1,0 +1,61 @@
+services:
+  # # Photo and Video Server (like Google Photo)
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:release
+    container_name: immich-server
+    restart: unless-stopped
+    volumes:
+      - ./upload_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - UPLOAD_LOCATION=./data
+      - DB_DATA_LOCATION=./postgres
+      - TZ=Etc/UTC+3
+      - IMMICH_VERSION=v2
+      - DB_DATABASE_NAME=immich
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich
+    ports:
+      - 2283:2283
+    healthcheck:
+      disable: false
+    depends_on:
+      - redis
+      - database
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    container_name: immich-machine-learning
+    restart: unless-stopped
+    volumes:
+      - ./model_cache:/cache
+    environment:
+      - UPLOAD_LOCATION=./data
+      - DB_DATA_LOCATION=./postgres
+      - TZ=Etc/UTC+3
+      - IMMICH_VERSION=v2
+      - DB_DATABASE_NAME=immich
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich
+    healthcheck:
+      disable: false
+
+  redis:
+    image: docker.io/valkey/valkey:8-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+    container_name: immich-redis
+    restart: unless-stopped
+    healthcheck:
+      test: redis-cli ping || exit 1
+
+  database:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:41eacbe83eca995561fe43814fd4891e16e39632806253848efaf04d3c8a8b84
+    container_name: immich-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: immich
+      POSTGRES_USER: immich
+      POSTGRES_PASSWORD: immich
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    shm_size: 128mb
