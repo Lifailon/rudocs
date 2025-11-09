@@ -1,0 +1,74 @@
+services:
+  zabbix-database:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zabbix_dn
+      POSTGRES_USER: zabbix_user
+      POSTGRES_PASSWORD: ZabbixAdmin
+    volumes:
+      - ./zabbix/database:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "zabbix_dn", "-U", "zabbix_user" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:6.4.6-ubuntu
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: zabbix-database
+      DB_SERVER_PORT: 5432
+      POSTGRES_DB: zabbix_dn
+      POSTGRES_USER: zabbix_user
+      POSTGRES_PASSWORD: ZabbixAdmin
+      ZBX_CACHESIZE: 1G
+    ports:
+      - 10051:10051
+    healthcheck:
+      test: grep -qr "zabbix_server" /proc/*/status || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    depends_on:
+      zabbix-database:
+        condition: service_healthy
+
+  zabbix-dashboard:
+    image: zabbix/zabbix-web-nginx-pgsql:6.4.6-ubuntu
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: zabbix-database
+      DB_SERVER_PORT: 5432
+      POSTGRES_DB: zabbix_dn
+      POSTGRES_USER: zabbix_user
+      POSTGRES_PASSWORD: ZabbixAdmin
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: Etc/UTC+3
+    ports:
+      - 80:8080
+      - 443:8443
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    depends_on:
+      zabbix-database:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_healthy
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:6.4.6-ubuntu
+    restart: unless-stopped
+    environment:
+      ZBX_HOSTNAME: Zabbix server
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      - zabbix-database
+      - zabbix-server

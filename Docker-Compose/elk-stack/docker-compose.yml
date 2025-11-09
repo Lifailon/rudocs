@@ -1,67 +1,61 @@
-version: '3.8'
-
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: elasticsearch
+    restart: unless-stopped
     environment:
       - node.name=elasticsearch
       - cluster.initial_master_nodes=elasticsearch
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=ElasticSearchAdmin
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - ./es_data:/usr/share/elasticsearch/data
+      # - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
     ports:
-      - "9200:9200"
-      - "9300:9300"
-    networks:
-      - elk
+      - 9200:9200
+      - 9300:9300
     ulimits:
       memlock:
         soft: -1
         hard: -1
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:${ELASTIC_VERSION}
+    image: docker.elastic.co/logstash/logstash:8.13.4
     container_name: logstash
+    restart: unless-stopped
     environment:
-      - LS_JAVA_OPTS=-Xms512m -Xmx512m
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - LOGSTASH_INTERNAL_PASSWORD=logStashPassword
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_PASSWORD=ElasticSearchAdmin
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      # - ./logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      # - ./logstash_pipeline:/usr/share/logstash/pipeline:ro,Z
+    ports:
+      - 5044:5044
+      - 5000:5000/tcp
+      - 5000:5000/udp
+      - 9600:9600
     depends_on:
       - elasticsearch
-    networks:
-      - elk
-    ports:
-      - "5044:5044"
-      - "5000:5000/tcp"
-      - "5000:5000/udp"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION}
+    image: docker.elastic.co/kibana/kibana:8.13.4
     container_name: kibana
+    restart: unless-stopped
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - ELASTICSEARCH_USERNAME=kibana
+      - ELASTICSEARCH_PASSWORD=ElasticSearchAdmin
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    ports:
+      - 5601:5601
     depends_on:
       - elasticsearch
-    networks:
-      - elk
-    ports:
-      - "5601:5601"
 
-networks:
-  elk:
-    driver: bridge
-
-volumes:
-  esdata:
-    driver: local
-
-# curl -u elastic:ELASTIC_PASSWORD! http://localhost:9200/_cat/indices
+# curl -u elastic:ElasticSearchAdmin http://localhost:9200/_cat/indices
 # echo '{"message":"Test log"}' | nc localhost 5000
