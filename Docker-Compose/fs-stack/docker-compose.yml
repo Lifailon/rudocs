@@ -7,11 +7,22 @@ services:
     restart: unless-stopped
     user: 0:0
     volumes:
-      - /home/lifailon:/srv           # root directory
+      - $HOME:/srv                    # root directory
       - ./filebrowser_data:/database  # filebrowser.db
       - ./filebrowser_conf:/config    # settings.json
     ports:
       - 8300:80
+
+  # dufs:
+  #   image: sigoden/dufs
+  #   container_name: dufs
+  #   restart: unless-stopped
+  #   ports:
+  #   - 5000:5000
+  #   volumes:
+  #   - $HOME:/data
+  #   - ./config.yaml:/config.yaml
+  #   command: /data -A # --config /config.yaml
 
   # File Synchronization
   file-syncthing:

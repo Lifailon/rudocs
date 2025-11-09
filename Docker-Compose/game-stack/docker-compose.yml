@@ -1,5 +1,5 @@
 services:
-  # Streaming
+  # Streaming server (like NVIDIA GameStream and Parsec) for Moonlight client
   sunshine:
     image: lizardbyte/sunshine:latest-ubuntu-24.04
     container_name: sunshine
@@ -7,32 +7,14 @@ services:
     volumes:
       - ./sunshine_config:/config
     environment:
-      - PUID=1001 # dockeruser
-      - PGID=1001 # dockergroup
+      - PUID=1001
+      - PGID=1001
       - TZ=Etc/GMT+3
     ports:
       - 47984-47990:47984-47990/tcp
       - 47998-48000:47998-48000/udp
       - 48010:48010
     ipc: host
-
-  # A web-based frontend for RetroArch
-  emulator.js:
-    image: lscr.io/linuxserver/emulatorjs:latest
-    container_name: emulator.js
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-      - SUBFOLDER=/   # optional
-    volumes:
-      - ./config:/config
-      - ./data:/data  # path to store roms/artwork
-    ports:
-      - 80:80
-      - 3000:3000
-      - 4001:4001     # optional
 
   # GameCube/Wii Emulator in Web via Selkies
   dolphin:
@@ -50,3 +32,31 @@ services:
       - 3001:3001
       - 3002:3000
     shm_size: 1gb
+
+  # RetroArch web-based interface
+  emulator.js:
+    image: lscr.io/linuxserver/emulatorjs:latest
+    container_name: emulator.js
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - SUBFOLDER=/
+    volumes:
+      - ./emulatorjs_config:/config
+      - ./roms:/data
+    ports:
+      - 80:80
+      - 3000:3000
+      # - 4001:4001
+
+  # Libretro web-based interface
+  junie:
+    image: namaneo/junie
+    container_name: junie
+    restart: unless-stopped
+    volumes:
+      - ./games:/junie/games
+    ports:
+      - 8008:8000
