@@ -52,7 +52,7 @@ services:
 
 ### MeshCentral
 
-[MeshCentral](https://github.com/Ylianst/MeshCentral) - это сервер для управления множеством компьютеров в локальной сети через веб-интерфейс.
+[MeshCentral](https://github.com/Ylianst/MeshCentral) - сервер для управления множеством компьютеров в локальной сети через веб-интерфейс.
 
 ```yaml
 services:
@@ -98,7 +98,7 @@ ARGS=
 
 ### Scalar
 
-[Scalar](https://github.com/scalar/scalar) - это интерактивный справочник для документации OpenAPI (like Swagger UI) и REST API клиент в одном веб-приложение.
+[Scalar](https://github.com/scalar/scalar) - интерактивный справочник для документации OpenAPI (like Swagger UI) и REST API клиент в одном веб-приложение.
 
 ```yaml
 services:
@@ -332,7 +332,7 @@ services:
 
 ### SSH Bot
 
-[SSH Bot](https://github.com/Lifailon/ssh-bot) - это Telegram бот, который позволяет запускать заданные команды на выбранном хосте в домашней сети и возвращать результат их выполнения. Бот не устанавливает постоянное соединение с удаленным хостом, что позволяет выполнять команды асинхронно.
+[SSH Bot](https://github.com/Lifailon/ssh-bot) - Telegram бот, который позволяет запускать заданные команды на выбранном хосте в домашней сети и возвращать результат их выполнения. Бот не устанавливает постоянное соединение с удаленным хостом, что позволяет выполнять команды асинхронно.
 
 ```yaml
 services:
@@ -381,7 +381,7 @@ LOG_MODE=DEBUG
 
 ### OpenRouter Bot
 
-[OpenRouter Bot](https://github.com/Lifailon/openrouter-bot) - это Telegram бота для общения с бесплатными и платными моделями ИИ через [OpenRouter](https://openrouter.ai), или локальными LLM, например, через [LM Studio](https://lmstudio.ai).
+[OpenRouter Bot](https://github.com/Lifailon/openrouter-bot) - Telegram бота для общения с бесплатными и платными моделями ИИ через [OpenRouter](https://openrouter.ai), или локальными LLM, например, через [LM Studio](https://lmstudio.ai).
 
 ```yaml
 services:
@@ -442,7 +442,7 @@ STATS_MIN_ROLE=ADMIN
 
 ### yt-dlp Telegram Bot
 
-[yt-dlp-telegram-bot](https://github.com/nonoo/yt-dlp-telegram-bot) - это Telegram бот для загрузки видео из YouTube с помощью [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+[yt-dlp-telegram-bot](https://github.com/nonoo/yt-dlp-telegram-bot) - Telegram бот для загрузки видео из YouTube с помощью [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ```yaml
 services:
@@ -472,7 +472,7 @@ YTDLP_COOKIES=
 
 ### yt-dlp-telegram
 
-[yt-dlp-telegram](https://github.com/ssebastianoo/yt-dlp-telegram) - это Telegram бот для загрузки видео из YouTube с ограничением 50 МБ.
+[yt-dlp-telegram](https://github.com/ssebastianoo/yt-dlp-telegram) - Telegram бот для загрузки видео из YouTube с ограничением 50 МБ.
 
 ```yaml
 services:
@@ -799,7 +799,7 @@ services:
 
 ### Harness
 
-[Harness](https://github.com/harness/harness) - это система CI/CD на базе Drone, хостинг исходного кода (gitness) и реестр артефактов с открытым исходным кодом.
+[Harness](https://github.com/harness/harness) - система CI/CD на базе Drone, хостинг исходного кода (gitness) и реестр артефактов с открытым исходным кодом.
 
 ```yaml
 services:
@@ -1116,7 +1116,7 @@ services:
 
 ### Draw.io
 
-[Draw.io](https://github.com/jgraph/drawio) - это веб-версия бесплатного приложения для создания различных диаграмм (like MS Visio), блок-схем и т.п.
+[Draw.io](https://github.com/jgraph/drawio) - веб-версия бесплатного приложения для создания различных диаграмм (like MS Visio), блок-схем и т.п.
 
 🔗 [Demo](https://app.diagrams.net) ↗
 
@@ -1191,7 +1191,7 @@ services:
 
 ### Code Server
 
-[Code Server](https://github.com/coder/code-server) - это VSCode сервер в браузере.
+[Code Server](https://github.com/coder/code-server) - VSCode сервер в браузере.
 
 ```yaml
 services:
@@ -1669,7 +1669,7 @@ services:
 
 [Nginx Proxy](https://github.com/nginx-proxy/nginx-proxy) - настраивает контейнер, работающий под управлением nginx и docker-gen (docker-gen генерирует конфигурации обратного прокси-сервера для nginx и перезагружает nginx при запуске и остановке контейнеров).
 
-[Docker Gen](https://github.com/nginx-proxy/docker-gen) - это генератор файлов, который визуализирует шаблоны с использованием метаданных контейнера Docker.
+[Docker Gen](https://github.com/nginx-proxy/docker-gen) - генератор файлов, который визуализирует шаблоны с использованием метаданных контейнера Docker.
 
 [ACME Companion](https://github.com/nginx-proxy/acme-companion) - используется для автоматической генерации сертификатов letsencrypt, для хостов, использующих переменную `LETSENCRYPT_HOST`.
 
@@ -1723,7 +1723,7 @@ services:
 
 ### Nginx Proxy Manager
 
-[Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager) - это веб-интерфейс для управления Nginx сервером в роли Proxy сервера.
+[Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager) - веб-интерфейс для управления Nginx сервером в роли Proxy сервера.
 
 
 ```yaml
@@ -1927,6 +1927,8 @@ services:
 ### KeepAlived
 
 [KeepAlived](https://github.com/acassen/keepalived) - используется для обеспечения высокой доступности (HA) за счет протокола [VRRP](https://ru.wikipedia.org/wiki/VRRP) (Virtual Router Redundancy Protocol), который поднимает один виртуальный IP-адрес для нескольких хостов с проверкой доступности и переключением адреса на другой хост в случае провального healthcheck. Чаще всего используется для отказоустойчивости балансировщиков нагрузки.
+
+Образа контейнера на базе легковесного Alpine с использованием команд для установки и запуска keepalived.
 
 ```yaml
 services:
@@ -2271,7 +2273,7 @@ services:
 
 ### 1panel
 
-[1panel](https://github.com/1Panel-dev/1Panel) - это веб-интерфейс для управления сервером на базе Linux, файлами, базами данных, контейнерами Docker и стеками Docker Compose.
+[1panel](https://github.com/1Panel-dev/1Panel) - веб-интерфейс для управления сервером на базе Linux, файлами, базами данных, контейнерами Docker и стеками Docker Compose.
 
 ```yaml
 services:
@@ -2322,7 +2324,7 @@ services:
 
 ### Docker Web Manager
 
-[Docker Web Manager](https://hub.docker.com/r/lifailon/docker-web-manager) - это менеджер управления контекстами Docker (context manager) на базе [fzf](https://github.com/junegunn/fzf) и веб-интерфейс для [lazydocker](https://github.com/jesseduffield/lazydocker) и [ctop](https://github.com/bcicen/ctop) на базе [ttyd](https://github.com/tsl0922/ttyd) с поддержкой авторизации.
+[Docker Web Manager](https://hub.docker.com/r/lifailon/docker-web-manager) - менеджер управления контекстами Docker (context manager) на базе [fzf](https://github.com/junegunn/fzf) и веб-интерфейс для [lazydocker](https://github.com/jesseduffield/lazydocker) и [ctop](https://github.com/bcicen/ctop) на базе [ttyd](https://github.com/tsl0922/ttyd) с поддержкой авторизации.
 
 ```yaml
 services:
@@ -2342,6 +2344,42 @@ services:
       - DOCKER_CLIENT=lazydocker
     ports:
       - 3333:3333
+```
+
+### isaiah
+
+[isaiah](https://github.com/will-moss/isaiah) - самостоятельный клон LazyDocker для веб-браузера.
+
+```yaml
+services:
+  isaiah:
+    image: mosswill/isaiah:latest
+    container_name: isaiah
+    restart: unless-stopped
+    ports:
+      - "4444:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./isaiah_hosts_list:/docker_hosts
+      # local unix:///var/run/docker.sock
+      # agent tcp://192.168.3.106:4382
+    environment:
+      SERVER_PORT: "80"
+      AUTHENTICATION_SECRET: "secret"
+      MULTI_HOST_ENABLED: "TRUE"
+
+  isaiah-agent:
+    image: mosswill/isaiah:latest
+    container_name: isaiah-agent
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      SERVER_ROLE: "Agent"
+      AUTHENTICATION_SECRET: "secret"
+      MASTER_HOST: "192.168.3.105:4444"
+      MASTER_SECRET: "secret"
+      AGENT_NAME: "rpi-106"
 ```
 
 ### DweebUI
@@ -2639,7 +2677,7 @@ services:
 
 ### Nexus
 
-[Nexus](https://github.com/sonatype/nexus-public) - это единый репозиторий для хранения Docker образов (Docker Registry), двоичных файлов, пакетов (например, npm или nuget) и других артефактов.
+[Nexus](https://github.com/sonatype/nexus-public) - единый репозиторий для хранения Docker образов (Docker Registry), двоичных файлов, пакетов (например, npm или nuget) и других артефактов.
 
 ```yaml
 # mkdir nexus-data && chown -R 200:200 ./nexus-data && chmod -R u+rw ./nexus-data
@@ -2833,6 +2871,243 @@ services:
       ]
 ```
 
+## FS Stack
+
+### Samba
+
+[Samba](https://github.com/dperson/samba/) - SMB/CIFS сервер для запуска в контейнере Docker.
+
+```yaml
+services:
+  samba:
+    image: dperson/samba
+    container_name: samba
+    restart: always
+    volumes:
+      - /home/lifailon/docker:/share
+    ports:
+      - 139:139
+      - 445:445
+    environment:
+      - USERID=1000
+      - GROUPID=1000
+      - SAMBA_USER=admin
+      - SAMBA_PASS=admin
+    command: |
+      -u "$${SAMBA_USER};$${SAMBA_PASS}"
+      -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
+      -p
+```
+
+### FileBrowser
+
+[FileBrowser](https://github.com/filebrowser/filebrowser) - веб-интерфейс для управления файлами в указанном каталоге. Поддерживает управление пользователями, загрузку, удаление, просмотр и редактирование файлов.
+
+```yaml
+services:
+  # mkdir filebrowser_data filebrowser_conf && chown -R 1000:1000 filebrowser_data filebrowser_conf
+  file-browser:
+    image: filebrowser/filebrowser
+    container_name: file-browser
+    restart: unless-stopped
+    user: 0:0
+    volumes:
+      - $HOME:/srv                    # root directory
+      - ./filebrowser_data:/database  # filebrowser.db
+      - ./filebrowser_conf:/config    # settings.json
+    ports:
+      - 8300:80
+```
+
+### DuFS
+
+[DuFS](https://github.com/sigoden/dufs) - уникальный служебный файловый сервер, который поддерживает статическое обслуживание, загрузку, поиск и удаленное управление через API.
+
+```yaml
+services:
+  dufs:
+    image: sigoden/dufs
+    container_name: dufs
+    restart: unless-stopped
+    ports:
+    - 5000:5000
+    volumes:
+    - $HOME:/data
+    - ./config.yaml:/config.yaml
+    command: /data -A # --config /config.yaml
+```
+
+### Syncthing
+
+[Syncthing](https://github.com/syncthing/syncthing) - программа для непрерывной синхронизации файлов между двумя или более компьютерами. Работает на основе Block Exchange Protocol (BEP) для обмена данными, который использует TLS-шифрование для безопасной передачи данных по протоколу TCP.
+
+```yaml
+services:
+  file-syncthing:
+    image: syncthing/syncthing
+    container_name: file-syncthing
+    restart: unless-stopped
+    network_mode: host
+    # ports:
+    #   - 8384:8384         # Web UI
+    #   - 22000:22000/tcp   # TCP file transfers
+    #   - 22000:22000/udp   # QUIC file transfers
+    #   - 21027:21027/udp   # Receive local discovery broadcasts
+    environment:
+      - PUID=0
+      - PGID=0
+    volumes:
+      - ./syncthing_data:/var/syncthing   # configs
+      - $HOME/docker:/sync_data           # src sync data on server
+      # - ./backup:/sync_data             # dst sync data on client (mkdir backup && chown -R 1000:1000 backup)
+    healthcheck:
+      test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+```
+
+### h5ai
+
+[h5ai](https://github.com/lrsjng/h5ai) - современный интерфейс веб-сервера для файлового индексера. Визуально напоминается FTP сервер для удобного отображения и загрузки (например, его использует [Libretro/RetroArch](https://buildbot.libretro.com) для публикации релизов).
+
+```yaml
+services:
+  h5ai:
+    image: awesometic/h5ai
+    container_name: h5ai
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - HTPASSWD=false
+      - HTPASSWD_USER=admin
+      - HTPASSWD_PW=admin
+    volumes:
+      - $HOME/docker:/h5ai    # public data
+      - ./h5ai_conf:/config
+    ports:
+      - 8889:80
+```
+
+### SFTPGo
+
+[SFTPGo](https://github.com/drakkan/sftpgo) - сервер SFTP, HTTP/S, FTP/S и WebDAV, с поддержкой объектное-совместимого S3 хранилища, Google Cloud Storage, файловой системы хранкения и другие SFTP-серверы.
+
+```yaml
+services:
+  sftpgo:
+    image: drakkan/sftpgo:edge
+    container_name: sftpgo
+    restart: unless-stopped
+    ports:
+      - 2022:2022
+      - 8088:8080
+```
+
+## Homelab Stack
+
+### Immich
+
+### Memos
+
+### Invidious
+
+### Metube
+
+## Game Stack
+
+### Sunshine
+
+[Sunshine](https://github.com/LizardByte/Sunshine) - самостоятельный хостинг-сервер игровых трансляций (like NVIDIA GameStream и Parsec) для клиента [Moonlight](https://github.com/moonlight-stream/moonlight-qt).
+
+```yaml
+services:
+  sunshine:
+    image: lizardbyte/sunshine:latest-ubuntu-24.04
+    container_name: sunshine
+    restart: unless-stopped
+    volumes:
+      - ./sunshine_config:/config
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Etc/GMT+3
+    ports:
+      - 47984-47990:47984-47990/tcp
+      - 47998-48000:47998-48000/udp
+      - 48010:48010
+    ipc: host
+```
+
+### Dolphin
+
+[Dolphin](https://github.com/dolphin-emu/dolphin) - эмулятор GameCube и Wii собранный в [Docker образе](https://github.com/linuxserver/docker-dolphin) для запуска в браузере на базе [Selkies](https://github.com/selkies-project/selkies).
+
+```yaml
+services:
+  dolphin:
+    image: lscr.io/linuxserver/dolphin:latest
+    container_name: dolphin
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - ./dolphin_config:/config
+      - ./dolphin_games:/games
+    ports:
+      - 3001:3001
+      - 3002:3000
+    shm_size: 1gb
+```
+
+### Emulator.js
+
+[Emulator.js](https://github.com/EmulatorJS/EmulatorJS) - веб-интерфейс для [RetroArch](https://github.com/libretro/RetroArch).
+
+🔗 [Demo](https://demo.emulatorjs.org) ↗
+
+```yaml
+services:
+  emulator.js:
+    image: lscr.io/linuxserver/emulatorjs:latest
+    container_name: emulator.js
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - SUBFOLDER=/
+    volumes:
+      - ./emulatorjs_config:/config
+      - ./roms:/data
+    ports:
+      - 80:80
+      - 3000:3000
+      # - 4001:4001
+```
+
+### Junie
+
+[Junie](https://github.com/Namaneo/Junie) - интерфейс Libretro, работающий в браузере.
+
+🔗 [Demo](https://namaneo.github.io/Junie) ↗
+
+```yaml
+services:
+  junie:
+    image: namaneo/junie
+    container_name: junie
+    restart: unless-stopped
+    volumes:
+      - ./games:/junie/games
+    ports:
+      - 8008:8000
+```
+
 ## Monitoring Stack
 
 ### Zabbix
@@ -2914,18 +3189,76 @@ services:
       - zabbix-server
 ```
 
-## FS Stack
+### ELK
 
-## NVR Stack
+[Elasticsearch](https://github.com/elastic/elasticsearch) - распределенная поисковая и аналитическая система, основанная на библиотеке Apache Lucene. Она используется для быстрого поиска и анализа больших объемов данных в реальном времени, например, для полнотекстового поиска.
 
-## Homelab Stack
+[Logstash](https://github.com/elastic/logstash) - система для сбора логов из различных источников, преобразования их в нужный формат и отправляет в Elasticsearch.
 
-### Immich
+[Kibana](https://github.com/elastic/kibana) - веб интерфейс для отображения данных.
 
-### Memos
+[Beats](https://github.com/elastic/beats) - агенты для сбора операционных метрик и логов.
 
-### Invidious
+```yml
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - node.name=elasticsearch
+      - cluster.initial_master_nodes=elasticsearch
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=ElasticSearchAdmin
+    volumes:
+      - ./es_data:/usr/share/elasticsearch/data
+      # - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
+    ports:
+      - 9200:9200
+      - 9300:9300
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
-### Metube
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    container_name: logstash
+    restart: unless-stopped
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - LOGSTASH_INTERNAL_PASSWORD=logStashPassword
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTIC_PASSWORD=ElasticSearchAdmin
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      # - ./logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      # - ./logstash_pipeline:/usr/share/logstash/pipeline:ro,Z
+    ports:
+      - 5044:5044
+      - 5000:5000/tcp
+      - 5000:5000/udp
+      - 9600:9600
+    depends_on:
+      - elasticsearch
 
-## Torrent Stack
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana
+      - ELASTICSEARCH_PASSWORD=ElasticSearchAdmin
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+# curl -u elastic:ElasticSearchAdmin http://localhost:9200/_cat/indices
+# echo '{"message":"Test log"}' | nc localhost 5000
+```
