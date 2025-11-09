@@ -2,6 +2,7 @@ services:
   minio1:
     image: minio/minio
     container_name: minio1
+    restart: unless-stopped
     hostname: minio1
     command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
     environment:
@@ -16,6 +17,7 @@ services:
   minio2:
     image: minio/minio
     container_name: minio2
+    restart: unless-stopped
     hostname: minio2  
     command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
     environment:
@@ -27,9 +29,24 @@ services:
       - 9002:9000
       - 9003:9001
 
-# sudo apt install -y s3fs
-# sudo mkdir -p /mnt/s3
-# echo "admin:MinioAdmin" > /tmp/s3cred && chmod 600 /tmp/s3cred
-# sudo s3fs docker-bucket /mnt/s3 -o url=http://localhost:9000 -o use_path_request_style -o passwd_file=/tmp/s3_cred
-# mount | grep /mnt/s3
-# sudo umount /mnt/s3
+  s3fs:
+    image: efrecon/s3fs:1.95
+    container_name: velero_data
+    restart: unless-stopped
+    privileged: true
+    stdin_open: true
+    tty: true
+    devices:
+      - /dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor=unconfined
+    environment:
+      - AWS_S3_URL=http://minio1:9000
+      - AWS_S3_BUCKET=velero
+      - AWS_S3_ACCESS_KEY_ID=admin
+      - AWS_S3_SECRET_ACCESS_KEY=MinioAdmin
+      - S3FS_ARGS=use_path_request_style,allow_other
+    volumes:
+      - ./velero_data:/opt/s3fs/bucket:rshared
