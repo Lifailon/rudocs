@@ -94,240 +94,6 @@ MINIFY=true
 ARGS=
 ```
 
-## API Stack
-
-### Scalar
-
-[Scalar](https://github.com/scalar/scalar) - интерактивный справочник для документации OpenAPI (like Swagger UI) и REST API клиент в одном веб-приложение.
-
-```yaml
-services:
-  # REST API Reference & Client
-  scalar:
-    image: scalarapi/api-reference:latest
-    container_name: scalar
-    restart: unless-stopped
-    ports:
-      - 4005:8080
-    environment:
-      API_REFERENCE_CONFIG: |
-        {
-          "theme": "purple"
-        }
-    volumes:
-      - ./docs:/docs:ro
-```
-
-### Restfox
-
-[Restfox](https://github.com/flawiddsouza/Restfox) - легковесный и быстрый офлайн API-клиент (WebUI/Desktop) с поддержкой импорт коллекций из OpenAPI и экспорт в Postman и Insomnia.
-
-```yaml
-services:
-  restfox:
-    image: flawiddsouza/restfox:latest
-    container_name: restfox
-    restart: unless-stopped
-    ports:
-      - 4004:4004
-```
-
-### Yaade
-
-[Yaade](https://github.com/EsperoTech/yaade) — это среда совместной разработки API, размещаемая на собственном сервере (еще один API клиент с веб-интерфейсом).
-
-```yaml
-services:
-  yaade:
-    image: esperotech/yaade:latest 
-    container_name: yaade
-    restart: unless-stopped
-    ports:
-      - 9339:9339
-    environment:
-      - YAADE_ADMIN_USERNAME=admin
-      - YAADE_ADMIN_PASSWORD=password
-    volumes:
-      - ./yaade_data:/app/data
-```
-
-### HTTPBin
-
-[go-httpbin](https://github.com/mccutchen/go-httpbin) - API сервер клиент для тестирования HTTP запросов и ответов (fork [httpbin](https://github.com/postmanlabs/httpbin) от Postman Labs).
-
-```yaml
-services:
-  httpbin:
-    image: ghcr.io/mccutchen/go-httpbin
-    container_name: httpbin
-    restart: unless-stopped
-    ports:
-      - 8888:8080
-```
-
-### Swagger UI
-
-[Swagger UI](https://github.com/swagger-api/swagger-ui) - браузер для спецификации OpenAPI (поддерживает загрузку любой переданной спецификации через url).
-
-```yaml
-services:
-  swagger-ui:
-    image: docker.swagger.io/swaggerapi/swagger-ui
-    container_name: swagger-ui
-    restart: unless-stopped
-    ports:
-      - 8889:8080
-    environment:
-      - PORT=8080
-      - SWAGGER_JSON=/app/swagger.json
-      - SWAGGER_JSON_URL=
-      - API_KEY=**None**
-    volumes:
-      - ./docs/httpbin.json:/app/swagger.json:ro
-    depends_on:
-      - httpbin
-```
-
-### Swagger Editor
-
-[Swagger Editor](https://github.com/swagger-api/swagger-editor) - онлайн редактор документации OpenAPI с поддержкой генерации клентов и заглушек API для разных языков с помощью [codegen](https://github.com/swagger-api/swagger-codegen).
-
-```yaml
-services:
-  swagger-editor:
-    image: docker.swagger.io/swaggerapi/swagger-editor
-    container_name: swagger-editor
-    restart: unless-stopped
-    ports:
-      - 8890:8080
-    environment:
-      - PORT=8080
-      - BASE_URL=/
-      - URL=http://192.168.3.101:8889/swagger.json
-    depends_on:
-      - httpbin
-```
-
-### Mitm Proxy
-
-[Mitm Proxy](https://github.com/mitmproxy/mitmproxy) - прямой (forward) прокси сервер для перехвата, анализа и изменения HTTP-трафика (удобно для отладки запросов в мобильных приложениях).
-
-```yaml
-services:
-  mitmproxy:
-    image: mitmproxy/mitmproxy:latest
-    container_name: mitmproxy
-    restart: unless-stopped
-    ports:
-      - 8880:8080 # Proxy
-      - 8881:8081 # Web UI
-    command: mitmweb --web-host 0.0.0.0 --listen-host 0.0.0.0
-```
-
-### Step CI
-
-[Step CI](https://github.com/stepci/stepci) - инструмент командной строки для тестирования GraphQL, gRPC, SOAP и REST API в DevOps Pipelines (например, локально в консоли или в GitHub Actions)
-
-```yaml
-services:
-  step-ci:
-    image: ghcr.io/stepci/stepci
-    container_name: step-ci
-    volumes:
-      - ./step-ci-tests:/tests
-    command: tests/httpbin.yml
-```
-
-## Backup
-
-### Duplicati
-
-[Duplicati](https://github.com/duplicati/duplicati) - клиент резервного копирования, который безопасно хранит зашифрованные, инкрементальные и сжатые резервные копии в облачных хранилищах и на удаленных файловых серверах (поддерживает SFTP, WebDAV, S3-совместимые, Google Cloud и другие системы хранения). Поддерживает плагины, например, отправку оповещений в [Telegram](https://docs.duplicati.com/detailed-descriptions/sending-reports-via-email/sending-telegram-notifications).
-
-```yaml
-services:
-  duplicati:
-    image: lscr.io/linuxserver/duplicati:latest
-    container_name: duplicati
-    restart: unless-stopped
-    environment:
-      - PUID=0
-      - PGID=0
-      - TZ=Etc/UTC+3
-      - SETTINGS_ENCRYPTION_KEY=DuplicatiKey
-      - DUPLICATI__WEBSERVICE_PASSWORD=DuplicatiAdmin
-      - CLI_ARGS=
-    volumes:
-      - ./duplicati_config:/config
-      - ./duplicati_backup:/backups
-      - /home/lifailon/docker:/source:ro
-      - ./duplicati_restore:/restore
-    ports:
-      - 8200:8200
-```
-
-### Kopia
-
-[Kopia](https://github.com/kopia/kopia) - кроссплатформенный инструмент резервного копирования для Windows, macOS и Linux с быстрым инкрементным резервным копированием, сквозным шифрованием на стороне клиента, сжатием и дедупликацией данных. Поддерживается Веб-интерфейс поверх cli в стиле отображения флагов для исполняемого файла.
-
-```yaml
-services:
-  kopia:
-    image: kopia/kopia:latest
-    container_name: kopia
-    restart: unless-stopped
-    ports:
-      - 51515:51515
-    command:
-      - server
-      - start
-      - --disable-csrf-token-checks
-      - --insecure
-      - --address=0.0.0.0:51515
-      - --server-username=admin
-      - --server-password=KopiaAdmin
-    environment:
-      - KOPIA_PASSWORD=KopiaAdmin
-      - USER=User
-    volumes:
-        - ./kopia_config:/app/config
-        - ./kopia_cache:/app/cache
-        - ./kopia_logs:/app/logs
-        - ./kopia_backup:/repository
-        - /home/lifailon/docker:/data:ro
-```
-
-### Restic
-
-[Restic](https://github.com/restic/restic) — это быстрая, эффективная и безопасная программа для резервного копирования, которая поддерживает хранение резервных копий на S3, SFTP, [REST Server](https://github.com/restic/rest-server), Rclone как backend и других хранилищах.
-
-[Backrest](https://github.com/garethgeorge/backrest) — это веб-интерфейс для резервного копирования, построенное на основе Restic.
-
-```yaml
-services:
-  backrest:
-    image: garethgeorge/backrest:latest
-    container_name: backrest
-    restart: unless-stopped
-    hostname: backrest
-    volumes:
-      - ./backrest/data:/data
-      - ./backrest/config:/config
-      - ./backrest/cache:/cache
-      - ./backrest/tmp:/tmp
-      - ./backrest/rclone:/root/.config/rclone  # Mount for rclone config (needed when using rclone remotes)
-      - /path/to/backup/data:/userdata          # Mount local paths to backup
-      - /path/to/local/repos:/repos             # Mount local repos (optional for remote storage)
-    environment:
-      - BACKREST_DATA=/data
-      - BACKREST_CONFIG=/config/config.json
-      - XDG_CACHE_HOME=/cache
-      - TMPDIR=/tmp
-      - TZ=Etc/UTC+3
-    ports:
-      - 9898:9898
-```
-
 ## Bot Stack
 
 ### SSH Bot
@@ -497,431 +263,779 @@ max_filesize = 50000000     # Max file size in bytes
 # output_folder = "/download"
 ```
 
-## CI/CD Stack
+### smtp_to_telegram
 
-### Jenkins
-
-[Jenkins](https://github.com/jenkinsci/jenkins) - CI/CD платформа на базе Java, которая использует свой декларативный синтаксис описания конвееров с поддержкой скриптового языка Groovy, гибкой параметрорезацией и большого числа плагинов.
+[SMTP to Telegram](https://github.com/KostyaEsmukov/smtp_to_telegram) - SMTP сервер (листенер) для переадресации сообщений в Telegram.
 
 ```yaml
-# Предварительно создать директории и предоставить права
-# mkdir -p jenkins_home && sudo chown -R 1000:1000 jenkins_home
-# mkdir -p jenkins_agent && sudo chown -R 1000:1000 jenkins_agent
-
 services:
-  jenkins-server:
-    image: jenkins/jenkins:latest
-    container_name: jenkins-server
+  smtp2telegram:
+    image: kostyaesmukov/smtp_to_telegram
+    container_name: smtp2telegram
     restart: unless-stopped
-    user: "1000:1000"
-    volumes:
-      - ./jenkins_home:/var/jenkins_home
+    environment:
+      - ST_SMTP_LISTEN=0.0.0.0:2525
+      - ST_TELEGRAM_CHAT_IDS=
+      - ST_TELEGRAM_BOT_TOKEN=
+      - "ST_TELEGRAM_MESSAGE_TEMPLATE=Subject: {subject}\\\\n\\\\n{body}"
     ports:
-      - "8080:8080"   # Веб-интерфейс и регистрации агентов
-      - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
+      - 2525:2525
 
-  jenkins-agent:
-    # image: jenkins/inbound-agent:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: jenkins-agent
+# echo -e "Subject: Test\n\nThis is test body" | curl smtp://localhost:2525 \
+#   --mail-from admin@docker.local \
+#   --mail-rcpt admin@docker.local \
+#   --user admin:admin \
+#   -T -
+```
+
+## API Stack
+
+### Scalar
+
+[Scalar](https://github.com/scalar/scalar) - интерактивный справочник для документации OpenAPI (like Swagger UI) и REST API клиент в одном веб-приложение.
+
+🔗 [API Reference Demo](https://docs.scalar.com/editor#/reference) ↗
+
+🔗 [API Client Demo](https://client.scalar.com/workspace/default/request/default) ↗
+
+```yaml
+services:
+  scalar:
+    image: scalarapi/api-reference:latest
+    container_name: scalar
     restart: unless-stopped
+    ports:
+      - 4005:8080
+    environment:
+      API_REFERENCE_CONFIG: |
+        {
+          "theme": "purple"
+        }
+    volumes:
+      - ./docs:/docs:ro
+```
+
+### Restfox
+
+[Restfox](https://github.com/flawiddsouza/Restfox) - легковесный и быстрый офлайн API-клиент (WebUI/Desktop) с поддержкой импорт коллекций из OpenAPI и экспорт в Postman и Insomnia.
+
+🔗 [Restfox API Client Demo](https://restfox.dev) ↗
+
+🔗 [Hoppscotch API Client Demo](https://hoppscotch.io/) ↗
+
+🔗 [HTTPie API Client Demo](https://httpie.io/app) ↗
+
+🔗 [Postman Collections to OpenAPI Docs](https://kevinswiber.github.io/postman2openapi) ↗
+
+```yaml
+services:
+  restfox:
+    image: flawiddsouza/restfox:latest
+    container_name: restfox
+    restart: unless-stopped
+    ports:
+      - 4004:4004
+```
+
+### Yaade
+
+[Yaade](https://github.com/EsperoTech/yaade) — это среда совместной разработки API, размещаемая на собственном сервере (еще один API клиент с веб-интерфейсом).
+
+```yaml
+services:
+  yaade:
+    image: esperotech/yaade:latest 
+    container_name: yaade
+    restart: unless-stopped
+    ports:
+      - 9339:9339
+    environment:
+      - YAADE_ADMIN_USERNAME=admin
+      - YAADE_ADMIN_PASSWORD=password
+    volumes:
+      - ./yaade_data:/app/data
+```
+
+### HTTPBin
+
+[go-httpbin](https://github.com/mccutchen/go-httpbin) - API сервер клиент для тестирования HTTP запросов и ответов (fork [httpbin](https://github.com/postmanlabs/httpbin) от Postman Labs).
+
+🔗 [HTTPBin Demo](https://httpbin.org) ↗
+
+🔗 [HTTPBin Go Demo](https://httpbingo.org) ↗
+
+```yaml
+services:
+  httpbin:
+    image: ghcr.io/mccutchen/go-httpbin
+    container_name: httpbin
+    restart: unless-stopped
+    ports:
+      - 8888:8080
+```
+
+### Swagger UI
+
+[Swagger UI](https://github.com/swagger-api/swagger-ui) - браузер для спецификации OpenAPI (поддерживает загрузку любой переданной спецификации через url).
+
+🔗 [Swagger UI Demo](https://petstore.swagger.io) ↗
+
+```yaml
+services:
+  swagger-ui:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    container_name: swagger-ui
+    restart: unless-stopped
+    ports:
+      - 8889:8080
+    environment:
+      - PORT=8080
+      - SWAGGER_JSON=/app/swagger.json
+      - SWAGGER_JSON_URL=
+      - API_KEY=**None**
+    volumes:
+      - ./docs/httpbin.json:/app/swagger.json:ro
     depends_on:
-      - jenkins-server
-    environment:
-      # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
-      - JENKINS_URL=${JENKINS_SERVER_URL}
-      - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
-      # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
-      - JENKINS_SECRET=${JENKINS_SECRET}
-    user: "1000:1000"
-    volumes:
-      - ./jenkins_agent:/home/jenkins
-    labels:
-      # Отключаем автоматическое обновление образа через Watchtower (не поддерживается при использовании build из dockerfile)
-      - "com.centurylinklabs.watchtower.enable=false"
+      - httpbin
 ```
 
-Dockerfile:
+### Swagger Editor
 
-```Dockerfile
-FROM jenkins/inbound-agent:latest
+[Swagger Editor](https://github.com/swagger-api/swagger-editor) - онлайн редактор документации OpenAPI с поддержкой генерации клентов и заглушек API для разных языков с помощью [codegen](https://github.com/swagger-api/swagger-codegen).
 
-USER root
-
-# Обновление и установка дополнительных пакетов
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    iputils-ping \
-    netcat-openbsd \
-    make \
-    tmux
-
-# Устанавливаем Ansible
-RUN apt-get -y install \
-    python3-pip && \
-    pip3 install --break-system-packages ansible && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Устанавливаем Go последней версии
-RUN ARCH=$(uname -m) && \
-    case "$ARCH" in \
-        "aarch64" | "arm64") ARCH="arm64" ;; \
-        "x86_64"  | "amd64") ARCH="amd64" ;; \
-    esac && \
-    LATEST_GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -1) && \
-    curl -L "https://go.dev/dl/${LATEST_GO_VERSION}.linux-${ARCH}.tar.gz" | tar -xz -C /usr/local
-
-# Добавляем Go в PATH
-ENV PATH="/usr/local/go/bin:${PATH}"
-
-# Предоставление права доступа группе jenkins на директорию для сборки
-# RUN chown -R jenkins:jenkins /home/jenkins/workspace
-RUN chown -R jenkins:jenkins /home/jenkins
-
-USER jenkins
-
-# Check versions
-RUN ansible --version && \
-    python3 --version && \
-    go version
-
-# Переменные для запуска передаются через environment (.env файл) при запуске в docker compose
-# /opt/java/openjdk/bin/java -jar /usr/share/jenkins/agent.jar -secret $JENKINS_SECRET -name $JENKINS_AGENT_NAME -url $JENKINS_URL
-ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
-```
-
-env:
-
-```env
-JENKINS_SERVER_URL=http://jenkins-server:8080
-JENKINS_AGENT_NAME=local-agent
-JENKINS_SECRET=b040ab8fa1de3e64e77ed57d4ce45f42c843950f981f8db18a97091a94395f32
-```
-
-### GitLab
+🔗 [Swagger Editor Demo](https://editor.swagger.io) ↗
 
 ```yaml
 services:
-  gitlab:
-    image: gitlab/gitlab-ce:latest
-    container_name: gitlab
+  swagger-editor:
+    image: docker.swagger.io/swaggerapi/swagger-editor
+    container_name: swagger-editor
     restart: unless-stopped
-    hostname: gitlab.local
-    environment:
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost'
-        nginx['listen_port'] = 80
-        nginx['listen_https'] = false
-        gitlab_rails['gitlab_shell_ssh_port'] = 2222
     ports:
-      - 8888:80 # Web
-      - 2222:22 # SSH
-    volumes:
-      - ./gitlab/config:/etc/gitlab
-      - ./gitlab/logs:/var/log/gitlab
-      - ./gitlab/data:/var/opt/gitlab
+      - 8890:8080
+    environment:
+      - PORT=8080
+      - BASE_URL=/
+      - URL=http://192.168.3.101:8889/swagger.json
     depends_on:
-      - postgres
-      - redis
-
-  postgres:
-    image: postgres:13
-    container_name: gitlab_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: gitlab
-      POSTGRES_PASSWORD: gitlab
-      POSTGRES_DB: gitlabhq_production
-    volumes:
-      - ./postgres/data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:latest
-    container_name: gitlab_redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - ./redis/data:/data
-
-# Login: root
-# Password:
-# docker exec -it gitlab cat /etc/gitlab/initial_root_password | grep -E ^Pass | sed "s/Password:\s//g"
+      - httpbin
 ```
 
-### Gitea
+### Mitm Proxy
 
-[Gitea](https://github.com/go-gitea/gitea) - легковесный локальный аналог GitLab/GitHub (самостоятельный хостинг Git), API (с поддержкой Swagger Docs) и системой CI/CD на базе GitHub Actions (поддерживает обратную совместимость) с использованием [act](https://github.com/nektos/act).
+[Mitm Proxy](https://github.com/mitmproxy/mitmproxy) - прямой (forward) прокси сервер для перехвата, анализа и изменения HTTP-трафика (удобно для отладки запросов в мобильных приложениях).
 
 ```yaml
 services:
-  gitea:
-    image: gitea/gitea:latest
-    container_name: gitea
+  mitmproxy:
+    image: mitmproxy/mitmproxy:latest
+    container_name: mitmproxy
     restart: unless-stopped
-    environment:
-      - USER=git
-      - USER_UID=1000
-      - USER_GID=1000
-      - GITEA__server__DOMAIN=localhost
-      - GITEA__server__SSH_PORT=222
-      - GITEA__server__HTTP_PORT=3000
-      # SQLite
-      - GITEA__database__DB_TYPE=sqlite3
-      - GITEA__database__PATH=/data/gitea/gitea.db
-      # PostgreSQL
-      # - GITEA__database__DB_TYPE=postgres
-      # - GITEA__database__HOST=gitea-db:5432
-      # - GITEA__database__NAME=gitea
-      # - GITEA__database__USER=gitea
-      # - GITEA__database__PASSWD=gitea
-    volumes:
-      - ./gitea_data/server:/data
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
     ports:
-      - 222:222   # SSH
-      - 3000:3000 # HTTP
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.gitea.rule=Host(`git.docker.local`)
-      - traefik.http.services.gitea.loadbalancer.server.port=3000
-    # depends_on:
-    #   - gitea-db
+      - 8880:8080 # Proxy
+      - 8881:8081 # Web UI
+    command: mitmweb --web-host 0.0.0.0 --listen-host 0.0.0.0
+```
 
-  # gitea-db:
-  #   image: docker.io/library/postgres:14
-  #   container_name: gitea-db
-  #   restart: unless-stopped
-  #   environment:
-  #     - POSTGRES_USER=gitea
-  #     - POSTGRES_PASSWORD=gitea
-  #     - POSTGRES_DB=gitea
-  #   networks:
-  #     - gitea
-  #   volumes:
-  #     - ./gitea_postgres_data:/var/lib/postgresql/data
+### Step CI
 
-  gitea-act-runner:
-    image: docker.io/gitea/act_runner:nightly
-    container_name: gitea-act-runner
+[Step CI](https://github.com/stepci/stepci) - инструмент командной строки для тестирования GraphQL, gRPC, SOAP и REST API в DevOps Pipelines (например, локально в консоли или в GitHub Actions)
+
+🔗 [Step CI Demo](https://stepci.com) ↗
+
+```yaml
+services:
+  step-ci:
+    image: ghcr.io/stepci/stepci
+    container_name: step-ci
+    volumes:
+      - ./step-ci-tests:/tests
+    command: tests/httpbin.yml
+```
+
+## Network Stack
+
+### Networking Toolbox
+
+[Networking Toolbox](https://github.com/lissy93/networking-toolbox) - более 100 сетевых инструментов и утилит, предназначенных для работы в автономном режиме (от создателя web-check, [dashy](https://github.com/Lissy93/dashy) и [AdGuardian-Term](https://github.com/Lissy93/AdGuardian-Term)).
+
+🔗 [Networking Toolbox Demo](https://networkingtoolbox.net) ↗
+
+```yaml
+services:
+  networking-toolbox:
+    image: lissy93/networking-toolbox:latest
+    container_name: networking-toolbox
     restart: unless-stopped
     environment:
-      CONFIG_FILE: /config.yaml
-      GITEA_INSTANCE_URL: http://192.168.3.101:3000
-      # http://192.168.3.101:3000/-/admin/actions/runners
-      # or
-      # docker exec -it gitea gitea --config /data/gitea/conf/app.ini actions generate-runner-token
-      GITEA_RUNNER_REGISTRATION_TOKEN: JY1uWsuNiexmvdleG0cbftgOvuHesKlnpZeCxbQA
-    volumes:
-      - ./config.yaml:/config.yaml
-      - ./gitea_data/runner:/data
-      - /var/run/docker.sock:/var/run/docker.sock
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+    ports:
+      - 3100:3000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      start_period: 40s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+### Web Check
+
+[Web Check](https://github.com/Lissy93/web-check) - универсальный инструмент OSINT для анализа любого веб-сайта.
+
+🔗 [Web Check Demo](https://web-check.xyz) ↗
+
+```yaml
+services:
+  web-check:
+    image: lissy93/web-check:latest
+    container_name: web-check
+    restart: unless-stopped
+    ports:
+      - 3101:3000
+```
+
+### IP Check
+
+[IP Check / MyIP](https://github.com/jason5ng32/MyIP) - набор инструментов для проверки IP-адресов. Включаем в себя проверки DNS, соединения WebRTC, speedtest, ICMP, MTR, доступность веб-сайтов и другие возможности.
+
+🔗 [IP Check Demo](https://ipcheck.ing/#/) ↗
+
+```yaml
+services:
+  ip-check:
+    container_name: ip-check
+    image: jason5ng32/myip:latest
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - 3102:18966
+```
+
+### ZoneMaster
+
+[ZoneMaster](https://github.com/zonemaster/zonemaster) - веб-интерфейс, API и инструмент командной строки для проверки DNS.
+
+`docker run -t --rm zonemaster/cli zonemaster.net`
+
+🔗 [ZoneMaster Test Domains Demo](https://zonemaster.net/en/run-test) ↗
+
+[Check Host](https://check-host.net/?lang=ru) - бесплатный онлайн инструмент и API для ICMP, HTTP/HTTPS, TCP, UDP и DNS проверок доступности узлов из разных стран.
+
+[Looking.House](https://looking.house/looking-glass) - инструмент для проверки скорости загрузки и выгрузки (а также проверок ping, traceroute и mtr) из множества точек [Looking Glass](https://github.com/gnif/LookingGlass), расположенных в ДЦ по всему миру.
+
+### NetAlertX
+
+[NetAlertX](https://github.com/jokob-sk/NetAlertX) - сканер присутствия и обнаружения в локальной или WiFi сети с отправкой оповещений, например, в Telegram.
+
+```yaml
+services:
+  netalertx:
+    image: ghcr.io/jokob-sk/netalertx:latest
+    container_name: netalertx
+    restart: unless-stopped
+    environment:
+      - PUID=200
+      - PGID=300
+      - TZ=Etc/GMT+3
+      - PORT=20211
     network_mode: host
-    depends_on:
-      - gitea
+    volumes:
+      - ./netalertx_config:/app/config
+      - ./netalertx_db:/app/db
+    tmpfs:
+      - /app/api
 ```
 
-### GoCD
+### Apprise
 
-[GoCD](https://github.com/gocd/gocd) - система CI/CD с поддержкой настройки всех этапов (stage, jobs, tasks, exec commands, artifacts, env и params) через пользовательский интерфейс или в формате `XML`.
+[Apprise](https://github.com/caronc/apprise) - система для отправки уведомления более чем в 100+ служб, с поддержкой веб интерфейса для настройки конфигураций (используется в NetAlertX для отправки уведомлений в Telegram).
 
 ```yaml
 services:
-  gocd-server:
-    image: gocd/gocd-server:v24.3.0
-    container_name: gocd-server
-    restart: unless-stopped
-    ports:
-      - 8153:8153
-    user: 0:0
-    volumes:
-      - ./godata_server:/godata
-      - ./godata_server_home:/home/go
-
-  gocd-agent:
-    image: gocd/gocd-agent-alpine:v25.3.0
-    container_name: gocd-agent
-    restart: unless-stopped
-    environment:
-      - GO_SERVER_URL=http://gocd-server:8153/go
-      - AGENT_AUTO_REGISTER_KEY=d4a80630-99de-4bc4-a89b-95a9884d43a3 # cat ./godata_server/config/cruise-config.xml
-      - AGENT_AUTO_REGISTER_HOSTNAME=hv-us-101
-    user: 0:0
-    volumes:
-      - ./godata_agent:/godata
-      - ./godata_agent_home:/home/go
-    depends_on:
-      - gocd-server
-```
-
-### Drone CI
-
-[Drone CI](https://github.com/drone) - CI/CD платформа, построенная на технологии DinD (Docker in Docker)
-
-```yaml
-services:
-  drone-server:
-    image: drone/drone:2
-    container_name: drone-server
-    restart: unless-stopped
-    volumes:
-      - /var/lib/drone:/data
-    environment:
-      - DRONE_GITEA_SERVER=http://gitea.docker.local
-      - DRONE_GITEA_CLIENT_ID=
-      - DRONE_GITEA_CLIENT_SECRET=
-      - DRONE_RPC_SECRET=droneRpcSecret
-      - DRONE_SERVER_HOST=drone.docker.local
-      - DRONE_SERVER_PROTO=http
-    ports:
-      - 80:80
-      - 443:443
-
-  drone-runner:
-    image: drone/drone-runner-docker:1
-    container_name: runner-runner
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - DRONE_RPC_PROTO=http
-      - DRONE_RPC_HOST=drone.docker.local
-      - DRONE_RPC_SECRET=droneRpcSecret
-      - DRONE_RUNNER_CAPACITY=2
-      - DRONE_RUNNER_NAME=runner-local
-    ports:
-      - 3000:3000
-```
-
-### Harness
-
-[Harness](https://github.com/harness/harness) - система CI/CD на базе Drone, хостинг исходного кода (gitness) и реестр артефактов с открытым исходным кодом.
-
-```yaml
-services:
-  harness:
-    image: harness/harness
-    container_name: harness
-    restart: unless-stopped
-    ports:
-      - 3021:3000
-      - 3022:3022
-    volumes:
-      - ./harness_data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-```
-
-### Woodpecker
-
-[Woodpecker](https://github.com/woodpecker-ci/woodpecker) - еще одна платформа CI/CD на базе Drone.
-
-```yaml
-services:
-  woodpecker-server:
-    image: woodpeckerci/woodpecker-server:v3
-    container_name: woodpecker-server
+  apprise:
+    image: caronc/apprise:latest
+    container_name: apprise
     restart: unless-stopped
     ports:
       - 8000:8000
-    environment:
-      - WOODPECKER_OPEN=true
-      - WOODPECKER_HOST=${WOODPECKER_HOST}
-      - WOODPECKER_GITHUB=true
-      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
-      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
-      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
     volumes:
-      - ./woodpecker_server_data:/var/lib/woodpecker/
-
-  woodpecker-agent:
-    image: woodpeckerci/woodpecker-agent:v3
-    container_name: woodpecker-agent
-    restart: unless-stopped
-    command: agent
-    environment:
-      - WOODPECKER_SERVER=woodpecker-server:9000
-      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
-    volumes:
-      - ./woodpecker_agent_config:/etc/woodpecker
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - woodpecker-server
+      - ./apprise_config:/config
 ```
 
-### Semaphore
+### RTSP to Web
 
-Semaphore - графический интерфейс для Ansible, Terraform, OpenTofu, Bash, Pulumi, Docker и PowerShell, с поддержкой [API](https://semaphoreui.com/api-docs) и [LDAP](https://docs.semaphoreui.com/administration-guide/ldap) авторизацией.
+[RTSP to Web](https://github.com/deepch/RTSPtoWeb) - RTSP клиент в браузере.
 
 ```yaml
 services:
-  semaphore:
-    image: public.ecr.aws/semaphore/pro/server:v2.13.12
-    container_name: semaphore
+  rtsptoweb:
+    image: ghcr.io/deepch/rtsptoweb:latest
+    container_name: rtsp-to-web
     restart: unless-stopped
-    environment:
-      - SEMAPHORE_ADMIN=admin
-      - SEMAPHORE_ADMIN_NAME=admin
-      - SEMAPHORE_ADMIN_EMAIL=admin@localhost
-      - SEMAPHORE_ADMIN_PASSWORD=admin
-      # Database
-      - SEMAPHORE_DB_DIALECT=postgres
-      - SEMAPHORE_DB_HOST=semaphore-db
-      - SEMAPHORE_DB_NAME=semaphore_db
-      - SEMAPHORE_DB_USER=semaphore
-      - SEMAPHORE_DB_PASS=semaphore
-      - SEMAPHORE_DB_OPTIONS={"sslmode":"disable"}
-      # Telegram
-      - SEMAPHORE_TELEGRAM_CHAT=
-      - SEMAPHORE_TELEGRAM_TOKEN=
-      # LDAP
-      # - SEMAPHORE_LDAP_ENABLE=yes
-      # - SEMAPHORE_LDAP_SERVER=semaphore-ldap:1389
-      # - SEMAPHORE_LDAP_BIND_DN=cn=semaphore,dc=docker,dc=local
-      # - SEMAPHORE_LDAP_BIND_PASSWORD=semaphore
-      # - SEMAPHORE_LDAP_SEARCH_DN=dc=docker,dc=local
-      # - SEMAPHORE_LDAP_SEARCH_FILTER=(&(objectClass=inetOrgPerson)(uid=%s))
-      # - SEMAPHORE_LDAP_MAPPING_MAIL={{ .cn }}@docker.local
-      # - SEMAPHORE_LDAP_MAPPING_UID=|
-      # - SEMAPHORE_LDAP_MAPPING_CN=cn
-    volumes:
-      - ./semaphore/app_data:/var/lib/semaphore
-      - ./semaphore/app_conf:/etc/semaphore
+    # volumes:
+    #   - ./rtsp_config/config.json:/config/config.json
     ports:
-      - 3030:3000
-
-  semaphore-db:
-    image: postgres
-    container_name: semaphore-db
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=semaphore
-      - POSTGRES_PASSWORD=semaphore
-      - POSTGRES_DB=semaphore_db
-    volumes:
-      - ./semaphore/db_data:/var/lib/postgresql/data
-
-  # semaphore-ldap:
-  #   image: bitnami/openldap:latest
-  #   container_name: semaphore-ldap
-  #   environment:
-  #     - LDAP_ADMIN_USERNAME=admin
-  #     - LDAP_ADMIN_PASSWORD=LdapAdmin
-  #     - LDAP_USERS=semaphore
-  #     - LDAP_PASSWORDS=semaphore
-  #     - LDAP_ROOT=dc=docker,dc=local
-  #     - LDAP_ADMIN_DN=cn=semaphore,dc=docker,dc=local
-  #   volumes:
-  #     - ./semaphore/ldap_data:/var/lib/ldap
-  #   ports:
-  #     - 1389:1389
-  #     - 1636:1636
+      - 8083:8083
 ```
 
-## Cloud
+## Dev Stack
+
+### IT Tools
+
+IT Tools - огромная коллекция утилит (криптография, конверторы, веб инструменты и многое другое).
+
+🔗 [IT Tools Demo](https://it-tools.tech) ↗
+
+```yaml
+services:
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    restart: unless-stopped
+    ports:
+      - 6990:80
+```
+
+### Transform
+
+[Transforms](https://github.com/ritz078/transform) - универсальный веб-конвертер.
+
+🔗 [Transforms Demo](https://transform.tools) ↗
+
+```yaml
+services:
+  transform:
+    image: lifailon/transform:amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: transform
+    restart: unless-stopped
+    ports:
+      - 3090:3000
+```
+
+### NexTerm
+
+[NexTerm](https://github.com/gnmyt/Nexterm) - управление сервером в браузере с поддержкой 2FA для SSH (с поддержкой файлового браузера через SFTP), VNC и RDP, контейнерами Proxmox LXC, QEMU и развертывание приложений через Docker.
+
+```yaml
+services:
+  nexterm:
+    image: germannewsmaker/nexterm:latest
+    restart: unless-stopped
+    container_name: nexterm
+    environment:
+      # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
+      # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
+      - ENCRYPTION_KEY=9dbde894647845ab33e13a9334cdbadc5f8d22abe42df0b3daff431eec0df870
+    ports:
+      - 6989:6989
+    volumes:
+      - ./nexterm_data:/app/data
+```
+
+### Code Server
+
+[Code Server](https://github.com/coder/code-server) - VSCode сервер в браузере.
+
+```yaml
+services:
+  code-server:
+    image: linuxserver/code-server:latest
+    container_name: code-server
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - PASSWORD=CodeServerAdmin
+    volumes:
+      - ./vscode_config:/config
+      - $HOME:/home
+    ports:
+      - 9443:8443
+```
+
+### Go Playground
+
+[Better Go Playground](https://github.com/x1unix/go-playground) - улучшенная [Go Playground](https://go.dev/play) на базе [Monaco Editor](https://github.com/microsoft/monaco-editor) и React.
+
+🔗 [Go Playground Demo](https://goplay.tools) ↗
+
+```yaml
+services:
+  go-playground:
+    image: x1unix/go-playground:latest
+    container_name: go-playground
+    restart: unless-stopped
+    environment:
+      - APP_CLEAN_INTERVAL=30m
+    ports:
+      - 9444:8000
+```
+
+### Go Template Playground
+
+[Repeatit](https://github.com/rytsh/repeatit) (Go Template Playground) - игровая площадка для проверки шаблонов GoLang. Поддерживает рендиринг текста и html шаблонов, функции spting и heml, а также ввод параметров шаблона в форматах yaml, json и toml.
+
+🔗 [Repeatit Demo](https://repeatit.io) ↗
+
+```yaml
+services:
+  go-template-playground:
+    image: ghcr.io/rytsh/repeatit:latest
+    # image: lifailon/go-template-playground:latest # 0.5.5-amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: go-template-playground
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - 9445:8080
+```
+
+## Diagram Stack
+
+### D2 Playground
+
+[D2 Playground](https://github.com/terrastruct/d2-playground) - игровая площадка для современного языка сценариев диаграмм, преобразующий текст в диаграммы.
+
+🔗 [D2 Playground Demo](https://play.d2lang.com) ↗
+
+🔗 [VSCode Extension](https://github.com/terrastruct/d2-vscode) ↗
+
+```yaml
+services:
+  d2-playground:
+    image: lifailon/d2-playground:latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: d2-playground
+    restart: unless-stopped
+    ports:
+      - 9089:9090
+```
+
+### DrawIO
+
+[Draw.io](https://github.com/jgraph/drawio) - веб-версия бесплатного приложения для создания различных диаграмм (like MS Visio), блок-схем и т.п.
+
+🔗 [Draw.io Demo](https://app.diagrams.net) ↗
+
+```yaml
+services:
+  draw.io:
+    image: jgraph/drawio:latest
+    container_name: draw.io
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - 9447:8080
+```
+
+## Backup Stack
+
+### Duplicati
+
+[Duplicati](https://github.com/duplicati/duplicati) - клиент резервного копирования, который безопасно хранит зашифрованные, инкрементальные и сжатые резервные копии в облачных хранилищах и на удаленных файловых серверах (поддерживает SFTP, WebDAV, S3-совместимые, Google Cloud и другие системы хранения). Поддерживает плагины, например, отправку оповещений в [Telegram](https://docs.duplicati.com/detailed-descriptions/sending-reports-via-email/sending-telegram-notifications).
+
+```yaml
+services:
+  duplicati:
+    image: lscr.io/linuxserver/duplicati:latest
+    container_name: duplicati
+    restart: unless-stopped
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC+3
+      - SETTINGS_ENCRYPTION_KEY=DuplicatiKey
+      - DUPLICATI__WEBSERVICE_PASSWORD=DuplicatiAdmin
+      - CLI_ARGS=
+    volumes:
+      - ./duplicati_config:/config
+      - ./duplicati_backup:/backups
+      - /home/lifailon/docker:/source:ro
+      - ./duplicati_restore:/restore
+    ports:
+      - 8200:8200
+```
+
+### Kopia
+
+[Kopia](https://github.com/kopia/kopia) - кроссплатформенный инструмент резервного копирования для Windows, macOS и Linux с быстрым инкрементным резервным копированием, сквозным шифрованием на стороне клиента, сжатием и дедупликацией данных. Поддерживается Веб-интерфейс поверх cli в стиле отображения флагов для исполняемого файла.
+
+```yaml
+services:
+  kopia:
+    image: kopia/kopia:latest
+    container_name: kopia
+    restart: unless-stopped
+    ports:
+      - 51515:51515
+    command:
+      - server
+      - start
+      - --disable-csrf-token-checks
+      - --insecure
+      - --address=0.0.0.0:51515
+      - --server-username=admin
+      - --server-password=KopiaAdmin
+    environment:
+      - KOPIA_PASSWORD=KopiaAdmin
+      - USER=User
+    volumes:
+        - ./kopia_config:/app/config
+        - ./kopia_cache:/app/cache
+        - ./kopia_logs:/app/logs
+        - ./kopia_backup:/repository
+        - /home/lifailon/docker:/data:ro
+```
+
+### Restic
+
+[Restic](https://github.com/restic/restic) — это быстрая, эффективная и безопасная программа для резервного копирования, которая поддерживает хранение резервных копий на S3, SFTP, [REST Server](https://github.com/restic/rest-server), Rclone как backend и других хранилищах.
+
+[Backrest](https://github.com/garethgeorge/backrest) — это веб-интерфейс для резервного копирования, построенное на основе Restic.
+
+```yaml
+services:
+  backrest:
+    image: garethgeorge/backrest:latest
+    container_name: backrest
+    restart: unless-stopped
+    hostname: backrest
+    volumes:
+      - ./backrest/data:/data
+      - ./backrest/config:/config
+      - ./backrest/cache:/cache
+      - ./backrest/tmp:/tmp
+      - ./backrest/rclone:/root/.config/rclone  # Mount for rclone config (needed when using rclone remotes)
+      - /path/to/backup/data:/userdata          # Mount local paths to backup
+      - /path/to/local/repos:/repos             # Mount local repos (optional for remote storage)
+    environment:
+      - BACKREST_DATA=/data
+      - BACKREST_CONFIG=/config/config.json
+      - XDG_CACHE_HOME=/cache
+      - TMPDIR=/tmp
+      - TZ=Etc/UTC+3
+    ports:
+      - 9898:9898
+```
+
+## FS Stack
+
+### Samba
+
+[Samba](https://github.com/dperson/samba/) - SMB/CIFS сервер для запуска в контейнере Docker.
+
+```yaml
+services:
+  samba:
+    image: dperson/samba
+    container_name: samba
+    restart: always
+    volumes:
+      - /home/lifailon/docker:/share
+    ports:
+      - 139:139
+      - 445:445
+    environment:
+      - USERID=1000
+      - GROUPID=1000
+      - SAMBA_USER=admin
+      - SAMBA_PASS=admin
+    command: |
+      -u "$${SAMBA_USER};$${SAMBA_PASS}"
+      -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
+      -p
+```
+
+### FileBrowser
+
+[FileBrowser](https://github.com/filebrowser/filebrowser) - веб-интерфейс для управления файлами в указанном каталоге. Поддерживает управление пользователями, загрузку, удаление, просмотр и редактирование файлов.
+
+```yaml
+services:
+  # mkdir filebrowser_data filebrowser_conf && chown -R 1000:1000 filebrowser_data filebrowser_conf
+  file-browser:
+    image: filebrowser/filebrowser
+    container_name: file-browser
+    restart: unless-stopped
+    user: 0:0
+    volumes:
+      - $HOME:/srv                    # root directory
+      - ./filebrowser_data:/database  # filebrowser.db
+      - ./filebrowser_conf:/config    # settings.json
+    ports:
+      - 8300:80
+```
+
+### DuFS
+
+[DuFS](https://github.com/sigoden/dufs) - уникальный служебный файловый сервер, который поддерживает статическое обслуживание, загрузку, поиск и удаленное управление через API.
+
+```yaml
+services:
+  dufs:
+    image: sigoden/dufs
+    container_name: dufs
+    restart: unless-stopped
+    ports:
+    - 5000:5000
+    volumes:
+    - $HOME:/data
+    - ./config.yaml:/config.yaml
+    command: /data -A # --config /config.yaml
+```
+
+### Syncthing
+
+[Syncthing](https://github.com/syncthing/syncthing) - программа для непрерывной синхронизации файлов между двумя или более компьютерами. Работает на основе Block Exchange Protocol (BEP) для обмена данными, который использует TLS-шифрование для безопасной передачи данных по протоколу TCP.
+
+```yaml
+services:
+  file-syncthing:
+    image: syncthing/syncthing
+    container_name: file-syncthing
+    restart: unless-stopped
+    network_mode: host
+    # ports:
+    #   - 8384:8384         # Web UI
+    #   - 22000:22000/tcp   # TCP file transfers
+    #   - 22000:22000/udp   # QUIC file transfers
+    #   - 21027:21027/udp   # Receive local discovery broadcasts
+    environment:
+      - PUID=0
+      - PGID=0
+    volumes:
+      - ./syncthing_data:/var/syncthing   # configs
+      - $HOME/docker:/sync_data           # src sync data on server
+      # - ./backup:/sync_data             # dst sync data on client (mkdir backup && chown -R 1000:1000 backup)
+    healthcheck:
+      test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+```
+
+### h5ai
+
+[h5ai](https://github.com/lrsjng/h5ai) - современный интерфейс веб-сервера для файлового индексера. Визуально напоминается FTP сервер для удобного отображения и загрузки (например, его использует [Libretro/RetroArch](https://buildbot.libretro.com) для публикации релизов).
+
+```yaml
+services:
+  h5ai:
+    image: awesometic/h5ai
+    container_name: h5ai
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - HTPASSWD=false
+      - HTPASSWD_USER=admin
+      - HTPASSWD_PW=admin
+    volumes:
+      - $HOME/docker:/h5ai    # public data
+      - ./h5ai_conf:/config
+    ports:
+      - 8889:80
+```
+
+### SFTPGo
+
+[SFTPGo](https://github.com/drakkan/sftpgo) - сервер SFTP, HTTP/S, FTP/S и WebDAV, с поддержкой объектное-совместимого S3 хранилища, Google Cloud Storage, файловой системы хранкения и другие SFTP-серверы.
+
+```yaml
+services:
+  sftpgo:
+    image: drakkan/sftpgo:edge
+    container_name: sftpgo
+    restart: unless-stopped
+    ports:
+      - 2022:2022
+      - 8088:8080
+```
+
+## S3 Stack
+
+### MinIO
+
+[MinIO](https://github.com/minio/minio) - высокопроизводительное, совместимое S3 решение для хранения объектов с встроенной системой высокой доступности (например, используется в [Velero](https://github.com/vmware-tanzu/velero) для хранения данных резервного копирования Kubernetes).
+
+```yaml
+services:
+  minio1:
+    image: minio/minio
+    container_name: minio1
+    restart: unless-stopped
+    hostname: minio1
+    command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=MinioAdmin
+    volumes:
+      - ./minio1_data:/data
+    ports:
+      - 9000:9000 # API
+      - 9001:9001 # WebUI
+
+  minio2:
+    image: minio/minio
+    container_name: minio2
+    restart: unless-stopped
+    hostname: minio2  
+    command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: MinioAdmin
+    volumes:
+      - ./minio2_data:/data
+    ports:
+      - 9002:9000
+      - 9003:9001
+```
+
+### s3fs
+
+[s3fs](https://github.com/s3fs-fuse/s3fs-fuse) - инструмент для монтирования S3 совместимого хранилища на базе [FUSE](https://github.com/libfuse/libfuse), позволяя управлять файлами и каталогами в локальной файловой системе.
+
+```yaml
+services:
+  s3fs:
+    image: efrecon/s3fs:1.95
+    container_name: velero_data
+    restart: unless-stopped
+    privileged: true
+    stdin_open: true
+    tty: true
+    devices:
+      - /dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor=unconfined
+    environment:
+      - AWS_S3_URL=http://minio1:9000
+      - AWS_S3_BUCKET=velero
+      - AWS_S3_ACCESS_KEY_ID=admin
+      - AWS_S3_SECRET_ACCESS_KEY=MinioAdmin
+      - S3FS_ARGS=use_path_request_style,allow_other
+    volumes:
+      - ./velero_data:/opt/s3fs/bucket:rshared 
+```
+
+## Cloud Stack
 
 ### NextCloud
 
@@ -1089,166 +1203,6 @@ OWNCLOUD_TRUSTED_DOMAINS=localhost
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin
 HTTP_PORT=8080
-```
-
-## Diagram Stack
-
-### D2 Playground
-
-[D2 Playground](https://github.com/terrastruct/d2-playground) - игровая площадка для современного языка сценариев диаграмм, преобразующий текст в диаграммы.
-
-🔗 [Demo](https://play.d2lang.com) ↗
-
-🔗 [VSCode Extension](https://github.com/terrastruct/d2-vscode) ↗
-
-```yaml
-services:
-  d2-playground:
-    image: lifailon/d2-playground:latest
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    container_name: d2-playground
-    restart: unless-stopped
-    ports:
-      - 9089:9090
-```
-
-### Draw.io
-
-[Draw.io](https://github.com/jgraph/drawio) - веб-версия бесплатного приложения для создания различных диаграмм (like MS Visio), блок-схем и т.п.
-
-🔗 [Demo](https://app.diagrams.net) ↗
-
-```yaml
-services:
-  draw.io:
-    image: jgraph/drawio:latest
-    container_name: draw.io
-    restart: unless-stopped
-    stdin_open: true
-    tty: true
-    ports:
-      - 9447:8080
-```
-
-## Dev Stack
-
-### IT Tools
-
-IT Tools - огромная коллекция утилит (криптография, конверторы, веб инструменты и многое другое).
-
-🔗 [Demo](https://it-tools.tech) ↗
-
-```yaml
-services:
-  it-tools:
-    image: corentinth/it-tools:latest
-    container_name: it-tools
-    restart: unless-stopped
-    ports:
-      - 6990:80
-```
-
-### Transform
-
-[Transforms](https://github.com/ritz078/transform) - универсальный веб-конвертер.
-
-🔗 [Demo](https://transform.tools) ↗
-
-```yaml
-services:
-  transform:
-    image: lifailon/transform:amd64
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    container_name: transform
-    restart: unless-stopped
-    ports:
-      - 3090:3000
-```
-
-### NexTerm
-
-[NexTerm](https://github.com/gnmyt/Nexterm) - управление сервером в браузере с поддержкой 2FA для SSH (с поддержкой файлового браузера через SFTP), VNC и RDP, контейнерами Proxmox LXC, QEMU и развертывание приложений через Docker.
-
-```yaml
-services:
-  nexterm:
-    image: germannewsmaker/nexterm:latest
-    restart: unless-stopped
-    container_name: nexterm
-    environment:
-      # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
-      # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
-      - ENCRYPTION_KEY=9dbde894647845ab33e13a9334cdbadc5f8d22abe42df0b3daff431eec0df870
-    ports:
-      - 6989:6989
-    volumes:
-      - ./nexterm_data:/app/data
-```
-
-### Code Server
-
-[Code Server](https://github.com/coder/code-server) - VSCode сервер в браузере.
-
-```yaml
-services:
-  code-server:
-    image: linuxserver/code-server:latest
-    container_name: code-server
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-      - PASSWORD=CodeServerAdmin
-    volumes:
-      - ./vscode_config:/config
-      - $HOME:/home
-    ports:
-      - 9443:8443
-```
-
-### Go Playground
-
-[Better Go Playground](https://github.com/x1unix/go-playground) - улучшенная [Go Playground](https://go.dev/play) на базе [Monaco Editor](https://github.com/microsoft/monaco-editor) и React.
-
-🔗 [Demo](https://goplay.tools) ↗
-
-```yaml
-services:
-  go-playground:
-    image: x1unix/go-playground:latest
-    container_name: go-playground
-    restart: unless-stopped
-    environment:
-      - APP_CLEAN_INTERVAL=30m
-    ports:
-      - 9444:8000
-```
-
-### Repeatit (Go Template Playground)
-
-[Repeatit](https://github.com/rytsh/repeatit) - игровая площадка для проверки шаблонов GoLang. Поддерживает рендиринг текста и html шаблонов, функции spting и heml, а также ввод параметров шаблона в форматах yaml, json и toml.
-
-🔗 [Demo](https://repeatit.io) ↗
-
-```yaml
-services:
-  go-template-playground:
-    image: ghcr.io/rytsh/repeatit:latest
-    # image: lifailon/go-template-playground:latest # 0.5.5-amd64
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    container_name: go-template-playground
-    restart: unless-stopped
-    stdin_open: true
-    tty: true
-    ports:
-      - 9445:8080
 ```
 
 ## DNS Stack
@@ -1428,6 +1382,10 @@ services:
   #   ports:
   #     - 8080:8080
 ```
+
+[AdGuardian-Term](https://github.com/Lissy93/AdGuardian-Term) - TUI интерфейс для управления AdGuard.
+
+`docker run -it lissy93/adguardian`
 
 ### CoreDNS
 
@@ -2271,6 +2229,136 @@ services:
       - 5001:5001
 ```
 
+### Komodo
+
+[Komodo](https://github.com/moghtech/komodo) - система для управления и мониторинга контейнеров и мониторинга Docker Compose.
+
+🔗 [Komodo Demo](https://demo.komo.do) ↗
+
+```yaml
+services:
+  mongo:
+    image: mongo
+    container_name: komodo-db
+    restart: unless-stopped
+    command: --quiet --wiredTigerCacheSizeGB 0.25
+    labels:
+      komodo.skip: StopAllContainers
+    # ports:
+    #   - 27017:27017
+    volumes:
+      - ./mongo_data:/data/db
+      - ./mongo_config:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${KOMODO_DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DB_PASSWORD}
+  
+  core:
+    image: ghcr.io/moghtech/komodo-core:latest
+    container_name: komodo-core
+    restart: unless-stopped
+    labels:
+      komodo.skip: StopAllContainers
+    ports:
+      - 9120:9120
+    env_file: .env
+    environment:
+      KOMODO_DATABASE_ADDRESS: mongo:27017
+      KOMODO_DATABASE_USERNAME: ${KOMODO_DB_USERNAME}
+      KOMODO_DATABASE_PASSWORD: ${KOMODO_DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      ## Store sync files on server
+      # - /path/to/syncs:/syncs
+      ## Optionally mount a custom core.config.toml
+      # - /path/to/core.config.toml:/config/config.toml
+    depends_on:
+      - mongo
+
+  ## Deploy Periphery container using this block,
+  ## or deploy the Periphery binary with systemd using 
+  ## https://github.com/moghtech/komodo/tree/main/scripts
+  periphery:
+    image: ghcr.io/moghtech/komodo-periphery:latest
+    container_name: komodo-periphery
+    restart: unless-stopped
+    labels:
+      komodo.skip: StopAllContainers
+    env_file: .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/proc
+      - /home/lifailon/docker:/etc/komodo/stacks
+```
+
+env:
+
+```env
+KOMODO_DB_USERNAME=admin
+KOMODO_DB_PASSWORD=admin
+
+TZ=Etc/UTC+3
+
+# Используется для Oauth / предложения URL-адреса Webhook / обратного прокси-сервера Caddy
+KOMODO_HOST=https://demo.komo.do
+# Отображается во вкладке браузера
+KOMODO_TITLE=Komodo
+KOMODO_FIRST_SERVER=https://periphery:8120
+# Дайте первому серверу индивидуальное имя
+KOMODO_FIRST_SERVER_NAME=Local
+# Сделать так, чтобы все кнопки вызывали только двойной щелчок, а не полное диалоговое окно подтверждения
+KOMODO_DISABLE_CONFIRM_DIALOG=false
+
+# Оценить, как Komodo опрашивает ваши серверы на предмет статуса / статуса контейнера / системной статистики / оповещений
+# Параметры: 1-sec, 5-sec, 15-sec, 1-min, 5-min, 15-min (default: 15-sec)
+KOMODO_MONITORING_INTERVAL="15-sec"
+# Интервал опроса ресурсов на предмет обновлений / автоматизированных действий
+# Параметры: 15-min, 1-hr, 2-hr, 6-hr, 12-hr, 1-day (default: 1-hr)
+KOMODO_RESOURCE_POLL_INTERVAL="1-hr"
+
+# Used to auth incoming webhooks. Alt: KOMODO_WEBHOOK_SECRET_FILE
+KOMODO_WEBHOOK_SECRET=a_random_secret
+# Used to generate jwt. Alt: KOMODO_JWT_SECRET_FILE
+KOMODO_JWT_SECRET=a_random_jwt_secret
+# Time to live for jwt tokens (options: 1-hr, 12-hr, 1-day, 3-day, 1-wk, 2-wk)
+KOMODO_JWT_TTL="1-day"
+
+# Включить вход с именем пользователя и паролем
+KOMODO_LOCAL_AUTH=true
+KOMODO_INIT_ADMIN_USERNAME=admin
+KOMODO_INIT_ADMIN_PASSWORD=admin
+# Отключить регистрацию новых пользователей
+KOMODO_DISABLE_USER_REGISTRATION=false
+# Все новые логины включаются автоматически
+KOMODO_ENABLE_NEW_USERS=false
+# Запретить НЕ администраторам создавать новые ресурсы
+KOMODO_DISABLE_NON_ADMIN_CREATE=false
+# Позволяет всем пользователям иметь доступ на чтение ко всем ресурсам
+KOMODO_TRANSPARENT_MODE=false
+
+# Более красивое ведение журнала с пустыми строками между журналами
+KOMODO_LOGGING_PRETTY=false
+# Более удобное для восприятия человеком протоколирование конфигурации запуска (многострочное)
+KOMODO_PRETTY_STARTUP_CONFIG=false
+
+KOMODO_OIDC_ENABLED=false
+KOMODO_GITHUB_OAUTH_ENABLED=false
+KOMODO_GOOGLE_OAUTH_ENABLED=false
+KOMODO_AWS_ACCESS_KEY_ID=
+KOMODO_AWS_SECRET_ACCESS_KEY=
+
+PERIPHERY_ROOT_DIRECTORY=/etc/komodo
+# Путь к корневой директории стеков compose (default: ${PERIPHERY_ROOT_DIRECTORY}/stacks)
+PERIPHERY_STACK_DIR=/etc/komodo/stacks
+KOMODO_PASSKEY=a_random_passkey
+PERIPHERY_PASSKEYS=${KOMODO_PASSKEY}
+PERIPHERY_SSL_ENABLED=true
+PERIPHERY_DISABLE_TERMINALS=false
+PERIPHERY_INCLUDE_DISK_MOUNTS=/etc/hostname
+PERIPHERY_LOGGING_PRETTY=false
+PERIPHERY_PRETTY_STARTUP_CONFIG=false
+```
+
 ### 1panel
 
 [1panel](https://github.com/1Panel-dev/1Panel) - веб-интерфейс для управления сервером на базе Linux, файлами, базами данных, контейнерами Docker и стеками Docker Compose.
@@ -2770,7 +2858,7 @@ services:
 
 ### Velero UI
 
-[Velero UI](https://github.com/otwld/velero-ui) - веб-интерфейс для управления [Velero](https://github.com/vmware-tanzu/velero) и маниторинга резервного копирования.
+[Velero UI](https://github.com/otwld/velero-ui) - веб-интерфейс для управления [Velero](https://github.com/vmware-tanzu/velero) и маниторинга резервного копирования ресурсов в кластерах Kubernetes.
 
 ```yaml
 services:
@@ -2787,21 +2875,6 @@ services:
     # network_mode: host # use for k3s cluster config on localhost
     ports:
       - 3504:3504 # admin:admin
-
-  minio:
-    image: minio/minio
-    container_name: minio
-    hostname: minio
-    # command: server http://minio:9000/data http://192.168.3.105:9000/data --console-address ":9001"
-    command: server http://minio:9000/data --console-address ":9001"
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=MinioAdmin
-    volumes:
-      - ./minio1_data:/data
-    ports:
-      - 9000:9000
-      - 9001:9001
 ```
 
 ### Headlamp
@@ -2871,241 +2944,428 @@ services:
       ]
 ```
 
-## FS Stack
+## CI/CD Stack
 
-### Samba
+### Jenkins
 
-[Samba](https://github.com/dperson/samba/) - SMB/CIFS сервер для запуска в контейнере Docker.
+[Jenkins](https://github.com/jenkinsci/jenkins) - CI/CD платформа на базе Java, которая использует свой декларативный синтаксис описания конвееров с поддержкой скриптового языка Groovy, гибкой параметрорезацией и большого числа плагинов.
 
 ```yaml
+# Предварительно создать директории и предоставить права
+# mkdir -p jenkins_home && sudo chown -R 1000:1000 jenkins_home
+# mkdir -p jenkins_agent && sudo chown -R 1000:1000 jenkins_agent
+
 services:
-  samba:
-    image: dperson/samba
-    container_name: samba
-    restart: always
+  jenkins-server:
+    image: jenkins/jenkins:latest
+    container_name: jenkins-server
+    restart: unless-stopped
+    user: "1000:1000"
     volumes:
-      - /home/lifailon/docker:/share
+      - ./jenkins_home:/var/jenkins_home
     ports:
-      - 139:139
-      - 445:445
+      - "8080:8080"   # Веб-интерфейс и регистрации агентов
+      - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
+
+  jenkins-agent:
+    # image: jenkins/inbound-agent:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-agent
+    restart: unless-stopped
+    depends_on:
+      - jenkins-server
     environment:
-      - USERID=1000
-      - GROUPID=1000
-      - SAMBA_USER=admin
-      - SAMBA_PASS=admin
-    command: |
-      -u "$${SAMBA_USER};$${SAMBA_PASS}"
-      -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
-      -p
+      # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
+      - JENKINS_URL=${JENKINS_SERVER_URL}
+      - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
+      # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
+      - JENKINS_SECRET=${JENKINS_SECRET}
+    user: "1000:1000"
+    volumes:
+      - ./jenkins_agent:/home/jenkins
+    labels:
+      # Отключаем автоматическое обновление образа через Watchtower (не поддерживается при использовании build из dockerfile)
+      - "com.centurylinklabs.watchtower.enable=false"
 ```
 
-### FileBrowser
+Dockerfile:
 
-[FileBrowser](https://github.com/filebrowser/filebrowser) - веб-интерфейс для управления файлами в указанном каталоге. Поддерживает управление пользователями, загрузку, удаление, просмотр и редактирование файлов.
+```Dockerfile
+FROM jenkins/inbound-agent:latest
+
+USER root
+
+# Обновление и установка дополнительных пакетов
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    iputils-ping \
+    netcat-openbsd \
+    make \
+    tmux
+
+# Устанавливаем Ansible
+RUN apt-get -y install \
+    python3-pip && \
+    pip3 install --break-system-packages ansible && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Устанавливаем Go последней версии
+RUN ARCH=$(uname -m) && \
+    case "$ARCH" in \
+        "aarch64" | "arm64") ARCH="arm64" ;; \
+        "x86_64"  | "amd64") ARCH="amd64" ;; \
+    esac && \
+    LATEST_GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -1) && \
+    curl -L "https://go.dev/dl/${LATEST_GO_VERSION}.linux-${ARCH}.tar.gz" | tar -xz -C /usr/local
+
+# Добавляем Go в PATH
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Предоставление права доступа группе jenkins на директорию для сборки
+# RUN chown -R jenkins:jenkins /home/jenkins/workspace
+RUN chown -R jenkins:jenkins /home/jenkins
+
+USER jenkins
+
+# Check versions
+RUN ansible --version && \
+    python3 --version && \
+    go version
+
+# Переменные для запуска передаются через environment (.env файл) при запуске в docker compose
+# /opt/java/openjdk/bin/java -jar /usr/share/jenkins/agent.jar -secret $JENKINS_SECRET -name $JENKINS_AGENT_NAME -url $JENKINS_URL
+ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
+```
+
+env:
+
+```env
+JENKINS_SERVER_URL=http://jenkins-server:8080
+JENKINS_AGENT_NAME=local-agent
+JENKINS_SECRET=b040ab8fa1de3e64e77ed57d4ce45f42c843950f981f8db18a97091a94395f32
+```
+
+### GitLab
 
 ```yaml
 services:
-  # mkdir filebrowser_data filebrowser_conf && chown -R 1000:1000 filebrowser_data filebrowser_conf
-  file-browser:
-    image: filebrowser/filebrowser
-    container_name: file-browser
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
     restart: unless-stopped
+    hostname: gitlab.local
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost'
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+    ports:
+      - 8888:80 # Web
+      - 2222:22 # SSH
+    volumes:
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+      - ./gitlab/data:/var/opt/gitlab
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:13
+    container_name: gitlab_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gitlab
+      POSTGRES_PASSWORD: gitlab
+      POSTGRES_DB: gitlabhq_production
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    container_name: gitlab_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - ./redis/data:/data
+
+# Login: root
+# Password:
+# docker exec -it gitlab cat /etc/gitlab/initial_root_password | grep -E ^Pass | sed "s/Password:\s//g"
+```
+
+### Gitea
+
+[Gitea](https://github.com/go-gitea/gitea) - легковесный локальный аналог GitLab/GitHub (самостоятельный хостинг Git), API (с поддержкой Swagger Docs) и системой CI/CD на базе GitHub Actions (поддерживает обратную совместимость) с использованием [act](https://github.com/nektos/act).
+
+```yaml
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER=git
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__server__DOMAIN=localhost
+      - GITEA__server__SSH_PORT=222
+      - GITEA__server__HTTP_PORT=3000
+      # SQLite
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__database__PATH=/data/gitea/gitea.db
+      # PostgreSQL
+      # - GITEA__database__DB_TYPE=postgres
+      # - GITEA__database__HOST=gitea-db:5432
+      # - GITEA__database__NAME=gitea
+      # - GITEA__database__USER=gitea
+      # - GITEA__database__PASSWD=gitea
+    volumes:
+      - ./gitea_data/server:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 222:222   # SSH
+      - 3000:3000 # HTTP
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gitea.rule=Host(`git.docker.local`)
+      - traefik.http.services.gitea.loadbalancer.server.port=3000
+    # depends_on:
+    #   - gitea-db
+
+  # gitea-db:
+  #   image: docker.io/library/postgres:14
+  #   container_name: gitea-db
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=gitea
+  #     - POSTGRES_PASSWORD=gitea
+  #     - POSTGRES_DB=gitea
+  #   networks:
+  #     - gitea
+  #   volumes:
+  #     - ./gitea_postgres_data:/var/lib/postgresql/data
+
+  gitea-act-runner:
+    image: docker.io/gitea/act_runner:nightly
+    container_name: gitea-act-runner
+    restart: unless-stopped
+    environment:
+      CONFIG_FILE: /config.yaml
+      GITEA_INSTANCE_URL: http://192.168.3.101:3000
+      # http://192.168.3.101:3000/-/admin/actions/runners
+      # or
+      # docker exec -it gitea gitea --config /data/gitea/conf/app.ini actions generate-runner-token
+      GITEA_RUNNER_REGISTRATION_TOKEN: JY1uWsuNiexmvdleG0cbftgOvuHesKlnpZeCxbQA
+    volumes:
+      - ./config.yaml:/config.yaml
+      - ./gitea_data/runner:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: host
+    depends_on:
+      - gitea
+```
+
+### GoCD
+
+[GoCD](https://github.com/gocd/gocd) - система CI/CD с поддержкой настройки всех этапов (stage, jobs, tasks, exec commands, artifacts, env и params) через пользовательский интерфейс или в формате `XML`.
+
+```yaml
+services:
+  gocd-server:
+    image: gocd/gocd-server:v24.3.0
+    container_name: gocd-server
+    restart: unless-stopped
+    ports:
+      - 8153:8153
     user: 0:0
     volumes:
-      - $HOME:/srv                    # root directory
-      - ./filebrowser_data:/database  # filebrowser.db
-      - ./filebrowser_conf:/config    # settings.json
-    ports:
-      - 8300:80
-```
+      - ./godata_server:/godata
+      - ./godata_server_home:/home/go
 
-### DuFS
-
-[DuFS](https://github.com/sigoden/dufs) - уникальный служебный файловый сервер, который поддерживает статическое обслуживание, загрузку, поиск и удаленное управление через API.
-
-```yaml
-services:
-  dufs:
-    image: sigoden/dufs
-    container_name: dufs
-    restart: unless-stopped
-    ports:
-    - 5000:5000
-    volumes:
-    - $HOME:/data
-    - ./config.yaml:/config.yaml
-    command: /data -A # --config /config.yaml
-```
-
-### Syncthing
-
-[Syncthing](https://github.com/syncthing/syncthing) - программа для непрерывной синхронизации файлов между двумя или более компьютерами. Работает на основе Block Exchange Protocol (BEP) для обмена данными, который использует TLS-шифрование для безопасной передачи данных по протоколу TCP.
-
-```yaml
-services:
-  file-syncthing:
-    image: syncthing/syncthing
-    container_name: file-syncthing
-    restart: unless-stopped
-    network_mode: host
-    # ports:
-    #   - 8384:8384         # Web UI
-    #   - 22000:22000/tcp   # TCP file transfers
-    #   - 22000:22000/udp   # QUIC file transfers
-    #   - 21027:21027/udp   # Receive local discovery broadcasts
-    environment:
-      - PUID=0
-      - PGID=0
-    volumes:
-      - ./syncthing_data:/var/syncthing   # configs
-      - $HOME/docker:/sync_data           # src sync data on server
-      # - ./backup:/sync_data             # dst sync data on client (mkdir backup && chown -R 1000:1000 backup)
-    healthcheck:
-      test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
-      interval: 1m
-      timeout: 10s
-      retries: 3
-```
-
-### h5ai
-
-[h5ai](https://github.com/lrsjng/h5ai) - современный интерфейс веб-сервера для файлового индексера. Визуально напоминается FTP сервер для удобного отображения и загрузки (например, его использует [Libretro/RetroArch](https://buildbot.libretro.com) для публикации релизов).
-
-```yaml
-services:
-  h5ai:
-    image: awesometic/h5ai
-    container_name: h5ai
+  gocd-agent:
+    image: gocd/gocd-agent-alpine:v25.3.0
+    container_name: gocd-agent
     restart: unless-stopped
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-      - HTPASSWD=false
-      - HTPASSWD_USER=admin
-      - HTPASSWD_PW=admin
+      - GO_SERVER_URL=http://gocd-server:8153/go
+      - AGENT_AUTO_REGISTER_KEY=d4a80630-99de-4bc4-a89b-95a9884d43a3 # cat ./godata_server/config/cruise-config.xml
+      - AGENT_AUTO_REGISTER_HOSTNAME=hv-us-101
+    user: 0:0
     volumes:
-      - $HOME/docker:/h5ai    # public data
-      - ./h5ai_conf:/config
-    ports:
-      - 8889:80
+      - ./godata_agent:/godata
+      - ./godata_agent_home:/home/go
+    depends_on:
+      - gocd-server
 ```
 
-### SFTPGo
+### Drone CI
 
-[SFTPGo](https://github.com/drakkan/sftpgo) - сервер SFTP, HTTP/S, FTP/S и WebDAV, с поддержкой объектное-совместимого S3 хранилища, Google Cloud Storage, файловой системы хранкения и другие SFTP-серверы.
+[Drone CI](https://github.com/drone) - CI/CD платформа, построенная на технологии DinD (Docker in Docker)
 
 ```yaml
 services:
-  sftpgo:
-    image: drakkan/sftpgo:edge
-    container_name: sftpgo
-    restart: unless-stopped
-    ports:
-      - 2022:2022
-      - 8088:8080
-```
-
-## Homelab Stack
-
-### Immich
-
-### Memos
-
-### Invidious
-
-### Metube
-
-## Game Stack
-
-### Sunshine
-
-[Sunshine](https://github.com/LizardByte/Sunshine) - самостоятельный хостинг-сервер игровых трансляций (like NVIDIA GameStream и Parsec) для клиента [Moonlight](https://github.com/moonlight-stream/moonlight-qt).
-
-```yaml
-services:
-  sunshine:
-    image: lizardbyte/sunshine:latest-ubuntu-24.04
-    container_name: sunshine
+  drone-server:
+    image: drone/drone:2
+    container_name: drone-server
     restart: unless-stopped
     volumes:
-      - ./sunshine_config:/config
+      - /var/lib/drone:/data
     environment:
-      - PUID=1001
-      - PGID=1001
-      - TZ=Etc/GMT+3
-    ports:
-      - 47984-47990:47984-47990/tcp
-      - 47998-48000:47998-48000/udp
-      - 48010:48010
-    ipc: host
-```
-
-### Dolphin
-
-[Dolphin](https://github.com/dolphin-emu/dolphin) - эмулятор GameCube и Wii собранный в [Docker образе](https://github.com/linuxserver/docker-dolphin) для запуска в браузере на базе [Selkies](https://github.com/selkies-project/selkies).
-
-```yaml
-services:
-  dolphin:
-    image: lscr.io/linuxserver/dolphin:latest
-    container_name: dolphin
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-    volumes:
-      - ./dolphin_config:/config
-      - ./dolphin_games:/games
-    ports:
-      - 3001:3001
-      - 3002:3000
-    shm_size: 1gb
-```
-
-### Emulator.js
-
-[Emulator.js](https://github.com/EmulatorJS/EmulatorJS) - веб-интерфейс для [RetroArch](https://github.com/libretro/RetroArch).
-
-🔗 [Demo](https://demo.emulatorjs.org) ↗
-
-```yaml
-services:
-  emulator.js:
-    image: lscr.io/linuxserver/emulatorjs:latest
-    container_name: emulator.js
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-      - SUBFOLDER=/
-    volumes:
-      - ./emulatorjs_config:/config
-      - ./roms:/data
+      - DRONE_GITEA_SERVER=http://gitea.docker.local
+      - DRONE_GITEA_CLIENT_ID=
+      - DRONE_GITEA_CLIENT_SECRET=
+      - DRONE_RPC_SECRET=droneRpcSecret
+      - DRONE_SERVER_HOST=drone.docker.local
+      - DRONE_SERVER_PROTO=http
     ports:
       - 80:80
+      - 443:443
+
+  drone-runner:
+    image: drone/drone-runner-docker:1
+    container_name: runner-runner
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_HOST=drone.docker.local
+      - DRONE_RPC_SECRET=droneRpcSecret
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_RUNNER_NAME=runner-local
+    ports:
       - 3000:3000
-      # - 4001:4001
 ```
 
-### Junie
+### Harness
 
-[Junie](https://github.com/Namaneo/Junie) - интерфейс Libretro, работающий в браузере.
-
-🔗 [Demo](https://namaneo.github.io/Junie) ↗
+[Harness](https://github.com/harness/harness) - система CI/CD на базе Drone, хостинг исходного кода (gitness) и реестр артефактов с открытым исходным кодом.
 
 ```yaml
 services:
-  junie:
-    image: namaneo/junie
-    container_name: junie
+  harness:
+    image: harness/harness
+    container_name: harness
     restart: unless-stopped
-    volumes:
-      - ./games:/junie/games
     ports:
-      - 8008:8000
+      - 3021:3000
+      - 3022:3022
+    volumes:
+      - ./harness_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+```
+
+### Woodpecker
+
+[Woodpecker](https://github.com/woodpecker-ci/woodpecker) - еще одна платформа CI/CD на базе Drone.
+
+```yaml
+services:
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:v3
+    container_name: woodpecker-server
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    environment:
+      - WOODPECKER_OPEN=true
+      - WOODPECKER_HOST=${WOODPECKER_HOST}
+      - WOODPECKER_GITHUB=true
+      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
+      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+    volumes:
+      - ./woodpecker_server_data:/var/lib/woodpecker/
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:v3
+    container_name: woodpecker-agent
+    restart: unless-stopped
+    command: agent
+    environment:
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+    volumes:
+      - ./woodpecker_agent_config:/etc/woodpecker
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - woodpecker-server
+```
+
+### Semaphore
+
+Semaphore - графический интерфейс для Ansible, Terraform, OpenTofu, Bash, Pulumi, Docker и PowerShell, с поддержкой [API](https://semaphoreui.com/api-docs) и [LDAP](https://docs.semaphoreui.com/administration-guide/ldap) авторизацией.
+
+```yaml
+services:
+  semaphore:
+    image: public.ecr.aws/semaphore/pro/server:v2.13.12
+    container_name: semaphore
+    restart: unless-stopped
+    environment:
+      - SEMAPHORE_ADMIN=admin
+      - SEMAPHORE_ADMIN_NAME=admin
+      - SEMAPHORE_ADMIN_EMAIL=admin@localhost
+      - SEMAPHORE_ADMIN_PASSWORD=admin
+      # Database
+      - SEMAPHORE_DB_DIALECT=postgres
+      - SEMAPHORE_DB_HOST=semaphore-db
+      - SEMAPHORE_DB_NAME=semaphore_db
+      - SEMAPHORE_DB_USER=semaphore
+      - SEMAPHORE_DB_PASS=semaphore
+      - SEMAPHORE_DB_OPTIONS={"sslmode":"disable"}
+      # Telegram
+      - SEMAPHORE_TELEGRAM_CHAT=
+      - SEMAPHORE_TELEGRAM_TOKEN=
+      # LDAP
+      # - SEMAPHORE_LDAP_ENABLE=yes
+      # - SEMAPHORE_LDAP_SERVER=semaphore-ldap:1389
+      # - SEMAPHORE_LDAP_BIND_DN=cn=semaphore,dc=docker,dc=local
+      # - SEMAPHORE_LDAP_BIND_PASSWORD=semaphore
+      # - SEMAPHORE_LDAP_SEARCH_DN=dc=docker,dc=local
+      # - SEMAPHORE_LDAP_SEARCH_FILTER=(&(objectClass=inetOrgPerson)(uid=%s))
+      # - SEMAPHORE_LDAP_MAPPING_MAIL={{ .cn }}@docker.local
+      # - SEMAPHORE_LDAP_MAPPING_UID=|
+      # - SEMAPHORE_LDAP_MAPPING_CN=cn
+    volumes:
+      - ./semaphore/app_data:/var/lib/semaphore
+      - ./semaphore/app_conf:/etc/semaphore
+    ports:
+      - 3030:3000
+
+  semaphore-db:
+    image: postgres
+    container_name: semaphore-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=semaphore
+      - POSTGRES_PASSWORD=semaphore
+      - POSTGRES_DB=semaphore_db
+    volumes:
+      - ./semaphore/db_data:/var/lib/postgresql/data
+
+  # semaphore-ldap:
+  #   image: bitnami/openldap:latest
+  #   container_name: semaphore-ldap
+  #   environment:
+  #     - LDAP_ADMIN_USERNAME=admin
+  #     - LDAP_ADMIN_PASSWORD=LdapAdmin
+  #     - LDAP_USERS=semaphore
+  #     - LDAP_PASSWORDS=semaphore
+  #     - LDAP_ROOT=dc=docker,dc=local
+  #     - LDAP_ADMIN_DN=cn=semaphore,dc=docker,dc=local
+  #   volumes:
+  #     - ./semaphore/ldap_data:/var/lib/ldap
+  #   ports:
+  #     - 1389:1389
+  #     - 1636:1636
 ```
 
 ## Monitoring Stack
@@ -3199,7 +3459,7 @@ services:
 
 [Beats](https://github.com/elastic/beats) - агенты для сбора операционных метрик и логов.
 
-```yml
+```yaml
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
@@ -3261,4 +3521,267 @@ services:
 
 # curl -u elastic:ElasticSearchAdmin http://localhost:9200/_cat/indices
 # echo '{"message":"Test log"}' | nc localhost 5000
+```
+
+## Game Stack
+
+### Sunshine
+
+[Sunshine](https://github.com/LizardByte/Sunshine) - самостоятельный хостинг-сервер игровых трансляций (like NVIDIA GameStream и Parsec) для клиента [Moonlight](https://github.com/moonlight-stream/moonlight-qt).
+
+```yaml
+services:
+  sunshine:
+    image: lizardbyte/sunshine:latest-ubuntu-24.04
+    container_name: sunshine
+    restart: unless-stopped
+    volumes:
+      - ./sunshine_config:/config
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Etc/GMT+3
+    ports:
+      - 47984-47990:47984-47990/tcp
+      - 47998-48000:47998-48000/udp
+      - 48010:48010
+    ipc: host
+```
+
+### Dolphin
+
+[Dolphin](https://github.com/dolphin-emu/dolphin) - эмулятор GameCube и Wii собранный в [Docker образе](https://github.com/linuxserver/docker-dolphin) для запуска в браузере на базе [Selkies](https://github.com/selkies-project/selkies).
+
+```yaml
+services:
+  dolphin:
+    image: lscr.io/linuxserver/dolphin:latest
+    container_name: dolphin
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - ./dolphin_config:/config
+      - ./dolphin_games:/games
+    ports:
+      - 3001:3001
+      - 3002:3000
+    shm_size: 1gb
+```
+
+### Emulator.js
+
+[Emulator.js](https://github.com/EmulatorJS/EmulatorJS) - веб-интерфейс для [RetroArch](https://github.com/libretro/RetroArch).
+
+🔗 [Emulator.js Demo](https://demo.emulatorjs.org) ↗
+
+```yaml
+services:
+  emulator.js:
+    image: lscr.io/linuxserver/emulatorjs:latest
+    container_name: emulator.js
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - SUBFOLDER=/
+    volumes:
+      - ./emulatorjs_config:/config
+      - ./roms:/data
+    ports:
+      - 80:80
+      - 3000:3000
+      # - 4001:4001
+```
+
+### Junie
+
+[Junie](https://github.com/Namaneo/Junie) - интерфейс Libretro, работающий в браузере.
+
+🔗 [Junie Demo](https://namaneo.github.io/Junie) ↗
+
+```yaml
+services:
+  junie:
+    image: namaneo/junie
+    container_name: junie
+    restart: unless-stopped
+    volumes:
+      - ./games:/junie/games
+    ports:
+      - 8008:8000
+```
+
+## Homelab Stack
+
+### Memos
+
+[Memos](https://github.com/usememos/memos) - сервис заметок (like Google Keep) с поддержкой синтаксиса Merkdown и интеграцией с Telegram (запись теста и файлов через бота).
+
+🔗 [Memos Demo](https://demo.usememos.com/explore) ↗
+
+```yaml
+services:
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    restart: unless-stopped
+    ports:
+      - 5230:5230
+    volumes:
+      - ./memos_data:/var/opt/memos
+
+  memogram:
+    image: lifailon/memogram:0.3.0-amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: memogram
+    restart: unless-stopped
+    environment:
+      - SERVER_ADDR=memos:5230
+      - BOT_TOKEN=
+      - ALLOWED_USERNAMES=
+```
+
+### Immich
+
+[Immich](https://github.com/immich-app/immich) - система хранения и просмотра фото и видео (клон Google Photo).
+
+🔗 [Immich Demo](https://demo.immich.app) ↗
+
+```yaml
+services:
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:release
+    container_name: immich-server
+    restart: unless-stopped
+    volumes:
+      - ./upload_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - UPLOAD_LOCATION=./data
+      - DB_DATA_LOCATION=./postgres
+      - TZ=Etc/UTC+3
+      - IMMICH_VERSION=v2
+      - DB_DATABASE_NAME=immich
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich
+    ports:
+      - 2283:2283
+    healthcheck:
+      disable: false
+    depends_on:
+      - redis
+      - database
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    container_name: immich-machine-learning
+    restart: unless-stopped
+    volumes:
+      - ./model_cache:/cache
+    environment:
+      - UPLOAD_LOCATION=./data
+      - DB_DATA_LOCATION=./postgres
+      - TZ=Etc/UTC+3
+      - IMMICH_VERSION=v2
+      - DB_DATABASE_NAME=immich
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich
+    healthcheck:
+      disable: false
+
+  redis:
+    image: docker.io/valkey/valkey:8-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+    container_name: immich-redis
+    restart: unless-stopped
+    healthcheck:
+      test: redis-cli ping || exit 1
+
+  database:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:41eacbe83eca995561fe43814fd4891e16e39632806253848efaf04d3c8a8b84
+    container_name: immich-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: immich
+      POSTGRES_USER: immich
+      POSTGRES_PASSWORD: immich
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    shm_size: 128mb
+```
+
+### Invidious
+
+[Invidious](https://github.com/iv-org/invidious) - альтернативный интерфейс YouTube с открытым исходным кодом.
+
+```yaml
+services:
+  invidious:
+    # docker run quay.io/invidious/youtube-trusted-session-generator
+    image: quay.io/invidious/invidious:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: invidious
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      # Gen password for hmac_key: pwgen 20 1
+      INVIDIOUS_CONFIG: |
+        db:
+          dbname: invidious
+          user: kemal
+          password: kemal
+          host: invidious-db
+          port: 5432
+        check_tables: true
+        # external_port:
+        # domain:
+        # https_only: false
+        # statistics_enabled: false
+        hmac_key: "aiph2EeShu6ohng0ohqu"
+    healthcheck:
+      test: wget -nv --tries=1 --spider http://127.0.0.1:3000/api/v1/trending || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 2
+
+  invidious-db:
+    image: docker.io/library/postgres:14
+    container_name: invidious-db
+    restart: unless-stopped
+    volumes:
+      - ./invidious_db:/var/lib/postgresql/data
+      - ./invidious_data/config/sql:/config/sql
+      - ./invidious_data/docker/init-invidious-db.sh:/docker-entrypoint-initdb.d/init-invidious-db.sh
+    environment:
+      POSTGRES_DB: invidious
+      POSTGRES_USER: kemal
+      POSTGRES_PASSWORD: kemal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+```
+
+### MeTube
+
+MeTube - Веб-интерфейс для загрузки видео из YouTube с помощь [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+
+```yaml
+services:
+  metube:
+    image: ghcr.io/alexta69/metube
+    container_name: metube
+    restart: unless-stopped
+    ports:
+      - "8090:8081"
+    volumes:
+      # Директория для хранения видео в хостовой системе : контейнере
+      - ./downloads:/downloads
 ```
