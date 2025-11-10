@@ -102,3 +102,53 @@ services:
   #   - 3443:443
   #   # Password:
   #   # docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"
+
+  # Lightweight Kubernetes cluster in Docker container from Rancher/SUSE
+
+  # k3s-server:
+  #   image: "rancher/k3s:${K3S_VERSION:-latest}"
+  #   container_name: k3s-server
+  #   restart: always
+  #   command: server
+  #   privileged: true
+  #   ulimits:
+  #     nproc: 65535
+  #     nofile:
+  #       soft: 65535
+  #       hard: 65535
+  #   environment:
+  #   - K3S_TOKEN=${K3S_TOKEN:?err}
+  #   - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+  #   - K3S_KUBECONFIG_MODE=666
+  #   tmpfs:
+  #   - /run
+  #   - /var/run
+  #   volumes:
+  #   - ./k3s_server_data:/var/lib/rancher/k3s
+  #   # To get the Kubeconfig file
+  #   - .:/output
+  #   ports:
+  #   - 6443:6443  # Kubernetes API Server
+  #   - 80:80      # Ingress controller port 80
+  #   - 443:443    # Ingress controller port 443
+
+  # agent:
+  #   image: "rancher/k3s:${K3S_VERSION:-latest}"
+  #   container_name: k3s-agent
+  #   restart: always
+  #   privileged: true
+  #   ulimits:
+  #     nproc: 65535
+  #     nofile:
+  #       soft: 65535
+  #       hard: 65535
+  #   environment:
+  #   - K3S_URL=https://k3s-server:6443
+  #   - K3S_TOKEN=${K3S_TOKEN:?err}
+  #   tmpfs:
+  #   - /run
+  #   - /var/run
+  #   volumes:
+  #   - ./k3s_agent_data:/var/lib/rancher/k3s
+
+  # K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} docker-compose up -d
