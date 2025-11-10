@@ -1,4 +1,5 @@
 services:
+  # Большая коллекция утилит для разработчиков (криптография, конверторы, веб инструменты и многое другое).
   it-tools:
     image: corentinth/it-tools:latest
     container_name: it-tools
@@ -6,6 +7,31 @@ services:
     ports:
       - 6990:80
 
+  # Универсальный веб-конвертор
+  transform:
+    image: lifailon/transform:amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: transform
+    restart: unless-stopped
+    ports:
+      - 3090:3000
+
+  # Веб-приложение для визуализации JSON, YAML, XML и CSV в интерактивные графики
+  jsoncrack:
+    image: shokohsc/jsoncrack:latest
+    container_name: jsoncrack
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # Доступ через Proxy по FQDN
+    # ports:
+    #   - 3080:8080
+    labels:
+      - traefik.enable=true
+
+  # Подключение к RDP, VNC, SSH и управление файлами через SFTP в брайзере
   nexterm:
     image: germannewsmaker/nexterm:latest
     restart: unless-stopped
@@ -19,6 +45,7 @@ services:
     volumes:
       - ./nexterm_data:/app/data
 
+  # VSCode в браузере
   code-server:
     image: linuxserver/code-server:latest
     container_name: code-server
@@ -34,6 +61,7 @@ services:
     ports:
       - 9443:8443
 
+  # Улучшенная игровая площадка для запуска кода на Go
   go-playground:
     image: x1unix/go-playground:latest
     container_name: go-playground
@@ -43,27 +71,16 @@ services:
     ports:
       - 9444:8000
 
+  # Игровая площадка для тестирования шаблонизатора Go
   go-template-playground:
-    image: lifailon/go-template-playground:latest
-    build:
-      context: .
+    image: ghcr.io/rytsh/repeatit:latest
+    # image: lifailon/go-template-playground:latest # 0.5.5-amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: go-template-playground
-    restart: unless-stopped
-    ports:
-      - 9445:8080
-
-  d2-playground:
-    image: lifailon/d2-playground:latest
-    container_name: d2-playground
-    restart: unless-stopped
-    ports:
-      - 9446:9090
-
-  draw.io:
-    image: jgraph/drawio:latest
-    container_name: draw.io
     restart: unless-stopped
     stdin_open: true
     tty: true
     ports:
-      - 9447:8080
+      - 9445:8080
