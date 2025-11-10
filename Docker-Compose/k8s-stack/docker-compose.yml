@@ -1,5 +1,5 @@
 services:
-  # Web interface for kompose (docker compose to k8s manifest converter)
+  # Web interface for kompose (docker compose to kubernetes manifest converter)
   kompose-ui:
     image: jadcham/komposeui
     container_name: kompose-ui
@@ -44,6 +44,22 @@ services:
     volumes:
       - ~/.kube/config:/root/.kube/config:ro
 
+  # Web dashboard for view logs
+  kubetail-dashboard:
+    image: kubetail/kubetail-dashboard:0.8.2
+    container_name: kubetail-dashboard
+    restart: unless-stopped
+    ports:
+      - 7500:7500
+    volumes:
+      - ~/.kube/config:/kubetail/.kube/config:ro
+    command:
+      [
+        "-a", ":7500",
+        "-p", "dashboard.environment:desktop",
+        "-p", "kubeconfig:/kubetail/.kube/config",
+      ]
+
   # Web interface for Velero
   velero-ui:
     image: otwld/velero-ui:latest
@@ -58,22 +74,6 @@ services:
     # network_mode: host # use for k3s cluster config on localhost
     ports:
       - 3504:3504 # admin:admin
-
-  # S3 storage for Velero backups
-  minio:
-    image: minio/minio
-    container_name: minio
-    hostname: minio
-    # command: server http://minio:9000/data http://192.168.3.105:9000/data --console-address ":9001"
-    command: server http://minio:9000/data --console-address ":9001"
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=MinioAdmin
-    volumes:
-      - ./minio1_data:/data
-    ports:
-      - 9000:9000
-      - 9001:9001
 
   # Web interface for k8s (like Kubernetes Dashboard)
   headlamp:
