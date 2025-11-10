@@ -8,7 +8,7 @@ services:
       - 8086:8086
     volumes:
       - ./influxdb_data:/var/lib/influxdb
-      - ./ssl:/etc/ssl/
+      # - ./ssl_cert:/etc/ssl/
     environment:
       - INFLUXDB_DB=ohm
       # Auth
@@ -20,7 +20,7 @@ services:
       # - INFLUXDB_HTTP_HTTPS_CERTIFICATE=/etc/ssl/ohm.crt
       # - INFLUXDB_HTTP_HTTPS_PRIVATE_KEY=/etc/ssl/ohm.key
 
-  # Web (like Grafana)
+  # Web interface (like Grafana)
   chronograf:
     image: chronograf:1.8
     container_name: chronograf

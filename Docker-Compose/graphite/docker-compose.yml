@@ -9,3 +9,12 @@ services:
       - 2023-2024:2023-2024
       - 8125:8125/udp
       - 8126:8126
+
+# StatsD (UDP)
+# Формат: метрика:значение|type
+# Хранятся в stats и stats_counts по указанном пути через точку
+# while true; do echo "test.dev.random:$(($RANDOM % 100))|c" | nc -u 127.0.0.1 8125; sleep 1; done
+
+# Carbon (TCP) Plain Text Protocol
+# Формат: метрика значение timestamp
+# while true; do echo "test.dev.random $(($RANDOM % 100)) $(date +%s)" | nc -w 1 127.0.0.1 2003; sleep 1; done

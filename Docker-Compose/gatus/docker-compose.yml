@@ -2,14 +2,14 @@ services:
   gatus:
     image: twinproduction/gatus:latest
     container_name: gatus
+    restart: unless-stopped
+    volumes:
+      - ./config:/config  # yaml configuration
+      - ./data:/data      # SQLite
+    ports:
+      - 8180:8080
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 10s
       timeout: 5s
       retries: 3
-    volumes:
-      - ./config:/config
-      # SQLite
-      - ./data:/data/
-    ports:
-      - "8081:8080"

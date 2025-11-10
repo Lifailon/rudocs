@@ -1,0 +1,59 @@
+services:
+  # Frontend
+  web:
+    image: jitsi/web:unstable
+    restart: unless-stopped
+    ports:
+      - 10080:80
+      - 10443:443
+    volumes:
+      - ./jitsi_data/web:/config:Z
+      - ./jitsi_data/web/crontabs:/var/spool/cron/crontabs:Z
+      - ./jitsi_data/transcripts:/usr/share/jitsi-meet/transcripts:Z
+      - ./jitsi_data/web/load-test:/usr/share/jitsi-meet/load-test:Z
+    labels:
+      service: jitsi-web
+    depends_on:
+      - jvb
+
+  # XMPP server
+  prosody:
+    image: jitsi/prosody:unstable
+    restart: unless-stopped
+    expose:
+      - 5222
+      - 5269
+      - 5347
+      - 5280
+    labels:
+      service: jitsi-prosody
+    volumes:
+      - ./jitsi_data/prosody/config:/config:Z
+      - ./jitsi_data/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
+
+  # Focus component
+  jicofo:
+    image: jitsi/jicofo:unstable
+    restart: unless-stopped
+    ports:
+      - 18888:8888
+    volumes:
+      - ./jitsi_data/jicofo:/config:Z
+    labels:
+      service: jitsi-jicofo
+    depends_on:
+      - prosody
+
+  # Video bridge
+  jvb:
+    image: jitsi/jvb:unstable
+    restart: unless-stopped
+    ports:
+      - 10000:10000/udp
+      - 10080:8080
+    volumes:
+      - ./jitsi_data/jvb:/config:Z
+    labels:
+      service: jitsi-jvb
+    depends_on:
+      - prosody

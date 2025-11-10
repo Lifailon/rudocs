@@ -1,0 +1,46 @@
+services:
+  godoxy-frontend:
+    image: ghcr.io/yusing/godoxy-frontend:${TAG:-latest}
+    container_name: godoxy-frontend
+    restart: unless-stopped
+    user: 0:0
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - all
+    tmpfs:
+      - /app/.next/cache
+    env_file: .env
+    labels:
+      proxy.aliases: godoxy
+      proxy.godoxy.port: 3000
+    network_mode: host
+    # ports:
+    #   - 3000:3000
+
+  godoxy-proxy:
+    image: ghcr.io/yusing/godoxy:${TAG:-latest}
+    container_name: godoxy-proxy
+    restart: unless-stopped
+    user: 0:0
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - all
+    cap_add:
+      - NET_BIND_SERVICE
+    # volumes:
+    #   - ./config.yaml:/app/config/config.yaml
+    #   - ./godoxy_data/logs:/app/logs
+    #   - ./godoxy_data/error_pages:/app/error_pages:ro
+    #   - ./godoxy_data/data:/app/data
+    #   - ./godoxy_data/certs:/app/certs
+    env_file: .env
+    environment:
+      - DOCKER_HOST=tcp://127.0.0.1:2375
+    network_mode: host
+    # ports:
+    #   - 8888:8888 # API
+    #   - 80:80     # Proxy HTTP
+    #   - 443:443   # Proxy HTTPS
