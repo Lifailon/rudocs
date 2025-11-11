@@ -1,0 +1,30 @@
+services:
+  logbull:
+    image: logbull/logbull:latest
+    container_name: logbull
+    restart: unless-stopped
+    ports:
+      - 4005:4005
+    volumes:
+      - ./logbull_data:/logbull-data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4005/api/v1/system/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+# curl -X POST "http://LOGBULL_HOST/api/v1/logs/receiving/LOGBULL_PROJECT_ID" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "logs": [
+#       {
+#         "level": "INFO",
+#         "message": "User logged in successfully",
+#         "fields": {
+#           "user_id": "12345",
+#           "username": "john_doe",
+#           "ip": "192.168.1.100"
+#         }
+#       }
+#     ]
+#   }'
