@@ -31,19 +31,6 @@ services:
       postgresql:
         condition: service_healthy
 
-  pgadmin4:
-    image: dpage/pgadmin4:latest
-    container_name: pgadmin4
-    restart: unless-stopped
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
-      - PGADMIN_DEFAULT_PASSWORD=admin
-      - PGADMIN_CONFIG_SERVER_MODE=False
-    volumes:
-       - ./pgadmin_data:/var/lib/pgadmin
-    ports:
-      - 5050:80
-
   # REST API
   postgrest:
     image: postgrest/postgrest
@@ -57,7 +44,7 @@ services:
     depends_on:
       - postgresql
 
-  # Swagger UI
+  # Swagger UI for PostgREST
   swagger:
     image: swaggerapi/swagger-ui
     ports:
@@ -70,7 +57,7 @@ services:
       - postgresql
       - postgrest
 
-  # Backup
+  # Backup System and Web UI
   postgresus:
     image: rostislavdugin/postgresus:latest
     container_name: postgresus

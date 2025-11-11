@@ -20,6 +20,30 @@ services:
       - KUBECTL_INSECURE_SKIP_TLS_VERIFY=true
       - GOTTY_OPTIONS=--port 8080 --permit-write --permit-arguments
 
+  # Web interface for managing k8s (like Kubernetes Dashboard) from 1panel
+  kubepi:
+    image: 1panel/kubepi
+    container_name: kubepi
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - 8181:80 # admin:kubepi
+
+  # Web interface for managing k8s (like Kubernetes Dashboard) from SIG
+  # headlamp:
+  #   image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
+  #   container_name: headlamp
+  #   restart: unless-stopped
+  #   command: [
+  #     "--kubeconfig", "/headlamp/.kube/config",
+  #     "--port","64446",
+  #     "--enable-dynamic-clusters"
+  #   ]
+  #   volumes:
+  #     - ~/.kube/config:/headlamp/.kube/config:ro
+  #   ports:
+  #     - 64446:64446
+
   # Web interface for Helm
   helm-dashboard:
     image: komodorio/helm-dashboard:latest
@@ -74,21 +98,6 @@ services:
     # network_mode: host # use for k3s cluster config on localhost
     ports:
       - 3504:3504 # admin:admin
-
-  # Web interface for k8s (like Kubernetes Dashboard)
-  headlamp:
-    image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
-    container_name: headlamp
-    restart: unless-stopped
-    command: [
-      "--kubeconfig", "/headlamp/.kube/config",
-      "--port","64446",
-      "--enable-dynamic-clusters"
-    ]
-    volumes:
-      - ~/.kube/config:/headlamp/.kube/config:ro
-    ports:
-      - 64446:64446
 
   # rancher:
   #   image: rancher/rancher:latest
