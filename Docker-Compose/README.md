@@ -321,11 +321,7 @@ services:
 
 🔗 [Restfox API Client Demo](https://restfox.dev) ↗
 
-🔗 [Hoppscotch API Client Demo](https://hoppscotch.io/) ↗
-
-🔗 [HTTPie API Client Demo](https://httpie.io/app) ↗
-
-🔗 [Postman Collections to OpenAPI Docs](https://kevinswiber.github.io/postman2openapi) ↗
+🔗 [Restfox Desktop Client](https://github.com/flawiddsouza/Restfox/releases) ↗
 
 ```yaml
 services:
@@ -356,6 +352,12 @@ services:
       - ./yaade_data:/app/data
 ```
 
+🔗 [Hoppscotch API Client Demo](https://hoppscotch.io/) ↗
+
+🔗 [HTTPie API Client Demo](https://httpie.io/app) ↗
+
+🔗 [Postman Collections to OpenAPI Docs](https://kevinswiber.github.io/postman2openapi) ↗
+
 ### HTTPBin
 
 [go-httpbin](https://github.com/mccutchen/go-httpbin) - API сервер клиент для тестирования HTTP запросов и ответов (fork [httpbin](https://github.com/postmanlabs/httpbin) от Postman Labs).
@@ -379,6 +381,8 @@ services:
 [Swagger UI](https://github.com/swagger-api/swagger-ui) - браузер для спецификации OpenAPI (поддерживает загрузку любой переданной спецификации через url).
 
 🔗 [Swagger UI Demo](https://petstore.swagger.io) ↗
+
+🔗 [Swagger Viewer VSCode Extension](https://github.com/arjun-g/vs-swagger-viewer) ↗
 
 ```yaml
 services:
@@ -423,7 +427,7 @@ services:
 
 ### Mitm Proxy
 
-[Mitm Proxy](https://github.com/mitmproxy/mitmproxy) - прямой (forward) прокси сервер для перехвата, анализа и изменения HTTP-трафика (удобно для отладки запросов в мобильных приложениях).
+[Mitm Proxy](https://github.com/mitmproxy/mitmproxy) - прямой (forward) прокси сервер для перехвата и изменения HTTP-трафика с веб-интерфейсом для анализа запросов и ответов (like [Fiddler](https://www.telerik.com/fiddler)), удобно для отладки мобильных приложений.
 
 ```yaml
 services:
@@ -586,7 +590,7 @@ services:
 
 ### IT Tools
 
-IT Tools - огромная коллекция утилит (криптография, конверторы, веб инструменты и многое другое).
+IT Tools - большая коллекция утилит для разработчиков (криптография, конверторы, веб инструменты и многое другое).
 
 🔗 [IT Tools Demo](https://it-tools.tech) ↗
 
@@ -618,6 +622,37 @@ services:
     ports:
       - 3090:3000
 ```
+
+### JSON Crack
+
+[JSON Crack](https://github.com/AykutSarac/jsoncrack.com) - веб-приложение для визуализации JSON, YAML, XML и CSV в интерактивные графики.
+
+🔗 [JSON Crack Demo](https://jsoncrack.com/editor) ↗
+
+🔗 [JSON Crack VSCode Extension](https://github.com/AykutSarac/jsoncrack-vscode)  ↗
+
+```yaml
+services:
+  jsoncrack:
+    image: shokohsc/jsoncrack:latest
+    container_name: jsoncrack
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # Доступ через Proxy по FQDN
+    # ports:
+    #   - 3080:8080
+    labels:
+      - traefik.enable=true
+```
+
+### Markmap
+
+[Markmap](https://github.com/markmap/markmap) - как JSON Crack для Markdown.
+
+🔗 [Markmap Demo](https://markmap.js.org/repl) ↗
+
+🔗 [Markmap VSCode Extension](https://github.com/markmap/markmap-vscode)  ↗
 
 ### NexTerm
 
@@ -709,7 +744,7 @@ services:
 
 🔗 [D2 Playground Demo](https://play.d2lang.com) ↗
 
-🔗 [VSCode Extension](https://github.com/terrastruct/d2-vscode) ↗
+🔗 [D2 VSCode Extension](https://github.com/terrastruct/d2-vscode) ↗
 
 ```yaml
 services:
@@ -726,9 +761,11 @@ services:
 
 ### DrawIO
 
-[Draw.io](https://github.com/jgraph/drawio) - веб-версия бесплатного приложения для создания различных диаграмм (like MS Visio), блок-схем и т.п.
+[Draw.io](https://github.com/jgraph/drawio) (like MS Visio) - веб-версия бесплатного приложения для создания различных диаграмм, блок-схем и т.п.
 
 🔗 [Draw.io Demo](https://app.diagrams.net) ↗
+
+🔗 [Draw.io VSCode Extension](https://github.com/hediet/vscode-drawio) ↗
 
 ```yaml
 services:
@@ -1774,6 +1811,100 @@ services:
     restart: unless-stopped
 ```
 
+### GoDoxy
+
+[GoDoxy](https://github.com/yusing/godoxy) - обратный прокси-сервер для контейнеров Docker или Podman с веб-интерфейсов и агентами для быстрого доступа к веб-интерфейсам сервисов, управления контейнерами и конфигурациями прокси сервера, мониторинга доступности и ресурсов серверов и контейнеров.
+
+🔗 [GoDoxy Demo](https://demo.godoxy.dev) ↗
+
+```yaml
+services:
+  godoxy-frontend:
+    image: ghcr.io/yusing/godoxy-frontend:${TAG:-latest}
+    container_name: godoxy-frontend
+    restart: unless-stopped
+    user: 0:0
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - all
+    tmpfs:
+      - /app/.next/cache
+    env_file: .env
+    labels:
+      proxy.aliases: godoxy
+      proxy.godoxy.port: 3000
+    network_mode: host
+    # ports:
+    #   - 3000:3000
+
+  godoxy-proxy:
+    image: ghcr.io/yusing/godoxy:${TAG:-latest}
+    container_name: godoxy-proxy
+    restart: unless-stopped
+    user: 0:0
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - all
+    cap_add:
+      - NET_BIND_SERVICE
+    # volumes:
+    #   - ./config.yaml:/app/config/config.yaml
+    #   - ./godoxy_data/logs:/app/logs
+    #   - ./godoxy_data/error_pages:/app/error_pages:ro
+    #   - ./godoxy_data/data:/app/data
+    #   - ./godoxy_data/certs:/app/certs
+    env_file: .env
+    environment:
+      - DOCKER_HOST=tcp://127.0.0.1:2375
+    network_mode: host
+    # ports:
+    #   - 8888:8888 # API
+    #   - 80:80     # Proxy HTTP
+    #   - 443:443   # Proxy HTTPS
+```
+
+env:
+
+```env
+GODOXY_FRONTEND_ALIASES=godoxy.docker.local
+# API listening address
+GODOXY_API_ADDR=127.0.0.1:8888
+SOCKET_PROXY_LISTEN_ADDR=127.0.0.1:2375
+DOCKER_SOCKET=/var/run/docker.sock
+# DOCKER_SOCKET=/var/run/podman/podman.sock
+# Proxy listening address
+GODOXY_HTTP_ADDR=:80
+GODOXY_HTTPS_ADDR=:443
+GODOXY_HTTP3_ENABLED=true
+GODOXY_DEBUG=false
+TAG=latest
+TZ=ETC/UTC+3
+GODOXY_UID=0
+GODOXY_GID=0
+GODOXY_API_JWT_SECURE=true
+# openssl rand -base64 32
+GODOXY_API_JWT_SECRET=VlB4wAw96yiXpmzz1XF8VtWDB2CP0D8RK3fSxPV/zuw=
+# API/WebUI user password login credentials (optional)
+GODOXY_API_USER=admin
+GODOXY_API_PASSWORD=admin
+# OIDC Configuration (optional)
+# GODOXY_OIDC_ISSUER_URL=https://accounts.google.com
+# GODOXY_OIDC_CLIENT_ID=your-client-id
+# GODOXY_OIDC_CLIENT_SECRET=your-client-secret
+# GODOXY_OIDC_SCOPES=openid, profile, email, groups # you may also include `offline_access` if your Idp supports it (e.g. Authentik, Pocket ID)
+# GODOXY_OIDC_ALLOWED_USERS=user1,user2
+# GODOXY_OIDC_ALLOWED_GROUPS=group1,group2
+# Metrics
+GODOXY_METRICS_DISABLE_CPU=false
+GODOXY_METRICS_DISABLE_MEMORY=false
+GODOXY_METRICS_DISABLE_DISK=false
+GODOXY_METRICS_DISABLE_NETWORK=false
+GODOXY_METRICS_DISABLE_SENSORS=false
+```
+
 ### Pangolin
 
 [Pangolin](https://github.com/fosrl/pangolin) — это обратный прокси-сервер с туннелированием, размещаемый на собственном сервере, с контролем доступа на основе личности и контекста, разработанный для лёгкого раскрытия и защиты приложений, работающих где угодно. Pangolin выступает в роли центрального узла и соединяет изолированные сети, даже находящиеся за строгими брандмауэрами, через зашифрованные туннели, обеспечивая лёгкий доступ к удалённым сервисам без открытия портов и использования VPN.
@@ -1878,6 +2009,37 @@ services:
 # Windows
 # Invoke-RestMethod http://192.168.3.101:1080/__proxyfor__/certificate/proxyfor-ca-cert.cer -OutFile $HOME/Downloads/proxyfor-ca-cert.cer
 # certutil -addstore root $HOME/Downloads/proxyfor-ca-cert.cer
+```
+
+### Froxy
+
+[Froxy](https://github.com/Lifailon/froxy) - кроссплатформенная утилита командной строки для реализации SOCKS, HTTP и обратного прокси сервера на базе **.NET**. Поддерживается протокол **SOCKS5** для туннелирования TCP трафика и **HTTP** протокол для прямого (классического) проксирования любого **HTTPS** трафика (`CONNECT` запросы), а также **TCP**, **UDP** и **HTTP/HTTPS** протоколы для обратоного проксирования. Для переадресации веб-траффика через обратный прокси поддерживаются `GET` и `POST` запросы с передачей заголовков и тела запроса от клиента, что позволяет использовать `API` запросы и проходить авторизацию на сайтах (передача cookie).
+
+```yaml
+services:
+  tmdb_web:
+    image: lifailon/froxy
+    environment:
+      SOCKS: "0"
+      FORWARD: "0"
+      LOCAL: "*:8001"
+      REMOTE: "https://themoviedb.org"
+      USER: "false"
+      PASSWORD: "false"
+    ports:
+      - "8001:8001"
+
+  tmdb_api:
+    image: lifailon/froxy
+    environment:
+      SOCKS: "0"
+      FORWARD: "0"
+      LOCAL: "*:8002"
+      REMOTE: "https://api.themoviedb.org"
+      USER: "false"
+      PASSWORD: "false"
+    ports:
+      - "8002:8002"
 ```
 
 ## VRRP
@@ -2856,6 +3018,30 @@ services:
       - ~/.kube/config:/root/.kube/config:ro
 ```
 
+### Kubetail Dashboard
+
+[Kubetail Dashboard](https://github.com/kubetail-org/kubetail) - веб-интерфейс и инструмент командной строки для отображения логов из разных подов в одном потоке (поддерживает фильтрацию по содержимому сообщений при установки в кластер).
+
+🔗 [Kubetail Dashboard installed in Kubernetes Demo](https://www.kubetail.com/demo) ↗
+
+```yaml
+services:
+  kubetail-dashboard:
+    image: kubetail/kubetail-dashboard:0.8.2
+    container_name: kubetail-dashboard
+    restart: unless-stopped
+    ports:
+      - 7500:7500
+    volumes:
+      - ~/.kube/config:/kubetail/.kube/config:ro
+    command:
+      [
+        "-a", ":7500",
+        "-p", "dashboard.environment:desktop",
+        "-p", "kubeconfig:/kubetail/.kube/config",
+      ]
+```
+
 ### Velero UI
 
 [Velero UI](https://github.com/otwld/velero-ui) - веб-интерфейс для управления [Velero](https://github.com/vmware-tanzu/velero) и маниторинга резервного копирования ресурсов в кластерах Kubernetes.
@@ -2900,7 +3086,7 @@ services:
 
 ### Rancher
 
-[Rancher](https://github.com/rancher/rancher) - упрощает запуск и управление Kubernetes через Веб-интерфейс.
+[Rancher](https://github.com/rancher/rancher) - инструмент для быстрого запуска и управления кластерами Kubernetes через Веб-интерфейс.
 
 ```yaml
 services:
@@ -2918,30 +3104,59 @@ services:
     # docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"
 ```
 
-### Kubetail Dashboard
+### k3s
 
-[Kubetail Dashboard](https://github.com/kubetail-org/kubetail) - веб-интерфейс и инструмент командной строки для отображения логов из разных подов в одном потоке.
+[k3s](https://github.com/k3s-io/k3s) - легковесный Kubernetes от Rancher/SUSE. Позволяет установить кластер в контейнере Docker или одной командой с помощью скрипта, занимает в два раза меньше памяти, и все это в двоичном файле размером менее 100 МБ.
 
 ```yaml
 services:
-  kubetail-dashboard:
-    # image: lifailon/kubetail-dashboard:0.10.0-amd64
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    image: kubetail/kubetail-dashboard:0.8.2
-    container_name: kubetail-dashboard
-    restart: unless-stopped
-    ports:
-      - 7500:7500
+  k3s-server:
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    container_name: k3s-server
+    restart: always
+    command: server
+    privileged: true
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+    - K3S_TOKEN=${K3S_TOKEN:?err}
+    - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+    - K3S_KUBECONFIG_MODE=666
+    tmpfs:
+    - /run
+    - /var/run
     volumes:
-      - ~/.kube/config:/kubetail/.kube/config:ro
-    command:
-      [
-        "-a", ":7500",
-        "-p", "dashboard.environment:desktop",
-        "-p", "kubeconfig:/kubetail/.kube/config",
-      ]
+    - ./k3s_server_data:/var/lib/rancher/k3s
+    # To get the Kubeconfig file
+    - .:/output
+    ports:
+    - 6443:6443  # Kubernetes API Server
+    - 80:80      # Ingress controller port 80
+    - 443:443    # Ingress controller port 443
+
+  agent:
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    container_name: k3s-agent
+    restart: always
+    privileged: true
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+    - K3S_URL=https://k3s-server:6443
+    - K3S_TOKEN=${K3S_TOKEN:?err}
+    tmpfs:
+    - /run
+    - /var/run
+    volumes:
+    - ./k3s_agent_data:/var/lib/rancher/k3s
+
+# K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} docker-compose up -d
 ```
 
 ## CI/CD Stack
@@ -3368,7 +3583,367 @@ services:
   #     - 1636:1636
 ```
 
+## Vault Stack
+
+### HashiCorp Vault
+
+[HashiCorp Vault](https://github.com/hashicorp/vault) - инструмент хранения и управления секретами (например, API ключи, пароли, сертификаты и многое другое).
+
+[HashiCorp Consul](https://github.com/hashicorp/consul) - распределенное и высокодоступное (HA) решение для подключения и настройки приложений в динамической распределенной инфраструктуре, например, для отказоустойчивости Vault.
+
+```yaml
+services:
+  consul:
+    image: hashicorp/consul:latest
+    container_name: consul
+    restart: unless-stopped
+    ports:
+      - "8500:8500"
+    command: "agent -server -bootstrap-expect=1 -client=0.0.0.0"
+    volumes:
+      - ./consul_data:/consul/data
+      - ./consul.hcl.config:/consul/config/consul.hcl
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    restart: unless-stopped
+    depends_on:
+      - consul
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://localhost:8200
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault_config:/vault/config
+      # Использовать локальное файловое хранилище
+      # - ./vault_data:/vault/file
+    cap_add:
+      - IPC_LOCK
+    command: >
+      vault server -config=/vault/config/vault.hcl.config
+```
+
+### VaultWarden
+
+[VaultWarden](https://github.com/dani-garcia/vaultwarden) - неофициальный легковесный и обратно совместимый сервер современного менеджера паролей [Bitwarden](https://github.com/bitwarden), написанный на Rust.
+
+```yaml
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      - DOMAIN=http://vaultwarden.docker.local
+      # - ROCKET_ADDRESS=0.0.0.0
+      # - ROCKET_PORT=1338
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.myapp.rule=Host(`vaultwarden.docker.local`)
+    # Access via proxy
+    # ports:
+    #   - 1338:1338
+    volumes:
+      - ./vw_data/:/data/
+```
+
+### PassBolt
+
+[PassBolt](https://github.com/passbolt/passbolt_api) - менеджер паролей для совместного использования в командах (поддерживает веб-интерфейс, [мобильное](https://play.google.com/store/apps/details?id=com.passbolt.mobile.android) и [десктопное](https://github.com/passbolt/passbolt-windows) приложение, расширение браузера и интсрумент командной строки). 
+
+🔗 [Passbolt Chrome Extension](https://chromewebstore.google.com/detail/passbolt-open-source-pass/didegimhafipceonhjepacocaffmoppf) ↗
+
+```yaml
+# sudo mkdir -p passbolt_data/gpg
+# sudo chown -R 33:33 ./passbolt_data/gpg
+# sudo chmod 755 ./passbolt_data/gpg
+# sudo chmod 644 ./passbolt_data/gpg/*.asc 2>/dev/null || true
+
+services:
+  passbolt:
+    image: passbolt/passbolt:latest
+    # image: passbolt/passbolt:latest-ce-non-root
+    container_name: passbolt
+    restart: unless-stopped
+    tty: true
+    command: >
+      bash -c "/usr/bin/wait-for.sh -t 0 passbolt-db:5432 -- /docker-entrypoint.sh"
+    environment:
+      - APP_FULL_BASE_URL=https://passbolt.docker.local
+      - DATASOURCES_DEFAULT_DRIVER=Cake\Database\Driver\Postgres
+      - DATASOURCES_DEFAULT_ENCODING=utf8
+      - DATASOURCES_DEFAULT_URL=postgres://passbolt:PassB0lt@passbolt-db:5432/passbolt?schema=passbolt
+      - EMAIL_DEFAULT_FROM_NAME=passbolt
+      - EMAIL_DEFAULT_FROM=admin@docker.local
+      - EMAIL_TRANSPORT_DEFAULT_HOST=localhost
+      - EMAIL_TRANSPORT_DEFAULT_PORT=25
+      - EMAIL_TRANSPORT_DEFAULT_USERNAME=null
+      - EMAIL_TRANSPORT_DEFAULT_PASSWORD=null
+      - EMAIL_TRANSPORT_DEFAULT_TLS=null
+    volumes:
+      - ./passbolt_data/gpg:/etc/passbolt/gpg
+      - ./passbolt_data/jwt:/etc/passbolt/jwt
+    # ports:
+    #   - 80:80
+    #   - 443:443
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.myapp.rule=Host(`passbolt.docker.local`)
+    depends_on:
+      - passbolt-db
+
+  passbolt-db:
+    image: postgres:latest
+    container_name: passbolt-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=passbolt
+      - POSTGRES_USER=passbolt
+      - POSTGRES_PASSWORD=PassB0lt
+    volumes:
+      - ./passbolt_data/db:/var/lib/postgresql
+    # ports:
+    #   - 5433:5432
+
+# Creat new user
+# docker exec -it passbolt bash
+# su -s /bin/bash -c "/usr/share/php/passbolt/bin/cake passbolt register_user -u admin@docker.local -f Admin -l Admin -r admin" www-data
+```
+
+### KeeWeb
+
+[KeeWeb](https://github.com/keeweb/keeweb) - веб-интефрейс и интерфейс рабочего стола для баз данных `kdbx`.
+
+🔗 [KeeWeb Demo](https://app.keeweb.info) ↗
+
+🔗 [KeeWeb Chrome Extension](https://chromewebstore.google.com/detail/keeweb-connect/pikpfmjfkekaeinceagbebpfkmkdlcjk) ↗
+
+```yaml
+services:
+  keeweb:
+    container_name: keeweb
+    image: ghcr.io/keeweb/keeweb:latest
+    # image: keeweb/keeweb:latest
+    restart: unless-stopped
+    volumes:
+      - ./cert.crt:/config/keys/cert.crt:ro
+      - ./cert.key:/config/keys/cert.key:ro
+      - ./keeweb_data:/config
+    ports:
+      - 4343:443
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+```
+
+### KeePassXC
+
+[KeePassXC](https://github.com/keepassxreboot/keepassxc) - современный и кроссплатформенный интерфейс [KeePass](https://keepass.info) с открытым исходным кодом, а также собранный [образ](https://docs.linuxserver.io/images/docker-keepassxc/#strict-reverse-proxies) с веб-интерфейсом на базе [Selkies](https://github.com/selkies-project/selkies).
+
+```yaml
+services:
+  keepassxc:
+    # Base image: https://github.com/linuxserver/docker-baseimage-selkies
+    image: lscr.io/linuxserver/keepassxc:latest
+    container_name: keepassxc
+    restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined # optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - LC_ALL=ru_RU.UTF-8
+      # Creds for auth
+      # - CUSTOM_USER=admin
+      # - PASSWORD=admin
+    volumes:
+      - ./keepassxc_data:/config # dir for ssl and kdbx files
+    ports:
+      - 3000:3000 # HTTP Selkies (https://github.com/selkies-project/selkies)
+      - 3001:3001 # HTTPS
+```
+
 ## Monitoring Stack
+
+### Gatus
+
+[Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
+
+🔗 [Gatus Demo](https://gatus.io/demo) ↗
+
+В демо-версии присутствует интерфейс для настройки и проверки мониторинга (без экспорта в формате конфигурации).
+
+```yaml
+services:
+  gatus:
+    image: twinproduction/gatus:latest
+    container_name: gatus
+    restart: unless-stopped
+    volumes:
+      - ./config:/config  # yaml configuration
+      - ./data:/data      # SQLite
+    ports:
+      - 8180:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+### Uptime Kuma
+
+[Uptime Kuma](https://github.com/louislam/uptime-kuma) - простой в использовании инструмент для мониторинга веб-приложений с помощью веб-интерфейса.
+
+🔗 [Uptime Kuma Demo](https://demo.kuma.pet/start-demo) ↗
+
+[Uptime Kuma API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - Swagger документация для Uptime Kuma API.
+
+```yaml
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - 3001:3001
+    volumes:
+      - ./kuma_data:/app/data
+
+  uptime-kuma-api:
+    image: medaziz11/uptimekuma_restapi
+    container_name: uptime-kuma-api
+    restart: unless-stopped
+    environment:
+      - KUMA_SERVER=http://uptime-kuma:3001
+      - KUMA_USERNAME=admin
+      - KUMA_PASSWORD=KumaAdmin
+      - ADMIN_PASSWORD=KumaApiAdmin
+    ports:
+      - 3002:8000
+    volumes:
+      - ./kuma_api:/db
+    depends_on:
+      - uptime-kuma
+
+  # uptime-robot:
+  #   image: overclockedllama/uptimerobot
+  #   container_name: uptime-robot
+  #   restart: unless-stopped
+  #   environment: 
+  #     - PORT=3000
+  #     - LOG_LEVEL=info
+  #     - CRON_TIME=*/1 * * * *
+  #     - UPTIME_ROBOT_API=
+  #     - UPTIME_ROBOT_NAME_PATTERN=%name
+  #     - WEBSITE_TITLE=
+  #     - WEBSITE_COPYRIGHT=
+  #   ports: 
+  #     - 3003:3000
+  #   volumes: 
+  #     - ./uptimerobot_config:/app/config
+```
+
+### Graphite
+
+[Graphite](https://github.com/graphite-project) - система хранения метрик временных рядов, которая принимает данные по TCP или UDP (например, для отправки данных с помощью `netcat`) протоколам и состоит из трех основных компонентов:
+
+- [Graphite Web](https://github.com/graphite-project/graphite-web) - веб-интерфейс на [django](https://github.com/django/django) для визуализации метрик на графиках.
+- [Whisper](https://github.com/graphite-project/whisper) - файловая БД для временных рядов (хранит данные в `.wsp` файлах).
+- [Carbon](https://github.com/graphite-project/carbon) (TCP) и `StatsD` (UDP) - агенты для приема метрик по сети (кэширует и записывает данные в БД).
+
+[OhmGraphite](https://github.com/nickbabcock/OhmGraphite) - экспортер метрик из [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor), который работает как служба Windows для отправки данных в Graphite, InfluxdDB, Prometheus или [TimescaleDB](https://github.com/timescale/timescaledb) (база данных временных рядов, упакованная как расширение Postgres).
+
+```yaml
+services:
+  graphite:
+    image: graphiteapp/graphite-statsd
+    container_name: graphite
+    restart: unless-stopped
+    ports:
+      - 2025:80
+      - 2003-2004:2003-2004
+      - 2023-2024:2023-2024
+      - 8125:8125/udp
+      - 8126:8126
+
+# StatsD (UDP)
+# Формат: метрика:значение|type
+# Хранятся в stats и stats_counts по указанном пути через точку
+# while true; do echo "test.dev.random:$(($RANDOM % 100))|c" | nc -u 127.0.0.1 8125; sleep 1; done
+
+# Carbon (TCP) Plain Text Protocol
+# Формат: метрика значение timestamp
+# while true; do echo "test.dev.random $(($RANDOM % 100)) $(date +%s)" | nc -w 1 127.0.0.1 2003; sleep 1; done
+```
+
+### InfluxDB
+
+Система мониторинга (экосистема Influx) состоит из следующих компонентов:
+
+- [InfluxDB](https://github.com/influxdata/influxdb) - база данных времянных рядов, для хранения метрик.
+- [Telegraf](https://github.com/influxdata/telegraf) - агент для сбора, обработки, агрегации и записи метрик, логов и других произвольных данных (поддерживает более 300 плагинов, которые позволяют мониторить системы из коробки, например, `inputs.docker`).
+- [Chronograf](https://github.com/influxdata/chronograf) - веб-интерфейс на базе [React](https://github.com/facebook/react), который позволяет динамически  визуализировать метрики на графиках (похоже на Grafana и Zabbix), даже без настройки.
+
+1-я версия InfluxDB поддерживает управление базой и отправку данных, используя API (например, с помощью `curl`).
+
+[InfluxDB Studio](https://github.com/meverett/InfluxDBStudio) - инструмент рабочего стола для управления базами данных InfluxDB `1.8` на базе [InfluxData.Net](https://github.com/tihomir-kit/InfluxData.Net) (как [MS SSMS](https://en.wikipedia.org/wiki/SQL_Server_Management_Studio)).
+
+[Flux](https://github.com/influxdata/flux) - скриптовый язык для запросов к базам данных InfluxDB версии `2.0` и выше.
+
+```yaml
+services:
+  # Database
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - 8086:8086
+    volumes:
+      - ./influxdb_data:/var/lib/influxdb
+      # - ./ssl_cert:/etc/ssl/
+    environment:
+      - INFLUXDB_DB=ohm
+      # Auth
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      # SSL (optionals)
+      # - INFLUXDB_HTTP_HTTPS_ENABLED=true
+      # - INFLUXDB_HTTP_HTTPS_CERTIFICATE=/etc/ssl/ohm.crt
+      # - INFLUXDB_HTTP_HTTPS_PRIVATE_KEY=/etc/ssl/ohm.key
+
+  # Web interface (like Grafana)
+  chronograf:
+    image: chronograf:1.8
+    container_name: chronograf
+    restart: unless-stopped
+    ports:
+      - 8888:8888
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_USERNAME=admin
+      - INFLUXDB_PASSWORD=admin
+    depends_on:
+      - influxdb
+
+  # Agent
+  telegraf:
+    image: telegraf
+    container_name: telegraf
+    restart: unless-stopped
+    user: :109 # grep docker /etc/group
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - influxdb
+```
 
 ### Zabbix
 
@@ -3449,15 +4024,39 @@ services:
       - zabbix-server
 ```
 
-### ELK
+### OpenObserve
 
-[Elasticsearch](https://github.com/elastic/elasticsearch) - распределенная поисковая и аналитическая система, основанная на библиотеке Apache Lucene. Она используется для быстрого поиска и анализа больших объемов данных в реальном времени, например, для полнотекстового поиска.
+[Open Observe](https://github.com/openobserve/openobserve) (O2) — централизованная система наблюдения для логов (like Loki), метрик (like Prometheus), трассировок (like Jaeger), аналитики, RUM (мониторинг реальных пользователей — производительность, ошибки, воспроизведение сеансов), предназначенная для работы в масштабах петабайт. Он прост и удобен в использовании, в отличие от Elasticsearch, который требует понимания и настройки множества параметров, позволяет запустить его менее чем за 2 минуты. OpenObserve имеет свой встроенный пользовательский интерфейс, что устраняет необходимость в отдельной установке сторонних инструментов, таких как Kibana.
 
-[Logstash](https://github.com/elastic/logstash) - система для сбора логов из различных источников, преобразования их в нужный формат и отправляет в Elasticsearch.
+Поддерживает большое количество источников данных, например, [otel-collector](https://github.com/open-telemetry/opentelemetry-collector) на базе протокола [OTLP](https://github.com/open-telemetry/opentelemetry-proto) (OpenTelemetry protocol), а также curl, FluentBit, Filebeat, Logstash, Syslog-ng, Prometheus и Telegraf.
 
-[Kibana](https://github.com/elastic/kibana) - веб интерфейс для отображения данных.
+```yaml
+services:
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:latest
+    container_name: openobserve
+    restart: unless-stopped
+    environment:
+      - ZO_DATA_DIR=/data
+      - ZO_ROOT_USER_EMAIL=root@example.com
+      - ZO_ROOT_USER_PASSWORD=Complexpass#123
+    ports:
+      - 514:514/tcp   # Syslog TCP
+      - 514:514/udp   # Syslog UDP
+      - 5080:5080/tcp # Web UI
+    volumes:
+      - ./openobserve_data:/data
+```
 
-[Beats](https://github.com/elastic/beats) - агенты для сбора операционных метрик и логов.
+### ELK Stack
+
+[Elasticsearch](https://github.com/elastic/elasticsearch) - распределенная поисковая и аналитическая система, основанная на библиотеке Apache Lucene. Она используется для быстрого поиска и анализа больших объемов данных в реальном времени, например, для полнотекстового поиска. Стек состоит из трех приложений:
+
+- [Logstash](https://github.com/elastic/logstash) - система для сбора логов из различных источников, преобразования их в нужный формат и отправляет в Elasticsearch.
+- [Kibana](https://github.com/elastic/kibana) - веб интерфейс для отображения данных.
+- [Beats](https://github.com/elastic/beats) - агент для сбора операционных метрик и логов.
+
+[elastop](https://github.com/acidvegas/elastop) - TUI интерфейс для мониторинга кластеров Elasticsearch в режиме реального времени.
 
 ```yaml
 services:
@@ -3521,6 +4120,290 @@ services:
 
 # curl -u elastic:ElasticSearchAdmin http://localhost:9200/_cat/indices
 # echo '{"message":"Test log"}' | nc localhost 5000
+```
+
+### Graylog
+
+[Graylog](https://github.com/Graylog2/graylog2-server) - централизованная система сбора, индексации и анализа логов или других данных из удаленных систем (например, с помощью `rsyslog` или beats агентов), которая может использовать Elasticsearch или [Graylog Data Node](https://hub.docker.com/r/graylog/graylog-datanode) для хранения данных.
+
+```yaml
+services:
+  mongodb:
+    image: mongo:4.2
+    container_name: mongodb
+    restart: unless-stopped
+
+  elasticsearch:
+    image: secureimages/elasticsearch-oss:7.10.2-alpine-3.13.2
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+
+  graylog:
+    image: graylog/graylog:4.0
+    container_name: graylog
+    restart: unless-stopped
+    environment:
+      # head -c 96 /dev/urandom | base64
+      - GRAYLOG_PASSWORD_SECRET=somesecret123
+      # echo -n "admin" | sha256sum | tr -d ' -'
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_HTTP_BIND_ADDRESS=0.0.0.0:9000
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
+      - GRAYLOG_MONGODB_URI=mongodb://mongodb:27017/graylog
+      - GRAYLOG_ELASTICSEARCH_HOSTS=http://127.0.0.1:9200
+    ports:
+      - 9000:9000         # Web UI
+      - 514:514/tcp       # Syslog TCP Server input
+      - 514:514/udp       # Syslog UDP Server input
+      - 5044:5044/tcp     # Beats input
+      - 12201:12201/tcp   # GELF TCP
+      - 12201:12201/udp   # GELF UDP
+    volumes:
+      - ./graylog_data:/usr/share/graylog/data
+    depends_on:
+      - mongodb
+      - elasticsearch
+```
+
+### Log Bull
+
+[Log Bull](https://github.com/logbull/logbull) - простая альтернатива ELK и Loki, которая размещается на собственном сервере, не требует настройки и открытый исходный код. Для отправки логов используются библиотеки на разных языка, в т.ч. с помощью [curl](https://logbull.com/?language_example=curl#how-to-use-in-code).
+
+```yaml
+services:
+  logbull:
+    image: logbull/logbull:latest
+    container_name: logbull
+    restart: unless-stopped
+    ports:
+      - 4005:4005
+    volumes:
+      - ./logbull_data:/logbull-data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4005/api/v1/system/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+```
+
+### RSyslog GUI
+
+[RSyslog GUI](https://github.com/aguyonp/rsyslog-gui) - [RSyslog](https://github.com/aguyonp/rsyslog-gui) сервер и веб-интерфейс на базе [PimpMyLog](https://github.com/potsky/PimpMyLog) для анализа логов (чтения, сортировки и фильтрации по содержимому сообщений).
+
+```yaml
+services:
+  rsyslog-gui:
+    image: aguyonnet/rsyslog-gui
+    container_name: rsyslog-gui
+    restart: unless-stopped
+    volumes:
+      - ./rsyslog_data:/var/log/net
+    ports:
+      - 5141:80
+      - 514:514/udp
+    environment:
+      - SYSLOG_USERNAME=admin
+      - SYSLOG_PASSWORD=admin
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - logger -n localhost -t rsyslog-gui -p user.info "healthcheck"
+      start_period: 20s
+      interval: 3s
+      retries: 3
+      timeout: 3s
+```
+
+### Toolong
+
+[Toolong](https://github.com/Textualize/toolong) - терминальное приложение для просмотра, отслеживания, объединения и поиска по содержимому файловых журналов, а также собранный [образ](https://hub.docker.com/r/lifailon/toolong-web) с веб-интерфейсом на базе [ttyd](https://github.com/tsl0922/ttyd).
+
+```yaml
+services:
+  toolong-web:
+    image: lifailon/toolong-web:latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: toolong-web
+    restart: unless-stopped
+    environment:
+      - PORT=4444
+      - USERNAME=
+      - PASSWORD=
+      # - LOGPATH=/var/log/syslog*
+      - LOGPATH=/var/log/*log*
+    ports:
+      - 4444:4444
+    volumes:
+      - /var/log:/var/log:ro
+```
+
+### Pinguem
+
+[Pinguem](https://github.com/Lifailon/pinguem) - веб-интерфейс и экспортер Prometheus для асинхронной проверки доступности выбранных хостов или подсетей с использованием библиотеки [node-ping](https://github.com/danielzzz/node-ping).
+
+```yaml
+services:
+  pinguem:
+    image: lifailon/pinguem:latest
+    container_name: pinguem
+    restart: unless-stopped
+    ports:
+      - 8085:8085 # Fronend (WebUI)
+      - 3005:3005 # Backend (API)
+```
+
+### SpeedTest Exporter
+
+[SpeedTest Exporter](https://github.com/MiguelNdeCarvalho/speedtest-exporter) - экспортер Prometheus, написанный на Python с использованием официального интерфейса командной строки Ookla Speedtest.
+
+🔗 [Grafana Dashboard](https://grafana.com/grafana/dashboards/13665-speedtest-exporter-dashboard/) ↗
+
+```yaml
+services:
+  speedtest-exporter:
+    image: miguelndecarvalho/speedtest-exporter
+    container_name: speedtest-exporter
+    restart: unless-stopped
+    # environment:
+      # - SPEEDTEST_PORT=9798
+      # - SPEEDTEST_SERVER=21110 
+    ports:
+      - 9798:9798
+```
+
+### SpeedTest Tracker
+
+[SpeedTest Tracker](https://github.com/alexjustesen/speedtest-tracker) - самостоятельно размещаемое приложение, которое отслеживает производительность и время безотказной работы Интернет-соединения с собственным веб-интерфейсом для визуализации графиков измерений.
+
+```yaml
+# Generate app key: echo -n 'base64:'; openssl rand -base64 32;
+# Default credentials: admin@example.com:password
+
+services:
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    container_name: speedtest-tracker
+    restart: unless-stopped
+    ports:
+      - 8778:80
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.speedtest-tracker.rule=Host(`speedtest.docker.local`)
+    #   - traefik.http.services.speedtest-tracker.loadbalancer.server.port=80
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - APP_KEY=base64:e6otzoFWjt0GoEOL/QlPQw2Xgm63OMU3lA5V4nLgXJ4=
+      - APP_URL=http://192.168.3.101
+      # - APP_URL=http://speedtest.docker.local
+      - DB_CONNECTION=sqlite
+      # - DB_CONNECTION=pgsql
+      # - DB_HOST=speedtest-db
+      # - DB_PORT=5432
+      # - DB_DATABASE=speedtest_tracker
+      # - DB_USERNAME=speedtest
+      # - DB_PASSWORD=PgAdmin
+    volumes:
+      - ./speedtest_config:/config
+      - ./ssl:/config/keys
+    # depends_on:
+    #   - speedtest-db
+
+  # speedtest-db:
+  #   image: postgres:17
+  #   container_name: speedtest-db
+  #   restart: unless-stopped
+  #   # ports:
+  #   #   - 5432:5432
+  #   environment:
+  #     - POSTGRES_DB=speedtest_tracker
+  #     - POSTGRES_USER=speedtest
+  #     - POSTGRES_PASSWORD=PgAdmin
+  #   volumes:
+  #     - ./speedtest_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 5s
+  #     retries: 5
+  #     timeout: 5s
+```
+
+### LibreSpeedTest
+
+[LibreSpeedTest](https://github.com/librespeed/speedtest) - сервер измерения скорости сети в Интернете на базе HTML5 для размещения на собственном сервере, с поддержкой мобильных устройств.
+
+🔗 [LibreSpeedTest Demo](https://librespeed.org) ↗
+
+```yaml
+services:
+  libre-speedtest:
+    image: lscr.io/linuxserver/librespeed:latest
+    container_name: libre-speedtest
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - PASSWORD=PASSWORD # пароль для базы данных результатов
+      - CUSTOM_RESULTS=true # опционально, включить пользовательскую страницу результатов в /config/www/results/index.php
+      # - DB_TYPE=sqlite # по умолчанию sqlite (доступно mysql и postgresql)
+      # - DB_NAME=DB_NAME # опционально, имя базы данных (требуется для mysql и pgsql)
+      # - DB_HOSTNAME=DB_HOSTNAME # опционально
+      # - DB_USERNAME=DB_USERNAME # опционально
+      # - DB_PASSWORD=DB_PASSWORD # опционально
+      # - DB_PORT=DB_PORT # опционально
+      # - IPINFO_APIKEY=ACCESS_TOKEN # опционально, токен доступа от ipinfo.io (требуется для подробной информации об ip)
+    volumes:
+      - ./librespeed/config:/config
+    ports:
+      - 8088:80
+```
+
+### OpenSpeedTest
+
+[OpenSpeedTest](https://github.com/openspeedtest/Speed-Test) - бесплатный веб-инструмент для оценки производительности сети на базе HTML5, написанный на чистом JavaScript и использующий только встроенные веб-API.
+
+🔗 [OpenSpeedTest Demo](https://openspeedtest.com) ↗
+
+```yaml
+services:
+  open-speedtest:
+    image: openspeedtest/latest:latest
+    container_name: opens-peedtest
+    restart: unless-stopped
+    # environment:
+    #   - ENABLE_LETSENCRYPT=True
+    #   - DOMAIN_NAME=speedtest.domain.com
+    #   - USER_EMAIL=name@domain.com
+    ports:
+      - 3000:3000
+      - 3001:3001
+```
+
+### iperf
+
+[iperf](https://github.com/esnet/iperf) - утилита командной строки (клиент-серверная архитектура) для проверки скорости загрузки и выгрузки в локальной сети.
+
+```yaml
+services:
+  iperf-server:
+    image: alpine:latest
+    container_name: iperf-server
+    restart: unless-stopped
+    command: >
+      sh -c "
+        apk add --no-cache iperf3 &&
+        exec iperf3 -s -p $$PORT
+      "
+    environment:
+      - PORT=5201
+    ports:
+      - 5201:5201
 ```
 
 ## Game Stack
@@ -3616,6 +4499,131 @@ services:
 ```
 
 ## Homelab Stack
+
+### HomePage
+
+[Homepage](https://github.com/gethomepage/homepage) - современная, быстрая и полностью статическая панель управления для быстрого доступа в формате закладок и мониторинга доступности веб-приложений с помощью ICMP и HTTP, контейнерам Docker через сокет (поддерживает мониторинг нагрузки CPU, памяти и сетевого трафика), Kubernetes (подключение через конфигурацию) и мониторинг сервисов через API (поддерживает более 100 интеграций с помощью [виджетов](https://gethomepage.dev/widgets)).
+
+```yaml
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: always
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: "*"
+      PUID: 0
+      PGID: 0
+    ports:
+      - 5005:3000
+    volumes:
+      - ./homepage_config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $HOME/.kube/config:/root/.kube/config:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.homepage.rule=Host(`home.docker.local`)
+      - traefik.http.routers.homepage.middlewares=authentik@file
+```
+
+### Glances
+
+[Glances](https://github.com/nicolargo/glances) - TUI интерфейс мониторинга системы, процессов (как top или htop) и контейнеров (как [ctop](https://github.com/bcicen/ctop)), а также Web режим с адаптивным дизайном для смартфонов. Используется для интеграции показателей в Homepage через виджеты, а также поддерживает экспорт метрик в InfluxDB, Prometheus, PostgreSQL/TimeScaleDB, Graphite и другие базы данных.
+
+```yaml
+services:
+  glances:
+    image: nicolargo/glances:latest-full
+    container_name: glances
+    restart: always
+    pid: host
+    # stdin_open: true
+    # tty: true
+    # network_mode: host
+    environment:
+      - GLANCES_OPT=-w # --export prometheus
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro
+      # - ./glances.conf:/glances/conf/glances.conf
+    ports:
+      - 61208-61209:61208-61209
+      # - 9091:9091
+```
+
+### Home Assistant
+
+[Home Assistant](https://github.com/home-assistant/core) - система домашней автоматизации для управления умными устройствами.
+
+🔗 [Home Assistant Demo](https://demo.home-assistant.io/#/lovelace/home) ↗
+
+```yaml
+services:
+  home-assistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: home-assistant
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    # ports:
+    #   - 8123:8123
+    volumes:
+      - ./config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+```
+
+### It's MyTabs
+
+[It's MyTabs](https://github.com/louislam/its-mytabs) - веб-интерфейс для просмотра и проигрывания табулатуры гитары, похожий на [Songsterr](https://www.songsterr.com), от создателя [Uptime-Kuma](https://github.com/louislam/uptime-kuma) и [Dockge](https://github.com/louislam/dockge).
+
+🔗 [Demo](https://its-mytabs.kuma.pet/tab/1?audio=youtube-VuKSlOT__9s&track=2) ↗
+
+```yaml
+services:
+  its-mytabs:
+    image: louislam/its-mytabs:1
+    container_name: its-mytabs
+    restart: unless-stopped
+    ports:
+      - 47777:47777
+    volumes:
+      - ./data:/app/data # db and tabs
+```
+
+### Grist
+
+[Grist](https://github.com/gristlabs/grist-core) (like MS Excel) - современный реляционный редактор электронных таблиц в вебе и приложением рабочего стола, как достойная замена Microsoft Excel.
+
+🔗 [Grist Demo](https://docs.getgrist.com) ↗
+
+🔗 [Grist Static Demo](https://gristlabs.github.io/grist-static) ↗
+
+🔗 [Grist Desktop](https://github.com/gristlabs/grist-desktop/releases/tag/v0.3.6) ↗
+
+```yaml
+services:
+  grist:
+    image: gristlabs/grist:latest
+    container_name: grist
+    restart: unless-stopped
+    environment:
+      APP_HOME_URL: https://grist.docker.local
+      GRIST_DEFAULT_EMAIL: admin@docker.local
+      GRIST_FORCE_LOGIN: false
+      # GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
+      # GRIST_SINGLE_ORG: my-grist-team
+    volumes:
+      - ./grist_data:/persist
+    ports:
+      - 8484:8484
+    labels:
+      - traefik.http.services.grist.loadbalancer.server.port=8484
+      - traefik.http.routers.grist.rule=Host(`grist.docker.local`)
+      # - traefik.http.routers.grist-auth.rule=Host(`grist.docker.local`) && (PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`))
+      # - traefik.http.routers.grist-auth.middlewares=grist-basic-auth@file
+      # - traefik.http.middlewares.grist-basic-auth.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW # admin:admin
+```
 
 ### Memos
 
@@ -3716,6 +4724,167 @@ services:
     shm_size: 128mb
 ```
 
+### PhotoPrism
+
+[PhotoPrism](https://github.com/photoprism/photoprism) - приложение для работы с фотографиями на базе искусственного интеллекта, используя современные технологии для автоматического добавления тегов и поиска изображений.
+
+🔗 [PhotoPrism Demo](https://demo.photoprism.app/library/browse) ↗
+
+```yaml
+services:
+  photoprism:
+    image: photoprism/photoprism:latest
+    container_name: photoprism
+    restart: unless-stopped
+    stop_grace_period: 15s
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    ports:
+      - 2342:2342
+    environment:
+      PHOTOPRISM_ADMIN_USER: "admin"                 # admin login username
+      PHOTOPRISM_ADMIN_PASSWORD: "insecure"          # initial admin password (8-72 characters)
+      PHOTOPRISM_AUTH_MODE: "password"               # authentication mode (public, password)
+      PHOTOPRISM_DISABLE_TLS: "false"                # disables HTTPS/TLS even if the site URL starts with https:// and a certificate is available
+      PHOTOPRISM_DEFAULT_TLS: "true"                 # defaults to a self-signed HTTPS/TLS certificate if no other certificate is available
+      PHOTOPRISM_DEFAULT_LOCALE: "en"                # default user interface language, e.g. "en" or "de"
+      PHOTOPRISM_PLACES_LOCALE: "local"              # location details language, e.g. "local", "en", or "de"
+      PHOTOPRISM_SITE_URL: "http://localhost:2342/"  # server URL in the format "http(s)://domain.name(:port)/(path)"
+      PHOTOPRISM_SITE_TITLE: "PhotoPrism"
+      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
+      PHOTOPRISM_SITE_DESCRIPTION: ""                # meta site description
+      PHOTOPRISM_SITE_AUTHOR: ""                     # meta site author
+      PHOTOPRISM_LOG_LEVEL: "info"                   # log level: trace, debug, info, warning, or error
+      PHOTOPRISM_READONLY: "false"                   # do not modify originals directory (reduced functionality)
+      PHOTOPRISM_EXPERIMENTAL: "false"               # enables experimental features
+      PHOTOPRISM_DISABLE_CHOWN: "false"              # disables updating storage permissions via chmod and chown on startup
+      PHOTOPRISM_DISABLE_WEBDAV: "false"             # disables built-in WebDAV server
+      PHOTOPRISM_DISABLE_SETTINGS: "false"           # disables settings UI and API
+      PHOTOPRISM_DISABLE_TENSORFLOW: "false"         # disables all features depending on TensorFlow
+      PHOTOPRISM_DISABLE_FACES: "false"              # disables face detection and recognition (requires TensorFlow)
+      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"     # disables image classification (requires TensorFlow)
+      PHOTOPRISM_DISABLE_VECTORS: "false"            # disables vector graphics support
+      PHOTOPRISM_DISABLE_RAW: "false"                # disables indexing and conversion of RAW images
+      PHOTOPRISM_RAW_PRESETS: "false"                # enables applying user presets when converting RAW images (reduces performance)
+      PHOTOPRISM_SIDECAR_YAML: "true"                # creates YAML sidecar files to back up picture metadata
+      PHOTOPRISM_BACKUP_ALBUMS: "true"               # creates YAML files to back up album metadata
+      PHOTOPRISM_BACKUP_DATABASE: "true"             # creates regular backups based on the configured schedule
+      PHOTOPRISM_BACKUP_SCHEDULE: "daily"            # backup SCHEDULE in cron format (e.g. "0 12 * * *" for daily at noon) or at a random time (daily, weekly)
+      PHOTOPRISM_INDEX_SCHEDULE: ""                  # indexing SCHEDULE in cron format (e.g. "@every 3h" for every 3 hours; "" to disable)
+      PHOTOPRISM_AUTO_INDEX: 300                     # delay before automatically indexing files in SECONDS when uploading via WebDAV (-1 to disable)
+      PHOTOPRISM_AUTO_IMPORT: -1                     # delay before automatically importing files in SECONDS when uploading via WebDAV (-1 to disable)
+      PHOTOPRISM_DETECT_NSFW: "false"                # automatically flags photos as private that MAY be offensive (requires TensorFlow)
+      PHOTOPRISM_UPLOAD_NSFW: "true"                 # allows uploads that MAY be offensive (no effect without TensorFlow)
+      PHOTOPRISM_UPLOAD_ALLOW: ""                    # restricts uploads to these file types (comma-separated list of EXTENSIONS; leave blank to allow all)
+      PHOTOPRISM_UPLOAD_ARCHIVES: "true"             # allows upload of zip archives (will be extracted before import)
+      PHOTOPRISM_UPLOAD_LIMIT: 5000                  # maximum size of uploaded files and uncompressed archive contents in MB
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000               # maximum size of original media files in MB (larger files are skipped)
+      PHOTOPRISM_HTTP_COMPRESSION: "gzip"            # improves transfer speed and bandwidth utilization (none or gzip)
+      # PHOTOPRISM_DATABASE_DRIVER: "sqlite"         # SQLite is an embedded database that does not require a separate database server
+      PHOTOPRISM_DATABASE_DRIVER: "mysql"            # MariaDB 10.5.12+ (MySQL successor) offers significantly better performance compared to SQLite
+      PHOTOPRISM_DATABASE_SERVER: "mariadb:3306"     # MariaDB database server (hostname:port)
+      PHOTOPRISM_DATABASE_NAME: "photoprism"         # MariaDB database, see MARIADB_DATABASE in the mariadb service
+      PHOTOPRISM_DATABASE_USER: "photoprism"         # MariaDB database username, must be the same as MARIADB_USER
+      PHOTOPRISM_DATABASE_PASSWORD: "insecure"       # MariaDB database password, must be the same as MARIADB_PASSWORD
+      PHOTOPRISM_INIT: "https tensorflow"            # options: update https tensorflow tensorflow-gpu intel gpu davfs yt-dlp
+      PHOTOPRISM_VISION_API: "false"                 # server: enables service API endpoints under /api/v1/vision (requires access token)
+      PHOTOPRISM_VISION_URI: ""                      # client: service URI, e.g. http://hostname/api/v1/vision (leave blank to disable)
+      PHOTOPRISM_VISION_KEY: ""                      # client: service access token (for authentication)
+      # PHOTOPRISM_FFMPEG_ENCODER: "software"        # H.264/AVC encoder (software, intel, nvidia, apple, raspberry, or vaapi)
+      # PHOTOPRISM_FFMPEG_SIZE: "1920"               # video size limit in pixels (720-7680) (default: 3840)
+      # PHOTOPRISM_FFMPEG_BITRATE: "64"              # video bitrate limit in Mbps (default: 60)
+      # NVIDIA_VISIBLE_DEVICES: "all"
+      # NVIDIA_DRIVER_CAPABILITIES: "all"
+      PHOTOPRISM_UID: 0
+      PHOTOPRISM_GID: 0
+    user: 0:0
+    working_dir: /photoprism
+    volumes:
+      - ./photoprism_content:/photoprism/originals   # Media files
+      - ./photoprism_data:/photoprism/storage        # Cache, database (sqlite) and sidecar files
+    # devices:
+    #  - /dev/dri:/dev/dri                            # Required Intel QSV or VAAPI hardware transcoding
+    #  - /dev/video11:/dev/video11                    # Video4Linux Video Encode Device (h264_v4l2m2m)
+    # deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - driver: "nvidia"
+    #          capabilities: [ gpu ]
+    #          count: "all"
+    depends_on:
+      - mariadb
+
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: unless-stopped
+    stop_grace_period: 15s
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    command: --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
+    volumes:
+      - ./database_data:/var/lib/mysql
+    # https://link.photoprism.app/mariadb-enviconment-variables
+    environment:
+      MARIADB_AUTO_UPGRADE: "1"
+      MARIADB_INITDB_SKIP_TZINFO: "1"
+      MARIADB_DATABASE: "photoprism"
+      MARIADB_USER: "photoprism"
+      MARIADB_PASSWORD: "insecure"
+      MARIADB_ROOT_PASSWORD: "insecure"
+      # Replicate
+      # MARIADB_MASTER_HOST: ""
+      # MARIADB_REPLICATION_USER: ""
+      # MARIADB_REPLICATION_PASSWORD: ""
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    stop_grace_period: 15s
+    profiles: ["ollama"]
+    environment:
+      ## Ollama Configuration Options:
+      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_MODELS: "/root/.ollama"   # model storage path (see volumes section below)
+      OLLAMA_MAX_QUEUE: "100"          # maximum number of queued requests
+      OLLAMA_NUM_PARALLEL: "1"         # maximum number of parallel requests
+      OLLAMA_MAX_LOADED_MODELS: "1"    # maximum number of loaded models per GPU
+      OLLAMA_LOAD_TIMEOUT: "5m"        # maximum time for loading models (default "5m")
+      OLLAMA_KEEP_ALIVE: "5m"          # duration that models stay loaded in memory (default "5m")
+      OLLAMA_CONTEXT_LENGTH: "4096"    # maximum input context length
+      OLLAMA_MULTIUSER_CACHE: "false"  # optimize prompt caching for multi-user scenarios
+      OLLAMA_NOPRUNE: "false"          # disables pruning of model blobs at startup
+      OLLAMA_NOHISTORY: "true"         # disables readline history
+      OLLAMA_FLASH_ATTENTION: "false"  # enables the experimental flash attention feature
+      OLLAMA_KV_CACHE_TYPE: "f16"      # cache quantization (f16, q8_0, or q4_0)
+      OLLAMA_SCHED_SPREAD: "false"     # allows scheduling models across all GPUs.
+      OLLAMA_NEW_ENGINE: "true"        # enables the new Ollama engine
+      # OLLAMA_DEBUG: "true"           # shows additional debug information
+      # OLLAMA_INTEL_GPU: "true"       # enables experimental Intel GPU detection
+      # NVIDIA_VISIBLE_DEVICES: "all"
+      # NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    volumes:
+      - "./ollama_data:/root/.ollama"
+    ports:
+     - 11434:11434
+    # deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - driver: "nvidia"
+    #          capabilities: [ gpu ]
+    #          count: "all"
+
+  # docker compose up -d
+  # or
+  # docker compose --profile ollama up -d
+  # Download LLM model:
+  # docker compose exec ollama ollama pull gemma3:latest
+```
+
 ### Invidious
 
 [Invidious](https://github.com/iv-org/invidious) - альтернативный интерфейс YouTube с открытым исходным кодом.
@@ -3784,4 +4953,245 @@ services:
     volumes:
       # Директория для хранения видео в хостовой системе : контейнере
       - ./downloads:/downloads
+```
+
+### Jitsi Meet
+
+[Jitsi Meet](https://github.com/jitsi/jitsi-meet) - система видео-конференц связи (ВКС/VCS), с выделенными комнатами и управлением доступа (поддерживает демонстрацию экрана и запись разговоров).
+
+```yaml
+services:
+  # Frontend
+  web:
+    image: jitsi/web:unstable
+    restart: unless-stopped
+    ports:
+      - 10080:80
+      - 10443:443
+    volumes:
+      - ./jitsi_data/web:/config:Z
+      - ./jitsi_data/web/crontabs:/var/spool/cron/crontabs:Z
+      - ./jitsi_data/transcripts:/usr/share/jitsi-meet/transcripts:Z
+      - ./jitsi_data/web/load-test:/usr/share/jitsi-meet/load-test:Z
+    labels:
+      service: jitsi-web
+    depends_on:
+      - jvb
+
+  # XMPP server
+  prosody:
+    image: jitsi/prosody:unstable
+    restart: unless-stopped
+    expose:
+      - 5222
+      - 5269
+      - 5347
+      - 5280
+    labels:
+      service: jitsi-prosody
+    volumes:
+      - ./jitsi_data/prosody/config:/config:Z
+      - ./jitsi_data/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
+
+  # Focus component
+  jicofo:
+    image: jitsi/jicofo:unstable
+    restart: unless-stopped
+    ports:
+      - 18888:8888
+    volumes:
+      - ./jitsi_data/jicofo:/config:Z
+    labels:
+      service: jitsi-jicofo
+    depends_on:
+      - prosody
+
+  # Video bridge
+  jvb:
+    image: jitsi/jvb:unstable
+    restart: unless-stopped
+    ports:
+      - 10000:10000/udp
+      - 10080:8080
+    volumes:
+      - ./jitsi_data/jvb:/config:Z
+    labels:
+      service: jitsi-jvb
+    depends_on:
+      - prosody
+```
+
+### Focalboard
+
+[Focalboard](https://github.com/mattermost-community/focalboard) - многоязычный и самостоятельный инструмент управления проектами с открытым исходным кодом, который является альтернативой Trello, Notion и Asana (поддержка прекращена в 2024 году).
+
+```yaml
+services:
+  focalboard:
+    image: mattermost/focalboard:latest
+    container_name: focalboard
+    restart: unless-stopped
+    volumes:
+      - ./fb_data:/opt/focalboard/data
+    environment:
+      - VIRTUAL_HOST=focalboard.docker.local
+      - VIRTUAL_PORT=8000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.focalboard.rule=Host(`focalboard.docker.local`)
+      - traefik.http.services.focalboard.loadbalancer.server.port=8000
+    # ports:
+    #   - 8000:8000
+```
+
+### Kan
+
+[Kan](https://github.com/kanbn/kan) - современное решение Kanban, как льтернатива Trello.
+
+```yaml
+services:
+  kan:
+    image: ghcr.io/kanbn/kan:latest
+    container_name: kan
+    restart: unless-stopped
+    environment:
+      # Авторизация доступна только через доменное имя
+      - NEXT_PUBLIC_BASE_URL=http://kan.docker.local
+      - BETTER_AUTH_SECRET=KanBanAdminSecret
+      - POSTGRES_URL=postgresql://kan:KanBanAdminSecret@kan-db:5432/kan_db
+      - NEXT_PUBLIC_ALLOW_CREDENTIALS=true
+    depends_on:
+      kan-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.kan.rule=Host(`kan.docker.local`)
+      - traefik.http.services.kan.loadbalancer.server.port=3000
+    # ports:
+    #   - 3000:3000
+
+  kan-db:
+    image: postgres:15
+    container_name: kan-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kan_db
+      POSTGRES_USER: kan
+      POSTGRES_PASSWORD: KanBanAdminSecret
+    volumes:
+      - ./kanban_db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+```
+
+### Planka
+
+[Planka](https://github.com/plankanban/planka) - инструмент управления проектами в стиле Kanban для команды.
+
+🔗 [Demo](https://plankanban.github.io/planka/#/) ↗
+
+```yaml
+services:
+  planka:
+    image: ghcr.io/plankanban/planka:2.0.0-rc.3
+    container_name: planka-web
+    # https://github.com/RARgames/4gaBoards
+    # image: ghcr.io/rargames/4gaboards:latest
+    # container_name: 4gaBoards
+    restart: unless-stopped
+    environment:
+      - BASE_URL=https://planka.docker.local
+      # Web credentials
+      - DEFAULT_ADMIN_EMAIL=admin@admin.com
+      - DEFAULT_ADMIN_PASSWORD=admin
+      - DEFAULT_ADMIN_NAME=Admin
+      - DEFAULT_ADMIN_USERNAME=admin
+      # Database connection
+      - DATABASE_URL=postgresql://planka:postgresPlankaPassword@planka-db:5432/planka
+      # WPA Key (openssl rand -hex 64)
+      - SECRET_KEY=c74fd30800bc3c742ba368e396b87409edc7613e3ee58deee00992c3c4b98ec9eb154d441f143e28b4716287ba31d3699ee09f7e101cfe6c98872102ea622a76
+    volumes:
+      - ./planka_data/favicons:/app/public/favicons
+      - ./planka_data/user-avatars:/app/public/user-avatars
+      - ./planka_data/background-images:/app/public/background-images
+      - ./planka_data/attachments:/app/private/attachments
+    depends_on:
+      planka-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.planka.rule=Host(`planka.docker.local`)
+      - traefik.http.services.planka.loadbalancer.server.port=1337
+    # ports:
+    #   - 1337:1337
+
+  planka-db:
+    image: postgres:16-alpine
+    container_name: planka-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=planka
+      - POSTGRES_USER=planka
+      - POSTGRES_PASSWORD=postgresPlankaPassword
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./planka_db:/var/lib/postgresql/data
+    # ports:
+    #   - 5432:5432
+```
+
+### Wekan
+
+[Wekan](https://github.com/wekan/wekan) - полностью открытое решение для совместной работы с канбан-досками, развивающиеся с 2015 года.
+
+```yaml
+services:
+  wekan:
+    image: ghcr.io/wekan/wekan:latest
+    container_name: wekan-app
+    restart: unless-stopped
+    environment:
+      - ROOT_URL=https://wekan.docker.local
+      - WRITABLE_PATH=/data
+      - MONGO_URL=mongodb://wekan-db:27017/wekan
+      - WITH_API=true
+      - RICHER_CARD_COMMENT_EDITOR=false
+      - CARD_OPENED_WEBHOOK_ENABLED=false
+      - BIGEVENTS_PATTERN=NONE
+      - BROWSER_POLICY_ENABLED=true
+      - LDAP_BACKGROUND_SYNC_INTERVAL=''
+    depends_on:
+      - wekan-db
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./wekan_data:/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wekan.rule=Host(`wekan.docker.local`)
+      - traefik.http.services.wekan.loadbalancer.server.port=8080
+    # ports:
+    #   - 8080:8080
+
+  wekan-db:
+    image: mongo:7
+    container_name: wekan-db
+    restart: unless-stopped
+    command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./wekan_db:/data/db
+      - ./wekan_dump:/dump
+    expose:
+      - 27017
+    # ports:
+    #   - 27017:27017
 ```
