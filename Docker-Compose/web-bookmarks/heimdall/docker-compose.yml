@@ -1,0 +1,14 @@
+services:
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - ALLOW_INTERNAL_REQUESTS=true
+    volumes:
+      - ./heimdall_config:/config
+    ports:
+      - 5005:443

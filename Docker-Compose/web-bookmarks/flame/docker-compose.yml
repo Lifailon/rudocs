@@ -1,0 +1,26 @@
+services:
+  flame:
+    image: pawelmalak/flame
+    container_name: flame
+    restart: unless-stopped
+    volumes:
+      - ./flame_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro # for Docker integration
+    ports:
+      - 5005:5005
+    environment:
+      - PASSWORD=FlamePassword
+      # - PASSWORD_FILE=/run/secrets/password
+    secrets:
+      - flame_password
+    labels:
+      - flame.type=application
+      - flame.name=Flame
+      - flame.url=https://flame.docker.local
+      - flame.icon=flame # optional, default is "docker"
+
+# secrets:
+#   password:
+#     file: ./flame_password
+
+# echo "FlamePassword" > ./flame_password
