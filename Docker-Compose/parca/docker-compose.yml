@@ -1,0 +1,30 @@
+services:
+  # Интерфейс для анализа профилирования
+  parca-server:
+    image: ghcr.io/parca-dev/parca:v0.24.2
+    container_name: parca-server
+    restart: unless-stopped
+    command: /parca
+    ports:
+      - 7070:7070
+
+  # Агент непрерывного профилирования 
+  parca-agent:
+    image: ghcr.io/parca-dev/parca-agent:v0.42.0
+    container_name: parca-agent
+    restart: unless-stopped
+    command: --remote-store-address=parca-server:7070 --remote-store-insecure
+    stdin_open: true
+    tty: true
+    privileged: true
+    pid: host
+    ports:
+      - 7071:7071
+    volumes:
+      - /run:/run
+      - /boot:/boot
+      - /lib/modules:/lib/modules
+      - /sys/kernel/debug:/sys/kernel/debug
+      - /sys/fs/cgroup:/sys/fs/cgroup
+      - /sys/fs/bpf:/sys/fs/bpf
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket

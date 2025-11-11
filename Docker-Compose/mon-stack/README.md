@@ -9,7 +9,6 @@
 - [Node Exporter](https://github.com/prometheus/node_exporter) для сбора системных метрик.
 - [logporter](https://github.com/Lifailon/logporter) для сбора всех базовых метрик из контейнеров Docker (легковесная альтернатива [cAdvisor](https://github.com/google/cadvisor)).
 - [Loki](https://github.com/grafana/loki) сервер и агент `promtail` для сборка логов из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
-- [Parca](https://github.com/parca-dev/parca) - интерфейса и агент непрерывное профилирование для анализа использования процессора и памяти.
 
 Перед запуском необходимо настроить параметры подключения к Telegram боту в файле [alertmanager](./alertmanager.yml) для отправки оповещений.
 

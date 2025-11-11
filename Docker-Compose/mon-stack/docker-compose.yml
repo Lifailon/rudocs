@@ -1,10 +1,8 @@
 # mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
 # mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
-# sudo chown 65534:65534 
 # mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
 
 services:
-  # Frontend для отображения метрик
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -23,7 +21,6 @@ services:
     volumes:
       - ./grafana_data:/var/lib/grafana
 
-  # Хранение данных Grafana
   # postgres:
   #   image: postgres:latest
   #   container_name: postgres
@@ -37,7 +34,7 @@ services:
   #   ports:
   #     - 5432:5432
 
-  # Backend для хранения метрик
+  # База данных временных рядов для хранения метрик
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -51,7 +48,7 @@ services:
     # dns:
     #   - 192.168.3.101
 
-  # Система оповещений (в т.ч. Telegram, поддерживает свой Web интерфейс)
+  # Система оповещений (например, в Telegram, поддерживает свой Web интерфейс)
   alertmanager:
     image: prom/alertmanager
     container_name: alertmanager
@@ -65,7 +62,7 @@ services:
     # ports:
     #   - 9093:9093
 
-  # Агент для сбора системных метрик
+  # Агент для сбора системных метрик Linux
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -73,7 +70,7 @@ services:
     # ports:
     #   - 9100:9100
 
-  # Веб-конструктор для анализа и визуализации запросов PromQL
+  # Веб-конструктор для анализа и визуализации запросов PromQL (уже встроен в интерфейс Prometheus)
   # promlens:
   #   image: prom/promlens
   #   container_name: promlens
@@ -81,7 +78,7 @@ services:
   #   ports:
   #     - 9094:8080
 
-  # Шлюз для сбора метрик через REST API из скриптов (не требует listener на экспортере)
+  # Автономный шлюз-экспорт для сбора метрик через API (выступает в роли listener для приема метрик из скриптов, как в InfluxDB)
   # pushgateway:
   #   image: prom/pushgateway:latest
   #   container_name: pushgateway
@@ -89,7 +86,7 @@ services:
   #   ports:
   #     - 9095:9091
 
-  # Мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC
+  # Мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC для предоставления метрик в формате Prometheus (like Gatus).
   # http://blackbox:9115/probe?target=https://google.com&module=http
   blackbox:
     image: prom/blackbox-exporter:latest
@@ -151,42 +148,3 @@ services:
     command: -config.file=/etc/promtail/promtail.yml
     # ports:
     #   - 9080:9080
-
-  # Интерфейс и сборщик трассировки сервисов
-  # jaeger:
-  #   image: jaegertracing/all-in-one:1.55
-  #   container_name: jaeger
-  #   restart: always
-  #   ports:
-  #     - 16686:16686 # UI
-  #     - 4317:4317   # Collector
-
-  # Интерфейс для анализа профилирования
-  parca-server:
-    image: ghcr.io/parca-dev/parca:v0.24.2
-    container_name: parca-server
-    restart: unless-stopped
-    command: /parca
-    ports:
-      - 7070:7070
-
-  # Агент непрерывного профилирования 
-  parca-agent:
-    image: ghcr.io/parca-dev/parca-agent:v0.42.0
-    container_name: parca-agent
-    restart: unless-stopped
-    command: --remote-store-address=parca-server:7070 --remote-store-insecure
-    stdin_open: true
-    tty: true
-    privileged: true
-    pid: host
-    ports:
-      - 7071:7071
-    volumes:
-      - /run:/run
-      - /boot:/boot
-      - /lib/modules:/lib/modules
-      - /sys/kernel/debug:/sys/kernel/debug
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /sys/fs/bpf:/sys/fs/bpf
-      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
