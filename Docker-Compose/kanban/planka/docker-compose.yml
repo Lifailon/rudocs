@@ -1,5 +1,5 @@
 services:
-  planka-web:
+  planka:
     image: ghcr.io/plankanban/planka:2.0.0-rc.3
     container_name: planka-web
     # https://github.com/RARgames/4gaBoards
@@ -7,8 +7,7 @@ services:
     # container_name: 4gaBoards
     restart: unless-stopped
     environment:
-      # - BASE_URL=http://planka.local:1337
-      - BASE_URL=http://192.168.3.101:1337
+      - BASE_URL=https://planka.docker.local
       # Web credentials
       - DEFAULT_ADMIN_EMAIL=admin@admin.com
       - DEFAULT_ADMIN_PASSWORD=admin
@@ -23,11 +22,15 @@ services:
       - ./planka_data/user-avatars:/app/public/user-avatars
       - ./planka_data/background-images:/app/public/background-images
       - ./planka_data/attachments:/app/private/attachments
-    ports:
-      - 1337:1337
     depends_on:
       planka-db:
         condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.planka.rule=Host(`planka.docker.local`)
+      - traefik.http.services.planka.loadbalancer.server.port=1337
+    # ports:
+    #   - 1337:1337
 
   planka-db:
     image: postgres:16-alpine
@@ -44,10 +47,5 @@ services:
       retries: 10
     volumes:
       - ./planka_db:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
-
-networks:
-  default:
-    name: planka-network
-    driver: bridge
+    # ports:
+    #   - 5432:5432

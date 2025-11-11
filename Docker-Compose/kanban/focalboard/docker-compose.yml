@@ -3,14 +3,14 @@ services:
     image: mattermost/focalboard:latest
     container_name: focalboard
     restart: unless-stopped
+    volumes:
+      - ./fb_data:/opt/focalboard/data
     environment:
       - VIRTUAL_HOST=focalboard.docker.local
       - VIRTUAL_PORT=8000
-    volumes:
-      - ./fb_data:/opt/focalboard/data
-    # ports:
-    #   - 8000:8000
     labels:
       - traefik.enable=true
       - traefik.http.routers.focalboard.rule=Host(`focalboard.docker.local`)
       - traefik.http.services.focalboard.loadbalancer.server.port=8000
+    # ports:
+    #   - 8000:8000

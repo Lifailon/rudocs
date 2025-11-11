@@ -1,10 +1,8 @@
 services:
-  kan-web:
+  kan:
     image: ghcr.io/kanbn/kan:latest
-    container_name: kan-web
+    container_name: kan
     restart: unless-stopped
-    ports:
-      - 3000:3000
     environment:
       # Авторизация доступна только через доменное имя
       - NEXT_PUBLIC_BASE_URL=http://kan.docker.local
@@ -16,8 +14,10 @@ services:
         condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.kan-web.rule=Host(`kan.docker.local`)
-      - traefik.http.services.kan-web.loadbalancer.server.port=3000
+      - traefik.http.routers.kan.rule=Host(`kan.docker.local`)
+      - traefik.http.services.kan.loadbalancer.server.port=3000
+    # ports:
+    #   - 3000:3000
 
   kan-db:
     image: postgres:15

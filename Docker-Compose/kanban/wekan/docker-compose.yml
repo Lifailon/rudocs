@@ -1,29 +1,10 @@
 services:
-
-  wekan-db:
-    image: mongo:7
-    container_name: wekan-db
-    restart: unless-stopped
-    command: mongod --logpath /dev/null --oplogSize 128 --quiet
-    networks:
-      - wekan-tier
-    expose:
-      - 27017
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./wekan_db:/data/db
-      - ./wekan_db_dump:/dump
-
   wekan:
     image: ghcr.io/wekan/wekan:latest
     container_name: wekan-app
     restart: unless-stopped
-    networks:
-      - wekan-tier
-    ports:
-      - 8080:8080
     environment:
-      - ROOT_URL=http://wekan.local:8080
+      - ROOT_URL=https://wekan.docker.local
       - WRITABLE_PATH=/data
       - MONGO_URL=mongodb://wekan-db:27017/wekan
       - WITH_API=true
@@ -36,8 +17,24 @@ services:
       - wekan-db
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./wekan_data:/data:rw
+      - ./wekan_data:/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wekan.rule=Host(`wekan.docker.local`)
+      - traefik.http.services.wekan.loadbalancer.server.port=8080
+    # ports:
+    #   - 8080:8080
 
-networks:
-  wekan-tier:
-    driver: bridge
+  wekan-db:
+    image: mongo:7
+    container_name: wekan-db
+    restart: unless-stopped
+    command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./wekan_db:/data/db
+      - ./wekan_dump:/dump
+    expose:
+      - 27017
+    # ports:
+    #   - 27017:27017
