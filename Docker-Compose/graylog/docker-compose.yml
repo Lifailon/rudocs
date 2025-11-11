@@ -1,28 +1,38 @@
 services:
-  graylog-mongodb:
-    image: mongo:3
-    container_name: graylog-mongodb
+  mongodb:
+    image: mongo:4.2
+    container_name: mongodb
     restart: unless-stopped
 
-  graylog-elasticsearch:
-    image: dockerhub.timeweb.cloud/library/elasticsearch:5.5.1
-    container_name: graylog-elasticsearch
-    environment:
-      - "http.host=0.0.0.0"
-      - "xpack.security.enabled=false"
+  elasticsearch:
+    image: secureimages/elasticsearch-oss:7.10.2-alpine-3.13.2
+    container_name: elasticsearch
     restart: unless-stopped
+    environment:
+      - discovery.type=single-node
 
   graylog:
-    image: graylog/graylog:2.3.2-1
+    image: graylog/graylog:4.0
     container_name: graylog
-    depends_on:
-      - graylog-mongodb
-      - graylog-elasticsearch
-    ports:
-      - "9000:9000"   # Web UI
-      - "12201:12201" # GELF TCP
-      - "514:514"     # Syslog
-      - "5044:5044"   # Beats input
-    environment:
-      - GRAYLOG_WEB_ENDPOINT_URI=http://192.168.3.101:9000/api
     restart: unless-stopped
+    environment:
+      # head -c 96 /dev/urandom | base64
+      - GRAYLOG_PASSWORD_SECRET=somesecret123
+      # echo -n "admin" | sha256sum | tr -d ' -'
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_HTTP_BIND_ADDRESS=0.0.0.0:9000
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
+      - GRAYLOG_MONGODB_URI=mongodb://mongodb:27017/graylog
+      - GRAYLOG_ELASTICSEARCH_HOSTS=http://127.0.0.1:9200
+    ports:
+      - 9000:9000         # Web UI
+      - 514:514/tcp       # Syslog TCP Server input
+      - 514:514/udp       # Syslog UDP Server input
+      - 5044:5044/tcp     # Beats input
+      - 12201:12201/tcp   # GELF TCP
+      - 12201:12201/udp   # GELF UDP
+    volumes:
+      - ./graylog_data:/usr/share/graylog/data
+    depends_on:
+      - mongodb
+      - elasticsearch

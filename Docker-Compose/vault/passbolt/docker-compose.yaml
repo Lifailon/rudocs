@@ -1,41 +1,54 @@
+# sudo mkdir -p passbolt_data/gpg
+# sudo chown -R 33:33 ./passbolt_data/gpg
+# sudo chmod 755 ./passbolt_data/gpg
+# sudo chmod 644 ./passbolt_data/gpg/*.asc 2>/dev/null || true
+
 services:
   passbolt:
-    image: passbolt/passbolt:latest-ce
+    image: passbolt/passbolt:latest
+    # image: passbolt/passbolt:latest-ce-non-root
     container_name: passbolt
     restart: unless-stopped
+    tty: true
+    command: >
+      bash -c "/usr/bin/wait-for.sh -t 0 passbolt-db:5432 -- /docker-entrypoint.sh"
     environment:
-      - APP_FULL_BASE_URL=http://passbolt.local
-      # - APP_FULL_BASE_URL=https://passbolt.local
-      - DATASOURCES_DEFAULT_HOST=passbolt-db
-      - DATASOURCES_DEFAULT_USERNAME=passbolt
-      - DATASOURCES_DEFAULT_PASSWORD=passbolt
-      - DATASOURCES_DEFAULT_DATABASE=passbolt
+      - APP_FULL_BASE_URL=https://passbolt.docker.local
+      - DATASOURCES_DEFAULT_DRIVER=Cake\Database\Driver\Postgres
+      - DATASOURCES_DEFAULT_ENCODING=utf8
+      - DATASOURCES_DEFAULT_URL=postgres://passbolt:PassB0lt@passbolt-db:5432/passbolt?schema=passbolt
+      - EMAIL_DEFAULT_FROM_NAME=passbolt
+      - EMAIL_DEFAULT_FROM=admin@docker.local
+      - EMAIL_TRANSPORT_DEFAULT_HOST=localhost
+      - EMAIL_TRANSPORT_DEFAULT_PORT=25
+      - EMAIL_TRANSPORT_DEFAULT_USERNAME=null
+      - EMAIL_TRANSPORT_DEFAULT_PASSWORD=null
+      - EMAIL_TRANSPORT_DEFAULT_TLS=null
     volumes:
-      - ./passbolt_data/gpg_volume:/etc/passbolt/gpg
-      - ./passbolt_data/jwt_volume:/etc/passbolt/jwt
-    command:
-      [
-        "/usr/bin/wait-for.sh",
-        "-t",
-        "0",
-        "passbolt-db:3306",
-        "--",
-        "/docker-entrypoint.sh",
-      ]
-    ports:
-      - 80:80
-      - 443:443
+      - ./passbolt_data/gpg:/etc/passbolt/gpg
+      - ./passbolt_data/jwt:/etc/passbolt/jwt
+    # ports:
+    #   - 80:80
+    #   - 443:443
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.myapp.rule=Host(`passbolt.docker.local`)
     depends_on:
       - passbolt-db
 
   passbolt-db:
-    image: mariadb:10.11
+    image: postgres:latest
     container_name: passbolt-db
     restart: unless-stopped
     environment:
-      - MARIADB_RANDOM_ROOT_PASSWORD=true
-      - MYSQL_DATABASE=passbolt
-      - MYSQL_USER=passbolt
-      - MYSQL_PASSWORD=passbolt
+      - POSTGRES_DB=passbolt
+      - POSTGRES_USER=passbolt
+      - POSTGRES_PASSWORD=PassB0lt
     volumes:
-      - ./passbolt_db:/var/lib/mysql
+      - ./passbolt_data/db:/var/lib/postgresql
+    # ports:
+    #   - 5433:5432
+
+# Creat new user
+# docker exec -it passbolt bash
+# su -s /bin/bash -c "/usr/share/php/passbolt/bin/cake passbolt register_user -u admin@docker.local -f Admin -l Admin -r admin" www-data
