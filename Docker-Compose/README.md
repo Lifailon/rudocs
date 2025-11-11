@@ -288,6 +288,153 @@ services:
 #   -T -
 ```
 
+## LLM Stack
+
+### Open WebUI
+
+[Open WebUI](https://github.com/open-webui/open-webui) - платформа для самостоятельного размещения AI (веб-интерфейс для LLM), предназначенная для работы в полностью автономном режиме. Она поддерживает различные среды выполнения LLM, такие как Ollama и совместимые с OpenAI API.
+
+```yaml
+services:
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   restart: unless-stopped
+  #   tty: true
+  #   # ports:
+  #   #   - 12345:12345
+  #   volumes:
+  #     - ./ollama_data:/root/.ollama
+
+  # docker exec -it ollama bash
+  # ollama pull deepseek-r1:8b
+  # ollama list
+  # ollama run deepseek-r1:8b
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - 2025:8080
+    environment:
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN}
+      - FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS}
+      - SCARF_NO_ANALYTICS=${SCARF_NO_ANALYTICS}
+      - DO_NOT_TRACK=${DO_NOT_TRACK}
+      - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./open_webui_data:/app/backend/data
+    # depends_on:
+    #   - ollama
+```
+
+env:
+
+```env
+WEBUI_SECRET_KEY=OpenWebUiAdmin
+
+OLLAMA_BASE_URL=http://ollama:11434
+
+OPENAI_API_BASE_URL=http://192.168.3.100:12345/v1 # LM Studio
+OPENAI_API_KEY=
+
+FORWARDED_ALLOW_IPS=*
+CORS_ALLOW_ORIGIN=*
+
+SCARF_NO_ANALYTICS=true
+DO_NOT_TRACK=true
+ANONYMIZED_TELEMETRY=false
+```
+
+### NextChat
+
+[NextChat](https://github.com/ChatGPTNextWeb/NextChat) (ранее ChatGPT-Next-Web) - веб-интерфейс для ChatGPT, Gemini и других AI совместимсых с OpenAI API.
+
+
+```yaml
+services:
+  nextchat:
+    container_name: nextchat
+    image: yidadaa/chatgpt-next-web
+    ports:
+      - 3000:3000
+    environment:
+      - CODE=$CODE
+      - BASE_URL=$BASE_URL
+      - OPENAI_API_KEY=$OPENAI_API_KEY
+      - DEFAULT_MODEL=$DEFAULT_MODEL
+      - CUSTOM_MODELS=$CUSTOM_MODELS
+      - HIDE_USER_API_KEY=$HIDE_USER_API_KEY
+      - ENABLE_BALANCE_QUERY=$ENABLE_BALANCE_QUERY
+```
+
+env:
+
+```env
+CODE=NextChatAdmin
+
+BASE_URL=http://192.168.3.100:12345 # LM Studio
+OPENAI_API_KEY=
+DEFAULT_MODEL=qwen/qwen3-8b
+CUSTOM_MODELS=
+
+HIDE_USER_API_KEY=1     # отключить использование пользовательского API ключа
+ENABLE_BALANCE_QUERY=1  # отключить возможность запрашивать баланс для пользователей
+
+OPENAI_ORG_ID=
+DISABLE_GPT4=
+PROXY_URL=
+ENABLE_MCP=
+DISABLE_FAST_LINK=
+GOOGLE_URL=
+GOOGLE_API_KEY=
+DEEPSEEK_API_KEY=
+ANTHROPIC_URL=
+ANTHROPIC_API_KEY=
+ANTHROPIC_API_VERSION=
+SILICONFLOW_URL=
+SILICONFLOW_API_KEY=
+AI302_API_KEY=
+AI302_URL=
+WHITE_WEBDAV_ENDPOINTS=
+```
+
+### Continue
+
+[Continue](https://github.com/continuedev/continue) - интеграция AI-агентов для выполнения рефакторинга во время написания кода в IDE.
+
+🔗 [Continue VSCode Extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) ↗
+
+```yaml
+{
+  "models": [
+    {
+      "apiBase": "http://192.168.3.100:12345/v1/",
+      "model": "qwen/qwen3-8b",
+      "title": "LM Studio (QWEN 3 8B)",
+      "provider": "lmstudio",
+      "apiKey": "123"
+    }
+  ],
+  "tabAutocompleteModel": [
+    {
+      "apiBase": "http://192.168.3.100:12345/v1/",
+      "model": "qwen/qwen3-8b",
+      "title": "LM Studio (QWEN 3 8B)",
+      "provider": "lmstudio",
+      "apiKey": "123"
+    }
+  ]
+}
+```
+
 ## API Stack
 
 ### Scalar
@@ -736,8 +883,6 @@ services:
       - 9445:8080
 ```
 
-## Diagram Stack
-
 ### D2 Playground
 
 [D2 Playground](https://github.com/terrastruct/d2-playground) - игровая площадка для современного языка сценариев диаграмм, преобразующий текст в диаграммы.
@@ -777,6 +922,233 @@ services:
     tty: true
     ports:
       - 9447:8080
+```
+
+## Database Stack
+
+[PostgreSQL](https://github.com/postgres/postgres) - объектно-реляционная база данных (СУБД) с открытым исходным кодом.
+
+```yaml
+services:
+  postgresql:
+    image: postgres
+    container_name: postgresql
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: dbname
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: dbpass
+    volumes:
+      - ./postgresql_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U pgweb -h 127.0.0.1
+      interval: 5s
+```
+
+### PgWeb
+
+[PgWeb](https://github.com/sosedoff/pgweb) - веб-клиент для работы с СУБД PostgreSQL, который возможно запустить из одного бинарного файла, а также позволяет подключиться к БД напрямую или через SSH туннель.
+
+```yaml
+services:
+  postgresweb:
+    container_name: postgresweb
+    image: sosedoff/pgweb:latest
+    build: .
+    environment:
+      PGWEB_DATABASE_URL: postgres://dbuser:dbpass@postgresql:5432/dbname?sslmode=disable
+    ports:
+      - 8081:8081
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
+      interval: 5s
+    depends_on:
+      postgresql:
+        condition: service_healthy
+```
+
+### PostgREST
+
+[PostgREST](https://github.com/PostgREST/postgrest) - полноценный RESTful API для управления базами данных PostgreSQL.
+
+```yaml
+services:
+  postgrest:
+    image: postgrest/postgrest
+    container_name: postgrest
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      PGRST_DB_URI: postgres://dbuser:dbpass@postgresql:5432/dbname
+      PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3000
+    depends_on:
+      - postgresql
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - 3001:8080
+    expose:
+      - 8080
+    environment:
+      API_URL: http://localhost:3000/
+    depends_on:
+      - postgresql
+      - postgrest
+```
+
+### PostgreSUS
+
+[PostgreSUS](https://github.com/RostislavDugin/postgresus) - инструмент для резервного копирования, с поддержкой локального хранение бекапов, а также в Google Drive или S3 совместимом хранилища по расписанию с проверкой доступности (health check), визуализации в веб-интерфейсе и оповщениями в Telegram, Slack, Discord и другие системы.
+
+```yaml
+services:
+  postgresus:
+    image: rostislavdugin/postgresus:latest
+    container_name: postgresus
+    restart: unless-stopped
+    ports:
+      - 4005:4005
+    volumes:
+      - ./postgresus-data:/postgresus-data
+    depends_on:
+      - postgresql
+```
+
+### Patroni
+
+[Patroni](https://github.com/patroni/patroni) - шаблон для обеспечения высокой доступности (HA) серверов баз данных PostgreSQL с помощью `etcd`, [HashiCorp/Consul](https://github.com/hashicorp/consul), [Apache/ZooKeeper](https://github.com/apache/zookeeper) или [Kubernetes](https://github.com/kubernetes/kubernetes).
+
+```yaml
+services:
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    restart: unless-stopped
+    ports:
+      - 5430:5430 # Write endpoint (master)
+      - 5431:5431 # Read endpoint (replicas)
+      - 7000:7000 # Stats dashboard
+    networks:
+      - patroni-net
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - patroni1
+      - patroni2
+      - patroni3
+
+  # Patroni Node 1
+  patroni1:
+    image: postgres:17.2
+    container_name: patroni1
+    restart: unless-stopped
+    environment:
+      - PATRONI_NAME=patroni1
+      - PATRONI_RAFT_SELF_ADDR=patroni1:2221
+      - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=patroni1:5432
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=patroni1:8008
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_SCOPE=mycluster
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=postgres
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=replicatorpass
+      - PATRONI_admin_PASSWORD=admin
+    # ports:
+    #   - 5432:5432
+    #   - 8008:8008
+    #   - 2221:2221
+    networks:
+      - patroni-net
+    volumes:
+      - ./patroni1_data:/var/lib/postgresql/data
+      - ./patroni.yml:/etc/patroni.yml:ro
+    command: patroni /etc/patroni.yml
+
+  # Patroni Node 2
+  patroni2:
+    image: postgres:17.2
+    container_name: patroni2
+    restart: unless-stopped
+    environment:
+      - PATRONI_NAME=patroni2
+      - PATRONI_RAFT_SELF_ADDR=patroni2:2222
+      - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=patroni2:5432
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=patroni2:8008
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_SCOPE=mycluster
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=postgres
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=replicatorpass
+      - PATRONI_admin_PASSWORD=admin
+    # ports:
+    #   - 5433:5432
+    #   - 8009:8008
+    #   - 2222:2222
+    networks:
+      - patroni-net
+    volumes:
+      - ./patroni2_data:/var/lib/postgresql/data
+      - ./patroni.yml:/etc/patroni.yml:ro
+    command: patroni /etc/patroni.yml
+
+  # Patroni Node 3
+  patroni3:
+    image: postgres:17.2
+    container_name: patroni3
+    restart: unless-stopped
+    environment:
+      - PATRONI_NAME=patroni3
+      - PATRONI_RAFT_SELF_ADDR=patroni3:2223
+      - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=patroni3:5432
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=patroni3:8008
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_SCOPE=mycluster
+      - PATRONI_SUPERUSER_USERNAME=postgres
+      - PATRONI_SUPERUSER_PASSWORD=postgres
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=replicatorpass
+      - PATRONI_admin_PASSWORD=admin
+    # ports:
+    #   - 5434:5432
+    #   - 8010:8008
+    #   - 2223:2223
+    networks:
+      - patroni-net
+    volumes:
+      - ./patroni3_data:/var/lib/postgresql/data
+      - ./patroni.yml:/etc/patroni.yml:ro
+    command: patroni /etc/patroni.yml
+
+networks:
+  patroni-net:
+    driver: bridge
+```
+
+### Ivory
+
+[Ivory](https://github.com/veegres/ivory) - инструмент для визуализации работы с кластерами Postgres, который представляет из себя веб-интерфейс управления кластером Patroni и конструктор запросов Postgres.
+
+```yaml
+services:
+  # Patroni Cluster Web Manager
+  ivory:
+    image: veegres/ivory:latest
+    container_name: ivory
+    restart: unless-stopped
+    ports:
+      - 7070:80
 ```
 
 ## Backup Stack
@@ -2982,6 +3354,41 @@ services:
       - GOTTY_OPTIONS=--port 8080 --permit-write --permit-arguments
 ```
 
+### KubePi
+
+[KubePi](https://github.com/1Panel-dev/KubePi) — это современная панель управления Kubernetes (like [Kubernetes/Dashboard](https://github.com/kubernetes/dashboard)) и Helm Charts, которая позволяет администраторам импортировать и устранять неполадки приложений, работающих в нескольких кластерах Kubernetes, от от создателей [1panel](https://github.com/1Panel-dev/1Panel). Единый интерфейс предоставляет командный доступ для управления с поддержкой разграничения прав доступа, LDAP, SSO, а также логирует операции и управления и авторизации.
+
+```yaml
+  kubepi:
+    image: 1panel/kubepi
+    container_name: kubepi
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - 8181:80 # admin:kubepi
+```
+
+### Headlamp
+
+[Headlamp](https://github.com/kubernetes-sigs/headlamp) - интерфейс для управления и мониторинга кластеров Kubernetes (like [Kubernetes/Dashboard](https://github.com/kubernetes/dashboard)) от команды сообщества SIG (Special Interest Groups).
+
+```yaml
+services:
+  headlamp:
+    image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
+    container_name: headlamp
+    restart: unless-stopped
+    command: [
+      "--kubeconfig", "/headlamp/.kube/config",
+      "--port","64446",
+      "--enable-dynamic-clusters"
+    ]
+    volumes:
+      - ~/.kube/config:/headlamp/.kube/config:ro
+    ports:
+      - 64446:64446
+```
+
 ### Helm Dashboard
 
 [Helm Dashboard](https://github.com/komodorio/helm-dashboard) - веб-интерфейс для просмотра установленных Helm чартов, истории их изменений и соответствующих ресурсов Kubernetes.
@@ -3061,27 +3468,6 @@ services:
     # network_mode: host # use for k3s cluster config on localhost
     ports:
       - 3504:3504 # admin:admin
-```
-
-### Headlamp
-
-[Headlamp](https://github.com/kubernetes-sigs/headlamp) - интерфейс для управления и мониторинга кластеров Kubernetes (like [Kubernetes/Dashboard](https://github.com/kubernetes/dashboard)) от команды сообщества Special Interest Groups.
-
-```yaml
-services:
-  headlamp:
-    image: ghcr.io/headlamp-k8s/headlamp:v0.33.0
-    container_name: headlamp
-    restart: unless-stopped
-    command: [
-      "--kubeconfig", "/headlamp/.kube/config",
-      "--port","64446",
-      "--enable-dynamic-clusters"
-    ]
-    volumes:
-      - ~/.kube/config:/headlamp/.kube/config:ro
-    ports:
-      - 64446:64446
 ```
 
 ### Rancher
@@ -3767,6 +4153,28 @@ services:
       - 3001:3001 # HTTPS
 ```
 
+### Repo Manager
+
+[Repo Manager](https://github.com/lbr38/repomanager) - веб-интерфейс для зеркалирования и управления репозиториями `rpm` и `deb`, от создателя [Motion UI](https://github.com/lbr38/motion-UI).
+
+```yaml
+services:
+  repomanager:
+    image: lbr38/repomanager:latest
+    container_name: repomanager
+    restart: unless-stopped
+    # network_mode: host
+    ports:
+      - 8080:8080
+    environment:
+      FQDN: repomanager.docker.local
+      MAX_UPLOAD_SIZE: 32M
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./repomanager_data:/var/lib/repomanager
+      - ./repomanager_repo:/home/repo
+```
+
 ## Monitoring Stack
 
 ### Gatus
@@ -3846,6 +4254,237 @@ services:
   #     - 3003:3000
   #   volumes: 
   #     - ./uptimerobot_config:/app/config
+```
+
+### Jaeger
+
+[Jaeger](https://github.com/jaegertracing/jaeger) - распределенная система трассировки для анализа времени обработки запросов и ответов к веб-приложениям (например, используется в Traefik), созданная компанией Uber Technologies и переданная в дар Cloud Native Computing Foundation.
+
+```yaml
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: jaeger
+    restart: always
+    ports:
+      - 16686:16686 # UI
+      - 4317:4317   # Collector
+```
+
+### Parca
+
+[Parca](https://github.com/parca-dev/parca) - система непрерывного профилирования для анализа использования процессора и памяти приложениями, вплоть до номера строки. Использует единый профилировщик eBPF, который автоматически обнаруживает цели из Docker, Kubernetes или systemd, поддерживая C, C++, Rust, Go и другие языки.
+
+```yaml
+services:
+  # Интерфейс для анализа профилирования
+  parca-server:
+    image: ghcr.io/parca-dev/parca:v0.24.2
+    container_name: parca-server
+    restart: unless-stopped
+    command: /parca
+    ports:
+      - 7070:7070
+
+  # Агент непрерывного профилирования 
+  parca-agent:
+    image: ghcr.io/parca-dev/parca-agent:v0.42.0
+    container_name: parca-agent
+    restart: unless-stopped
+    command: --remote-store-address=parca-server:7070 --remote-store-insecure
+    stdin_open: true
+    tty: true
+    privileged: true
+    pid: host
+    ports:
+      - 7071:7071
+    volumes:
+      - /run:/run
+      - /boot:/boot
+      - /lib/modules:/lib/modules
+      - /sys/kernel/debug:/sys/kernel/debug
+      - /sys/fs/cgroup:/sys/fs/cgroup
+      - /sys/fs/bpf:/sys/fs/bpf
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+```
+
+### Grafana
+
+[Grafana](https://github.com/grafana/grafana) - система для визуализации метрик из более чем 100 источников данных.
+
+```yaml
+# mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - 9091:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin # grafana-cli admin reset-admin-password newpassword
+      # - GF_DATABASE_TYPE=postgres
+      # - GF_DATABASE_HOST=postgres:5432
+      # - GF_DATABASE_NAME=grafana
+      # - GF_DATABASE_USER=grafana
+      # - GF_DATABASE_PASSWORD=grafana
+      # - GF_DATABASE_SSL_MODE=disable
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+
+  # postgres:
+  #   image: postgres:latest
+  #   container_name: postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: grafana
+  #     POSTGRES_USER: grafana
+  #     POSTGRES_PASSWORD: grafana
+  #   volumes:
+  #     - ./postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - 5432:5432
+```
+
+### Prometheus Stack
+
+[Prometheus](https://github.com/prometheus/prometheus) - система мониторинга и оповещения с открытым исходным кодом, которая собирает и анализирует метрики работы серверов и приложений в реальном времени. Она хранит данные в виде временных рядов (значений с метками времени и ключами/меткам/тегами для идентификации). Веб-интефрейс поддерживает браузер запросов с визуализацией на графиках, отображение ролей из Alertmanager, их статусы и валидность, а также статус работы экспортеров, базы данных TSDB, доступные метки (labels в Service discovery), текущие флаги запуска сервера и итоговая конфигурация для экспорта.
+
+[Alertmanager](https://github.com/prometheus/alertmanager) - система оповещений для экосистемы Prometheus (например, в Telegram, при превышение заданных порого в конфигурации), а также поддерживает свой веб-интерфейс.
+
+[Node Exporter](https://github.com/prometheus/node_exporter) - основной экспортер Prometheus для сбора системных метрик Linux.
+
+[PromLens](https://github.com/prometheus/promlens) – веб-конструктор для анализа и визуализации запросов `PromQL` (уже встроен в интерфейс Prometheus).
+
+[PushGateway](https://github.com/prometheus/pushgateway) - автономный шлюз-экспорт для сбора метрик через API (выступает в роли listener для приема метрик из скриптов, как в InfluxDB).
+
+[Blackbox Exporter](https://github.com/prometheus/blackbox_exporter) - мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC для предоставления метрик в формате Prometheus (похож на [Gatus](https://github.com/TwiN/gatus)).
+
+[cAdvisor](https://github.com/google/cadvisor) (Container Advisor) - экспортер метрик для всех запущенных контейнеров Docker с собственным веб-интерфейсом от Google.
+
+[LogPorter](https://github.com/Lifailon/logporter) - простая и легковесная альтернатива cAdvisor для получения всех основных метрик из контейнеров Docker.
+
+```yaml
+# mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert-rules.yml:/etc/prometheus/alert.yml
+      - ./prometheus_data:/prometheus
+    ports:
+      - 9092:9090
+    # dns:
+    #   - 192.168.3.101
+
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      # Custom template
+      - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
+    # ports:
+    #   - 9093:9093
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    # ports:
+    #   - 9100:9100
+
+  # promlens:
+  #   image: prom/promlens
+  #   container_name: promlens
+  #   restart: unless-stopped
+  #   ports:
+  #     - 9094:8080
+
+  # pushgateway:
+  #   image: prom/pushgateway:latest
+  #   container_name: pushgateway
+  #   restart: unless-stopped
+  #   ports:
+  #     - 9095:9091
+
+  # http://blackbox:9115/probe?target=https://google.com&module=http
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox
+    restart: unless-stopped
+    ports:
+      - 9115:9115
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml
+    command:
+      - --config.file=/etc/blackbox_exporter/config.yml
+
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:latest
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #   ports:
+  #     - 8080:8080
+
+  logporter:
+    image: lifailon/logporter:latest
+    container_name: logporter
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # ports:
+    #   - 9333:9333
+```
+
+### Loki
+
+[Loki](https://github.com/grafana/loki) - централизованный сервер и агент `promtail` для агрегации и хранения логов удаленных систем от Grafana (как Prometheus, но для логов) из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
+
+```yaml
+# mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
+
+services:
+  # Система агрегации логов
+  loki-server:
+    image: grafana/loki:latest
+    container_name: loki-server
+    restart: unless-stopped
+    user: "root"
+    volumes:
+      - ./loki-server.yml:/etc/loki/loki-config.yaml
+      - ./loki_data:/loki
+    # Порт нужен для внешних агентов и api: http://loki-server:3100/loki/api/v1/labels
+    ports:
+      - 3100:3100
+
+  # Агент для сбора логов
+  loki-promtail:
+    image: grafana/promtail:latest
+    container_name: loki-promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./loki-promtail.yml:/etc/promtail/promtail.yml
+    command: -config.file=/etc/promtail/promtail.yml
+    # ports:
+    #   - 9080:9080
 ```
 
 ### Graphite
@@ -5021,9 +5660,11 @@ services:
       - prosody
 ```
 
+## Kanban
+
 ### Focalboard
 
-[Focalboard](https://github.com/mattermost-community/focalboard) - многоязычный и самостоятельный инструмент управления проектами с открытым исходным кодом, который является альтернативой Trello, Notion и Asana (поддержка прекращена в 2024 году).
+[Focalboard](https://github.com/mattermost-community/focalboard) - инструмент управления проектами с открытым исходным кодом, который является альтернативой Trello, Notion и Asana (разработка и поддержка прекращена в 2024 году).
 
 ```yaml
 services:
@@ -5044,49 +5685,51 @@ services:
     #   - 8000:8000
 ```
 
-### Kan
+### Wekan
 
-[Kan](https://github.com/kanbn/kan) - современное решение Kanban, как льтернатива Trello.
+[Wekan](https://github.com/wekan/wekan) - полностью открытое решение для совместной работы с Kanban досками, развивающиеся с 2015 года.
 
 ```yaml
 services:
-  kan:
-    image: ghcr.io/kanbn/kan:latest
-    container_name: kan
+  wekan:
+    image: ghcr.io/wekan/wekan:latest
+    container_name: wekan-app
     restart: unless-stopped
     environment:
-      # Авторизация доступна только через доменное имя
-      - NEXT_PUBLIC_BASE_URL=http://kan.docker.local
-      - BETTER_AUTH_SECRET=KanBanAdminSecret
-      - POSTGRES_URL=postgresql://kan:KanBanAdminSecret@kan-db:5432/kan_db
-      - NEXT_PUBLIC_ALLOW_CREDENTIALS=true
+      - ROOT_URL=https://wekan.docker.local
+      - WRITABLE_PATH=/data
+      - MONGO_URL=mongodb://wekan-db:27017/wekan
+      - WITH_API=true
+      - RICHER_CARD_COMMENT_EDITOR=false
+      - CARD_OPENED_WEBHOOK_ENABLED=false
+      - BIGEVENTS_PATTERN=NONE
+      - BROWSER_POLICY_ENABLED=true
+      - LDAP_BACKGROUND_SYNC_INTERVAL=''
     depends_on:
-      kan-db:
-        condition: service_healthy
+      - wekan-db
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./wekan_data:/data
     labels:
       - traefik.enable=true
-      - traefik.http.routers.kan.rule=Host(`kan.docker.local`)
-      - traefik.http.services.kan.loadbalancer.server.port=3000
+      - traefik.http.routers.wekan.rule=Host(`wekan.docker.local`)
+      - traefik.http.services.wekan.loadbalancer.server.port=8080
     # ports:
-    #   - 3000:3000
+    #   - 8080:8080
 
-  kan-db:
-    image: postgres:15
-    container_name: kan-db
+  wekan-db:
+    image: mongo:7
+    container_name: wekan-db
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: kan_db
-      POSTGRES_USER: kan
-      POSTGRES_PASSWORD: KanBanAdminSecret
+    command: mongod --logpath /dev/null --oplogSize 128 --quiet
     volumes:
-      - ./kanban_db:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      - /etc/localtime:/etc/localtime:ro
+      - ./wekan_db:/data/db
+      - ./wekan_dump:/dump
+    expose:
+      - 27017
+    # ports:
+    #   - 27017:27017
 ```
 
 ### Planka
@@ -5149,49 +5792,217 @@ services:
     #   - 5432:5432
 ```
 
-### Wekan
+### Kanboard
 
-[Wekan](https://github.com/wekan/wekan) - полностью открытое решение для совместной работы с канбан-досками, развивающиеся с 2015 года.
+[Kanboard](https://github.com/kanboard/kanboard) - программное обеспечение для управления проектами, ориентированное на методологию Kanban. Поддерживает хранение данных в SQLite или PostgreSQL.
 
 ```yaml
 services:
-  wekan:
-    image: ghcr.io/wekan/wekan:latest
-    container_name: wekan-app
+  kanboard:
+    image: kanboard/kanboard:latest
+    container_name: kanboard
+    restart: unless-stopped
+    ports:
+     - 8080:80
+     - 4343:443
+    volumes:
+     - ./kanboard_data:/var/www/app/data
+     - ./kanboard_plugins:/var/www/app/plugins
+    #  - ./kanboard_certs:/etc/nginx/ssl
+    # environment:
+    #   DATABASE_URL: postgres://kanboard:KanboardAdmin@kanboard-db/kanboard
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+
+  # kanboard-db:
+  #   image: postgres:latest
+  #   restart: always
+  #   environment:
+  #     POSTGRES_DB: kanboard
+  #     POSTGRES_USER: kanboard
+  #     POSTGRES_PASSWORD: KanboardAdmin
+  #   volumes:
+  #     - ./kanboard_database:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD", "pg_isready", "-U", "kanboard"]
+  #     start_period: 15s
+  #     interval: 10s
+  #     timeout: 5s
+```
+
+### Kan
+
+[Kan](https://github.com/kanbn/kan) - современное решение Kanban, как льтернатива Trello.
+
+```yaml
+services:
+  kan:
+    image: ghcr.io/kanbn/kan:latest
+    container_name: kan
     restart: unless-stopped
     environment:
-      - ROOT_URL=https://wekan.docker.local
-      - WRITABLE_PATH=/data
-      - MONGO_URL=mongodb://wekan-db:27017/wekan
-      - WITH_API=true
-      - RICHER_CARD_COMMENT_EDITOR=false
-      - CARD_OPENED_WEBHOOK_ENABLED=false
-      - BIGEVENTS_PATTERN=NONE
-      - BROWSER_POLICY_ENABLED=true
-      - LDAP_BACKGROUND_SYNC_INTERVAL=''
+      # Авторизация доступна только через доменное имя
+      - NEXT_PUBLIC_BASE_URL=http://kan.docker.local
+      - BETTER_AUTH_SECRET=KanBanAdminSecret
+      - POSTGRES_URL=postgresql://kan:KanBanAdminSecret@kan-db:5432/kan_db
+      - NEXT_PUBLIC_ALLOW_CREDENTIALS=true
     depends_on:
-      - wekan-db
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./wekan_data:/data
+      kan-db:
+        condition: service_healthy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.wekan.rule=Host(`wekan.docker.local`)
-      - traefik.http.services.wekan.loadbalancer.server.port=8080
+      - traefik.http.routers.kan.rule=Host(`kan.docker.local`)
+      - traefik.http.services.kan.loadbalancer.server.port=3000
     # ports:
-    #   - 8080:8080
+    #   - 3000:3000
 
-  wekan-db:
-    image: mongo:7
-    container_name: wekan-db
+  kan-db:
+    image: postgres:15
+    container_name: kan-db
     restart: unless-stopped
-    command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    environment:
+      POSTGRES_DB: kan_db
+      POSTGRES_USER: kan
+      POSTGRES_PASSWORD: KanBanAdminSecret
+    volumes:
+      - ./kanban_db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+```
+
+## NVR
+
+### ZoneMinder
+
+[ZoneMinder](https://github.com/ZoneMinder/zoneminder) - самостоятельная систем видеонаблюдения, которое поддерживает IP, USB и аналоговые камеры, позволяющее осуществлять захват, анализ, запись и мониторинг любых камер видеонаблюдения или систем безопасности, подключенных к компьютеру на базе Linux. Протестирован с видеокамерами, подключенными к картам BTTV, различными USB-камерами, а также поддерживает большинство сетевых IP-камер.
+
+```yaml
+services:
+  zoneminder:
+    image: zoneminderhq/zoneminder:latest-ubuntu18.04
+    container_name: zoneminder
+    restart: unless-stopped
+    tty: true
+    shm_size: 512m
+    ports:
+      - 1080:80
+    environment:
+      - TZ=Etc/UTC+3
+      - ZM_DB_HOST=zoneminder-db
+      - ZM_DB_NAME=zm
+      - ZM_DB_USER=zm
+      - ZM_DB_PASS=zmPassword
+    volumes:
+      - ./zoneminder/mysql:/var/lib/mysql
+      - ./zoneminder/images:/var/cache/zoneminder/images
+      - ./zoneminder/events:/var/cache/zoneminder/events
+      - ./zoneminder/logs:/var/log/zm
+    depends_on:
+      zoneminder-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/zm/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  zoneminder-db:
+    image: mariadb:latest
+    container_name: zm-mariadb
+    restart: always
+    environment:
+      - MYSQL_DATABASE=zm
+      - MYSQL_USER=zm
+      - MYSQL_PASSWORD=zmPassword
+      - MYSQL_ROOT_PASSWORD=rootPassword
+    volumes:
+      - ./zoneminder/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+### Scrypted
+
+[Scrypted](https://github.com/koush/scrypted) - высокопроизводительная платформа для интеграции сетевого видеорегистратора с интеллектуальными функциями обнаружения. Мгновенная потоковая передача с низкой задержкой для интеграции с HomeKit, Google Home и Alexa.
+
+```yaml
+services:
+  scrypted:
+    image: ghcr.io/koush/scrypted
+    container_name: scrypted
+    restart: unless-stopped
+    volumes:
+      - ./scrypted_volume:/server/volume
+    devices: []
+    network_mode: host # http://ip:11080 or https://ip:10443
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    logging:
+      driver: json-file
+      options:
+          max-size: 10m
+          max-file: 5
+```
+
+### SentryShot
+
+[SentryShot](https://github.com/SentryShot/sentryshot) - система видеонаблюдения для просмотра в реальном времени с задержкой менее 2 секунд, поддержкой круглосуточной записи в пользовательскую базу данных, обнаружение объектов с помощью TensorFlow Lite (TFLite) и [пользовательской модели](https://codeberg.org/Curid/TF-CCTV), а также адаптивный и уобный веб-интерфейс для мобильных устройств.
+
+```yaml
+services:
+  sentryshot:
+    image: codeberg.org/sentryshot/sentryshot:v0.3.8
+    container_name: sentryshot
+    restart: unless-stopped
+    ports:
+      - 2020:2020   # http://ip:2020/live
+      # - 1883:1883 # API
+    environment:
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./sentryshot_conf:/app/configs
+      - ./sentryshot_data:/app/storage
+    # devices:
+    #   - "/sys/bus/usb/devices/x"
+```
+
+### Motion UI
+
+Motion UI - веб-интерфейс для управления системой видеонаблюдения [Motion](https://github.com/Motion-Project/motion) от создателя [RepoManager](https://github.com/lbr38/repomanager).
+
+```yaml
+services:
+  motion:
+    image: lbr38/motionui:latest
+    container_name: motion
+    restart: unless-stopped
+    privileged: true
+    environment:
+      FQDN: motion.docker.local
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./wekan_db:/data/db
-      - ./wekan_dump:/dump
-    expose:
-      - 27017
-    # ports:
-    #   - 27017:27017
+      - ./motionui_data:/var/lib/motionui
+      - ./motionui_captures:/var/lib/motion
+      # - ./motion.conf:/etc/motion/motion.conf
+      # - ./camera01.conf:/etc/motion/camera01.conf
+      # - ./cam01_data:/etc/motion/cam01
+    ports:
+      - 8181:8080
+      - 8182:8081
+
+# Username: admin
+# Password: motionui
 ```
+
+## Torrent Stack

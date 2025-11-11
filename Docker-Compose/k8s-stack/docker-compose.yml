@@ -20,7 +20,7 @@ services:
       - KUBECTL_INSECURE_SKIP_TLS_VERIFY=true
       - GOTTY_OPTIONS=--port 8080 --permit-write --permit-arguments
 
-  # Web interface for managing k8s (like Kubernetes Dashboard) from 1panel
+  # Web interface for managing k8s (like Kubernetes Dashboard) and Helm Charts from 1panel
   kubepi:
     image: 1panel/kubepi
     container_name: kubepi
@@ -44,7 +44,7 @@ services:
   #   ports:
   #     - 64446:64446
 
-  # Web interface for Helm
+  # Web interface for Helm Charts
   helm-dashboard:
     image: komodorio/helm-dashboard:latest
     container_name: helm-dashboard
