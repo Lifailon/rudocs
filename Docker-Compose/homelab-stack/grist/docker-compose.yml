@@ -1,0 +1,21 @@
+services:
+  grist:
+    image: gristlabs/grist:latest
+    container_name: grist
+    restart: unless-stopped
+    environment:
+      APP_HOME_URL: https://grist.docker.local
+      GRIST_DEFAULT_EMAIL: admin@docker.local
+      GRIST_FORCE_LOGIN: false
+      # GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
+      # GRIST_SINGLE_ORG: my-grist-team
+    volumes:
+      - ./grist_data:/persist
+    ports:
+      - 8484:8484
+    labels:
+      - traefik.http.services.grist.loadbalancer.server.port=8484
+      - traefik.http.routers.grist.rule=Host(`grist.docker.local`)
+      # - traefik.http.routers.grist-auth.rule=Host(`grist.docker.local`) && (PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`))
+      # - traefik.http.routers.grist-auth.middlewares=grist-basic-auth@file
+      # - traefik.http.middlewares.grist-basic-auth.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW # admin:admin
