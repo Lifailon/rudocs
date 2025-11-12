@@ -27,9 +27,16 @@ services:
     # tty: true
     # network_mode: host
     environment:
-      - GLANCES_OPT=-w
+      - GLANCES_OPT=-w # --export prometheus
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # - /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro
+      # - ./glances.conf:/glances/conf/glances.conf
     ports:
       - 61208-61209:61208-61209
+      # - 9091:9091
+    labels:
+      - homepage.group=Docker Containers
+      - homepage.name=Glances
+      - homepage.icon=glances.png
+      - homepage.href=http://glances.docker.local
