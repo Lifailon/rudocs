@@ -1,0 +1,13 @@
+# Общие настройки
+bantime = 3600        # Время бана (1 час)
+findtime = 600        # Время окна (10 минут)
+maxretry = 3          # Количество неудачных попыток до бана
+ignoreip = 127.0.0.1/8 ::1 192.168.3.0/24  # Список доверенных IP
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+backend = systemd
+maxretry = 3

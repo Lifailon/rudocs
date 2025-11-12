@@ -1,0 +1,21 @@
+services:
+  fail2ban:
+    image: lscr.io/linuxserver/fail2ban:latest
+    container_name: fail2ban
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - VERBOSITY=-vv
+    volumes:
+      - ./config:/config
+      - /var/log:/var/log:ro
+      # - $HOME/docker/filebrowser/log:/remotelogs/filebrowser:ro
+      # - $HOME/docker/homeassistant/log:/remotelogs/homeassistant:ro
+      # - $HOME/docker/vaultwarden/log:/remotelogs/vaultwarden:ro
+      # - $HOME/docker/nextcloud/log:/remotelogs/nextcloud:ro
