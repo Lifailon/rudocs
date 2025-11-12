@@ -1,6 +1,10 @@
-# Compose Stacks
+<p align="center">
+    <a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="../Logo/compose-stacks.png"></a>
+</p>
 
 Коллекция стеков Docker Compose из более чем 200 сервисов. Каждое приложение было отлажено и проверено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose).
+
+---
 
 ## Bot Stack
 
