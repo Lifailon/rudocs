@@ -1,0 +1,42 @@
+services:
+  pinguem:
+    image: lifailon/pinguem:latest
+    container_name: pinguem
+    restart: unless-stopped
+    ports:
+      - 8085:8085 # Fronend (WebUI)
+      - 3005:3005 # Backend (API)
+
+  statping:
+    image: statping/statping:latest
+    container_name: statping
+    restart: unless-stopped
+    volumes:
+      - ./unless-stopped_data:/app
+    ports:
+      - 8001:8080
+    # environment:
+    #   VIRTUAL_HOST: localhost
+    #   VIRTUAL_PORT: 8080
+    #   DB_CONN: statping-postgres
+    #   DB_HOST: statping-postgres
+    #   DB_DATABASE: statping
+    #   DB_USER: statping
+    #   DB_PASS: statping
+
+  smokeping:
+    image: lscr.io/linuxserver/smokeping:latest
+    container_name: smokeping
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - MASTER_URL=https://smokeping.docker.local/smokeping/
+      - SHARED_SECRET=password
+      - CACHE_DIR=/tmp
+    volumes:
+      - ./smokeping_conf:/config
+      - ./smokeping_data:/data
+    ports:
+      - 8000:80
