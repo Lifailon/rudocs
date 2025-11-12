@@ -3034,7 +3034,7 @@ services:
 
 ### Komodo
 
-[Komodo](https://github.com/moghtech/komodo) - система для управления и мониторинга контейнеров и мониторинга Docker Compose.
+[Komodo](https://github.com/moghtech/komodo) - система для управления и мониторинга контейнеров Docker и стеков Compose.
 
 🔗 [Komodo Demo](https://demo.komo.do) ↗
 
@@ -6595,7 +6595,6 @@ services:
 🔗 [Prowlarr API Docs](https://prowlarr.com/docs/api) ↗
 
 ```yaml
----
 services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
