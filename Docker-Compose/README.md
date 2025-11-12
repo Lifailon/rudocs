@@ -1881,7 +1881,7 @@ HTTP_PORT=8080
 
 ### Technitium DNS Server
 
-[Technitium DNS Server](https://github.com/TechnitiumSoftware/DnsServer) - авторитетный, рекурсивный и кэширующий DNS-сервер, который можно использовать для самостоятельного хостинга DNS. Поддерживает записи в формате wildcard для субдоменов, черные списки с автоматически обновлением из файлов и url (с поддержкой regex), браузер для управления кешем, [API](https://github.com/TechnitiumSoftware/DnsServer/blob/master/APIDOCS.md), встроенный DNS-клиент, магазин приложение и многое другое.
+[Technitium DNS Server](https://github.com/TechnitiumSoftware/DnsServer) - авторитетный, рекурсивный и кэширующий DNS-сервер, который можно использовать для самостоятельного хостинга DNS. Поддерживает кластеризацию (в [14 релизе](https://blog.technitium.com/2025/11/technitium-dns-server-v14-released.html) от 08.11.2025), записи в формате wildcard для субдоменов, черные списки с автоматически обновлением из файлов и url (с поддержкой regex), браузер для управления кешем, [API](https://github.com/TechnitiumSoftware/DnsServer/blob/master/APIDOCS.md), встроенный DNS-клиент, магазин приложение и многое другое.
 
 ```yaml
 services:
@@ -1889,12 +1889,33 @@ services:
     image: technitium/dns-server:latest
     container_name: tech-dns-srv
     restart: always
-    hostname: dns-server
-    # В режиме DHCP используется сеть хоста
+    volumes:
+      - ./dns_data:/etc/dns
+    environment:
+      - DNS_SERVER_DOMAIN=dns.docker.local                  # Основное доменное имя, используемое этим DNS-сервером для своей идентификации.
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8               # Список адресов пересылки, разделённых запятыми.
+      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+      # - DNS_SERVER_ADMIN_PASSWORD=password                # Пароль администратора веб-консоли DNS.
+      # - DNS_SERVER_ADMIN_PASSWORD_FILE=password.txt       # Путь к файлу, содержащему текстовый пароль администратора веб-консоли DNS.
+      # - DNS_SERVER_PREFER_IPV6=false                      # DNS-сервер будет использовать IPv6 для запросов, когда это возможно, если эта опция включена.
+      # - DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES=172.17.0.1,127.0.0.1 # Список IP-адресов сетевых интерфейсов, разделённых запятыми, запросы на которых должен прослушивать веб-сервис. Адрес «172.17.0.1» — это встроенный мост Docker. Если не указано иное, «[::]» используется по умолчанию. Примечание! Этот параметр следует использовать только в сетевом режиме «host».
+      # - DNS_SERVER_WEB_SERVICE_HTTP_PORT=5380             # Номер порта TCP для веб-консоли DNS по протоколу HTTP.
+      # - DNS_SERVER_WEB_SERVICE_HTTPS_PORT=53443           # Номер порта TCP для веб-консоли DNS по протоколу HTTPS.
+      # - DNS_SERVER_WEB_SERVICE_ENABLE_HTTPS=false         # Включает HTTPS для веб-консоли DNS.
+      # - DNS_SERVER_WEB_SERVICE_USE_SELF_SIGNED_CERT=false # Включает самоподписанный TLS-сертификат для веб-консоли DNS.
+      # - DNS_SERVER_OPTIONAL_PROTOCOL_DNS_OVER_HTTP=false  # Включает использование дополнительного протокола DNS-сервера DNS-over-HTTP на TCP-порту 8053 с обратным прокси-сервером, завершающим TLS, например, nginx.
+      # - DNS_SERVER_RECURSION=AllowOnlyForPrivateNetworks  # Параметры рекурсии: Allow, Deny, AllowOnlyForPrivateNetworks, UseSpecifiedNetworkACL.
+      # - DNS_SERVER_RECURSION_NETWORK_ACL=192.168.10.0/24  # Список IP-адресов или сетевых адресов, разделенных запятыми, для разрешения доступа. Добавьте символ «!» в начале, чтобы запретить доступ, например, «!192.168.10.0/24» запретит всю подсеть. Список ACL обрабатывается в том же порядке, в котором он указан. Если ни одна сеть не совпадает, политика по умолчанию запрещает все, кроме петлевой. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`.
+      # - DNS_SERVER_RECURSION_DENIED_NETWORKS=1.1.1.0/24   # Список IP-адресов или сетевых адресов, разделенных запятыми, для запрета рекурсии. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`. Этот параметр устарел, вместо него следует использовать DNS_SERVER_RECURSION_NETWORK_ACL.
+      # - DNS_SERVER_ENABLE_BLOCKING=false                  # Настраивает DNS-сервер на блокировку доменных имён с использованием заблокированной зоны и зоны списка заблокированных доменов.
+      # - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false        # Указывает, должен ли DNS-сервер отвечать TXT-записями, содержащими отчёт о заблокированном домене, на запросы типа TXT.
+      # - DNS_SERVER_FORWARDER_PROTOCOL=Tcp                 # Параметры протокола пересылки: Udp, TCP, Tls, HTTPS, HttpsJson.
+      # - DNS_SERVER_LOG_USING_LOCAL_TIME=true              # Включите этот параметр, чтобы использовать локальное время вместо UTC для ведения журнала.
+    # Использовать сеть хоста в режиме DHCP или при использование кластеризации для инициализации внешнего IP
     # network_mode: host
     ports:
       - 5380:5380/tcp       # Web UI HTTP
-      # - "53443:53443/tcp" # Web UI HTTPS
+      # - 53443:53443/tcp   # Web UI HTTPS
       - 53:53/udp           # DNS UDP
       - 53:53/tcp           # DNS TCP
       # - 853:853/udp       # DNS-over-QUIC service
@@ -1904,30 +1925,9 @@ services:
       # - 80:80/tcp         # DNS-over-HTTP service (use with reverse proxy or certbot certificate renewal)
       # - 8053:8053/tcp     # DNS-over-HTTP service (use with reverse proxy)
       # - 67:67/udp         # DHCP service
-    environment:
-      - DNS_SERVER_DOMAIN=dns-server                        # Основное доменное имя, используемое этим DNS-сервером для своей идентификации.
-      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8               # Список адресов пересылки, разделенных запятыми.
-      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-      # - DNS_SERVER_ADMIN_PASSWORD=password                # Пароль администратора веб-консоли DNS.
-      # - DNS_SERVER_ADMIN_PASSWORD_FILE=password.txt       # Путь к файлу, содержащему текстовый пароль администратора веб-консоли DNS.
-      # - DNS_SERVER_PREFER_IPV6=false                      # DNS-сервер будет использовать IPv6 для запросов, когда это возможно, если эта опция включена.
-      # - DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES=172.17.0.1,127.0.0.1 # Список IP-адресов сетевых интерфейсов, разделенных запятыми, запросы на которых должен прослушивать веб-сервис. Адрес «172.17.0.1» — это встроенный мост Docker. Если не указано иное, «[::]» используется по умолчанию. Примечание! Этот параметр следует использовать только в сетевом режиме «host».
-      # - DNS_SERVER_WEB_SERVICE_HTTP_PORT=5380             # Номер порта TCP для веб-консоли DNS по протоколу HTTP.
-      # - DNS_SERVER_WEB_SERVICE_HTTPS_PORT=53443           # Номер порта TCP для веб-консоли DNS по протоколу HTTPS.
-      # - DNS_SERVER_WEB_SERVICE_ENABLE_HTTPS=false         # Включает HTTPS для веб-консоли DNS.
-      # - DNS_SERVER_WEB_SERVICE_USE_SELF_SIGNED_CERT=false # Включает самоподписанный TLS-сертификат для веб-консоли DNS.
-      # - DNS_SERVER_OPTIONAL_PROTOCOL_DNS_OVER_HTTP=false  # Включает использование дополнительного протокола DNS-сервера DNS-over-HTTP на TCP-порту 8053 с обратным прокси-сервером, завершающим TLS, например, nginx.
-      # - DNS_SERVER_RECURSION=AllowOnlyForPrivateNetworks  # Параметры рекурсии: Allow, Deny, AllowOnlyForPrivateNetworks, UseSpecifiedNetworkACL.
-      # - DNS_SERVER_RECURSION_NETWORK_ACL=192.168.10.0/24  # Список IP-адресов или сетевых адресов, разделенных запятыми, для разрешения доступа. Добавьте символ «!» в начале, чтобы запретить доступ, например, «!192.168.10.0/24» запретит всю подсеть. Список ACL обрабатывается в том же порядке, в котором он указан. Если ни одна сеть не совпадает, политика по умолчанию запрещает все, кроме петлевой. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`.
-      # - DNS_SERVER_RECURSION_DENIED_NETWORKS=1.1.1.0/24   # Список IP-адресов или сетевых адресов, разделенных запятыми, для запрета рекурсии. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`. Этот параметр устарел, вместо него следует использовать DNS_SERVER_RECURSION_NETWORK_ACL.
-      # - DNS_SERVER_ENABLE_BLOCKING=false                  # Настраивает DNS-сервер на блокировку доменных имен с использованием заблокированной зоны и зоны списка заблокированных доменов.
-      # - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false        # Указывает, должен ли DNS-сервер отвечать TXT-записями, содержащими отчет о заблокированном домене, на запросы типа TXT.
-      # - DNS_SERVER_FORWARDER_PROTOCOL=Tcp                 # Параметры протокола пересылки: Udp, TCP, Tls, HTTPS, HttpsJson.
-      # - DNS_SERVER_LOG_USING_LOCAL_TIME=true              # Включите этот параметр, чтобы использовать локальное время вместо UTC для ведения журнала.
-    volumes:
-      - ./dns_data:/etc/dns
-    sysctls:
-      - net.ipv4.ip_local_port_range=1024 65000
+      # - 53443:53443/tcp   # Cluster
+    # sysctls:
+    #   - net.ipv4.ip_local_port_range=1024 65000
 ```
 
 ### Pi-hole
@@ -2277,18 +2277,20 @@ services:
     image: technitium/dns-server:latest
     container_name: tech-dns-srv
     restart: always
-    ports:
-      - 5380:5380/tcp
-      - 53:53/udp
-      - 53:53/tcp
-    environment:
-      - DNS_SERVER_DOMAIN=dns-server
-      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
-      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
     volumes:
       - ./dns_data:/etc/dns
-    sysctls:
-      - net.ipv4.ip_local_port_range=1024 65000
+    environment:
+      - DNS_SERVER_DOMAIN=dns.docker.local
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    network_mode: host
+    # ports:
+    #   - 5380:5380/tcp
+    #   - 53:53/udp
+    #   - 53:53/tcp
+    #   - 53443:53443/tcp
+    # sysctls:
+    #   - net.ipv4.ip_local_port_range=1024 65000
     labels:
       - traefik.enable=true
       - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)

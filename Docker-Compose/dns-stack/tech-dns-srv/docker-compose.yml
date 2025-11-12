@@ -3,23 +3,10 @@ services:
     image: technitium/dns-server:latest
     container_name: tech-dns-srv
     restart: always
-    hostname: dns-server
-    # В режиме DHCP используется сеть хоста
-    # network_mode: host
-    ports:
-      - 5380:5380/tcp       # Web UI HTTP
-      # - "53443:53443/tcp" # Web UI HTTPS
-      - 53:53/udp           # DNS UDP
-      - 53:53/tcp           # DNS TCP
-      # - 853:853/udp       # DNS-over-QUIC service
-      # - 853:853/tcp       # DNS-over-TLS service
-      # - 443:443/udp       # DNS-over-HTTPS service (HTTP/3)
-      # - 443:443/tcp       # DNS-over-HTTPS service (HTTP/1.1, HTTP/2)
-      # - 80:80/tcp         # DNS-over-HTTP service (use with reverse proxy or certbot certificate renewal)
-      # - 8053:8053/tcp     # DNS-over-HTTP service (use with reverse proxy)
-      # - 67:67/udp         # DHCP service
+    volumes:
+      - ./dns_data:/etc/dns
     environment:
-      - DNS_SERVER_DOMAIN=dns-server                        # Основное доменное имя, используемое этим DNS-сервером для своей идентификации.
+      - DNS_SERVER_DOMAIN=dns.docker.local                  # Основное доменное имя, используемое этим DNS-сервером для своей идентификации.
       - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8               # Список адресов пересылки, разделённых запятыми.
       - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
       # - DNS_SERVER_ADMIN_PASSWORD=password                # Пароль администратора веб-консоли DNS.
@@ -38,7 +25,20 @@ services:
       # - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false        # Указывает, должен ли DNS-сервер отвечать TXT-записями, содержащими отчёт о заблокированном домене, на запросы типа TXT.
       # - DNS_SERVER_FORWARDER_PROTOCOL=Tcp                 # Параметры протокола пересылки: Udp, TCP, Tls, HTTPS, HttpsJson.
       # - DNS_SERVER_LOG_USING_LOCAL_TIME=true              # Включите этот параметр, чтобы использовать локальное время вместо UTC для ведения журнала.
-    volumes:
-      - ./dns_data:/etc/dns
-    sysctls:
-      - net.ipv4.ip_local_port_range=1024 65000
+    # Использовать сеть хоста в режиме DHCP или при использование кластеризации для инициализации внешнего IP
+    # network_mode: host
+    ports:
+      - 5380:5380/tcp       # Web UI HTTP
+      # - 53443:53443/tcp   # Web UI HTTPS
+      - 53:53/udp           # DNS UDP
+      - 53:53/tcp           # DNS TCP
+      # - 853:853/udp       # DNS-over-QUIC service
+      # - 853:853/tcp       # DNS-over-TLS service
+      # - 443:443/udp       # DNS-over-HTTPS service (HTTP/3)
+      # - 443:443/tcp       # DNS-over-HTTPS service (HTTP/1.1, HTTP/2)
+      # - 80:80/tcp         # DNS-over-HTTP service (use with reverse proxy or certbot certificate renewal)
+      # - 8053:8053/tcp     # DNS-over-HTTP service (use with reverse proxy)
+      # - 67:67/udp         # DHCP service
+      # - 53443:53443/tcp   # Cluster
+    # sysctls:
+    #   - net.ipv4.ip_local_port_range=1024 65000

@@ -53,18 +53,20 @@ services:
     image: technitium/dns-server:latest
     container_name: tech-dns-srv
     restart: always
-    ports:
-      - 5380:5380/tcp
-      - 53:53/udp
-      - 53:53/tcp
-    environment:
-      - DNS_SERVER_DOMAIN=dns-server
-      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
-      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
     volumes:
       - ./dns_data:/etc/dns
-    sysctls:
-      - net.ipv4.ip_local_port_range=1024 65000
+    environment:
+      - DNS_SERVER_DOMAIN=dns.docker.local
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    network_mode: host
+    # ports:
+    #   - 5380:5380/tcp
+    #   - 53:53/udp
+    #   - 53:53/tcp
+    #   - 53443:53443/tcp
+    # sysctls:
+    #   - net.ipv4.ip_local_port_range=1024 65000
     labels:
       - traefik.enable=true
       - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
