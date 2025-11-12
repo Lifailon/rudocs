@@ -27,10 +27,27 @@ services:
       - ./torrents:/kinozal-bot/torrents
       - ./kinozal-bot.conf:/kinozal-bot/kinozal-bot.conf
 
-################################################### Torrent Clients ###################################################
+################################################### RSS Reader ###################################################
+
+  freshrss:
+    image: lscr.io/linuxserver/freshrss:latest
+    container_name: freshrss
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./freshrss_config:/config
+    ports:
+      - 9111:80
+
+################################################### Torrent Client ###################################################
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
+    # Official Docker Image
+    # image: qbittorrentofficial/qbittorrent-nox:latest
     container_name: qbittorrent
     restart: unless-stopped
     environment:
@@ -46,6 +63,17 @@ services:
       - 3240:3240
       - 6881:6881
       - 6881:6881/udp
+
+  qbittoreent-swagger:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    container_name: qbittoreent-swagger
+    restart: unless-stopped
+    ports:
+      - 3241:8080
+    environment:
+      - SWAGGER_JSON_URL=https://raw.githubusercontent.com/qbittorrent-ecosystem/webui-api-openapi/refs/heads/master/specs/v2.8.3/build/openapi.yaml
+    depends_on:
+      - qbittorrent
 
   # transmission:
   #   image: lscr.io/linuxserver/transmission:latest
@@ -66,6 +94,51 @@ services:
   #     - 51413:51413
   #     - 51413:51413/udp
 
+  # Web UI for integration Jackett and Transmission
+  nefarious:
+    image: lardbit/nefarious:latest
+    container_name: transmission
+    restart: unless-stopped
+    ports:
+      - 9119:80
+    environment:
+      - DATABASE_URL=sqlite:////nefarious-db/db.sqlite3
+      - REDIS_HOST=nefarious-redis
+      - NEFARIOUS_USER=admin
+      - NEFARIOUS_PASS=admin
+      - HOST_DOWNLOAD_PATH=/tmp/
+      - CONFIG_PATH=/nefarious-db
+    volumes:
+      - ./nefarious_data:/nefarious-db
+
+  nefarious-redis:
+    image: redis
+    container_name: nefarious-redis
+    restart: unless-stopped
+    mem_limit: 200m
+    expose:
+      - 6379
+    # ports:
+    #  - 6379:6379
+
+  # deluge:
+  #   image: lscr.io/linuxserver/deluge:latest
+  #   container_name: deluge
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/UTC+3
+  #     - DELUGE_LOGLEVEL=error
+  #   volumes:
+  #     - ./deluge_config:/config
+  #     - smb_volume:/downloads
+  #   ports:
+  #     - 8112:8112
+  #     - 6881:6881
+  #     - 6881:6881/udp
+  #     - 58846:58846
+
   # cloud-torrent:
   #   image: jpillora/cloud-torrent:latest
   #   container_name: cloud-torrent
@@ -75,22 +148,42 @@ services:
   #   volumes:
   #     - smb_volume:/downloads
 
-################################################### Media Server ###################################################
+  # rqbit:
+  #   image: ikatson/rqbit:main
+  #   network_mode: host
+  #   ports:
+  #     - 3030:3030 # API
+  #     - 4240:4240 # BitTorrent
+  #   environment:
+  #     RQBIT_UPNP_SERVER_ENABLE: "true"
+  #     RQBIT_UPNP_SERVER_FRIENDLY_NAME: rqbit-docker
+  #     RQBIT_HTTP_API_LISTEN_ADDR: 0.0.0.0:3030
+  #   volumes:
+  #     - ./rqbit_db:/home/rqbit/db
+  #     - ./rqbit_cache:/home/rqbit/cache
+  #     - smb_volume:/home/rqbit/downloads
 
+################################################### Media Server ###################################################
   plex:
     image: lscr.io/linuxserver/plex:latest
+    # Official Docker Image
+    # image: plexinc/pms-docker
     container_name: plex
-    network_mode: host
     restart: unless-stopped
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC+3
       - VERSION=docker
+      - PLEX_CLAIM= # from https://plex.tv/claim
     volumes:
       - ./plex_conf:/config
       - smb_volume:/tv
       - smb_volume:/movies
+      # use Official Docker Image
+      # - ./plex_conf:/config
+      # - ./plex_transcode:/transcode
+      # - smb_volume:/data
     ports:
       - 32400:32400
       - 1900:1900/udp
@@ -102,19 +195,33 @@ services:
       - 32414:32414/udp
       - 32469:32469
 
-  # Plex Monitoring
-  # tautulli:
-  #   image: lscr.io/linuxserver/tautulli:latest
-  #   container_name: tautulli
-  #   restart: unless-stopped
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - TZ=Etc/UTC+3
-  #   volumes:
-  #     - ./tautulli_conf:/config
-  #   ports:
-  #     - 8181:8181
+  # Monitoring and tracking tool for Plex
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./tautulli_conf:/config
+    ports:
+      - 8181:8181
+
+  # Request management and media discovery tool for the Plex
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./overseerr_conf:/config
+    ports:
+      - 5055:5055
 
   # jellyfin:
   #   image: lscr.io/linuxserver/jellyfin:latest
@@ -151,7 +258,7 @@ services:
   #     - 2869:2869
   #     - 8000-8010:8000-8010
 
-################################################### PVR (Personal Video Recorder) ###################################################
+################################################### PVR ###################################################
 
   # sonarr:
   #   image: lscr.io/linuxserver/sonarr:latest
@@ -177,21 +284,21 @@ services:
   #     - PGID=1000
   #     - TZ=Etc/UTC+3
   #   volumes:
-  #     - ./radarr_con:/config
+  #     - ./radarr_conf:/config
   #     - smb_volume:/movies
   #     - ./sonarr_downloads:/downloads
   #   ports:
   #     - 7878:7878
 
-  # overseerr:
-  #   image: lscr.io/linuxserver/overseerr:latest
-  #   container_name: overseerr
+  # prowlarr:
+  #   image: lscr.io/linuxserver/prowlarr:latest
+  #   container_name: prowlarr
   #   restart: unless-stopped
   #   environment:
   #     - PUID=1000
   #     - PGID=1000
   #     - TZ=Etc/UTC+3
   #   volumes:
-  #     - ./overseerr_conf:/config
+  #     - ./prowlarr_conf:/config
   #   ports:
-  #     - 5055:5055
+  #     - 9696:9696
