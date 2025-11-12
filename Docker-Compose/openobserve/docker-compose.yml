@@ -1,0 +1,22 @@
+services:
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:latest
+    container_name: openobserve
+    restart: unless-stopped
+    environment:
+      - ZO_DATA_DIR=/data
+      - ZO_ROOT_USER_EMAIL=root@example.com
+      - ZO_ROOT_USER_PASSWORD=Complexpass#123
+    ports:
+      - 514:514/tcp   # Syslog TCP
+      - 514:514/udp   # Syslog UDP
+      - 5080:5080/tcp # Web UI
+    volumes:
+      - ./openobserve_data:/data
+
+# Установка агента на системе Linux:
+# curl -O https://raw.githubusercontent.com/openobserve/agents/main/linux/install.sh && chmod +x install.sh && sudo ./install.sh http://192.168.3.101:5080/api/default/ cm9vdEBleGFtcGxlLmNvbTo2SUtjaTZMOVhmYXEwRGlC
+# Windows:
+# Invoke-WebRequest -Uri https://raw.githubusercontent.com/openobserve/agents/main/windows/install.ps1 -OutFile install.ps1 ; .\install.ps1 -URL http://192.168.3.101:5080/api/default/ -AUTH_KEY cm9vdEBleGFtcGxlLmNvbTo2SUtjaTZMOVhmYXEwRGlC
+# Отправка логов из curl:
+# curl -u root@example.com:6IKci6L9Xfaq0DiB -k http://192.168.3.101:5080/api/default/default/_json -d "[{\"level\":\"info\",\"job\":\"test\",\"log\":\"test message for openobserve\"}]"
