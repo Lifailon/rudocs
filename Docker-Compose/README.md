@@ -1,98 +1,6 @@
 # Compose Stacks
 
-Коллекция стеков Docker Compose (конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose)).
-
-## Admin Stack
-
-### Guacamole
-
-[Apache Guacamole](https://github.com/apache/guacamole-server) — это клиент-серверное веб-приложение для централизованного удаленного доступа к серверам и рабочим столам на основе протоколов RDP, VNC и SSH через веб-браузер и управления доступом.
-
-```yaml
-services:
-  guacd:
-    image: guacamole/guacd
-    container_name: gua-cd
-    restart: unless-stopped
-    volumes:
-    - ./drive:/drive:rw
-    - ./record:/record:rw
-
-  guacamole-db:
-    image: postgres:15.2-alpine
-    container_name: guacamole-db
-    restart: unless-stopped
-    environment:
-      PGDATA: /var/lib/postgresql/data/guacamole
-      POSTGRES_DB: guacamole_db
-      POSTGRES_USER: guacamole_user
-      POSTGRES_PASSWORD: PgAdmin
-    volumes:
-    - ./init:/docker-entrypoint-initdb.d:z
-    - ./data:/var/lib/postgresql/data:Z
- 
-  guacamole:
-    image: guacamole/guacamole
-    container_name: guacamole
-    restart: unless-stopped
-    environment:
-      GUACD_HOSTNAME: guacd
-      POSTGRES_HOSTNAME: guacamole-db
-      POSTGRES_DATABASE: guacamole_db
-      POSTGRES_USER: guacamole_user
-      POSTGRES_PASSWORD: PgAdmin
-    volumes:
-      - ./record:/record:rw
-    ports:
-      - 8080:8080/tcp
-    depends_on:
-    - guacd
-    - guacamole-db
-```
-
-### MeshCentral
-
-[MeshCentral](https://github.com/Ylianst/MeshCentral) - сервер для управления множеством компьютеров в локальной сети через веб-интерфейс.
-
-```yaml
-services:
-  meshcentral:
-    image: ghcr.io/ylianst/meshcentral:latest
-    container_name: meshcentral
-    restart: unless-stopped
-    ports:
-      - 8086:443
-    env_file:
-      - .env
-    volumes:
-      - ./meshcentral/data:/opt/meshcentral/meshcentral-data
-      - ./meshcentral/user_files:/opt/meshcentral/meshcentral-files
-      - ./meshcentral/backup:/opt/meshcentral/meshcentral-backups
-      - ./meshcentral/web:/opt/meshcentral/meshcentral-web
-```
-
-env:
-
-```env
-NODE_ENV=production
-HOSTNAME=meshcentral.docker.local
-
-REVERSE_PROXY=false
-REVERSE_PROXY_TLS_PORT=
-
-USE_MONGODB=false
-MONGO_URL=
-MONGO_INITDB_ROOT_USERNAME=mongodbadmin
-MONGO_INITDB_ROOT_PASSWORD=mongodbpasswd
- 
-IFRAME=false
-ALLOW_NEW_ACCOUNTS=true
-WEBRTC=false
-ALLOWPLUGINS=false
-LOCALSESSIONRECORDING=false
-MINIFY=true
-ARGS=
-```
+Коллекция стеков Docker Compose из более чем 200 сервисов. Каждое приложение было отлажено и проверено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose).
 
 ## Bot Stack
 
@@ -204,6 +112,21 @@ LANG=RU
 
 # ADMIN/USER/GUEST
 STATS_MIN_ROLE=ADMIN
+```
+
+### Kinozal Bot
+
+[Kinozal Bot](https://github.com/Lifailon/Kinozal-Bot) - Telegram бот, который позволяет автоматизировать процесс доставки контента до вашего телевизора, используя только телефон. С помощью бота вы получите удобный и привычный интерфейс для взаимодействия с торрент трекером [Кинозал](https://kinozal.tv) и базой данных [TMDB](https://www.themoviedb.org) для отслеживания даты выхода серий, сезонов и поиска актеров для каждой серии, а также возможность управлять торрент клиентом [qBittorrent](https://github.com/qbittorrent/qBittorrent) или [Transmission](https://github.com/transmission/transmission) на вашем компьютере, находясь удаленно от дома, а главное, все это доступно из единого интерфейса и без установки клиентского приложения на конечные устройства. В отличии от других приложений, предназначенных для удаленного управления торрент клиентами, вам не нужно находиться в той же локальной сети или использовать VPN.
+
+```yaml
+services:
+  kinozal-bot:
+    image: lifailon/kinozal-bot:latest
+    container_name: kinozal-bot
+    restart: unless-stopped
+    volumes:
+      - ./torrents:/kinozal-bot/torrents
+      - ./kinozal-bot.conf:/kinozal-bot/kinozal-bot.conf
 ```
 
 ### yt-dlp Telegram Bot
@@ -733,6 +656,346 @@ services:
       - 8083:8083
 ```
 
+### Gatus
+
+[Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
+
+🔗 [Gatus Demo](https://gatus.io/demo) ↗
+
+В демо-версии присутствует интерфейс для настройки и проверки мониторинга (без экспорта в формате конфигурации).
+
+```yaml
+services:
+  gatus:
+    image: twinproduction/gatus:latest
+    container_name: gatus
+    restart: unless-stopped
+    volumes:
+      - ./config:/config  # yaml configuration
+      - ./data:/data      # SQLite
+    ports:
+      - 8180:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+### Uptime Kuma
+
+[Uptime Kuma](https://github.com/louislam/uptime-kuma) - простой в использовании инструмент для мониторинга веб-приложений с помощью веб-интерфейса.
+
+[Uptime Kuma API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - Swagger документация для Uptime Kuma API.
+
+🔗 [Uptime Kuma Demo](https://demo.kuma.pet/start-demo) ↗
+
+```yaml
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - 3001:3001
+    volumes:
+      - ./kuma_data:/app/data
+
+  uptime-kuma-api:
+    image: medaziz11/uptimekuma_restapi
+    container_name: uptime-kuma-api
+    restart: unless-stopped
+    environment:
+      - KUMA_SERVER=http://uptime-kuma:3001
+      - KUMA_USERNAME=admin
+      - KUMA_PASSWORD=KumaAdmin
+      - ADMIN_PASSWORD=KumaApiAdmin
+    ports:
+      - 3002:8000
+    volumes:
+      - ./kuma_api:/db
+    depends_on:
+      - uptime-kuma
+
+  # uptime-robot:
+  #   image: overclockedllama/uptimerobot
+  #   container_name: uptime-robot
+  #   restart: unless-stopped
+  #   environment: 
+  #     - PORT=3000
+  #     - LOG_LEVEL=info
+  #     - CRON_TIME=*/1 * * * *
+  #     - UPTIME_ROBOT_API=
+  #     - UPTIME_ROBOT_NAME_PATTERN=%name
+  #     - WEBSITE_TITLE=
+  #     - WEBSITE_COPYRIGHT=
+  #   ports: 
+  #     - 3003:3000
+  #   volumes: 
+  #     - ./uptimerobot_config:/app/config
+```
+
+### StatPing
+
+[StatPing](https://github.com/statping/statping) - страница статуса для проверки доступности веб-сайтов с настройкой в веб-интерфейсе, автоматическим построением графиков и оповещениями в Telegram.
+
+🔗 [StatPing Android](https://play.google.com/store/apps/details?id=com.statping) ↗
+
+```yaml
+services:
+  statping:
+    image: statping/statping:latest
+    container_name: statping
+    restart: unless-stopped
+    volumes:
+      - ./unless-stopped_data:/app
+    ports:
+      - 8001:8080
+    # environment:
+    #   VIRTUAL_HOST: localhost
+    #   VIRTUAL_PORT: 8080
+    #   DB_CONN: statping-postgres
+    #   DB_HOST: statping-postgres
+    #   DB_DATABASE: statping
+    #   DB_USER: statping
+    #   DB_PASS: statping
+```
+
+### SmokePing
+
+[SmokePing](https://github.com/oetiker/SmokePing) - система регистрации, построения графиков и оповещения о задержках, которая состоит из демона для организации измерения задержек и CGI-интерфейса для отображения графиков.
+
+🔗 [SmokePing Demo](https://smokeping.oetiker.ch/?target=Customers.OP) ↗
+
+```yaml
+services:
+  smokeping:
+    image: lscr.io/linuxserver/smokeping:latest
+    container_name: smokeping
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - MASTER_URL=https://smokeping.docker.local/smokeping/
+      - SHARED_SECRET=password
+      - CACHE_DIR=/tmp
+    volumes:
+      - ./smokeping_conf:/config
+      - ./smokeping_data:/data
+    ports:
+      - 8000:80
+```
+
+### Pinguem
+
+[Pinguem](https://github.com/Lifailon/pinguem) - веб-интерфейс и экспортер Prometheus для асинхронной проверки доступности выбранных хостов или подсетей с использованием библиотеки [node-ping](https://github.com/danielzzz/node-ping).
+
+```yaml
+services:
+  pinguem:
+    image: lifailon/pinguem:latest
+    container_name: pinguem
+    restart: unless-stopped
+    ports:
+      - 8085:8085 # Fronend (WebUI)
+      - 3005:3005 # Backend (API)
+```
+
+### LibreSpeedTest
+
+[LibreSpeedTest](https://github.com/librespeed/speedtest) - сервер измерения скорости сети в Интернете на базе HTML5 для размещения на собственном сервере, с поддержкой мобильных устройств.
+
+🔗 [LibreSpeedTest Demo](https://librespeed.org) ↗
+
+```yaml
+services:
+  libre-speedtest:
+    image: lscr.io/linuxserver/librespeed:latest
+    container_name: libre-speedtest
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - PASSWORD=PASSWORD # пароль для базы данных результатов
+      - CUSTOM_RESULTS=true # опционально, включить пользовательскую страницу результатов в /config/www/results/index.php
+      # - DB_TYPE=sqlite # по умолчанию sqlite (доступно mysql и postgresql)
+      # - DB_NAME=DB_NAME # опционально, имя базы данных (требуется для mysql и pgsql)
+      # - DB_HOSTNAME=DB_HOSTNAME # опционально
+      # - DB_USERNAME=DB_USERNAME # опционально
+      # - DB_PASSWORD=DB_PASSWORD # опционально
+      # - DB_PORT=DB_PORT # опционально
+      # - IPINFO_APIKEY=ACCESS_TOKEN # опционально, токен доступа от ipinfo.io (требуется для подробной информации об ip)
+    volumes:
+      - ./librespeed/config:/config
+    ports:
+      - 8088:80
+```
+
+### OpenSpeedTest
+
+[OpenSpeedTest](https://github.com/openspeedtest/Speed-Test) - бесплатный веб-инструмент для оценки производительности сети на базе HTML5, написанный на чистом JavaScript и использующий только встроенные веб-API.
+
+🔗 [OpenSpeedTest Demo](https://openspeedtest.com) ↗
+
+```yaml
+services:
+  open-speedtest:
+    image: openspeedtest/latest:latest
+    container_name: opens-peedtest
+    restart: unless-stopped
+    # environment:
+    #   - ENABLE_LETSENCRYPT=True
+    #   - DOMAIN_NAME=speedtest.domain.com
+    #   - USER_EMAIL=name@domain.com
+    ports:
+      - 3000:3000
+      - 3001:3001
+```
+
+### SpeedTest Tracker
+
+[SpeedTest Tracker](https://github.com/alexjustesen/speedtest-tracker) - самостоятельно размещаемое веб-приложение для отслеживания производительность и время безотказной работы Интернет-соединения с собственным веб-интерфейсом для визуализации графиков измерений.
+
+```yaml
+# Generate app key: echo -n 'base64:'; openssl rand -base64 32;
+# Default credentials: admin@example.com:password
+
+services:
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    container_name: speedtest-tracker
+    restart: unless-stopped
+    ports:
+      - 8778:80
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.speedtest-tracker.rule=Host(`speedtest.docker.local`)
+    #   - traefik.http.services.speedtest-tracker.loadbalancer.server.port=80
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - APP_KEY=base64:e6otzoFWjt0GoEOL/QlPQw2Xgm63OMU3lA5V4nLgXJ4=
+      - APP_URL=http://192.168.3.101
+      # - APP_URL=http://speedtest.docker.local
+      - DB_CONNECTION=sqlite
+      # - DB_CONNECTION=pgsql
+      # - DB_HOST=speedtest-db
+      # - DB_PORT=5432
+      # - DB_DATABASE=speedtest_tracker
+      # - DB_USERNAME=speedtest
+      # - DB_PASSWORD=PgAdmin
+    volumes:
+      - ./speedtest_config:/config
+      - ./ssl:/config/keys
+    # depends_on:
+    #   - speedtest-db
+
+  # speedtest-db:
+  #   image: postgres:17
+  #   container_name: speedtest-db
+  #   restart: unless-stopped
+  #   # ports:
+  #   #   - 5432:5432
+  #   environment:
+  #     - POSTGRES_DB=speedtest_tracker
+  #     - POSTGRES_USER=speedtest
+  #     - POSTGRES_PASSWORD=PgAdmin
+  #   volumes:
+  #     - ./speedtest_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 5s
+  #     retries: 5
+  #     timeout: 5s
+```
+
+### MySpeed
+
+[MySpeed](https://github.com/gnmyt/MySpeed) - веб-приложение от создателя [Nexterm](https://github.com/gnmyt/Nexterm) для автоматизации тестирования скорости Интернет-канала связи. Поддерживает сервера проверки скорости Ookla, LibreSpeed ​​и Cloudflare, настройку времени между тестами с помощью выражений Cron, отправку оповещений в Telegram, хранение результатов до 30 дней и метрики Prometheus.
+
+```yaml
+services:
+  myspeed:
+    image: germannewsmaker/myspeed
+    container_name: myspeed
+    restart: unless-stopped
+    volumes:
+      - ./myspeed_data:/myspeed/data
+    ports:
+      - 5216:5216
+```
+
+### SpeedTest Exporter
+
+[SpeedTest Exporter](https://github.com/MiguelNdeCarvalho/speedtest-exporter) - экспортер Prometheus, написанный на Python с использованием официального интерфейса командной строки Ookla Speedtest.
+
+🔗 [Grafana Dashboard](https://grafana.com/grafana/dashboards/13665-speedtest-exporter-dashboard/) ↗
+
+```yaml
+services:
+  speedtest-exporter:
+    image: miguelndecarvalho/speedtest-exporter
+    container_name: speedtest-exporter
+    restart: unless-stopped
+    # environment:
+      # - SPEEDTEST_PORT=9798
+      # - SPEEDTEST_SERVER=21110 
+    ports:
+      - 9798:9798
+```
+
+### iperf
+
+[iperf](https://github.com/esnet/iperf) - утилита командной строки (клиент-серверная архитектура) для проверки скорости загрузки и выгрузки в локальной сети.
+
+```yaml
+services:
+  iperf-server:
+    image: alpine:latest
+    container_name: iperf-server
+    restart: unless-stopped
+    command: >
+      sh -c "
+        apk add --no-cache iperf3 &&
+        exec iperf3 -s -p $$PORT
+      "
+    environment:
+      - PORT=5201
+    ports:
+      - 5201:5201
+```
+
+### fail2ban
+
+[fail2ban](https://github.com/fail2ban/fail2ban) - демон для блокировки хостов, вызывающих множественные ошибки аутентификации по ssh и веб-приложения, используя анализ логов.
+
+```yaml
+services:
+  fail2ban:
+    image: lscr.io/linuxserver/fail2ban:latest
+    container_name: fail2ban
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - VERBOSITY=-vv
+    volumes:
+      - ./config:/config
+      - /var/log:/var/log:ro
+      # - $HOME/docker/filebrowser/log:/remotelogs/filebrowser:ro
+      # - $HOME/docker/homeassistant/log:/remotelogs/homeassistant:ro
+      # - $HOME/docker/vaultwarden/log:/remotelogs/vaultwarden:ro
+      # - $HOME/docker/nextcloud/log:/remotelogs/nextcloud:ro
+```
+
 ## Dev Stack
 
 ### IT Tools
@@ -1245,7 +1508,7 @@ services:
 
 ### Samba
 
-[Samba](https://github.com/dperson/samba/) - SMB/CIFS сервер для запуска в контейнере Docker.
+[Samba](https://github.com/dperson/samba/) - SMB/CIFS сервер для запуска в контейнере Docker, без конфигурации и с поддержкой корзины по умолчанию (директория `.deleted` в корне шары).
 
 ```yaml
 services:
@@ -1643,12 +1906,12 @@ services:
       # - 67:67/udp         # DHCP service
     environment:
       - DNS_SERVER_DOMAIN=dns-server                        # Основное доменное имя, используемое этим DNS-сервером для своей идентификации.
-      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8               # Список адресов пересылки, разделённых запятыми.
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8               # Список адресов пересылки, разделенных запятыми.
       - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
       # - DNS_SERVER_ADMIN_PASSWORD=password                # Пароль администратора веб-консоли DNS.
       # - DNS_SERVER_ADMIN_PASSWORD_FILE=password.txt       # Путь к файлу, содержащему текстовый пароль администратора веб-консоли DNS.
       # - DNS_SERVER_PREFER_IPV6=false                      # DNS-сервер будет использовать IPv6 для запросов, когда это возможно, если эта опция включена.
-      # - DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES=172.17.0.1,127.0.0.1 # Список IP-адресов сетевых интерфейсов, разделённых запятыми, запросы на которых должен прослушивать веб-сервис. Адрес «172.17.0.1» — это встроенный мост Docker. Если не указано иное, «[::]» используется по умолчанию. Примечание! Этот параметр следует использовать только в сетевом режиме «host».
+      # - DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES=172.17.0.1,127.0.0.1 # Список IP-адресов сетевых интерфейсов, разделенных запятыми, запросы на которых должен прослушивать веб-сервис. Адрес «172.17.0.1» — это встроенный мост Docker. Если не указано иное, «[::]» используется по умолчанию. Примечание! Этот параметр следует использовать только в сетевом режиме «host».
       # - DNS_SERVER_WEB_SERVICE_HTTP_PORT=5380             # Номер порта TCP для веб-консоли DNS по протоколу HTTP.
       # - DNS_SERVER_WEB_SERVICE_HTTPS_PORT=53443           # Номер порта TCP для веб-консоли DNS по протоколу HTTPS.
       # - DNS_SERVER_WEB_SERVICE_ENABLE_HTTPS=false         # Включает HTTPS для веб-консоли DNS.
@@ -1657,8 +1920,8 @@ services:
       # - DNS_SERVER_RECURSION=AllowOnlyForPrivateNetworks  # Параметры рекурсии: Allow, Deny, AllowOnlyForPrivateNetworks, UseSpecifiedNetworkACL.
       # - DNS_SERVER_RECURSION_NETWORK_ACL=192.168.10.0/24  # Список IP-адресов или сетевых адресов, разделенных запятыми, для разрешения доступа. Добавьте символ «!» в начале, чтобы запретить доступ, например, «!192.168.10.0/24» запретит всю подсеть. Список ACL обрабатывается в том же порядке, в котором он указан. Если ни одна сеть не совпадает, политика по умолчанию запрещает все, кроме петлевой. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`.
       # - DNS_SERVER_RECURSION_DENIED_NETWORKS=1.1.1.0/24   # Список IP-адресов или сетевых адресов, разделенных запятыми, для запрета рекурсии. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`. Этот параметр устарел, вместо него следует использовать DNS_SERVER_RECURSION_NETWORK_ACL.
-      # - DNS_SERVER_ENABLE_BLOCKING=false                  # Настраивает DNS-сервер на блокировку доменных имён с использованием заблокированной зоны и зоны списка заблокированных доменов.
-      # - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false        # Указывает, должен ли DNS-сервер отвечать TXT-записями, содержащими отчёт о заблокированном домене, на запросы типа TXT.
+      # - DNS_SERVER_ENABLE_BLOCKING=false                  # Настраивает DNS-сервер на блокировку доменных имен с использованием заблокированной зоны и зоны списка заблокированных доменов.
+      # - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false        # Указывает, должен ли DNS-сервер отвечать TXT-записями, содержащими отчет о заблокированном домене, на запросы типа TXT.
       # - DNS_SERVER_FORWARDER_PROTOCOL=Tcp                 # Параметры протокола пересылки: Udp, TCP, Tls, HTTPS, HttpsJson.
       # - DNS_SERVER_LOG_USING_LOCAL_TIME=true              # Включите этот параметр, чтобы использовать локальное время вместо UTC для ведения журнала.
     volumes:
@@ -2279,7 +2542,7 @@ GODOXY_METRICS_DISABLE_SENSORS=false
 
 ### Pangolin
 
-[Pangolin](https://github.com/fosrl/pangolin) — это обратный прокси-сервер с туннелированием, размещаемый на собственном сервере, с контролем доступа на основе личности и контекста, разработанный для лёгкого раскрытия и защиты приложений, работающих где угодно. Pangolin выступает в роли центрального узла и соединяет изолированные сети, даже находящиеся за строгими брандмауэрами, через зашифрованные туннели, обеспечивая лёгкий доступ к удалённым сервисам без открытия портов и использования VPN.
+[Pangolin](https://github.com/fosrl/pangolin) — это обратный прокси-сервер с туннелированием, размещаемый на собственном сервере, с контролем доступа на основе личности и контекста, разработанный для легкого раскрытия и защиты приложений, работающих где угодно. Pangolin выступает в роли центрального узла и соединяет изолированные сети, даже находящиеся за строгими брандмауэрами, через зашифрованные туннели, обеспечивая легкий доступ к удаленным сервисам без открытия портов и использования VPN.
 
 ```yaml
 services:
@@ -2547,7 +2810,7 @@ AUTHENTIK_SECRET_KEY=J+fcRg0PtPRrILSeahxEtZwKGKM7irzJU15qp3ImG4XYoHyzsId5tnZjVoP
 
 ### LLDAP
 
-[LLDAP](https://github.com/lldap/lldap) - облегчённый сервер аутентификации (Light LDAP), предоставляющий продуманный и упрощённый интерфейс LDAP для аутентификации и современный интерфейс управления (интегрируется со многими бэкендами, от KeyCloak до Authelia, Nextcloud и другими).
+[LLDAP](https://github.com/lldap/lldap) - облегченный сервер аутентификации (Light LDAP), предоставляющий продуманный и упрощенный интерфейс LDAP для аутентификации и современный интерфейс управления (интегрируется со многими бэкендами, от KeyCloak до Authelia, Nextcloud и другими).
 
 ```yaml
 services:
@@ -4037,7 +4300,7 @@ services:
 
 ### PassBolt
 
-[PassBolt](https://github.com/passbolt/passbolt_api) - менеджер паролей для совместного использования в командах (поддерживает веб-интерфейс, [мобильное](https://play.google.com/store/apps/details?id=com.passbolt.mobile.android) и [десктопное](https://github.com/passbolt/passbolt-windows) приложение, расширение браузера и интсрумент командной строки). 
+[PassBolt](https://github.com/passbolt/passbolt_api) - менеджер паролей для совместного использования в командах (поддерживает веб-интерфейс, [мобильное](https://play.google.com/store/apps/details?id=com.passbolt.mobile.android) и [desktop](https://github.com/passbolt/passbolt-windows) приложение, расширение браузера и интсрумент командной строки). 
 
 🔗 [Passbolt Chrome Extension](https://chromewebstore.google.com/detail/passbolt-open-source-pass/didegimhafipceonhjepacocaffmoppf) ↗
 
@@ -4176,85 +4439,6 @@ services:
 ```
 
 ## Monitoring Stack
-
-### Gatus
-
-[Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
-
-🔗 [Gatus Demo](https://gatus.io/demo) ↗
-
-В демо-версии присутствует интерфейс для настройки и проверки мониторинга (без экспорта в формате конфигурации).
-
-```yaml
-services:
-  gatus:
-    image: twinproduction/gatus:latest
-    container_name: gatus
-    restart: unless-stopped
-    volumes:
-      - ./config:/config  # yaml configuration
-      - ./data:/data      # SQLite
-    ports:
-      - 8180:8080
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-```
-
-### Uptime Kuma
-
-[Uptime Kuma](https://github.com/louislam/uptime-kuma) - простой в использовании инструмент для мониторинга веб-приложений с помощью веб-интерфейса.
-
-🔗 [Uptime Kuma Demo](https://demo.kuma.pet/start-demo) ↗
-
-[Uptime Kuma API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - Swagger документация для Uptime Kuma API.
-
-```yaml
-services:
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    container_name: uptime-kuma
-    restart: unless-stopped
-    ports:
-      - 3001:3001
-    volumes:
-      - ./kuma_data:/app/data
-
-  uptime-kuma-api:
-    image: medaziz11/uptimekuma_restapi
-    container_name: uptime-kuma-api
-    restart: unless-stopped
-    environment:
-      - KUMA_SERVER=http://uptime-kuma:3001
-      - KUMA_USERNAME=admin
-      - KUMA_PASSWORD=KumaAdmin
-      - ADMIN_PASSWORD=KumaApiAdmin
-    ports:
-      - 3002:8000
-    volumes:
-      - ./kuma_api:/db
-    depends_on:
-      - uptime-kuma
-
-  # uptime-robot:
-  #   image: overclockedllama/uptimerobot
-  #   container_name: uptime-robot
-  #   restart: unless-stopped
-  #   environment: 
-  #     - PORT=3000
-  #     - LOG_LEVEL=info
-  #     - CRON_TIME=*/1 * * * *
-  #     - UPTIME_ROBOT_API=
-  #     - UPTIME_ROBOT_NAME_PATTERN=%name
-  #     - WEBSITE_TITLE=
-  #     - WEBSITE_COPYRIGHT=
-  #   ports: 
-  #     - 3003:3000
-  #   volumes: 
-  #     - ./uptimerobot_config:/app/config
-```
 
 ### Jaeger
 
@@ -4880,268 +5064,11 @@ services:
       - /var/log:/var/log:ro
 ```
 
-### Pinguem
-
-[Pinguem](https://github.com/Lifailon/pinguem) - веб-интерфейс и экспортер Prometheus для асинхронной проверки доступности выбранных хостов или подсетей с использованием библиотеки [node-ping](https://github.com/danielzzz/node-ping).
-
-```yaml
-services:
-  pinguem:
-    image: lifailon/pinguem:latest
-    container_name: pinguem
-    restart: unless-stopped
-    ports:
-      - 8085:8085 # Fronend (WebUI)
-      - 3005:3005 # Backend (API)
-```
-
-### SpeedTest Exporter
-
-[SpeedTest Exporter](https://github.com/MiguelNdeCarvalho/speedtest-exporter) - экспортер Prometheus, написанный на Python с использованием официального интерфейса командной строки Ookla Speedtest.
-
-🔗 [Grafana Dashboard](https://grafana.com/grafana/dashboards/13665-speedtest-exporter-dashboard/) ↗
-
-```yaml
-services:
-  speedtest-exporter:
-    image: miguelndecarvalho/speedtest-exporter
-    container_name: speedtest-exporter
-    restart: unless-stopped
-    # environment:
-      # - SPEEDTEST_PORT=9798
-      # - SPEEDTEST_SERVER=21110 
-    ports:
-      - 9798:9798
-```
-
-### SpeedTest Tracker
-
-[SpeedTest Tracker](https://github.com/alexjustesen/speedtest-tracker) - самостоятельно размещаемое приложение, которое отслеживает производительность и время безотказной работы Интернет-соединения с собственным веб-интерфейсом для визуализации графиков измерений.
-
-```yaml
-# Generate app key: echo -n 'base64:'; openssl rand -base64 32;
-# Default credentials: admin@example.com:password
-
-services:
-  speedtest-tracker:
-    image: lscr.io/linuxserver/speedtest-tracker:latest
-    container_name: speedtest-tracker
-    restart: unless-stopped
-    ports:
-      - 8778:80
-    # labels:
-    #   - traefik.enable=true
-    #   - traefik.http.routers.speedtest-tracker.rule=Host(`speedtest.docker.local`)
-    #   - traefik.http.services.speedtest-tracker.loadbalancer.server.port=80
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-      - APP_KEY=base64:e6otzoFWjt0GoEOL/QlPQw2Xgm63OMU3lA5V4nLgXJ4=
-      - APP_URL=http://192.168.3.101
-      # - APP_URL=http://speedtest.docker.local
-      - DB_CONNECTION=sqlite
-      # - DB_CONNECTION=pgsql
-      # - DB_HOST=speedtest-db
-      # - DB_PORT=5432
-      # - DB_DATABASE=speedtest_tracker
-      # - DB_USERNAME=speedtest
-      # - DB_PASSWORD=PgAdmin
-    volumes:
-      - ./speedtest_config:/config
-      - ./ssl:/config/keys
-    # depends_on:
-    #   - speedtest-db
-
-  # speedtest-db:
-  #   image: postgres:17
-  #   container_name: speedtest-db
-  #   restart: unless-stopped
-  #   # ports:
-  #   #   - 5432:5432
-  #   environment:
-  #     - POSTGRES_DB=speedtest_tracker
-  #     - POSTGRES_USER=speedtest
-  #     - POSTGRES_PASSWORD=PgAdmin
-  #   volumes:
-  #     - ./speedtest_data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-  #     interval: 5s
-  #     retries: 5
-  #     timeout: 5s
-```
-
-### LibreSpeedTest
-
-[LibreSpeedTest](https://github.com/librespeed/speedtest) - сервер измерения скорости сети в Интернете на базе HTML5 для размещения на собственном сервере, с поддержкой мобильных устройств.
-
-🔗 [LibreSpeedTest Demo](https://librespeed.org) ↗
-
-```yaml
-services:
-  libre-speedtest:
-    image: lscr.io/linuxserver/librespeed:latest
-    container_name: libre-speedtest
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-      - PASSWORD=PASSWORD # пароль для базы данных результатов
-      - CUSTOM_RESULTS=true # опционально, включить пользовательскую страницу результатов в /config/www/results/index.php
-      # - DB_TYPE=sqlite # по умолчанию sqlite (доступно mysql и postgresql)
-      # - DB_NAME=DB_NAME # опционально, имя базы данных (требуется для mysql и pgsql)
-      # - DB_HOSTNAME=DB_HOSTNAME # опционально
-      # - DB_USERNAME=DB_USERNAME # опционально
-      # - DB_PASSWORD=DB_PASSWORD # опционально
-      # - DB_PORT=DB_PORT # опционально
-      # - IPINFO_APIKEY=ACCESS_TOKEN # опционально, токен доступа от ipinfo.io (требуется для подробной информации об ip)
-    volumes:
-      - ./librespeed/config:/config
-    ports:
-      - 8088:80
-```
-
-### OpenSpeedTest
-
-[OpenSpeedTest](https://github.com/openspeedtest/Speed-Test) - бесплатный веб-инструмент для оценки производительности сети на базе HTML5, написанный на чистом JavaScript и использующий только встроенные веб-API.
-
-🔗 [OpenSpeedTest Demo](https://openspeedtest.com) ↗
-
-```yaml
-services:
-  open-speedtest:
-    image: openspeedtest/latest:latest
-    container_name: opens-peedtest
-    restart: unless-stopped
-    # environment:
-    #   - ENABLE_LETSENCRYPT=True
-    #   - DOMAIN_NAME=speedtest.domain.com
-    #   - USER_EMAIL=name@domain.com
-    ports:
-      - 3000:3000
-      - 3001:3001
-```
-
-### iperf
-
-[iperf](https://github.com/esnet/iperf) - утилита командной строки (клиент-серверная архитектура) для проверки скорости загрузки и выгрузки в локальной сети.
-
-```yaml
-services:
-  iperf-server:
-    image: alpine:latest
-    container_name: iperf-server
-    restart: unless-stopped
-    command: >
-      sh -c "
-        apk add --no-cache iperf3 &&
-        exec iperf3 -s -p $$PORT
-      "
-    environment:
-      - PORT=5201
-    ports:
-      - 5201:5201
-```
-
-## Game Stack
-
-### Sunshine
-
-[Sunshine](https://github.com/LizardByte/Sunshine) - самостоятельный хостинг-сервер игровых трансляций (like NVIDIA GameStream и Parsec) для клиента [Moonlight](https://github.com/moonlight-stream/moonlight-qt).
-
-```yaml
-services:
-  sunshine:
-    image: lizardbyte/sunshine:latest-ubuntu-24.04
-    container_name: sunshine
-    restart: unless-stopped
-    volumes:
-      - ./sunshine_config:/config
-    environment:
-      - PUID=1001
-      - PGID=1001
-      - TZ=Etc/GMT+3
-    ports:
-      - 47984-47990:47984-47990/tcp
-      - 47998-48000:47998-48000/udp
-      - 48010:48010
-    ipc: host
-```
-
-### Dolphin
-
-[Dolphin](https://github.com/dolphin-emu/dolphin) - эмулятор GameCube и Wii собранный в [Docker образе](https://github.com/linuxserver/docker-dolphin) для запуска в браузере на базе [Selkies](https://github.com/selkies-project/selkies).
-
-```yaml
-services:
-  dolphin:
-    image: lscr.io/linuxserver/dolphin:latest
-    container_name: dolphin
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-    volumes:
-      - ./dolphin_config:/config
-      - ./dolphin_games:/games
-    ports:
-      - 3001:3001
-      - 3002:3000
-    shm_size: 1gb
-```
-
-### Emulator.js
-
-[Emulator.js](https://github.com/EmulatorJS/EmulatorJS) - веб-интерфейс для [RetroArch](https://github.com/libretro/RetroArch).
-
-🔗 [Emulator.js Demo](https://demo.emulatorjs.org) ↗
-
-```yaml
-services:
-  emulator.js:
-    image: lscr.io/linuxserver/emulatorjs:latest
-    container_name: emulator.js
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-      - SUBFOLDER=/
-    volumes:
-      - ./emulatorjs_config:/config
-      - ./roms:/data
-    ports:
-      - 80:80
-      - 3000:3000
-      # - 4001:4001
-```
-
-### Junie
-
-[Junie](https://github.com/Namaneo/Junie) - интерфейс Libretro, работающий в браузере.
-
-🔗 [Junie Demo](https://namaneo.github.io/Junie) ↗
-
-```yaml
-services:
-  junie:
-    image: namaneo/junie
-    container_name: junie
-    restart: unless-stopped
-    volumes:
-      - ./games:/junie/games
-    ports:
-      - 8008:8000
-```
-
 ## Homelab Stack
 
 ### HomePage
 
-[Homepage](https://github.com/gethomepage/homepage) - современная, быстрая и полностью статическая панель управления для быстрого доступа в формате закладок и мониторинга доступности веб-приложений с помощью ICMP и HTTP, контейнерам Docker через сокет (поддерживает мониторинг нагрузки CPU, памяти и сетевого трафика), Kubernetes (подключение через конфигурацию) и мониторинг сервисов через API (поддерживает более 100 интеграций с помощью [виджетов](https://gethomepage.dev/widgets)).
+[Homepage](https://github.com/gethomepage/homepage) - быстрая и полностью статическая панель управления для быстрого доступа к веб-приложениям в формате закладок. Поддерживает мониторинг доступности веб-сервисов с помощью ICMP и HTTP, нагрузки CPU, памяти и сетевого трафика контейнеров Docker через сокет, автоматическое обнаружение приложений с помощь labels, подключение через конфигурацию к приложениям в кластерах Kubernetes и мониторинг сервисов через API (поддерживает более 100 интеграций с помощью [виджетов](https://gethomepage.dev/widgets)).
 
 ```yaml
 services:
@@ -5188,6 +5115,83 @@ services:
     ports:
       - 61208-61209:61208-61209
       # - 9091:9091
+    labels:
+      - homepage.group=Docker Containers
+      - homepage.name=Glances
+      - homepage.icon=glances.png
+      - homepage.href=http://glances.docker.local
+```
+
+### Dashy
+
+[Dashy](https://github.com/Lissy93/dashy) - панель управления, которая поддерживает мониторинг статуса, виджеты для отображения информации и динамического контента из собственных сервисов, темы, наборы значков, редактор пользовательского интерфейса, SSO, конфигурация на основе одного yaml файла, а также возможность настройки через веб-интерфейс
+
+🔗 [Dashy Demo](https://demo.dashy.to) ↗
+
+```yaml
+services:
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    restart: unless-stopped
+    ports:
+      - 5005:8080
+    environment:
+      - NODE_ENV=production
+```
+
+### Heimdall
+
+[Heimdall](https://github.com/linuxserver/Heimdall) - панель управления для любых ссылок на веб-приложения, от создателей проекта [Linuxserver](https://www.linuxserver.io/).
+
+```yaml
+services:
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - ALLOW_INTERNAL_REQUESTS=true
+    volumes:
+      - ./heimdall_config:/config
+    ports:
+      - 5005:443
+```
+
+### Flame
+
+[Flame](https://github.com/pawelmalak/flame) - стартовая страница для вашего сервера, размещаемая на собственном сервере. Дизайн вдохновлён [SUI](https://github.com/jeroenpardon/sui), поддерживает аутентификацию, встроенный редактор для добавления и обновления закладок, а также интеграция с Docker и Kubernetes для автоматического добавления приложений на основе labels.
+
+```yaml
+services:
+  flame:
+    image: pawelmalak/flame
+    container_name: flame
+    restart: unless-stopped
+    volumes:
+      - ./flame_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro # for Docker integration
+    ports:
+      - 5005:5005
+    environment:
+      - PASSWORD=FlamePassword
+      # - PASSWORD_FILE=/run/secrets/password
+    secrets:
+      - flame_password
+    labels:
+      - flame.type=application
+      - flame.name=Flame
+      - flame.url=https://flame.docker.local
+      - flame.icon=flame # optional, default is "docker"
+
+# secrets:
+#   password:
+#     file: ./flame_password
+
+# echo "FlamePassword" > ./flame_password
 ```
 
 ### Home Assistant
@@ -5262,6 +5266,75 @@ services:
       # - traefik.http.routers.grist-auth.rule=Host(`grist.docker.local`) && (PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`))
       # - traefik.http.routers.grist-auth.middlewares=grist-basic-auth@file
       # - traefik.http.middlewares.grist-basic-auth.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW # admin:admin
+```
+
+### ArchiveBox
+
+[ArchiveBox](https://github.com/ArchiveBox/ArchiveBox) - веб-приложение для сохранения контент с веб-сайтов в различных форматах, с сохранением файлов `HTML`, `PNG`, `PDF`, `TXT`, `JSON`, `WARC` и `SQLite`, которые гарантированно будут доступны для чтения десятилетиями. Предлагает cli, `REST API` и Webhooks для интеграции с другими сервисами.
+
+🔗 [ArchiveBox Demo](https://demo.archivebox.io/public/) ↗
+
+```yaml
+services:
+  archivebox:
+    image: archivebox/archivebox:latest
+    container_name: archivebox
+    restart: unless-stopped
+    ports:
+      - 7733:8000
+    volumes:
+      - ./archivebox_data:/data
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - ALLOWED_HOSTS=*
+      - CSRF_TRUSTED_ORIGINS=http://archivebox.docker.local
+      - PUBLIC_INDEX=True
+      - PUBLIC_SNAPSHOTS=True
+      - PUBLIC_ADD_VIEW=False
+      - SEARCH_BACKEND_ENGINE=sonic
+      - SEARCH_BACKEND_HOST_NAME=sonic
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+      - PUID=911
+      - PGID=911
+
+  archivebox_scheduler:
+    image: archivebox/archivebox:latest
+    container_name: archivebox_scheduler
+    restart: unless-stopped
+    command: schedule --foreground --update --every=day
+    volumes:
+      - ./archivebox_scheduler_data:/data
+    environment:
+      - PUID=911
+      - PGID=911
+      - TIMEOUT=120
+      - SEARCH_BACKEND_ENGINE=sonic
+      - SEARCH_BACKEND_HOST_NAME=sonic
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+
+  archivebox_sonic:
+    image: archivebox/sonic:latest
+    container_name: archivebox_sonic
+    restart: unless-stopped
+    expose:
+      - 1491
+    volumes:
+      - ./archivebox_sonic:/var/lib/sonic/store
+      #- ./sonic.cfg:/etc/sonic.cfg:ro    # https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/stable/etc/sonic.cfg
+    environment:
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+
+  novnc:
+    image: theasp/novnc:latest
+    container_name: novnc
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+      - RUN_XTERM=no
 ```
 
 ### Memos
@@ -5660,6 +5733,96 @@ services:
       - prosody
 ```
 
+### Guacamole
+
+[Apache Guacamole](https://github.com/apache/guacamole-server) — это клиент-серверное веб-приложение для централизованного удаленного доступа к серверам и рабочим столам на основе протоколов RDP, VNC и SSH через веб-браузер и управления доступом.
+
+```yaml
+services:
+  guacd:
+    image: guacamole/guacd
+    container_name: gua-cd
+    restart: unless-stopped
+    volumes:
+    - ./drive:/drive:rw
+    - ./record:/record:rw
+
+  guacamole-db:
+    image: postgres:15.2-alpine
+    container_name: guacamole-db
+    restart: unless-stopped
+    environment:
+      PGDATA: /var/lib/postgresql/data/guacamole
+      POSTGRES_DB: guacamole_db
+      POSTGRES_USER: guacamole_user
+      POSTGRES_PASSWORD: PgAdmin
+    volumes:
+    - ./init:/docker-entrypoint-initdb.d:z
+    - ./data:/var/lib/postgresql/data:Z
+ 
+  guacamole:
+    image: guacamole/guacamole
+    container_name: guacamole
+    restart: unless-stopped
+    environment:
+      GUACD_HOSTNAME: guacd
+      POSTGRES_HOSTNAME: guacamole-db
+      POSTGRES_DATABASE: guacamole_db
+      POSTGRES_USER: guacamole_user
+      POSTGRES_PASSWORD: PgAdmin
+    volumes:
+      - ./record:/record:rw
+    ports:
+      - 8080:8080/tcp
+    depends_on:
+    - guacd
+    - guacamole-db
+```
+
+### MeshCentral
+
+[MeshCentral](https://github.com/Ylianst/MeshCentral) - сервер для управления множеством компьютеров в локальной сети через веб-интерфейс.
+
+```yaml
+services:
+  meshcentral:
+    image: ghcr.io/ylianst/meshcentral:latest
+    container_name: meshcentral
+    restart: unless-stopped
+    ports:
+      - 8086:443
+    env_file:
+      - .env
+    volumes:
+      - ./meshcentral/data:/opt/meshcentral/meshcentral-data
+      - ./meshcentral/user_files:/opt/meshcentral/meshcentral-files
+      - ./meshcentral/backup:/opt/meshcentral/meshcentral-backups
+      - ./meshcentral/web:/opt/meshcentral/meshcentral-web
+```
+
+env:
+
+```env
+NODE_ENV=production
+HOSTNAME=meshcentral.docker.local
+
+REVERSE_PROXY=false
+REVERSE_PROXY_TLS_PORT=
+
+USE_MONGODB=false
+MONGO_URL=
+MONGO_INITDB_ROOT_USERNAME=mongodbadmin
+MONGO_INITDB_ROOT_PASSWORD=mongodbpasswd
+ 
+IFRAME=false
+ALLOW_NEW_ACCOUNTS=true
+WEBRTC=false
+ALLOWPLUGINS=false
+LOCALSESSIONRECORDING=false
+MINIFY=true
+ARGS=
+```
+
 ## Kanban
 
 ### Focalboard
@@ -6006,3 +6169,553 @@ services:
 ```
 
 ## Torrent Stack
+
+Удаленный SMB каталог для хранения медиа-контента:
+
+```yaml
+volumes:
+  smb_volume:
+    driver_opts:
+      type: cifs
+      o: username=guest,password=,uid=1000,gid=1000
+      device: //192.168.3.100/plex-content
+```
+
+### Jackett
+
+[Jackett](https://github.com/Jackett/Jackett) - сервер API и веб-интерфейс для поиска и загрузки торрент файлов из любых индексеров (торрент-трекеров).
+
+```yaml
+services:
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./jackett_conf:/config
+    ports:
+      - 9117:9117
+```
+
+### FreshRSS
+
+[Freshrss](https://github.com/FreshRSS/FreshRSS) - агрегатор RSS-каналов с поддержкой хранения данных в SQLite, PostgreSQL и MySQL/MariaDB.
+
+```yaml
+services:
+  freshrss:
+    image: lscr.io/linuxserver/freshrss:latest
+    container_name: freshrss
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./freshrss_config:/config
+    ports:
+      - 9111:80
+```
+
+### qBittorrent
+
+[qBittorrent](https://github.com/qbittorrent/qBittorrent) - кросплатформенный торрент-клиент с поддержкой современного веб-интерфейса и адаптивного API. Поддерживает подписку на RSS ленты новостей и поиск торрентов через [плагины](https://github.com/qbittorrent/search-plugins/wiki/unofficial-search-plugins).
+
+[qBt_SE](https://github.com/imDMG/qBt_SE) - плагины поисковой системы qBittorrent для торрент трекеров Kinozal, RuTracker, Rutor и NNM-Club.
+
+[qBitController](https://github.com/Bartuzen/qBitController) - приложение с открытым исходным кодом на Kotlin для удаленного управления qBittorrent с устройств Android, iOS, Windows, Linux и macOS.
+
+[Electorrent](https://github.com/tympanix/Electorrent) - rлиент удаленного управления для qBittorrent, Transmission, Deluge, uTorrent, rTorrent и Synology.
+
+🔗 [qBittorrent OpenAPI Docs](https://qbittorrent-ecosystem.github.io/webui-api-openapi) ↗
+
+```yaml
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    # Official Docker Image
+    # image: qbittorrentofficial/qbittorrent-nox:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - WEBUI_PORT=3240
+      - TORRENTING_PORT=6881
+    volumes:
+      - ./qbittorrent_conf:/config
+      - smb_volume:/downloads
+    ports:
+      - 3240:3240
+      - 6881:6881
+      - 6881:6881/udp
+
+  qbittoreent-swagger:
+    image: docker.swagger.io/swaggerapi/swagger-ui
+    container_name: qbittoreent-swagger
+    restart: unless-stopped
+    ports:
+      - 3241:8080
+    environment:
+      - SWAGGER_JSON_URL=https://raw.githubusercontent.com/qbittorrent-ecosystem/webui-api-openapi/refs/heads/master/specs/v2.8.3/build/openapi.yaml
+    depends_on:
+      - qbittorrent
+```
+
+### Transmission
+
+[Transmission](https://github.com/transmission/transmission) - кросплатформенный торрент-клиент с поддержкой веб-интерфейса, API и каталога автоматического обнаружения torrent-файлов для загрузки (возможно интегрировать с Jackett). Поддерживает нативное GUI для macOS, Linux на базе GTK и Windows на базе QT.
+
+[Transmission Remote GUI](https://github.com/transmission-remote-gui/transgui) (TransGUI) - кроссплатформенный desktop интерфейс для удаленного управления демоном Transmission через протокол RPC. Он быстрее и функциональнее встроенного веб-интерфейса Transmission, который визуально похож на qBittorrent и uTorrent.
+
+[Transmission Remote](https://github.com/y-polek/TransmissionRemote) - приложение Android для удаленного управления клиентом Transmission с мобильного телефона.
+
+```yaml
+services:
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - USER=
+      - PASS=
+    volumes:
+      - ./transmission_conf:/config
+      - smb_volume:/downloads
+      - ./torrent_watch:/watch
+    ports:
+      - 9118:9091
+      - 51413:51413
+      - 51413:51413/udp
+```
+
+### Nefarious
+
+[Nefarious](https://github.com/lardbit/nefarious) - веб-приложение для автоматической загрузки фильмов и сериалов. Под капотом используется Jackett для поиска торрентов и Transmission для управления загрузкой.
+
+```yaml
+services:
+  nefarious:
+    image: lardbit/nefarious:latest
+    container_name: transmission
+    restart: unless-stopped
+    ports:
+      - 9119:80
+    environment:
+      - DATABASE_URL=sqlite:////nefarious-db/db.sqlite3
+      - REDIS_HOST=nefarious-redis
+      - NEFARIOUS_USER=admin
+      - NEFARIOUS_PASS=admin
+      - HOST_DOWNLOAD_PATH=/tmp/
+      - CONFIG_PATH=/nefarious-db
+    volumes:
+      - ./nefarious_data:/nefarious-db
+
+  nefarious-redis:
+    image: redis
+    container_name: nefarious-redis
+    restart: unless-stopped
+    mem_limit: 200m
+    expose:
+      - 6379
+    # ports:
+    #  - 6379:6379
+```
+
+### Deluge
+
+[Deluge](https://github.com/deluge-torrent/deluge) - торрент-клиент, использующий модель демон-клиент на базе библиотеки [libtorrent](https://libtorrent.org), который поддерживает пользовательские веб-интерфейс, интерфейс рабочего стола на базе GTK и интерфейс командной строки.
+
+```yaml
+services:
+  deluge:
+    image: lscr.io/linuxserver/deluge:latest
+    container_name: deluge
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - DELUGE_LOGLEVEL=error
+    volumes:
+      - ./deluge_config:/config
+      - smb_volume:/downloads
+    ports:
+      - 8112:8112
+      - 6881:6881
+      - 6881:6881/udp
+      - 58846:58846
+```
+
+### Cloud Torrent
+
+[Cloud Torrent](https://github.com/jpillora/cloud-torrent) - торрент клиент с поддержкой поиска раздач и просмотра медиа-контента в браузере, от создателя [Chisel](https://github.com/jpillora/chisel) (быстрый TCP/UDP-туннель, работающий по протоколу HTTP и защищенный через SSH).
+
+```yaml
+services:
+  cloud-torrent:
+    image: jpillora/cloud-torrent:latest
+    container_name: cloud-torrent
+    restart: unless-stopped
+    ports:
+      - 3010:3000
+    volumes:
+      - smb_volume:/downloads
+```
+
+### rQbit
+
+[rQbit](https://github.com/ikatson/rqbit) - современный торрент-клиент, с поддержкой веб-интерфейса, API, Desktop и cli, а также может использоваться как библиотека на Rust. Поддерживает стриминг видео, включая трансляцию на плееры, например, [VLC](https://github.com/videolan/vlc).
+
+```yaml
+  rqbit:
+    image: ikatson/rqbit:main
+    network_mode: host
+    ports:
+      - 3030:3030 # API
+      - 4240:4240 # BitTorrent
+    environment:
+      RQBIT_UPNP_SERVER_ENABLE: "true"
+      RQBIT_UPNP_SERVER_FRIENDLY_NAME: rqbit-docker
+      RQBIT_HTTP_API_LISTEN_ADDR: 0.0.0.0:3030
+    volumes:
+      - ./rqbit_db:/home/rqbit/db
+      - ./rqbit_cache:/home/rqbit/cache
+      - smb_volume:/home/rqbit/downloads
+```
+
+### Plex
+
+[Plex](https://github.com/plexinc) - медиа-сервер (система потоковой передачи медиаконтента), которая позволяет смотреть фильмы, сериалы, фото и прослушивать музыку на различных устройствах, а также поддерживает API для удаленного управления (без документации, ключ API можно получить только вечер DevTool).
+
+```yaml
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    # Official Docker Image
+    # image: plexinc/pms-docker
+    container_name: plex
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - VERSION=docker
+      - PLEX_CLAIM= # from https://plex.tv/claim
+    volumes:
+      - ./plex_conf:/config
+      - smb_volume:/tv
+      - smb_volume:/movies
+      # use Official Docker Image
+      # - ./plex_conf:/config
+      # - ./plex_transcode:/transcode
+      # - smb_volume:/data
+    ports:
+      - 32400:32400
+      - 1900:1900/udp
+      - 5353:5353/udp
+      - 8324:8324
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+      - 32469:32469
+```
+
+### Tautulli
+
+[Tautulli](https://github.com/Tautulli/Tautulli) - система мониторинга, аналитики и уведомлений для Plex Media Server с адаптивным дизайном для мобильных устройств.
+
+```yaml
+services:
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./tautulli_conf:/config
+    ports:
+      - 8181:8181
+```
+
+### Overseerr
+
+[Overseerr](https://github.com/sct/overseerr) - веб-приложение с собственным интерфейсом для управления запросами к медиа-библиотеки Plex а также интегрируется с Sonarr и Radarr.
+
+```yaml
+services:
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./overseerr_conf:/config
+    ports:
+      - 5055:5055
+```
+
+### Jellyfin
+
+[Jellyfin](https://github.com/jellyfin/jellyfin) - медиа-сервер с открытым исходным кодом, который является ответвлением проприетарного [Emby](https://github.com/MediaBrowser/Emby) с версии `3.5.2` и портированный на платформу `.NET` для обеспечения полной кроссплатформенной поддержки (API совместим с Emby).
+
+```yaml
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./jellyfin_conf/jellyfin:/config
+      - ./jellyfin-content/tvshows:/data/tvshows
+      - ./jellyfin-content/movies:/data/movies
+    ports:
+      - 8096:8096
+      - 7359:7359/udp
+      - 1900:1900/udp
+```
+
+### Jellyseerr
+
+[Jellyseerr](https://github.com/seerr-team/seerr) - fork Overseerr для Jellyfin. Поддерживает полную интеграцию с Jellyfin, Emby и Plex (включая Sonarr и Radarr), включая аутентификацию с импортом и управлением пользователями, а также базы данных SQLite и PostgreSQL.
+
+```yaml
+services:
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Asia/Tashkent
+    volumes:
+      - ./jellyseerr_config:/app/config
+    ports:
+      - 5055:5055
+```
+
+### USM
+
+[USM](https://github.com/UniversalMediaServer/UniversalMediaServer) (Universal Media Server) - медиасервер, поддерживающий протоколы DLNA, UPnP и HTTP/S. Он способен передавать видео, аудио и изображения между большинством современных устройств. Изначально он был основан на PS3 Media Server от shagrath для обеспечения большей стабильности и совместимости файлов.
+
+```yaml
+services:
+  ums:
+    image: universalmediaserver/ums
+    container_name: ums
+    restart: unless-stopped
+    environment:
+      - TZ=Etc/UTC+3
+      - UMS_PROFILE=/profile
+    volumes:
+      - ./ums_conf:/profile
+      - ./ums-content:/media:ro
+    ports:
+      - 1044:1044
+      - 5001:5001
+      - 9001:9001
+      - 1900:1900/udp
+      - 2869:2869
+      - 8000-8010:8000-8010
+```
+
+### Sonarr
+
+[Sonarr](https://github.com/Sonarr/Sonarr) - PVR (Personal Video Recorder) для пользователей Usenet и BitTorrent. Он позволяет отслеживать несколько RSS-каналов на предмет новых серий и захватывать, сортировать и переименовывать их. Его также можно настроить на автоматическое повышение качества уже загруженных файлов, когда становится доступен более качественный формат.
+
+```yaml
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./sonnar_conf:/config
+      - smb_volume:/tv
+      - ./sonarr_downloads:/downloads
+    ports:
+      - 8989:8989
+```
+
+### Radarr
+
+[Radarr](https://github.com/Radarr/Radarr) - fork Sonarr для работы с фильмами.
+
+```yaml
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./radarr_conf:/config
+      - smb_volume:/movies
+      - ./sonarr_downloads:/downloads
+    ports:
+      - 7878:7878
+```
+
+### Prowlarr
+
+[Prowlarr](https://github.com/Prowlarr/Prowlarr) - менеджер и прокси-сервер для индексаторов, созданный на основе популярного базового стека `*arr` для интеграции с различными приложениями PVR. Prowlarr поддерживает управление торрент-трекерами, Usenet индексаторами, а также легко интегрируется с [Radarr](https://github.com/Radarr/Radarr), [Sonarr](https://github.com/Sonarr/Sonarr), [Lidarr](https://github.com/Lidarr/Lidarr) и [Readarr](https://github.com/Readarr/Readarr), без необходимости настройки индексатора для каждого приложения.
+
+🔗 [Prowlarr API Docs](https://prowlarr.com/docs/api) ↗
+
+```yaml
+---
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./prowlarr_conf:/config
+    ports:
+      - 9696:9696
+```
+
+## Game Stack
+
+### Sunshine
+
+[Sunshine](https://github.com/LizardByte/Sunshine) - самостоятельный хостинг-сервер игровых трансляций (like NVIDIA GameStream и Parsec) для клиента [Moonlight](https://github.com/moonlight-stream/moonlight-qt).
+
+```yaml
+services:
+  sunshine:
+    image: lizardbyte/sunshine:latest-ubuntu-24.04
+    container_name: sunshine
+    restart: unless-stopped
+    volumes:
+      - ./sunshine_config:/config
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Etc/GMT+3
+    ports:
+      - 47984-47990:47984-47990/tcp
+      - 47998-48000:47998-48000/udp
+      - 48010:48010
+    ipc: host
+```
+
+### Dolphin
+
+[Dolphin](https://github.com/dolphin-emu/dolphin) - эмулятор GameCube и Wii собранный в [Docker образе](https://github.com/linuxserver/docker-dolphin) для запуска в браузере на базе [Selkies](https://github.com/selkies-project/selkies).
+
+```yaml
+services:
+  dolphin:
+    image: lscr.io/linuxserver/dolphin:latest
+    container_name: dolphin
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+    volumes:
+      - ./dolphin_config:/config
+      - ./dolphin_games:/games
+    ports:
+      - 3001:3001
+      - 3002:3000
+    shm_size: 1gb
+```
+
+### DuckStation 
+
+[DuckStation](https://github.com/stenzek/duckstation) - эмулятор PlayStation 1, собранный в [Docker образе](https://docs.linuxserver.io/images/docker-duckstation/).
+
+```yaml
+services:
+  duckstation:
+    image: lscr.io/linuxserver/duckstation:latest
+    container_name: duckstation
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./duckstation_config:/config
+      - ./duckstation_games:/games
+    ports:
+      - 3001:3001
+      - 3002:3000
+    shm_size: 1gb
+```
+
+### Emulator.js
+
+[Emulator.js](https://github.com/EmulatorJS/EmulatorJS) - веб-интерфейс для [RetroArch](https://github.com/libretro/RetroArch).
+
+🔗 [Emulator.js Demo](https://demo.emulatorjs.org) ↗
+
+```yaml
+services:
+  emulator.js:
+    image: lscr.io/linuxserver/emulatorjs:latest
+    container_name: emulator.js
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - SUBFOLDER=/
+    volumes:
+      - ./emulatorjs_config:/config
+      - ./roms:/data
+    ports:
+      - 80:80
+      - 3000:3000
+      # - 4001:4001
+```
+
+### Junie
+
+[Junie](https://github.com/Namaneo/Junie) - интерфейс Libretro, работающий в браузере.
+
+🔗 [Junie Demo](https://namaneo.github.io/Junie) ↗
+
+```yaml
+services:
+  junie:
+    image: namaneo/junie
+    container_name: junie
+    restart: unless-stopped
+    volumes:
+      - ./games:/junie/games
+    ports:
+      - 8008:8000
+```
