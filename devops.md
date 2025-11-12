@@ -44,10 +44,10 @@
   - [Docker Socket Proxy](#docker-socket-proxy)
   - [Context](#context)
   - [dcm](#dcm)
-  - [ctop](#ctop)
-  - [Dockly](#dockly)
   - [LazyDocker](#lazydocker)
-  - [Lazyjournal](#lazyjournal)
+  - [ctop](#ctop)
+  - [dtop](#dtop)
+  - [Dockly](#dockly)
   - [Push](#push)
   - [Buildx](#buildx)
 - [Dockerfile](#dockerfile)
@@ -78,6 +78,7 @@
   - [Longhorn](#longhorn)
   - [PersistentVolume](#persistentvolume)
   - [S3](#s3)
+  - [s3fs](#s3fs)
   - [Velero](#velero)
   - [Velero UI](#velero-ui)
   - [ArgoCD](#argocd)
@@ -698,12 +699,28 @@ function dcl() {
     fi
 }
 ```
+### LazyDocker
+
+[LazyDocker](https://github.com/jesseduffield/lazydocker) - TUI интерфейс для управления Docker.
+
+`scoop install lazydocker || choco install lazydocker` установка в Windows (https://github.com/jesseduffield/lazydocker)
+```bash
+wget https://github.com/jesseduffield/lazydocker/releases/download/v0.24.1/lazydocker_0.24.1_Linux_x86.tar.gz -O ~/lazydocker.tar.gz
+tar -xzf ~/lazydocker.tar.gz lazydocker
+rm ~/lazydocker.tar.gz
+mv lazydocker /usr/local/bin/lazydocker
+chmod +x /usr/local/bin/lazydocker
+lazydocker --version
+```
 ### ctop
+
+[ctop](https://github.com/bcicen/ctop) - top-like интерфейс для метрик и управления контейнерами Docker.
 
 `scoop install ctop` установка в Windows (https://github.com/bcicen/ctop)
 ```bash
-wget https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64 -O /usr/local/bin/ctop
+wget https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${dpkg --print-architecture} -O /usr/local/bin/ctop
 chmod +x /usr/local/bin/ctop
+ctop -v
 ```
 `ctop` отображает сводную таблицу (top) CPU, MEM, NET RX/TX, IO R/W \
 `o` - графики \
@@ -714,31 +731,18 @@ chmod +x /usr/local/bin/ctop
 `r` - restart \
 `e` - exec shell
 
+### dtop
+
+[dtop](https://github.com/amir20/dtop) - top real-time для контейнеров Docker от создателя Dozzle.
+```bash
+curl -sSL https://github.com/amir20/dtop/releases/latest/download/dtop-installer.sh | sh
+dtop --version
+```
 ### Dockly
 
-`npm install -g dockly` TUI интерфейс на базе Node.js и Blessed.js \
+`npm install -g dockly` TUI интерфейс на базе `Node.js` и [Blessed](https://github.com/chjj/blessed) \
 `docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock lirantal/dockly` запуск в Docker \
 `dockly`
-
-### LazyDocker
-
-`scoop install lazydocker || choco install lazydocker` установка в Windows (https://github.com/jesseduffield/lazydocker)
-```bash
-wget https://github.com/jesseduffield/lazydocker/releases/download/v0.23.1/lazydocker_0.23.1_Linux_x86.tar.gz -O ~/lazydocker.tar.gz
-tar -xzf ~/lazydocker.tar.gz lazydocker
-rm ~/lazydocker.tar.gz
-mv lazydocker /usr/local/bin/lazydocker
-chmod +x /usr/local/bin/lazydocker
-```
-lazydocker
-
-### Lazyjournal
-
-`curl -sS https://raw.githubusercontent.com/Lifailon/lazyjournal/main/install.sh | bash` установка в Unix \
-`Invoke-RestMethod https://raw.githubusercontent.com/Lifailon/lazyjournal/main/install.ps1 | Invoke-Expression` установка в Windows \
-`lazyjournal` \
-`lazyjournal --help` \
-`lazyjournal --version`
 
 ### Push
 
@@ -1503,12 +1507,14 @@ plugins:
 `echo "alias k=kubectl && complete -F __start_kubectl k" >> ~/.bashrc` добавить псевдоним `k` для команды kubectl \
 `kubectl completion fish | source` автодополнение в [fish shell](https://github.com/fish-shell/fish-shell)
 
-`kubectl config view` отобразить текущую конфигурацию (настройка подключения kubectl к Kubernetes, которое взаимодействует с приложением через конечные точки `REST API`) \
-`KUBECONFIG=~/.kube/config:~/.kube/config2` использовать несколько файлов kubeconfig одновременно и посмотреть объединённую конфигурацию из этих файлов
+`KUBECONFIG=~/.kube/config:~/.kube/config2` использовать несколько файлов kubeconfig одновременно (в выводе объеденяет конфигурацию) \
+`kubectl config view` отобразить текущую конфигурацию (настройка подключения kubectl к Kubernetes, которое взаимодействует с приложением через конечные точки `REST API`)
 
-`kubectl config get-contexts` отобразить список контекстов \
+`kubectl config get-contexts` отобразить список всех доступных контекстов (список кластеров) \
 `kubectl config current-context` отобразить текущий контекст \
-`kubectl config use-context default` установить контекст `default` как контекст по умолчанию
+`kubectl config use-context default` переключить контекст (установить контекст `default` как контекст по умолчанию)
+
+`kubectl auth can-i --list` отобразить права доступа
 
 `kubectl cluster-info`отобразить адреса главного узла и сервисов \
 `kubectl cluster-info dump` вывести состояние текущего кластера \
@@ -2002,13 +2008,14 @@ services:
   minio1:
     image: minio/minio
     container_name: minio1
+    restart: unless-stopped
     hostname: minio1
     command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=MinioAdmin
     volumes:
-      - ./minio_node1_data:/data
+      - ./minio1_data:/data
     ports:
       - 9000:9000 # API
       - 9001:9001 # WebUI
@@ -2016,25 +2023,55 @@ services:
   minio2:
     image: minio/minio
     container_name: minio2
+    restart: unless-stopped
     hostname: minio2  
     command: server http://minio1:9000/data http://minio2:9000/data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: MinioAdmin
     volumes:
-      - ./minio_node2_data:/data
+      - ./minio2_data:/data
     ports:
       - 9002:9000
       - 9003:9001
 ```
-[s3fs](https://github.com/s3fs-fuse/s3fs-fuse) - это файловый интерфейс для S3, который позволяет использовать хранилище s3 как локальную файловую систему.
+
+### s3fs
+
+[s3fs](https://github.com/s3fs-fuse/s3fs-fuse) - инструмент для монтирования S3 совместимого хранилища на базе FUSE, позволяя управлять файлами и каталогами в локальной файловой системе.
 
 `sudo apt install -y s3fs` установка \
 `sudo mkdir -p /mnt/s3` создать директорию для монтирования \
 `echo "admin:MinioAdmin" > /tmp/s3cred && chmod 600 /tmp/s3cred` сохранить авторизационные данные для подключения к s3 \
-`sudo s3fs docker-bucket /mnt/s3 -o url=http://localhost:9000 -o use_path_request_style -o passwd_file=/tmp/s3_cred` монтировать файловую систему \
+`s3fs <BUCKET_NAME:PATH> <MOUNTPOINT_PATH> <OPTION>` формат монтирования \
+`sudo s3fs velero /mnt/s3 -o url=http://localhost:9000 -o use_path_request_style -o passwd_file=/tmp/s3_cred` монтировать файловую систему \
 `mount | grep /mnt/s3` отобразить точки монтирования \
 `sudo umount /mnt/s3` отмонтировать
+
+```yaml
+services:
+  s3fs:
+    image: efrecon/s3fs:1.95
+    container_name: velero_data
+    restart: unless-stopped
+    privileged: true
+    stdin_open: true
+    tty: true
+    devices:
+      - /dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor=unconfined
+    environment:
+      - AWS_S3_URL=http://minio1:9000
+      - AWS_S3_BUCKET=velero
+      - AWS_S3_ACCESS_KEY_ID=admin
+      - AWS_S3_SECRET_ACCESS_KEY=MinioAdmin
+      - S3FS_ARGS=use_path_request_style,allow_other
+    volumes:
+      - ./velero_data:/opt/s3fs/bucket:rshared
+```
 
 ### Velero
 
@@ -2047,7 +2084,7 @@ rm -rf velero-*
 velero version
 ```
 Создаем креды для подключения к s3 хранилищу [minio](https://github.com/minio/minio):
-```
+```bash
 cat <<EOF > velero-minio.env
 [default]
 aws_access_key_id=admin
@@ -2065,9 +2102,9 @@ velero install \
     --namespace velero
 ```
 `kubectl get pods -n velero` проверяем, что под запущен \
-`kubectl logs deploy/velero -n velero` проверяем, что нет ошибок подключения к s3
+`kubectl logs deploy/velero -n velero` проверяем, что нет ошибок подключения к s3 \
+`velero backup-location get` отобразить статус BSL (Backup Storage Location) (`PHASE` - `Available`)
 
-`velero backup-location get` отобразить статус BSL (Backup Storage Location) (`PHASE` - `Available`) \
 `velero backup create telegram-bot-backup --include-namespaces telegram` запустить backup \
 `velero schedule create telegram-daily --schedule "0 3 * * *" --include-namespaces telegram --ttl 168h` запускать каждый день в 03:00 (ttl определяет автоматическуое удаление всех созданных velero ресурсов через 7 дней) \
 `velero backup describe telegram-bot-backup --details` отобразить статус резервного копирования (ключевое - статус, продолжительность копирования и список ресурсов) \
@@ -2089,14 +2126,14 @@ services:
     container_name: velero-ui
     restart: unless-stopped
     volumes:
-      - /etc/rancher/k3s/k3s.yaml:/app/.kube/config:ro
-      # - ~/.kube/config:/app/.kube/config:ro
+      - ~/.kube/config:/app/.kube/config:ro
+      # - /etc/rancher/k3s/k3s.yaml:/app/.kube/config:ro
     environment:
-      - PORT=3502
+      - PORT=3504
       - KUBE_CONFIG_PATH=/app/.kube/config
-    network_mode: host # use for k3s cluster config on localhost
-    # ports:
-    #   - 3502:3502 # admin:admin
+    # network_mode: host # use for k3s cluster config on localhost
+    ports:
+      - 3504:3504 # admin:admin
 ```
 ### ArgoCD
 
@@ -2203,8 +2240,8 @@ source ~/.bashrc
 | [ketall/get-all](https://github.com/corneliusweig/ketall)           | Отображает все ресурсы Kubernetes.                                                                        |
 | [kubectl-tree](https://github.com/ahmetb/kubectl-tree)              | Отображает зависимости ресурсов в древовидном формате.                                                    |
 | [kubectl-node-shell](https://github.com/kvaps/kubectl-node-shell)   | Bash скрипт для подключения к оболочке операционной системы хоста (node, монтирует pode на базе Alpine).  |
-| [kubetail](https://github.com/johanhaleby/kubetail)                 | Bash скрипт, позволяющий объединять журналы из нескольких подов в один поток.                             |
-| [kubetail & Dashboard](https://github.com/kubetail-org/kubetail)    | Панель управления журналами в браузер и/или терминале.                                                    |
+| [kubetail](https://github.com/johanhaleby/kubetail)                 | Bash скрипт, позволяющий объединять логи из нескольких подов в один поток.                                |
+| [kubetail & Dashboard](https://github.com/kubetail-org/kubetail)    | Панель управления для просмотра логов в терминале или браузер.                                            |
 | [stern](https://github.com/stern/stern)                             | Одновременный просмотр логов из нескольких подов в одном потоке.                                          |
 | [outdated](https://github.com/replicatedhq/outdated)                | Отображает устаревшие образы, которые доступны к обновлению.                                              |
 
@@ -2233,9 +2270,23 @@ kubectl stern . --all-namespaces --tail 5 --since 10m --no-follow 100
 
 kubectl outdated
 ```
-Kubetail Dashboard
+Kubetail Dashboard:
 ```yaml
-
+services:
+  kubetail-dashboard:
+    image: kubetail/kubetail-dashboard:0.8.2
+    container_name: kubetail-dashboard
+    restart: unless-stopped
+    ports:
+      - 7500:7500
+    volumes:
+      - ~/.kube/config:/kubetail/.kube/config:ro
+    command:
+      [
+        "-a", ":7500",
+        "-p", "dashboard.environment:desktop",
+        "-p", "kubeconfig:/kubetail/.kube/config",
+      ]
 ```
 ### Kompose
 
