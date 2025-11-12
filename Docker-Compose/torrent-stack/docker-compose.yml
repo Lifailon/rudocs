@@ -240,6 +240,19 @@ services:
   #     - 7359:7359/udp
   #     - 1900:1900/udp
 
+  # Fork overseerr for Jellyfin
+  # jellyseerr:
+  #   image: fallenbagel/jellyseerr:latest
+  #   container_name: jellyseerr
+  #   restart: unless-stopped
+  #   environment:
+  #     - LOG_LEVEL=debug
+  #     - TZ=Asia/Tashkent
+  #   volumes:
+  #     - ./jellyseerr_config:/app/config
+  #   ports:
+  #     - 5055:5055
+
   # ums:
   #   image: universalmediaserver/ums
   #   container_name: ums
