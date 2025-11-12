@@ -1,0 +1,60 @@
+services:
+  archivebox:
+    image: archivebox/archivebox:latest
+    container_name: archivebox
+    restart: unless-stopped
+    ports:
+      - 7733:8000
+    volumes:
+      - ./archivebox_data:/data
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - ALLOWED_HOSTS=*
+      - CSRF_TRUSTED_ORIGINS=http://archivebox.docker.local
+      - PUBLIC_INDEX=True
+      - PUBLIC_SNAPSHOTS=True
+      - PUBLIC_ADD_VIEW=False
+      - SEARCH_BACKEND_ENGINE=sonic
+      - SEARCH_BACKEND_HOST_NAME=sonic
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+      - PUID=911
+      - PGID=911
+
+  archivebox_scheduler:
+    image: archivebox/archivebox:latest
+    container_name: archivebox_scheduler
+    restart: unless-stopped
+    command: schedule --foreground --update --every=day
+    volumes:
+      - ./archivebox_scheduler_data:/data
+    environment:
+      - PUID=911
+      - PGID=911
+      - TIMEOUT=120
+      - SEARCH_BACKEND_ENGINE=sonic
+      - SEARCH_BACKEND_HOST_NAME=sonic
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+
+  archivebox_sonic:
+    image: archivebox/sonic:latest
+    container_name: archivebox_sonic
+    restart: unless-stopped
+    expose:
+      - 1491
+    volumes:
+      - ./archivebox_sonic:/var/lib/sonic/store
+      #- ./sonic.cfg:/etc/sonic.cfg:ro    # https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/stable/etc/sonic.cfg
+    environment:
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+
+  novnc:
+    image: theasp/novnc:latest
+    container_name: novnc
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+      - RUN_XTERM=no

@@ -33,6 +33,23 @@ services:
       - 3002:3000
     shm_size: 1gb
 
+  # PlayStation 1 Emulator in Web via Selkies
+  duckstation:
+    image: lscr.io/linuxserver/duckstation:latest
+    container_name: duckstation
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./duckstation_config:/config
+      - ./duckstation_games:/games
+    ports:
+      - 3001:3001
+      - 3002:3000
+    shm_size: 1gb
+
   # RetroArch web-based interface
   emulator.js:
     image: lscr.io/linuxserver/emulatorjs:latest
