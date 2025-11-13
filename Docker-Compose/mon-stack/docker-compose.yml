@@ -53,22 +53,14 @@ services:
     image: prom/alertmanager
     container_name: alertmanager
     restart: unless-stopped
-    command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
-    # ports:
-    #   - 9093:9093
-
-  # Агент для сбора системных метрик Linux
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    restart: unless-stopped
-    # ports:
-    #   - 9100:9100
+    ports:
+      - 9093:9093
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
 
   # Веб-конструктор для анализа и визуализации запросов PromQL (уже встроен в интерфейс Prometheus)
   # promlens:
@@ -86,18 +78,45 @@ services:
   #   ports:
   #     - 9095:9091
 
+################################################### Metrics ###################################################
+
   # Мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC для предоставления метрик в формате Prometheus (like Gatus).
   # http://blackbox:9115/probe?target=https://google.com&module=http
   blackbox:
     image: prom/blackbox-exporter:latest
     container_name: blackbox
     restart: unless-stopped
-    ports:
-      - 9115:9115
     volumes:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
+    ports:
+      - 9115:9115
     command:
       - --config.file=/etc/blackbox_exporter/config.yml
+
+  # Агент для сбора системных метрик Linux
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    # ports:
+    #   - 9100:9100
+
+  # Агент для сбора метрик запущенных процессов
+  process-exporter:
+    image: ncabatoff/process-exporter
+    container_name: process-exporter
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /proc:/host/proc
+      - ./proc-conf.yml:/conf.yml
+    # ports:
+    #   - 9256:9256
+    command:
+      - -procfs
+      - /host/proc
+      - -config.path
+      - /conf.yml
 
   # Агент для сбора метрик из контейнеров Docker от Google (поддерживает свой Web интерфейс для визуализации метрик)
   # cadvisor:
@@ -121,6 +140,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     # ports:
     #   - 9333:9333
+
+################################################### Logs ###################################################
 
   # Система агрегации логов
   loki-server:

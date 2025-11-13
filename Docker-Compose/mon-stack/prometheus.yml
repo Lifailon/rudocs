@@ -9,7 +9,7 @@ alerting:
           - alertmanager:9093
 
 rule_files:
-  - "alert.yml"
+  - alert.yml
 
 scrape_configs:
   - job_name: prometheus
@@ -17,7 +17,8 @@ scrape_configs:
       - targets:
         - prometheus:9090
 
-  # Linux
+################################################### Linux ###################################################
+
   - job_name: linux-node-exporter
     static_configs:
       - targets:
@@ -25,14 +26,24 @@ scrape_configs:
         # - 192.168.3.105:9100
         # - 192.168.3.106:9100
 
+  - job_name: process-exporter
+    static_configs:
+      - targets:
+        - process-exporter:9256
+        # - 192.168.3.105:9256
+        # - 192.168.3.106:9256
+
+################################################### Windows ###################################################
+
   # Windows
-  # - job_name: windows-ohm-graphite
+  # - job_name: windows-ohm-exporter
   #   static_configs:
   #     - targets:
   #       - 192.168.3.100:4445
 
-  # Docker
-  - job_name: logporter
+################################################### Docker ###################################################
+
+  - job_name: docker-exporter-logporter
     scrape_interval: 5s
     scrape_timeout: 1s
     static_configs:
@@ -41,13 +52,15 @@ scrape_configs:
         # - 192.168.3.105:9333
         # - 192.168.3.106:9333
 
-  # - job_name: cadvisor
+  # - job_name: docker-exporter-cadvisor
   #   static_configs:
   #     - targets:
   #       - cadvisor:8080
+  #       - 192.168.3.105:8080
   #       - 192.168.3.106:8080
 
-  # ICMP
+################################################### ICMP/ping ###################################################
+
   - job_name: blackbox-icmp
     scrape_interval: 30s
     scrape_timeout: 5s
@@ -67,7 +80,8 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox:9115
 
-  # TCP/SSH
+################################################### TCP/SSH ###################################################
+
   # - job_name: blackbox-tcp
   #   scrape_interval: 30s
   #   scrape_timeout: 5s
@@ -86,7 +100,9 @@ scrape_configs:
   #     - target_label: __address__
   #       replacement: blackbox:9115
 
-  # HTTP/HTTPS
+################################################### HTTP/HTTPS ###################################################
+
+  #  (check google and node exporters)
   - job_name: blackbox-http
     scrape_interval: 30s
     scrape_timeout: 5s
@@ -106,7 +122,8 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox:9115
 
-  # REST API
+################################################### REST API ###################################################
+
   # - job_name: blackbox-api
   #   scrape_interval: 60s
   #   scrape_timeout: 5s
@@ -127,7 +144,7 @@ scrape_configs:
   # - job_name: gatus
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.101:8081
+  #         - 192.168.3.205:80
 
   # - job_name: uptime-kuma
   #   scrape_interval: 30s
@@ -137,30 +154,8 @@ scrape_configs:
   #   basic_auth:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 
-  # Go App
-  # - job_name: go-app
-  #   static_configs:
-  #     - targets:
-  #       - 192.168.3.100:2112
+################################################### Speedtest ###################################################
 
-  # DNS
-  # - job_name: pi-hole-exporter
-  #   static_configs:
-  #     - targets:
-  #         - 192.168.3.101:9617
-
-  # Proxy
-  # - job_name: traefik
-  #   static_configs:
-  #     - targets:
-  #         - 192.168.3.101:4318
-
-  # - job_name: nginx-exporter
-  #   static_configs:
-  #     - targets:
-  #         - 192.168.3.101:9113
-
-  # Speedtest
   # - job_name: speedtest-exporter
   #   scrape_interval: 15m
   #   scrape_timeout: 90s
@@ -168,7 +163,34 @@ scrape_configs:
   #     - targets:
   #       - 192.168.3.101:9798
 
-  # CI/CD
+################################################### Go App ###################################################
+
+  # - job_name: go-app
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.100:2112
+
+################################################### DNS ###################################################
+
+  # - job_name: pi-hole-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.101:9617
+
+################################################### Proxy ###################################################
+
+  # - job_name: nginx-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.101:9113
+
+  # - job_name: traefik-exporter
+  #   static_configs:
+  #     - targets:
+  #         - 192.168.3.101:4318
+
+################################################### CI/CD ###################################################
+
   # - job_name: jenkins
   #   metrics_path: /prometheus
   #   bearer_token: 1180f72a8cdb6eac2be7e3af10185c770a
@@ -176,11 +198,12 @@ scrape_configs:
   #     - targets:
   #       - 192.168.3.101:8080
 
-  # k8s
+################################################### k8s ###################################################
+
   # - job_name: ksm
   #   static_configs:
   #     - targets:
-  #       - ksm.k8s.local/metrics
+  #       - 192.168.3.101:30002
 
   # - job_name: metallb
   #   static_configs:
