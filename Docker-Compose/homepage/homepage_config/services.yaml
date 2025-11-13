@@ -62,6 +62,9 @@
     - Homepage Widgets:
         icon: homepage.png
         href: https://gethomepage.dev/widgets
+    - Traefik Plugins:
+        icon: traefik.png
+        href: https://plugins.traefik.io/plugins
     - Wox Pluggins:
         icon: http://wox.one/favicon.ico
         href: http://wox.one/u/7083

@@ -1,0 +1,14 @@
+services:
+  promxy:
+    image: quay.io/jacksontj/promxy
+    container_name: promxy
+    restart: unless-stopped
+    ports:
+    - 8082:8082
+    volumes:
+    - ./../../cmd:/cmd
+    - ./promxy_logs:/var/log
+    command:
+      - --config=/cmd/promxy/config.yaml
+      - --log-level=info
+      - --web.enable-lifecycle
