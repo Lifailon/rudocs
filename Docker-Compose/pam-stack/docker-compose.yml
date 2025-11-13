@@ -1,0 +1,14 @@
+services:
+  jumpserver:
+    image: jumpserver/jms_all
+    container_name: jumpserver
+    restart: unless-stopped
+    environment:
+      - SECRET_KEY=JumpServerSecretKey
+      - BOOTSTRAP_TOKEN=JumpServerToken
+    volumes:
+      - ./js_data:/opt/data
+      - ./pg_data:/var/lib/postgresql
+    ports:
+      - 2222:2222
+      - 8282:80
