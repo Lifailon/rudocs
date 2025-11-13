@@ -1,9 +1,14 @@
 services:
   myspeed:
-    image: germannewsmaker/myspeed
+    image: germannewsmaker/myspeed:latest
     container_name: myspeed
     restart: unless-stopped
+    environment:
+      - SERVER_PORT=5216
     volumes:
       - ./myspeed_data:/myspeed/data
     ports:
       - 5216:5216
+
+# Получить идентификаторы ближайших серверов
+# curl -s https://www.speedtest.net/api/js/servers?engine=js | jq '.[] | select(.country == "Russia")'
