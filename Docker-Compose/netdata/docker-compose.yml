@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     pid: host
     network_mode: host
+    # ports:
+    #   - 19999:19999 # Web UI
     cap_add:
       - SYS_PTRACE
       - SYS_ADMIN
