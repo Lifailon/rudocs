@@ -156,6 +156,14 @@ scrape_configs:
 
 ################################################### Speedtest ###################################################
 
+  # - job_name: myspeed
+  #   scrape_interval: 15m
+  #   scrape_timeout: 30s
+  #   metrics_path: /api/prometheus/metrics
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.101:5216
+
   # - job_name: speedtest-exporter
   #   scrape_interval: 15m
   #   scrape_timeout: 90s

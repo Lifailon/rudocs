@@ -860,7 +860,7 @@ services:
 
 ### SpeedTest Tracker
 
-[SpeedTest Tracker](https://github.com/alexjustesen/speedtest-tracker) - самостоятельно размещаемое веб-приложение для отслеживания производительность и время безотказной работы Интернет-соединения с собственным веб-интерфейсом для визуализации графиков измерений.
+[SpeedTest Tracker](https://github.com/alexjustesen/speedtest-tracker) - веб-приложение для отслеживания производительности и времени безотказной работы Интернет-соединения с собственным веб-интерфейсом для визуализации графиков измерений, а а также интеграция с [Homapage](https://gethomepage.dev/widgets/services/speedtest-tracker).
 
 ```yaml
 # Generate app key: echo -n 'base64:'; openssl rand -base64 32;
@@ -918,18 +918,23 @@ services:
 
 ### MySpeed
 
-[MySpeed](https://github.com/gnmyt/MySpeed) - веб-приложение от создателя [Nexterm](https://github.com/gnmyt/Nexterm) для автоматизации тестирования скорости Интернет-канала связи. Поддерживает сервера проверки скорости Ookla, LibreSpeed ​​и Cloudflare, настройку времени между тестами с помощью выражений Cron, отправку оповещений в Telegram, хранение результатов до 30 дней и метрики Prometheus.
+[MySpeed](https://github.com/gnmyt/MySpeed) - веб-приложение от создателя [Nexterm](https://github.com/gnmyt/Nexterm) для автоматизации тестирования скорости Интернет-канала связи. Поддерживает сервера проверки скорости [Ookla SpeedTest](https://www.speedtest.net), [LibreSpeed](https://librespeed.org) ​​и [Cloudflare SpeedTest](https://speed.cloudflare.com), настройку времени между тестами с помощью выражений Cron, отправку оповещений в Telegram, хранение результатов до 30 дней, а также метрики Prometheus и виджет для [Homapage](https://gethomepage.dev/widgets/services/myspeed).
 
 ```yaml
 services:
   myspeed:
-    image: germannewsmaker/myspeed
+    image: germannewsmaker/myspeed:latest
     container_name: myspeed
     restart: unless-stopped
+    environment:
+      - SERVER_PORT=5216
     volumes:
       - ./myspeed_data:/myspeed/data
     ports:
       - 5216:5216
+
+# Получить идентификаторы ближайших серверов
+# curl -s https://www.speedtest.net/api/js/servers?engine=js | jq '.[] | select(.country == "Russia")'
 ```
 
 ### SpeedTest Exporter
@@ -2546,6 +2551,27 @@ GODOXY_METRICS_DISABLE_NETWORK=false
 GODOXY_METRICS_DISABLE_SENSORS=false
 ```
 
+### Promxy
+
+[Promxy](https://github.com/jacksontj/promxy) — это прокси-сервер Prometheus, который позволяет пользователю видеть множество сегментов Prometheus как единую конечную точку API.
+
+```yaml
+services:
+  promxy:
+    image: quay.io/jacksontj/promxy
+    container_name: promxy
+    restart: unless-stopped
+    ports:
+    - 8082:8082
+    volumes:
+    - ./../../cmd:/cmd
+    - ./promxy_logs:/var/log
+    command:
+      - --config=/cmd/promxy/config.yaml
+      - --log-level=info
+      - --web.enable-lifecycle
+```
+
 ### Pangolin
 
 [Pangolin](https://github.com/fosrl/pangolin) — это обратный прокси-сервер с туннелированием, размещаемый на собственном сервере, с контролем доступа на основе личности и контекста, разработанный для легкого раскрытия и защиты приложений, работающих где угодно. Pangolin выступает в роли центрального узла и соединяет изолированные сети, даже находящиеся за строгими брандмауэрами, через зашифрованные туннели, обеспечивая легкий доступ к удаленным сервисам без открытия портов и использования VPN.
@@ -2810,6 +2836,29 @@ AUTHENTIK_POSTGRESQL__USER=authentik
 AUTHENTIK_POSTGRESQL__PASSWORD=AuthentikAdmin
 AUTHENTIK_REDIS__HOST=authentik-redis
 AUTHENTIK_SECRET_KEY=J+fcRg0PtPRrILSeahxEtZwKGKM7irzJU15qp3ImG4XYoHyzsId5tnZjVoPs9XTnH5NwYaviRCVQZKSQ # openssl rand 60 | base64 -w 80
+```
+
+## PAM
+
+### JumpServer
+
+JumpServer - платформа управления привилегированным доступом (PAM - Privileged Access Management) с открытым исходным кодом, которая предоставляет безопасный доступ по требованию к конечным точкам SSH, RDP, Kubernetes, Database и RemoteApp через веб-браузер.
+
+```yaml
+services:
+  jumpserver:
+    image: jumpserver/jms_all
+    container_name: jumpserver
+    restart: unless-stopped
+    environment:
+      - SECRET_KEY=JumpServerSecretKey
+      - BOOTSTRAP_TOKEN=JumpServerToken
+    volumes:
+      - ./js_data:/opt/data
+      - ./pg_data:/var/lib/postgresql
+    ports:
+      - 2222:2222
+      - 8282:80
 ```
 
 ## LDAP
@@ -3720,7 +3769,7 @@ services:
 
 ### Velero UI
 
-[Velero UI](https://github.com/otwld/velero-ui) - веб-интерфейс для управления [Velero](https://github.com/vmware-tanzu/velero) и маниторинга резервного копирования ресурсов в кластерах Kubernetes.
+[Velero UI](https://github.com/otwld/velero-ui) - веб-интерфейс для управления [Velero](https://github.com/vmware-tanzu/velero) и мониторинга резервного копирования ресурсов в кластерах Kubernetes.
 
 ```yaml
 services:
@@ -3737,6 +3786,81 @@ services:
     # network_mode: host # use for k3s cluster config on localhost
     ports:
       - 3504:3504 # admin:admin
+```
+
+### VUI
+
+[VUI](https://github.com/seriohub/vui-ui) (Velero UI) - еще один интерфей для управления и мониторинга [Velero](https://github.com/vmware-tanzu/velero), который состоит из трех компонентов.
+
+```yaml
+services:
+  api:
+    image: dserio83/velero-api:0.2.7
+    container_name: 
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      API_ENDPOINT_URL: "0.0.0.0"
+      API_ENDPOINT_PORT: "8001"
+      API_RATE_LIMITER_L1: "60:200"
+      API_RATE_LIMITER_CUSTOM_1: "Security:xxx:60:20"
+      AUTH_ENABLED: "true"
+      DEFAULT_ADMIN_USERNAME: "admin"
+      DEFAULT_ADMIN_PASSWORD: "admin"
+      API_TOKEN_EXPIRATION_MIN: "180"
+      API_TOKEN_REFRESH_EXPIRATION_DAYS: "7"
+      K8S_IN_CLUSTER_MODE: "False"
+      K8S_VELERO_NAMESPACE: "velero"
+      KUBE_CONFIG_FILE: "/root/.kube/config"
+      ORIGINS_1: "http://127.0.0.1:8003"
+      ORIGINS_2: "http://localhost:8003"
+      CLUSTER_ID: "local-develop-cluster"
+      DOWNLOAD_INSPECT_FOLDER: "/tmp/velero-inspect-backups"
+      RESTIC_PASSWORD: "static-passw0rd"
+      WATCHDOG_URL: "vui-watchdog"
+      WATCHDOG_PORT: "8002"
+    volumes:
+      - ~/.kube/config:/root/.kube/config
+    ports:
+      - 8001:8001
+
+  vui-watchdog:
+    image: dserio83/velero-watchdog:0.1.8
+    container_name: 
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      API_ENDPOINT_URL: "0.0.0.0"
+      API_ENDPOINT_PORT: "8002"
+      K8S_IN_CLUSTER_MODE: "false"
+      K8S_VELERO_NAMESPACE: "velero"
+      PROCESS_LOAD_KUBE_CONFIG: "true"
+      PROCESS_KUBE_CONFIG: "/root/.kube/config"
+      CLUSTER_ID: "cluster-backend-name"
+      PROCESS_CYCLE_SEC: "1800"
+      APPRISE: ""
+    volumes:
+      - ~/.kube/config:/root/.kube/config
+    ports:
+      - 8002:8002
+      
+  ui:
+    image: dserio83/velero-ui:0.2.7
+    container_name: 
+    restart: unless-stopped
+    working_dir: /app
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_REFRESH_DATATABLE_AFTER: "1500"
+      NEXT_PUBLIC_REFRESH_RECENT: "5000"
+      NEXT_PUBLIC_VELERO_API_NAME: "cluster-backend-name"
+      NEXT_PUBLIC_VELERO_API_URL: "http://127.0.0.1:8001/api"
+      NEXT_PUBLIC_VELERO_API_WS: "ws://127.0.0.1:8001"
+      NEXT_PUBLIC_AUTH_ENABLED: "true"
+      NEXT_PUBLIC_INSPECT_BACKUP_ENABLED: "true"
+    ports:
+      - 8003:3000
 ```
 
 ### Rancher
@@ -3819,6 +3943,8 @@ services:
 ### Jenkins
 
 [Jenkins](https://github.com/jenkinsci/jenkins) - CI/CD платформа на базе Java, которая использует свой декларативный синтаксис описания конвееров с поддержкой скриптового языка Groovy, гибкой параметрорезацией и большого числа плагинов.
+
+🔗 [Jenkins Jack VSCode Extension](https://github.com/tabeyti/jenkins-jack) ↗
 
 ```yaml
 # Предварительно создать директории и предоставить права
@@ -3972,6 +4098,10 @@ services:
 ### Gitea
 
 [Gitea](https://github.com/go-gitea/gitea) - легковесный локальный аналог GitLab/GitHub (самостоятельный хостинг Git), API (с поддержкой Swagger Docs) и системой CI/CD на базе GitHub Actions (поддерживает обратную совместимость) с использованием [act](https://github.com/nektos/act).
+
+🔗 [Git Gitea](https://gitea.com/explore/repos) ↗
+
+🔗 [Actions VSCode Extension](https://github.com/github/vscode-github-actions) ↗
 
 ```yaml
 services:
@@ -4446,58 +4576,6 @@ services:
 
 ## Monitoring Stack
 
-### Jaeger
-
-[Jaeger](https://github.com/jaegertracing/jaeger) - распределенная система трассировки для анализа времени обработки запросов и ответов к веб-приложениям (например, используется в Traefik), созданная компанией Uber Technologies и переданная в дар Cloud Native Computing Foundation.
-
-```yaml
-services:
-  jaeger:
-    image: jaegertracing/all-in-one:1.55
-    container_name: jaeger
-    restart: always
-    ports:
-      - 16686:16686 # UI
-      - 4317:4317   # Collector
-```
-
-### Parca
-
-[Parca](https://github.com/parca-dev/parca) - система непрерывного профилирования для анализа использования процессора и памяти приложениями, вплоть до номера строки. Использует единый профилировщик eBPF, который автоматически обнаруживает цели из Docker, Kubernetes или systemd, поддерживая C, C++, Rust, Go и другие языки.
-
-```yaml
-services:
-  # Интерфейс для анализа профилирования
-  parca-server:
-    image: ghcr.io/parca-dev/parca:v0.24.2
-    container_name: parca-server
-    restart: unless-stopped
-    command: /parca
-    ports:
-      - 7070:7070
-
-  # Агент непрерывного профилирования 
-  parca-agent:
-    image: ghcr.io/parca-dev/parca-agent:v0.42.0
-    container_name: parca-agent
-    restart: unless-stopped
-    command: --remote-store-address=parca-server:7070 --remote-store-insecure
-    stdin_open: true
-    tty: true
-    privileged: true
-    pid: host
-    ports:
-      - 7071:7071
-    volumes:
-      - /run:/run
-      - /boot:/boot
-      - /lib/modules:/lib/modules
-      - /sys/kernel/debug:/sys/kernel/debug
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /sys/fs/bpf:/sys/fs/bpf
-      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
-```
-
 ### Grafana
 
 [Grafana](https://github.com/grafana/grafana) - система для визуализации метрик из более чем 100 источников данных.
@@ -4544,13 +4622,15 @@ services:
 
 [Alertmanager](https://github.com/prometheus/alertmanager) - система оповещений для экосистемы Prometheus (например, в Telegram, при превышение заданных порого в конфигурации), а также поддерживает свой веб-интерфейс.
 
-[Node Exporter](https://github.com/prometheus/node_exporter) - основной экспортер Prometheus для сбора системных метрик Linux.
-
 [PromLens](https://github.com/prometheus/promlens) – веб-конструктор для анализа и визуализации запросов `PromQL` (уже встроен в интерфейс Prometheus).
 
 [PushGateway](https://github.com/prometheus/pushgateway) - автономный шлюз-экспорт для сбора метрик через API (выступает в роли listener для приема метрик из скриптов, как в InfluxDB).
 
 [Blackbox Exporter](https://github.com/prometheus/blackbox_exporter) - мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC для предоставления метрик в формате Prometheus (похож на [Gatus](https://github.com/TwiN/gatus)).
+
+[Node Exporter](https://github.com/prometheus/node_exporter) - основной экспортер Prometheus для сбора системных метрик Linux.
+
+[Process Exporter](https://github.com/ncabatoff/process-exporter) - экспортер Prometheus для сбора метрик запущенных процессов.
 
 [cAdvisor](https://github.com/google/cadvisor) (Container Advisor) - экспортер метрик для всех запущенных контейнеров Docker с собственным веб-интерфейсом от Google.
 
@@ -4577,21 +4657,14 @@ services:
     image: prom/alertmanager
     container_name: alertmanager
     restart: unless-stopped
-    command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
-    # ports:
-    #   - 9093:9093
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    restart: unless-stopped
-    # ports:
-    #   - 9100:9100
+    ports:
+      - 9093:9093
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
 
   # promlens:
   #   image: prom/promlens
@@ -4612,10 +4685,10 @@ services:
     image: prom/blackbox-exporter:latest
     container_name: blackbox
     restart: unless-stopped
-    ports:
-      - 9115:9115
     volumes:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
+    ports:
+      - 9115:9115
     command:
       - --config.file=/etc/blackbox_exporter/config.yml
 
@@ -4639,6 +4712,29 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     # ports:
     #   - 9333:9333
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    # ports:
+    #   - 9100:9100
+
+  process-exporter:
+    image: ncabatoff/process-exporter
+    container_name: process-exporter
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /proc:/host/proc
+      - ./proc-conf.yml:/conf.yml
+    # ports:
+    #   - 9256:9256
+    command:
+      - -procfs
+      - /host/proc
+      - -config.path
+      - /conf.yml
 ```
 
 ### Loki
@@ -4675,6 +4771,62 @@ services:
     command: -config.file=/etc/promtail/promtail.yml
     # ports:
     #   - 9080:9080
+```
+
+### Jaeger
+
+[Jaeger](https://github.com/jaegertracing/jaeger) - распределенная система трассировки для анализа времени обработки запросов и ответов к веб-приложениям (например, используется в Traefik), созданная компанией Uber Technologies и переданная в дар Cloud Native Computing Foundation.
+
+🔗 [Demo](https://demo.jaegertracing.io/jaeger) ↗
+
+```yaml
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: jaeger
+    restart: always
+    ports:
+      - 16686:16686 # UI
+      - 4317:4317   # Collector
+```
+
+### Parca
+
+[Parca](https://github.com/parca-dev/parca) - система непрерывного профилирования для анализа использования процессора и памяти приложениями, вплоть до номера строки. Использует единый профилировщик eBPF, который автоматически обнаруживает цели из Docker, Kubernetes или systemd, поддерживая C, C++, Rust, Go и другие языки.
+
+🔗 [Demo](https://demo.parca.dev) ↗
+
+```yaml
+services:
+  # Интерфейс для анализа профилирования
+  parca-server:
+    image: ghcr.io/parca-dev/parca:v0.24.2
+    container_name: parca-server
+    restart: unless-stopped
+    command: /parca
+    ports:
+      - 7070:7070
+
+  # Агент непрерывного профилирования 
+  parca-agent:
+    image: ghcr.io/parca-dev/parca-agent:v0.42.0
+    container_name: parca-agent
+    restart: unless-stopped
+    command: --remote-store-address=parca-server:7070 --remote-store-insecure
+    stdin_open: true
+    tty: true
+    privileged: true
+    pid: host
+    ports:
+      - 7071:7071
+    volumes:
+      - /run:/run
+      - /boot:/boot
+      - /lib/modules:/lib/modules
+      - /sys/kernel/debug:/sys/kernel/debug
+      - /sys/fs/cgroup:/sys/fs/cgroup
+      - /sys/fs/bpf:/sys/fs/bpf
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
 ```
 
 ### Graphite
@@ -4853,6 +5005,43 @@ services:
       - zabbix-server
 ```
 
+### Netdata
+
+[Netdata](https://github.com/netdata/netdata) - платформа мониторинга инфраструктуры с нулевой настройкой. Поддерживает отображение всех возможных метрик из коробки, TOP процессов, просмотр логов с гистограммой (like Loki), настройка пользовательских Dashboards, оповещений (Alers), а также отображение событий и аномалий.
+
+🔗 [Netdata Demo](https://learn.netdata.cloud/docs/live-demo) ↗
+
+```yaml
+services:
+  netdata:
+    image: netdata/netdata
+    container_name: netdata
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    # ports:
+    #   - 19999:19999 # Web UI
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - ./netdata_config:/etc/netdata
+      - ./netdata_lib:/var/lib/netdata
+      - ./netdata_cache:/var/cache/netdata
+      - /:/host/root:ro,rslave
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/dbus:/run/dbus:ro
+```
+
 ### OpenObserve
 
 [Open Observe](https://github.com/openobserve/openobserve) (O2) — централизованная система наблюдения для логов (like Loki), метрик (like Prometheus), трассировок (like Jaeger), аналитики, RUM (мониторинг реальных пользователей — производительность, ошибки, воспроизведение сеансов), предназначенная для работы в масштабах петабайт. Он прост и удобен в использовании, в отличие от Elasticsearch, который требует понимания и настройки множества параметров, позволяет запустить его менее чем за 2 минуты. OpenObserve имеет свой встроенный пользовательский интерфейс, что устраняет необходимость в отдельной установке сторонних инструментов, таких как Kibana.
@@ -4875,6 +5064,13 @@ services:
       - 5080:5080/tcp # Web UI
     volumes:
       - ./openobserve_data:/data
+
+# Установка агента на системе Linux:
+# curl -O https://raw.githubusercontent.com/openobserve/agents/main/linux/install.sh && chmod +x install.sh && sudo ./install.sh http://192.168.3.101:5080/api/default/ cm9vdEBleGFtcGxlLmNvbTo2SUtjaTZMOVhmYXEwRGlC
+# Windows:
+# Invoke-WebRequest -Uri https://raw.githubusercontent.com/openobserve/agents/main/windows/install.ps1 -OutFile install.ps1 ; .\install.ps1 -URL http://192.168.3.101:5080/api/default/ -AUTH_KEY cm9vdEBleGFtcGxlLmNvbTo2SUtjaTZMOVhmYXEwRGlC
+# Отправка логов из curl:
+# curl -u root@example.com:6IKci6L9Xfaq0DiB -k http://192.168.3.101:5080/api/default/default/_json -d "[{\"level\":\"info\",\"job\":\"test\",\"log\":\"test message for openobserve\"}]"
 ```
 
 ### ELK Stack
@@ -5068,6 +5264,32 @@ services:
       - 4444:4444
     volumes:
       - /var/log:/var/log:ro
+```
+
+### Scrutiny
+
+Scrutiny - решение для мониторинга и управления состоянием жесткого диска, объединяющее предоставленные производителем показатели SMART с реальными показателями отказов. Встроенная интеграция со `smartd`, автоматическое определение всех подключенных жестких дисков и настройка уведомлений через web-hook.
+
+```yaml
+services:
+  scrutiny:
+    container_name: scrutiny
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    cap_add:
+      - SYS_RAWIO
+    ports:
+      - 8085:8080 # Web UI
+      - 8086:8086 # influxDB admin
+    volumes:
+      - /run/udev:/run/udev:ro
+      - ./config:/opt/scrutiny/config
+      - ./influxdb:/opt/scrutiny/influxdb
+    devices:
+      - /dev/sda
+      # Raspberry Pi
+      # - /dev/mmcblk0
+      # - /dev/mmcblk0p1
+      # - /dev/mmcblk0p2
 ```
 
 ## Homelab Stack
