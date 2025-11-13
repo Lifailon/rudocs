@@ -231,6 +231,36 @@
         - Keep:
             icon: google-keep.png
             href: https://keep.google.com
+    - Docker & Kubernetes:
+        - Docker Hub:
+            icon: docker.png
+            href: https://hub.docker.com/u/lifailon
+            siteMonitor: https://hub.docker.com
+        - Amazon ECR Public Gallery:
+            icon: aws.png
+            href: https://gallery.ecr.aws
+        # - Chainguard:
+        #     icon: https://images.chainguard.dev/favicon-dark.ico
+        #     href: https://images.chainguard.dev
+        - Linuxserver Images:
+            icon: https://docs.linuxserver.io/assets/favicon.ico
+            href: https://linuxserver.io/our-images
+        - Awesome Docker Compose:
+            # icon: https://awesome-docker-compose.com/favicon.png
+            icon: docker-compose.png
+            href: https://awesome-docker-compose.com/apps
+        - Portainer Templates:
+            icon: portainer.png
+            href: https://portainer-templates.as93.net
+        - Artifact Hub:
+            icon: artifacthub.png
+            href: https://artifacthub.io/packages/helm/openrouter-bot/openrouter-bot
+        - Krew Plugins:
+            icon: https://krew.sigs.k8s.io/img/favicon.svg
+            href: https://krew.sigs.k8s.io/plugins
+        - Kubernetes Spec Explorer:
+            icon: https://kubespec.dev/favicon.ico
+            href: https://kubespec.dev
 
 - Docs:
     - PowerShell Commands:
@@ -251,7 +281,7 @@
     - Learn X in Y minutes:
         icon: https://learnxinyminutes.com/favicon.ico
         href: https://learnxinyminutes.com
-    - Backend Cheats 🇷🇺:
+    - Backend Cheats:
         icon: github.png
         href: https://github.com/cheatsnake/backend-cheats/blob/master/README_RUS.md
     # - Oh My Backend 🇷🇺:
@@ -310,116 +340,6 @@
         # - Open SpeedTest:
         #     icon: https://open.cachefly.net/assets/images/icons/favicon.ico
         #     href: https://openspeedtest.com
-    - Docker & Kubernetes:
-        - Docker Hub:
-            icon: docker.png
-            href: https://hub.docker.com/u/lifailon
-            siteMonitor: https://hub.docker.com
-        - Amazon ECR Public Gallery:
-            icon: aws.png
-            href: https://gallery.ecr.aws
-        # - Chainguard:
-        #     icon: https://images.chainguard.dev/favicon-dark.ico
-        #     href: https://images.chainguard.dev
-        - Linuxserver Images:
-            icon: https://docs.linuxserver.io/assets/favicon.ico
-            href: https://linuxserver.io/our-images
-        - Awesome Docker Compose:
-            # icon: https://awesome-docker-compose.com/favicon.png
-            icon: docker-compose.png
-            href: https://awesome-docker-compose.com/apps
-        - Portainer Templates:
-            icon: portainer.png
-            href: https://portainer-templates.as93.net
-        - Artifact Hub:
-            icon: artifacthub.png
-            href: https://artifacthub.io/packages/helm/openrouter-bot/openrouter-bot
-        - Krew Plugins:
-            icon: https://krew.sigs.k8s.io/img/favicon.svg
-            href: https://krew.sigs.k8s.io/plugins
-        - Kubernetes Spec Explorer:
-            icon: https://kubespec.dev/favicon.ico
-            href: https://kubespec.dev
-
-- Development:
-    - IT Tools:
-        icon: it-tools.png
-        href: https://it-tools.tech
-    - Transform Web Converter:
-        icon: https://transform.tools/static/favicon.png
-        href: https://transform.tools
-    - JSON Crack:
-        icon: https://jsoncrack.com/favicon.ico
-        href: https://jsoncrack.com/editor
-    - Markmap:
-        icon: https://markmap.js.org/favicon.png
-        href: https://markmap.js.org/repl
-    - TS Playground:
-        icon: typescript.png
-        href: https://typescriptlang.org/play
-    # - HTML/CSS/JavaScript Playground:
-    #     icon: javascript.png
-    #     href: https://developer.mozilla.org/ru/play
-    # - Node.js Playground:
-    #     icon: nodejs.png
-    #     href: https://jsplayground.dev
-    # - Groovy Playground:
-    #     icon: https://groovy-lang.org/img/groovy-logo-white.svg
-    #     href: https://groovyide.com/playground
-    # - Go Playground:
-    #     icon: https://go.dev/images/favicon-gopher.png
-    #     href: https://go.dev/play
-    - Go Playground Better:
-        icon: https://raw.githubusercontent.com/x1unix/go-playground/refs/heads/master/web/public/favicon.ico
-        href: https://goplay.tools
-    - Go Template Playground:
-        icon: https://repeatit.io/logo.svg
-        href: https://repeatit.io
-    - KeePass Web:
-        icon: https://app.keeweb.info/icons/favicon-32x32.png
-        href: https://app.keeweb.info
-    - VCS Jitsi Meet:
-        icon: jitsi-meet.png
-        href: https://meet.jit.si
-    - ArchiveBox:
-        icon: archivebox.png
-        href: https://demo.archivebox.io/public
-    - Grist (like MS Excel):
-        icon: grist.png
-        href: https://docs.getgrist.com
-    - Draw.io (like MS Visio):
-        icon: draw-io.png
-        href: https://app.diagrams.net
-    - d2 Playground:
-        icon: https://play.d2lang.com/assets/icons/d2-logo.svg
-        href: https://play.d2lang.com
-    - Apache ECharts:
-        icon: https://echarts.apache.org/en/images/favicon.png
-        href: https://echarts.apache.org/examples/en
-    - Sweet Home 3D:
-        icon: https://www.sweethome3d.com/images/icon.png
-        href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
-    - Cobalt Media Downloader:
-        icon: cobalt.png
-        href: https://cobalt.tools
-    # -  Markdown live Preview:
-    #     icon: https://markdownlivepreview.com/favicon.png
-    #     href: https://markdownlivepreview.com
-    # - Emoji finder:
-    #     icon: https://emoji.muan.co/fav.png
-    #     href: https://emoji.muan.co
-    # - Shields:
-    #     icon: https://shields.io/img/favicon.ico
-    #     href: https://shields.io
-    # - Text to ASCII Art Generator:
-    #     icon: https://patorjk.com/candy.png
-    #     href: https://patorjk.com
-    # - Favicon Generator:
-    #     icon: https://favicongenerator.io/favicon.ico
-    #     href: https://favicongenerator.io
-    # - Favicon Extractor:
-    #     icon: https://www.faviconextractor.com/favicon/faviconextractor.com
-    #     href: https://faviconextractor.com
     - API:
         - Restfox API Client:
             icon: https://restfox.dev/favicon.png
@@ -549,59 +469,139 @@
         #             name: Provider  # Key
         #             label: Urls.0   # Value
         #             format: text
-    - Kubernetes Apps:
-        - Headlamp:
-            icon: headlamp.png
-            href: http://192.168.3.101:30001
-            siteMonitor: http://192.168.3.101:30001
-            namespace: kubernetes-dashboard
-            app: headlamp
-        - Traefik:
-            icon: traefik.png
-            href: http://traefik.k8s.local/dashboard/
-            siteMonitor: http://192.168.3.200:8888/dashboard/
-            namespace: default
-            app: traefik
-            # widget:
-            #   type: traefik
-            #   url: http://192.168.3.105:8888
-            #   username: admin
-            #   password: admin
-        - Argo CD:
-            icon: argo-cd.png
-            href: https://192.168.3.101:32479
-            siteMonitor: https://192.168.3.101:32479
-            namespace: argocd
-            app: argocd-server
-            # widget:
-            #   type: argocd
-            #   url: https://192.168.3.101:32479
-            #   key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJob21lcGFnZTphcGlLZXkiLCJuYmYiOjE3NjAyODQ2MjcsImlhdCI6MTc2MDI4NDYyNywianRpIjoiYjMxYTQzMDUtN2JhYS00MzM1LTlmYjktZGI4ZWJhZTUyOTljIn0.4ms3UXzt7j9rWHQFBxvCRaQPFm6q5Eq7DGvHO0frua4
-        - Longhorn:
-            icon: longhorn.png
-            href: http://192.168.3.101:30040
-            siteMonitor: http://192.168.3.101:30040
-            namespace: longhorn-system
-            app: longhorn
-        - Gatus:
-            icon: gatus.png
-            href: http://gatus.k8s.local
-            siteMonitor: http://192.168.3.205
-            namespace: monitoring
-            app: gatus
-            widget:
-              type: gatus
-              url: http://192.168.3.205
-        # - Uptime Kuma:
-        #     icon: uptime-kuma.png
-        #     href: http://uptime-kuma.k8s.local
-        #     siteMonitor: http://192.168.3.206
-        #     namespace: monitoring
-        #     app: uptime-kuma
-        #     widget:
-        #       type: uptimekuma
-        #       url: http://192.168.3.206
-        #       slug: test
+    - Development:
+        - IT Tools:
+            icon: it-tools.png
+            href: https://it-tools.tech
+        - Transform Web Converter:
+            icon: https://transform.tools/static/favicon.png
+            href: https://transform.tools
+        - JSON Crack:
+            icon: https://jsoncrack.com/favicon.ico
+            href: https://jsoncrack.com/editor
+        - Markmap:
+            icon: https://markmap.js.org/favicon.png
+            href: https://markmap.js.org/repl
+        - TS Playground:
+            icon: typescript.png
+            href: https://typescriptlang.org/play
+        # - HTML/CSS/JavaScript Playground:
+        #     icon: javascript.png
+        #     href: https://developer.mozilla.org/ru/play
+        # - Node.js Playground:
+        #     icon: nodejs.png
+        #     href: https://jsplayground.dev
+        # - Groovy Playground:
+        #     icon: https://groovy-lang.org/img/groovy-logo-white.svg
+        #     href: https://groovyide.com/playground
+        # - Go Playground:
+        #     icon: https://go.dev/images/favicon-gopher.png
+        #     href: https://go.dev/play
+        - Go Playground Better:
+            icon: https://raw.githubusercontent.com/x1unix/go-playground/refs/heads/master/web/public/favicon.ico
+            href: https://goplay.tools
+        - Go Template Playground:
+            icon: https://repeatit.io/logo.svg
+            href: https://repeatit.io
+        - KeePass Web:
+            icon: https://app.keeweb.info/icons/favicon-32x32.png
+            href: https://app.keeweb.info
+        - VCS Jitsi Meet:
+            icon: jitsi-meet.png
+            href: https://meet.jit.si
+        - ArchiveBox:
+            icon: archivebox.png
+            href: https://demo.archivebox.io/public
+        - Grist (like MS Excel):
+            icon: grist.png
+            href: https://docs.getgrist.com
+        - Draw.io (like MS Visio):
+            icon: draw-io.png
+            href: https://app.diagrams.net
+        - d2 Playground:
+            icon: https://play.d2lang.com/assets/icons/d2-logo.svg
+            href: https://play.d2lang.com
+        - Apache ECharts:
+            icon: https://echarts.apache.org/en/images/favicon.png
+            href: https://echarts.apache.org/examples/en
+        - Sweet Home 3D:
+            icon: https://www.sweethome3d.com/images/icon.png
+            href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
+        - Cobalt Media Downloader:
+            icon: cobalt.png
+            href: https://cobalt.tools
+        # -  Markdown live Preview:
+        #     icon: https://markdownlivepreview.com/favicon.png
+        #     href: https://markdownlivepreview.com
+        # - Emoji finder:
+        #     icon: https://emoji.muan.co/fav.png
+        #     href: https://emoji.muan.co
+        # - Shields:
+        #     icon: https://shields.io/img/favicon.ico
+        #     href: https://shields.io
+        # - Text to ASCII Art Generator:
+        #     icon: https://patorjk.com/candy.png
+        #     href: https://patorjk.com
+        # - Favicon Generator:
+        #     icon: https://favicongenerator.io/favicon.ico
+        #     href: https://favicongenerator.io
+        # - Favicon Extractor:
+        #     icon: https://www.faviconextractor.com/favicon/faviconextractor.com
+        #     href: https://faviconextractor.com
+
+- Kubernetes Apps:
+    - Headlamp:
+        icon: headlamp.png
+        href: http://192.168.3.101:30001
+        siteMonitor: http://192.168.3.101:30001
+        namespace: kubernetes-dashboard
+        app: headlamp
+    - Traefik:
+        icon: traefik.png
+        href: http://traefik.k8s.local/dashboard/
+        siteMonitor: http://192.168.3.200:8888/dashboard/
+        namespace: default
+        app: traefik
+        # widget:
+        #   type: traefik
+        #   url: http://192.168.3.105:8888
+        #   username: admin
+        #   password: admin
+    - Argo CD:
+        icon: argo-cd.png
+        href: https://192.168.3.101:32479
+        siteMonitor: https://192.168.3.101:32479
+        namespace: argocd
+        app: argocd-server
+        # widget:
+        #   type: argocd
+        #   url: https://192.168.3.101:32479
+        #   key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJob21lcGFnZTphcGlLZXkiLCJuYmYiOjE3NjAyODQ2MjcsImlhdCI6MTc2MDI4NDYyNywianRpIjoiYjMxYTQzMDUtN2JhYS00MzM1LTlmYjktZGI4ZWJhZTUyOTljIn0.4ms3UXzt7j9rWHQFBxvCRaQPFm6q5Eq7DGvHO0frua4
+    - Longhorn:
+        icon: longhorn.png
+        href: http://192.168.3.101:30040
+        siteMonitor: http://192.168.3.101:30040
+        namespace: longhorn-system
+        app: longhorn
+    - Gatus:
+        icon: gatus.png
+        href: http://gatus.k8s.local
+        siteMonitor: http://192.168.3.205
+        namespace: monitoring
+        app: gatus
+        widget:
+          type: gatus
+          url: http://192.168.3.205
+    # - Uptime Kuma:
+    #     icon: uptime-kuma.png
+    #     href: http://uptime-kuma.k8s.local
+    #     siteMonitor: http://192.168.3.206
+    #     namespace: monitoring
+    #     app: uptime-kuma
+    #     widget:
+    #       type: uptimekuma
+    #       url: http://192.168.3.206
+    #       slug: test
     - Docker Containers:
         - Dockge:
             icon: dockge.png
@@ -686,6 +686,24 @@
         #         url: http://192.168.3.101:9000
         #         version: 2
         #         key: WtBGKAGamul6ff21IvBRKz2prJPECQWaKKHdd0AjHy0N4HDasyMJuxEMW7xK
+        - Gitea:
+            icon: gitea.png
+            server: local
+            container: gitea
+            href: http://192.168.3.101:3000
+            widget:
+              type: gitea
+              url: http://192.168.3.101:3000
+              key: 19d5d3b649e27107125393962339ff0ebb3bb42c
+        # - SpeedTest:
+        #     icon: myspeed.png
+        #     server: local
+        #     container: myspeed
+        #     href: http://192.168.3.101:5216
+        #     widget:
+        #         type: myspeed
+        #         url: http://192.168.3.101:5216
+        #         password: MySpeedAdmin
         # - SpeedTest Tracker:
         #     icon: speedtest-tracker.png
         #     server: local
@@ -696,36 +714,14 @@
         #       version: 2
         #       url: http://192.168.3.101:8778
         #       key: kuDlHzAvzJS0ogD3yv2Jw4mLbRw9GeWMevGr3b9x4c751498
-        - Prometheus Server:
-            icon: prometheus.png
+        - NetData:
+            icon: netdata.png
             server: local
-            container: prometheus
-            href: http://192.168.3.101:9092
+            container: traefik
+            href: http://192.168.3.101:19999
             widget:
-              type: prometheus
-              url: http://192.168.3.101:9092
-        - Prometheus Metrics:
-            icon: prometheus.png
-            widget:
-              type: prometheusmetric
-              url: http://192.168.3.101:9092
-              refreshInterval: 10000 # 10s
-              metrics:
-                - label: node-01
-                  query: round(ohm_cpu_celsius{sensor="CPU Package"})
-                  format:
-                    type: number
-                    suffix: " °C"
-                - label: node-02
-                  query: round(node_hwmon_temp_celsius{sensor="temp0",instance="192.168.3.105:9100"})
-                  format:
-                    type: number
-                    suffix: " °C"
-                - label: node-03
-                  query: round(node_hwmon_temp_celsius{sensor="temp0",instance="192.168.3.106:9100"})
-                  format:
-                    type: number
-                    suffix: " °C"
+                type: netdata
+                url: http://192.168.3.101:19999
         - Grafana:
             icon: grafana.png
             server: local
@@ -742,12 +738,44 @@
             server: local
             container: loki-server
             href: http://192.168.3.101:3100/loki/api/v1/labels
-        - Gitea:
-            icon: gitea.png
-            server: local
-            container: gitea
-            href: http://192.168.3.101:3000
             widget:
-              type: gitea
-              url: http://192.168.3.101:3000
-              key: 19d5d3b649e27107125393962339ff0ebb3bb42c
+                type: customapi
+                # url: http://192.168.3.101:3100/loki/api/v1/query?query=count_over_time({job=~".+"}[1h])
+                url: http://192.168.3.101:3100/loki/api/v1/query?query=count_over_time(%7Bjob%3D~%22.%2B%22%7D%5B1h%5D)
+                method: GET
+                refreshInterval: 60000
+                display: number
+                mappings:
+                    - label: Logs last hour
+                      field: data.result.0.value.1
+                      format: number
+        - Prometheus Server:
+            icon: prometheus.png
+            server: local
+            container: prometheus
+            href: http://192.168.3.101:9092
+            widget:
+              type: prometheus
+              url: http://192.168.3.101:9092
+        - Prometheus Metrics:
+            icon: prometheus.png
+            widget:
+              type: prometheusmetric
+              url: http://192.168.3.101:9092
+              refreshInterval: 10000
+              metrics:
+                - label: node-01
+                  query: round(ohm_cpu_celsius{sensor="CPU Package"})
+                  format:
+                    type: number
+                    suffix: " °C"
+                - label: node-02
+                  query: round(node_hwmon_temp_celsius{sensor="temp0",instance="192.168.3.105:9100"})
+                  format:
+                    type: number
+                    suffix: " °C"
+                - label: node-03
+                  query: round(node_hwmon_temp_celsius{sensor="temp0",instance="192.168.3.106:9100"})
+                  format:
+                    type: number
+                    suffix: " °C"
