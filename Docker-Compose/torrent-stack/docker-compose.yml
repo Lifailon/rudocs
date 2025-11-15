@@ -27,7 +27,7 @@ services:
       - ./torrents:/kinozal-bot/torrents
       - ./kinozal-bot.conf:/kinozal-bot/kinozal-bot.conf
 
-################################################### RSS Reader ###################################################
+################################################### RSS ###################################################
 
   freshrss:
     image: lscr.io/linuxserver/freshrss:latest
@@ -41,6 +41,15 @@ services:
       - ./freshrss_config:/config
     ports:
       - 9111:80
+
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss-bridge
+    restart: unless-stopped
+    volumes:
+      - ./rss_bridge_config:/config
+    ports:
+      - 9112:80
 
 ################################################### Torrent Client ###################################################
 
