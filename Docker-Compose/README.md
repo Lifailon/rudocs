@@ -122,6 +122,8 @@ STATS_MIN_ROLE=ADMIN
 
 [Kinozal Bot](https://github.com/Lifailon/Kinozal-Bot) - Telegram бот, который позволяет автоматизировать процесс доставки контента до вашего телевизора, используя только телефон. С помощью бота вы получите удобный и привычный интерфейс для взаимодействия с торрент трекером [Кинозал](https://kinozal.tv) и базой данных [TMDB](https://www.themoviedb.org) для отслеживания даты выхода серий, сезонов и поиска актеров для каждой серии, а также возможность управлять торрент клиентом [qBittorrent](https://github.com/qbittorrent/qBittorrent) или [Transmission](https://github.com/transmission/transmission) на вашем компьютере, находясь удаленно от дома, а главное, все это доступно из единого интерфейса и без установки клиентского приложения на конечные устройства. В отличии от других приложений, предназначенных для удаленного управления торрент клиентами, вам не нужно находиться в той же локальной сети или использовать VPN.
 
+[Kinozal News Channel](https://t.me/kinozal_news) - новостной канала на базе бота, который генерирует посты на основе новых публикаций в торрент трекере Кинозал (современная альтернатива RSS). Каждый пост содержит краткую информацию о раздаче (год выхода, страна производства, рейтинг, качество и перевод), а также *#хештеги* по жанру для фильтрации контента на канале и кнопки с ссылками описания фильма или сериала, бесплатный онлайн просмотр через плееры ▶️ [Kinobox](https://kinobox.tv) и 🧲 [магнитные ссылки](https://en.wikipedia.org/wiki/Magnet_URI_scheme) для прямой загрузки содержимого раздачи в торрент клиенте по умолчанию.
+
 ```yaml
 services:
   kinozal-bot:
@@ -135,7 +137,7 @@ services:
 
 ### yt-dlp Telegram Bot
 
-[yt-dlp-telegram-bot](https://github.com/nonoo/yt-dlp-telegram-bot) - Telegram бот для загрузки видео из YouTube с помощью [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+[yt-dlp Telegram Bot](https://github.com/nonoo/yt-dlp-telegram-bot) - Telegram бот для загрузки видео из YouTube с помощью [yt-dlp](https://github.com/yt-dlp/yt-dlp) (like [Gozilla Bot](https://t.me/Gozilla_bot)).
 
 ```yaml
 services:
@@ -163,9 +165,11 @@ MAX_SIZE=
 YTDLP_COOKIES=
 ```
 
-### yt-dlp-telegram
+### yt-dlp Telegram
 
-[yt-dlp-telegram](https://github.com/ssebastianoo/yt-dlp-telegram) - Telegram бот для загрузки видео из YouTube с ограничением 50 МБ.
+[yt-dlp Telegram](https://github.com/ssebastianoo/yt-dlp-telegram) - еще один Telegram бот для загрузки видео из YouTube с ограничением 50 МБ.
+
+🔗 [Telegram Bot Demo](https://t.me/SatoruBot) ↗
 
 ```yaml
 services:
@@ -190,7 +194,7 @@ max_filesize = 50000000     # Max file size in bytes
 # output_folder = "/download"
 ```
 
-### smtp_to_telegram
+### SMTP to Telegram
 
 [SMTP to Telegram](https://github.com/KostyaEsmukov/smtp_to_telegram) - SMTP сервер (листенер) для переадресации сообщений в Telegram.
 
@@ -213,6 +217,54 @@ services:
 #   --mail-rcpt admin@docker.local \
 #   --user admin:admin \
 #   -T -
+```
+
+### RSS to Telegram Bot
+
+[RSS to Telegram Bot](https://github.com/BoKKeR/RSS-to-Telegram-Bot) - мониторит указанные RSS-ленты, добавленные через интерфейс Telegram и отправляет ссылки при обнаружение новых новостей.
+
+🔗 [Telegram Bot Demo](https://t.me/rss_t_bot) ↗
+
+```yaml
+services:
+  rss-bot:
+    image: bokker/rss.to.telegram
+    container_name: rss-bot
+    restart: unless-stopped
+    environment:
+      - TOKEN=<CHAT>:<TOKEN>
+      - DEBUG=false
+      - REDIS_HOST=rss-redis
+      - REDIS_PORT=6379
+      - REDIS_USER=admin
+      - REDIS_PASSWORD=admin
+      - REDIS_MUTEX=random-value
+    volumes:
+      - /path/to/host/config:/app/config
+
+  rss-redis:
+    image: redis:latest
+    container_name: rss-redis
+    restart: unless-stoppedd
+```
+
+### Free Games Claimer Bot
+
+[Free Games Claimer Bot](https://github.com/vogler/free-games-claimer) - Автоматически получает список бесплатных игр и DLC в Telegram из Epic Games Store, Amazon Prime Gaming и GOG.
+
+```yaml
+services:
+  fgc-bot:
+    image: ghcr.io/vogler/free-games-claimer
+    container_name: fgc-bot
+    restart: unless-stopped
+    pull_policy: always
+    stdin_open: true
+    tty: true
+    ports:
+      - 6080:6080
+    volumes:
+      - ./fgc_data:/fgc/data
 ```
 
 ## LLM Stack
@@ -6431,7 +6483,9 @@ services:
 
 ### FreshRSS
 
-[Freshrss](https://github.com/FreshRSS/FreshRSS) - агрегатор RSS-каналов с поддержкой хранения данных в SQLite, PostgreSQL и MySQL/MariaDB.
+[Freshrss](https://github.com/FreshRSS/FreshRSS) - агрегатор RSS-каналов с поддержкой хранения данных в SQLite, PostgreSQL и MySQL/MariaDB, а также предоставляет единую точку всех добавленных RSS лент, API и виджет [Homepage](https://gethomepage.dev/widgets/services/freshrss).
+
+🔗 [FreshRSS Demo](https://demo.freshrss.org) ↗
 
 ```yaml
 services:
@@ -6447,6 +6501,58 @@ services:
       - ./freshrss_config:/config
     ports:
       - 9111:80
+```
+
+### RSS Bridge
+
+[RSS Bridge](https://github.com/RSS-Bridge/rss-bridge) - генерирует RSS-каналы для веб-сайтов, у которых их нет, например, для Telegram каналов.
+
+🔗 [RSS Bridge Demo](https://rss-bridge.org/bridge01) ↗
+
+🔗 [Public Hosts](https://rss-bridge.github.io/rss-bridge/General/Public_Hosts.html) ↗
+
+```yaml
+services:
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss-bridge
+    restart: unless-stopped
+    volumes:
+      - ./rss_bridge_config:/config
+    ports:
+      - 9112:80
+```
+
+### RSS Proxy
+
+[RSS Proxy](https://github.com/damoeb/rss-proxy) - позволяет создавать ATOM или JSON-ленты из любого статического сайта или ленты (Web to Feed), анализирует HTML страницы и преобразует в RSS ленту с поддержкой фильтрации.
+
+[RSS Proxy Demo](https://rssproxy.migor.org)
+
+```yaml
+services:
+  rich-puppeteer:
+    image: damoeb/rich-rss:puppeteer-0.1
+    container_name: rich-puppeteer
+    restart: unless-stopped
+    security_opt:
+      - seccomp=chrome.json
+    networks:
+      - puppeteer
+
+  rss-proxy:
+    image: damoeb/rss-proxy:2.0.0-beta
+    container_name: rss-proxy
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      - LOG_LEVEL=info
+      - APP_PUBLIC_URL=http://localhost:8080
+      - TOKEN_SECRET=TokenSecret
+      - PUPPETEER_HOST=http://rich-puppeteer:3000
+    depends_on:
+      - rich-puppeteer
 ```
 
 ### qBittorrent
