@@ -7,6 +7,14 @@ services:
     ports:
       - 6990:80
 
+  # Универсальный инструмент для шифрования, кодирования, сжатия и анализа данных
+  cyberchef:
+    image: mpepping/cyberchef:latest
+    container_name: cyberchef
+    restart: unless-stopped
+    ports:
+      - 6990:8000
+
   # Универсальный веб-конвертор
   transform:
     image: lifailon/transform:amd64
