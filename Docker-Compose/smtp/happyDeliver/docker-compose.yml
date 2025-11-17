@@ -1,0 +1,15 @@
+services:
+  happydeliver:
+    image: happydomain/happydeliver:latest
+    container_name: happydeliver
+    restart: unless-stopped
+    hostname: happydeliver.docker.local
+    environment:
+      DOMAIN: docker.local
+      HOSTNAME: happydeliver.docker.local
+    volumes:
+      - ./happydeliver_data:/var/lib/happydeliver
+      - ./happydeliver_logs:/var/log/happydeliver
+    ports:
+      - 8525:25
+      - 8580:8080

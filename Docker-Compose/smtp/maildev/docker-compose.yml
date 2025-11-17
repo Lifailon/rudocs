@@ -1,0 +1,12 @@
+services:
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    restart: unless-stopped
+    environment:
+      - TZ=Etc/GMT+3
+      - MAILDEV_WEB_PORT=1080
+      - MAILDEV_SMTP_PORT=1025
+    ports:
+      - 8028:1080
+      - 8025:1025
