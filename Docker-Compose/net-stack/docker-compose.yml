@@ -62,6 +62,30 @@ services:
     volumes:
       - ./apprise_config:/config
 
+  # Network Traffic Monitoring
+  ntopng:
+    image: ntop/ntopng:latest
+    # image: vimagick/ntopng
+    container_name: ntopng
+    restart: unless-stopped
+    volumes:
+      - ./ntopng_data:/var/lib/ntopng
+    # command: --community -d /var/lib/ntopng -i eth0 -r ntopng-redis:6379@0 -w 0.0.0.0:3080
+    command: --community -d /var/lib/ntopng -i eth0 -r localhost:6379@0 -w 0.0.0.0:3080
+    network_mode: host
+    # ports:
+    #   - 3080:3080
+
+  ntopng-redis:
+    image: redis:alpine
+    restart: unless-stopped
+    container_name: ntopng-redis
+    volumes:
+      - ./ntopng_redis:/data
+    command: --save 900 1
+    ports:
+      - 6379:6379
+
   # RTSP Client
   rtsptoweb:
     image: ghcr.io/deepch/rtsptoweb:latest
