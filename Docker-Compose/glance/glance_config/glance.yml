@@ -1,0 +1,75 @@
+pages:
+  - name: Home
+    hide-desktop-navigation: true
+    columns:
+      - size: small
+        widgets:
+          - type: calendar
+            first-day-of-week: monday
+          - type: weather
+            location: London, United Kingdom
+            units: metric
+            hour-format: 24h
+            hide-location: true
+          # - type: markets
+          #   markets:
+          #     - symbol: SPY
+          #       name: S&P 500
+          #     - symbol: BTC-USD
+          #       name: Bitcoin
+          #     - symbol: NVDA
+          #       name: NVIDIA
+          #     - symbol: AAPL
+          #       name: Apple
+          #     - symbol: MSFT
+          #       name: Microsoft
+
+      - size: full
+        widgets:
+          - type: group
+            widgets:
+              # - type: hacker-news
+              # - type: lobsters
+              - type: rss
+                limit: 10
+                collapse-after: 10
+                cache: 12h
+                feeds:
+                  - url: https://catorrent.net/rss.xml
+                    title: 🐱 Cattorrent
+                  - url: https://pc-torrents.games/rss.xml
+                    title: 💻 PC Torrent
+          # YouTube
+          # - type: videos
+          #   channels:
+          #     - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
+          #     - UCR-DXc1voovS8nhAvccRZhg # Jeff Geerling
+          #     - UCsBjURrPoezykLs9EqgamOA # Fireship
+          #     - UCBJycsmduvYEL83R_U4JriQ # Marques Brownlee
+          #     - UCHnyfMqiRRG1u-2MsSQLbXA # Veritasium
+          # - type: twitch-channels
+          #   channels:
+          #     - theprimeagen
+          #     - j_blow
+          #     - giantwaffle
+          #     - cohhcarnage
+          #     - christitustech
+          #     - EJ_SA
+          # - type: group
+          #   widgets:
+          #     - type: reddit
+          #       subreddit: technology
+          #       show-thumbnails: true
+          #     - type: reddit
+          #       subreddit: selfhosted
+          #       show-thumbnails: true
+
+      - size: small
+        widgets:
+          - type: releases
+            cache: 1d
+            repositories:
+              - glanceapp/glance
+              - go-gitea/gitea
+              - immich-app/immich
+              - syncthing/syncthing
