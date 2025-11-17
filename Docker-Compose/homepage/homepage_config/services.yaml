@@ -112,7 +112,14 @@
     - Medium:
         icon: https://www.faviconextractor.com/favicon/medium.com
         href: https://lifailon.medium.com
-    - Games:
+    - 📰 News:
+        - RSS Bridge:
+            icon: https://rss-bridge.org/bridge01/static/favicon.png
+            href: https://rss-bridge.org/bridge01
+        - RSS Feed Reader:
+            icon: https://github.com/georapbox/rss-feed-reader/blob/main/src/assets/app-icons/favicon-192.png?raw=true
+            href: https://georapbox.github.io/rss-feed-reader
+    - 🎮 Games:
         - Steam:
             icon: steam.png
             href: https://store.steampowered.com/?l=russian
@@ -122,33 +129,56 @@
         - Nintendo eShop:
             icon: https://assets.nintendo.com/image/upload/ncom/icons/fav-icons/favicon.ico
             href: https://nintendo.com/us/store/games
+        - PSPrices:
+            icon: https://psprices.com/staticfiles/i/favicon/192.png
+            href: https://psprices.com/region-ru/collection/free
+        # - MetaCritic:
+        #     icon: https://www.metacritic.com/a/img/favicon.svg
+        #     href: https://www.metacritic.com
+        - OpenCritic:
+            icon: https://img.opencritic.com/app-icons/favicon-32x32.png
+            href: https://opencritic.com
         - Emulator.js:
             icon: https://raw.githubusercontent.com/EmulatorJS/EmulatorJS/refs/heads/main/docs/favicon.ico
             href: https://demo.emulatorjs.org
         - Junie Emulator:
             icon: https://namaneo.github.io/Junie/assets/favicon.png
             href: https://namaneo.github.io/Junie
-        - Nintendo Moy:
-            icon: https://nintendo.moy.su/favicon.ico
-            href: https://nintendo.moy.su
         - Emu Land:
             icon: https://emu-land.net/favicon.png
             href: https://emu-land.net
-    - Trackers:
+        - Nintendo Moy:
+            icon: https://nintendo.moy.su/favicon.ico
+            href: https://nintendo.moy.su
+        - asst2game:
+            icon: https://asst2game.ru/templates/asst2game/images/favicon.ico
+            href: https://asst2game.ru/consoles
+        # - Zelda64Rus:
+        #     icon: https://shedevr.org.ru/zelda64rus/favicon.ico
+        #     href: https://shedevr.org.ru/zelda64rus/translations.html
+        # - Doors & Treasures:
+        #     icon: https://www.doors-treasures.com/img/other/maintitleN.png
+        #     href: https://www.doors-treasures.com
+    - 🧲 Trackers:
         - Kinozal:
-            icon: https://kinozal.tv/pic/favicon.ico
+            # icon: https://kinozal.tv/pic/favicon.ico
+            icon: https://www.faviconextractor.com/favicon/kinozal.tv?larger=true
             href: https://kinozal.tv
         - RuTracker:
-            icon: https://rutracker.org/favicon.ico
+            # icon: https://rutracker.org/favicon.ico
+            icon: https://www.faviconextractor.com/favicon/rutracker.org?larger=true
             href: https://rutracker.org
-        - RuTor:
-            icon: https://cdnbunny.org/favicon.ico
-            href: https://rutor.info
         - NoNaMe Club:
-            icon: https://nnmstatic.win/favicon.ico
+            # icon: https://nnmstatic.win/favicon.ico
+            icon: https://www.faviconextractor.com/favicon/nnmclub.to?larger=true
             href: https://nnmclub.to
+        - RuTor:
+            # icon: https://cdnbunny.org/favicon.ico
+            icon: https://www.faviconextractor.com/favicon/rutor.info?larger=true
+            href: https://rutor.info
         - Mega Peer:
-            icon: https://megapeer.vip/favicon.ico
+            # icon: https://megapeer.vip/favicon.ico
+            icon: https://www.faviconextractor.com/favicon/megapeer.vip?larger=true
             href: https://megapeer.vip
         - Catorrent:
             icon: https://catorrent.net/templates/catorrent/images/favicon.svg
@@ -195,16 +225,25 @@
     - OpenRouter:
         icon: https://openrouter.ai/favicon.ico
         href: https://openrouter.ai
-    - Translators:
-        - Google Translate:
-            icon: google-translate.png
-            href: https://translate.google.com/?sl=en&tl=ru
-        - DeepL:
-            icon: deepl.png
-            href: https://deepl.com/ru/translator
-        - Reverso:
-            icon: https://reverso.net/assets/images/favicon.ico
-            href: https://reverso.net
+    - 💌 Mail 📮:
+        - Gmail:
+            icon: gmail.png
+            href: https://mail.google.com/mail/u/0/
+        - Outlook:
+            icon: microsoft-outlook.png
+            href: https://outlook.live.com/mail/0
+        - Yandex:
+            icon: https://mail.yandex.ru/u2709/favicon/png/main-favicon-2025/32/0.png
+            href: https://mail.yandex.ru
+        - Temp Mail:
+            icon: https://mehmetkahya0.github.io/temp-mail/images/temp-mail-icon.png
+            href: https://mehmetkahya0.github.io/temp-mail
+            # href: https://www.guerrillamail.com/ru
+            # href: https://temp-mail.org/ru
+            # href: https://temp-mail.io/ru
+        - Happy Deliver:
+            icon: https://raw.githubusercontent.com/happyDomain/happydeliver/refs/heads/master/web/src/lib/assets/favicon.svg
+            href: https://happydeliver.org
     - Google Apps:
         - YouTube:
             icon: youtube.png
@@ -213,9 +252,6 @@
         - Maps:
             icon: google-maps.png
             href: https://www.google.ru/maps/place/japan
-        - Gmail:
-            icon: gmail.png
-            href: https://mail.google.com/mail/u/0/
         - Drive:
             icon: google-drive.png
             href: https://drive.google.com/drive/my-drive
@@ -231,7 +267,7 @@
         - Keep:
             icon: google-keep.png
             href: https://keep.google.com
-    - Docker & Kubernetes:
+    - 🐳 Docker & Kubernetes:
         - Docker Hub:
             icon: docker.png
             href: https://hub.docker.com/u/lifailon
@@ -262,7 +298,7 @@
             icon: https://kubespec.dev/favicon.ico
             href: https://kubespec.dev
 
-- Docs:
+- 📚 Docs:
     - PowerShell Commands:
         icon: https://lifailon.github.io/favicon.png
         href: https://lifailon.github.io
@@ -303,6 +339,16 @@
     #     href: https://overapi.com
     # - Bash Oneliner:
     #     href: https://onceupon.github.io/Bash-Oneliner
+    - Translators:
+        - Google Translate:
+            icon: google-translate.png
+            href: https://translate.google.com/?sl=en&tl=ru
+        - DeepL:
+            icon: deepl.png
+            href: https://deepl.com/ru/translator
+        - Reverso:
+            icon: https://reverso.net/assets/images/favicon.ico
+            href: https://reverso.net
     - Network:
         - Networking Toolbox:
             icon: https://raw.githubusercontent.com/Lissy93/networking-toolbox/refs/heads/main/static/icon.png
@@ -380,13 +426,13 @@
         - HTTP Headers:
             icon: https://static.modheader.com/favicons/favicon-96x96.png
             href: https://modheader.com/headers
-        # - HTTPBin:
-        #     icon: https://httpbin.org/static/favicon.ico
-        #     # href: https://httpbin.org
-        #     href: https://httpbingo.org
+        - HTTPBin:
+            icon: https://httpbin.org/static/favicon.ico
+            # href: https://httpbin.org
+            href: https://httpbingo.org
 
-- Nodes:
-    - 🐧 node-01 (hv-us-101):
+- 🐧 Nodes:
+    - node-01 (hv-us-101):
         href: http://192.168.3.101:61208
         ping: 192.168.3.101
         widget:
@@ -397,9 +443,9 @@
           username: admin
           password: admin
           metric: containers # info/cpu/memory/process/containers/network:<interface_name>/sensor:<sensor_id>/fs:<mnt_point>/disk:<disk_id>/gpu:<gpu_id>
-    - 🍒 node-02 (rpi-105):
+    - node-02 (rpi-105):
         ping: 192.168.3.105
-    - ⌨ node-03 (rpi-106):
+    - node-03 (rpi-106):
         ping: 192.168.3.106
     - Web Apps:
         - Plex:
@@ -469,15 +515,18 @@
         #             name: Provider  # Key
         #             label: Urls.0   # Value
         #             format: text
-    - Development:
+    - 👩‍💻 Development:
         - IT Tools:
             icon: it-tools.png
             href: https://it-tools.tech
+        - CyberChef:
+            icon: cyberchef.png
+            href: https://gchq.github.io/CyberChef
         - Transform Web Converter:
             icon: https://transform.tools/static/favicon.png
             href: https://transform.tools
         - JSON Crack:
-            icon: https://jsoncrack.com/favicon.ico
+            icon: https://github.com/AykutSarac/jsoncrack.com/raw/main/public/assets/192.png
             href: https://jsoncrack.com/editor
         - Markmap:
             icon: https://markmap.js.org/favicon.png
