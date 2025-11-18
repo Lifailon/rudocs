@@ -1,0 +1,45 @@
+services:
+  ivredb:
+    image: mongo
+    container_name: ivredb
+    restart: unless-stopped
+    volumes:
+      - ./var_lib_mongodb:/data/db
+
+  ivreuwsgi:
+    image: ivre/web-uwsgi
+    container_name: ivreuwsgi
+    restart: unless-stopped
+    volumes:
+      - ./dokuwiki_data:/var/www/dokuwiki/data
+    depends_on:
+      - ivredb
+
+  ivredoku:
+    image: ivre/web-doku
+    container_name: ivredoku
+    restart: unless-stopped
+    volumes:
+      - ./dokuwiki_data:/var/www/dokuwiki/data
+
+  ivreweb:
+    image: ivre/web
+    container_name: ivreweb
+    restart: unless-stopped
+    volumes:
+      - ./dokuwiki_data:/var/www/dokuwiki/data
+    ports:
+      - 7077:80
+    depends_on:
+      - ivreuwsgi
+      - ivredoku
+
+  ivreclient:
+    image: ivre/client
+    container_name: ivreclient
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./ivre_share:/ivre-share
+    depends_on:
+      - ivredb
