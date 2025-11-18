@@ -26,6 +26,14 @@ services:
     ports:
       - 3090:3000
 
+  # Инструмент для сжатия, изменения разрешения и конвертации изображений
+  mazanoke:
+    image: ghcr.io/civilblur/mazanoke:latest
+    container_name: mazanoke
+    restart: unless-stopped
+    ports:
+      - 3474:80
+
   # Веб-приложение для визуализации JSON, YAML, XML и CSV в интерактивные графики
   jsoncrack:
     image: shokohsc/jsoncrack:latest
