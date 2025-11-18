@@ -35,6 +35,29 @@ services:
     ports:
       - 3102:18966
 
+  # Network Traffic Monitoring
+  ntopng:
+    image: ntop/ntopng:latest
+    container_name: ntopng
+    restart: unless-stopped
+    volumes:
+      - ./ntopng_data:/var/lib/ntopng
+    # command: --community -d /var/lib/ntopng -i eth0 -r ntopng-redis:6379@0 -w 0.0.0.0:3080
+    command: --community -d /var/lib/ntopng -i eth0 -r localhost:6379@0 -w 0.0.0.0:3080
+    network_mode: host
+    # ports:
+    #   - 3080:3080
+
+  ntopng-redis:
+    image: redis:alpine
+    restart: unless-stopped
+    container_name: ntopng-redis
+    volumes:
+      - ./ntopng_redis:/data
+    command: --save 900 1
+    ports:
+      - 6379:6379
+
   # Network scaner and alerts
   netalertx:
     image: ghcr.io/jokob-sk/netalertx:latest
@@ -62,29 +85,16 @@ services:
     volumes:
       - ./apprise_config:/config
 
-  # Network Traffic Monitoring
-  ntopng:
-    image: ntop/ntopng:latest
-    # image: vimagick/ntopng
-    container_name: ntopng
+  # Web Dashbord for nmap XML reports
+  # nmap -sT -A -T4 -oX ./nmap_reports/network.xml 192.168.3.0/24
+  webmap:
+    image: reborntc/webmap:latest
+    container_name: webmap
     restart: unless-stopped
-    volumes:
-      - ./ntopng_data:/var/lib/ntopng
-    # command: --community -d /var/lib/ntopng -i eth0 -r ntopng-redis:6379@0 -w 0.0.0.0:3080
-    command: --community -d /var/lib/ntopng -i eth0 -r localhost:6379@0 -w 0.0.0.0:3080
-    network_mode: host
-    # ports:
-    #   - 3080:3080
-
-  ntopng-redis:
-    image: redis:alpine
-    restart: unless-stopped
-    container_name: ntopng-redis
-    volumes:
-      - ./ntopng_redis:/data
-    command: --save 900 1
     ports:
-      - 6379:6379
+      - 7005:8000
+    volumes:
+      - ./nmap_reports:/opt/xml
 
   # RTSP Client
   rtsptoweb:
@@ -95,3 +105,20 @@ services:
     #   - ./rtsp_config/config.json:/config/config.json
     ports:
       - 8083:8083
+
+  # SMTP Server and Client
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - ./mailpit_data:/data
+    environment:
+      - TZ=Etc/GMT+3
+      - MP_DATABASE=/data/mailpit.db
+      # - MP_UI_AUTH_FILE=/data/authfile
+      - MP_SMTP_AUTH_ACCEPT_ANY=1
+      - MP_SMTP_AUTH_ALLOW_INSECURE=1
+    ports:
+      - 8125:8025
+      - 8225:1025
