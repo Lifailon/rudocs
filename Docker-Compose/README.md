@@ -15,11 +15,11 @@
 ```yaml
 services:
   OpenRouter-Bot:
-    container_name: OpenRouter-Bot
     image: lifailon/openrouter-bot:latest
+    container_name: OpenRouter-Bot
+    restart: unless-stopped
     volumes:
       - ./openrouter-bot.env:/openrouter-bot/.env
-    restart: unless-stopped
 ```
 
 env:
@@ -64,12 +64,12 @@ LOG_MODE=DEBUG
 ```yaml
 services:
   ssh-bot:
-    container_name: ssh-bot
     image: lifailon/ssh-bot:latest
+    container_name: ssh-bot
+    restart: unless-stopped
     volumes:
       - ./ssh-bot.env:/ssh-bot/.env
       - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
-    restart: unless-stopped
 ```
 
 env:
@@ -265,6 +265,25 @@ services:
       - 6080:6080
     volumes:
       - ./fgc_data:/fgc/data
+```
+
+### Telegram Bot API
+
+[Telegram Bot API](https://github.com/tdlib/telegram-bot-api) - полнофункциональный сервер-заглушка Telegram Bot API, который может использоваться для отладки при создание ботов Telegram.
+
+```yaml
+services:
+  telegram-bot-api:
+    image: aiogram/telegram-bot-api:latest
+    container_name: telegram-bot-api
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_API_ID=<api-id>
+      - TELEGRAM_API_HASH=<api-hash>
+    volumes:
+      - ./telegram_bot_api_data:/var/lib/telegram-bot-api
+    ports:
+      - 8081:8081
 ```
 
 ## LLM Stack
@@ -657,9 +676,79 @@ services:
 
 [Looking.House](https://looking.house/looking-glass) - инструмент для проверки скорости загрузки и выгрузки (а также проверок ping, traceroute и mtr) из множества точек [Looking Glass](https://github.com/gnif/LookingGlass), расположенных в ДЦ по всему миру.
 
+### Pinguem
+
+[Pinguem](https://github.com/Lifailon/pinguem) - веб-интерфейс и экспортер Prometheus для асинхронной проверки доступности выбранных хостов или подсетей с использованием библиотеки [node-ping](https://github.com/danielzzz/node-ping).
+
+```yaml
+services:
+  pinguem:
+    image: lifailon/pinguem:latest
+    container_name: pinguem
+    restart: unless-stopped
+    ports:
+      - 8085:8085 # Fronend (WebUI)
+      - 3005:3005 # Backend (API)
+```
+
+### SmokePing
+
+[SmokePing](https://github.com/oetiker/SmokePing) - система регистрации, построения графиков и оповещения о задержках, которая состоит из демона для организации измерения задержек и CGI-интерфейса для отображения графиков.
+
+🔗 [SmokePing Demo](https://smokeping.oetiker.ch/?target=Customers.OP) ↗
+
+```yaml
+services:
+  smokeping:
+    image: lscr.io/linuxserver/smokeping:latest
+    container_name: smokeping
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - MASTER_URL=https://smokeping.docker.local/smokeping/
+      - SHARED_SECRET=password
+      - CACHE_DIR=/tmp
+    volumes:
+      - ./smokeping_conf:/config
+      - ./smokeping_data:/data
+    ports:
+      - 8000:80
+```
+
+### Ntopng
+
+[Ntopng](https://github.com/ntop/ntopng) — форк оригинального `ntop` (написанного в 1998 году), с улучшенной производительностью, новыми функциями и веб-интерфейсом для анализа и мониторинга сетевого трафика. Поддерживает отображение графиков использования пропускной способности, анализ `pcap` файлов, списки активных подключений (like `netstat` или `ss`) и другую информацию.
+
+```yaml
+services:
+  ntopng:
+    image: ntop/ntopng:latest
+    container_name: ntopng
+    restart: unless-stopped
+    volumes:
+      - ./ntopng_data:/var/lib/ntopng
+    # command: --community -d /var/lib/ntopng -i eth0 -r ntopng-redis:6379@0 -w 0.0.0.0:3080
+    command: --community -d /var/lib/ntopng -i eth0 -r localhost:6379@0 -w 0.0.0.0:3080
+    network_mode: host
+    # ports:
+    #   - 3080:3080
+
+  ntopng-redis:
+    image: redis:alpine
+    restart: unless-stopped
+    container_name: ntopng-redis
+    volumes:
+      - ./ntopng_redis:/data
+    command: --save 900 1
+    ports:
+      - 6379:6379
+```
+
 ### NetAlertX
 
-[NetAlertX](https://github.com/jokob-sk/NetAlertX) - сканер присутствия и обнаружения в локальной или WiFi сети с отправкой оповещений, например, в Telegram.
+[NetAlertX](https://github.com/jokob-sk/NetAlertX) - сканер присутствия и обнаружения в локальной или WiFi сети с отправкой уведомлений, например, в Telegram.
 
 ```yaml
 services:
@@ -696,9 +785,79 @@ services:
       - ./apprise_config:/config
 ```
 
+### IVRE
+
+[IVRE](https://github.com/ivre/ivre) (Instrument de veille sur les réseaux extérieurs) - платформа сетевой разведки, включающая инструменты для пассивной и активной разведки (например, [Nmap](https://github.com/nmap/nmap) и [Masscan](https://github.com/robertdavidgraham/masscan)).
+
+```yaml
+services:
+  ivredb:
+    image: mongo
+    container_name: ivredb
+    restart: unless-stopped
+    volumes:
+      - ./var_lib_mongodb:/data/db
+
+  ivreuwsgi:
+    image: ivre/web-uwsgi
+    container_name: ivreuwsgi
+    restart: unless-stopped
+    volumes:
+      - ./dokuwiki_data:/var/www/dokuwiki/data
+    depends_on:
+      - ivredb
+
+  ivredoku:
+    image: ivre/web-doku
+    container_name: ivredoku
+    restart: unless-stopped
+    volumes:
+      - ./dokuwiki_data:/var/www/dokuwiki/data
+
+  ivreweb:
+    image: ivre/web
+    container_name: ivreweb
+    restart: unless-stopped
+    volumes:
+      - ./dokuwiki_data:/var/www/dokuwiki/data
+    ports:
+      - 7077:80
+    depends_on:
+      - ivreuwsgi
+      - ivredoku
+
+  ivreclient:
+    image: ivre/client
+    container_name: ivreclient
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./ivre_share:/ivre-share
+    depends_on:
+      - ivredb
+```
+
+### WebMan
+
+[WebMan](https://github.com/SabyasachiRana/WebMap) - веб-интерфейс для XML отчетов [nmap](https://github.com/nmap/nmap).
+
+```yaml
+services:
+  webmap:
+    image: reborntc/webmap:latest
+    container_name: webmap
+    restart: unless-stopped
+    ports:
+      - 7005:8000
+    volumes:
+      - ./nmap_reports:/opt/xml
+
+# nmap -sT -A -T4 -oX ./nmap_reports/network.xml 192.168.3.0/24
+```
+
 ### RTSP to Web
 
-[RTSP to Web](https://github.com/deepch/RTSPtoWeb) - RTSP клиент в браузере.
+[RTSP to Web](https://github.com/deepch/RTSPtoWeb) - `RTSP` клиент в браузере.
 
 ```yaml
 services:
@@ -712,150 +871,72 @@ services:
       - 8083:8083
 ```
 
-### Gatus
+### MailPit
 
-[Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
+[MailPit](https://github.com/axllent/mailpit) - SMTP-сервер для тестирования электронной почты, основанный на [MailHog](https://github.com/mailhog/MailHog) (который больше не поддерживается), с поддержкой веб-интерфейса (SMTP-клиент) для просмотра получаемх писем, а также API для автоматизированного тестирования и интеграции.
 
-🔗 [Gatus Demo](https://gatus.io/demo) ↗
-
-В демо-версии присутствует интерфейс для настройки и проверки мониторинга (без экспорта в формате конфигурации).
+🔗 [MailPit API Docs](https://mailpit.axllent.org/docs/api-v1/view.html#get-/api/v1/info) ↗
 
 ```yaml
 services:
-  gatus:
-    image: twinproduction/gatus:latest
-    container_name: gatus
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
     restart: unless-stopped
     volumes:
-      - ./config:/config  # yaml configuration
-      - ./data:/data      # SQLite
+      - ./mailpit_data:/data
+    environment:
+      - TZ=Etc/GMT+3
+      - MP_DATABASE=/data/mailpit.db
+      # - MP_UI_AUTH_FILE=/data/authfile
+      - MP_SMTP_AUTH_ACCEPT_ANY=1
+      - MP_SMTP_AUTH_ALLOW_INSECURE=1
     ports:
-      - 8180:8080
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - 8125:8025
+      - 8225:1025
 ```
 
-### Uptime Kuma
+### MailDev
 
-[Uptime Kuma](https://github.com/louislam/uptime-kuma) - простой в использовании инструмент для мониторинга веб-приложений с помощью веб-интерфейса.
-
-[Uptime Kuma API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - Swagger документация для Uptime Kuma API.
-
-🔗 [Uptime Kuma Demo](https://demo.kuma.pet/start-demo) ↗
+[MailDev](https://github.com/maildev/maildev) - SMTP-сервер и веб-интерфейс для просмотра и тестирования почты во время разработки (например, используется для проверки содержимого письма при отправки оповещений, сброса пароля и т.п.).
 
 ```yaml
 services:
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    container_name: uptime-kuma
-    restart: unless-stopped
-    ports:
-      - 3001:3001
-    volumes:
-      - ./kuma_data:/app/data
-
-  uptime-kuma-api:
-    image: medaziz11/uptimekuma_restapi
-    container_name: uptime-kuma-api
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
     restart: unless-stopped
     environment:
-      - KUMA_SERVER=http://uptime-kuma:3001
-      - KUMA_USERNAME=admin
-      - KUMA_PASSWORD=KumaAdmin
-      - ADMIN_PASSWORD=KumaApiAdmin
+      - TZ=Etc/GMT+3
+      - MAILDEV_WEB_PORT=1080
+      - MAILDEV_SMTP_PORT=1025
     ports:
-      - 3002:8000
-    volumes:
-      - ./kuma_api:/db
-    depends_on:
-      - uptime-kuma
-
-  # uptime-robot:
-  #   image: overclockedllama/uptimerobot
-  #   container_name: uptime-robot
-  #   restart: unless-stopped
-  #   environment: 
-  #     - PORT=3000
-  #     - LOG_LEVEL=info
-  #     - CRON_TIME=*/1 * * * *
-  #     - UPTIME_ROBOT_API=
-  #     - UPTIME_ROBOT_NAME_PATTERN=%name
-  #     - WEBSITE_TITLE=
-  #     - WEBSITE_COPYRIGHT=
-  #   ports: 
-  #     - 3003:3000
-  #   volumes: 
-  #     - ./uptimerobot_config:/app/config
+      - 8028:1080
+      - 8025:1025
 ```
 
-### StatPing
+### Happy Deliver
 
-[StatPing](https://github.com/statping/statping) - страница статуса для проверки доступности веб-сайтов с настройкой в веб-интерфейсе, автоматическим построением графиков и оповещениями в Telegram.
+[Happy Deliver](https://github.com/happyDomain/happydeliver) - инструмент для тестирования доставки электронных писем, с анализом писем и оценкой `SPF`, `DKIM`, `DMARC`, `BIMI`, `ARC`, SpamAssassin, записи `DNS`, статус черного списка, качество контента и многое другое. Поддерживает полнофункциональный REST API для создания тестов и получения отчетов, встроенный сервер `LMTP` для бесшовной интеграции `MTA` и присвоения оценок (от `A` до `F`).
 
-🔗 [StatPing Android](https://play.google.com/store/apps/details?id=com.statping) ↗
+🔗 [Happy Deliver Demo](https://happydeliver.org) ↗
 
 ```yaml
 services:
-  statping:
-    image: statping/statping:latest
-    container_name: statping
+  happydeliver:
+    image: happydomain/happydeliver:latest
+    container_name: happydeliver
     restart: unless-stopped
-    volumes:
-      - ./unless-stopped_data:/app
-    ports:
-      - 8001:8080
-    # environment:
-    #   VIRTUAL_HOST: localhost
-    #   VIRTUAL_PORT: 8080
-    #   DB_CONN: statping-postgres
-    #   DB_HOST: statping-postgres
-    #   DB_DATABASE: statping
-    #   DB_USER: statping
-    #   DB_PASS: statping
-```
-
-### SmokePing
-
-[SmokePing](https://github.com/oetiker/SmokePing) - система регистрации, построения графиков и оповещения о задержках, которая состоит из демона для организации измерения задержек и CGI-интерфейса для отображения графиков.
-
-🔗 [SmokePing Demo](https://smokeping.oetiker.ch/?target=Customers.OP) ↗
-
-```yaml
-services:
-  smokeping:
-    image: lscr.io/linuxserver/smokeping:latest
-    container_name: smokeping
-    restart: unless-stopped
+    hostname: happydeliver.docker.local
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-      - MASTER_URL=https://smokeping.docker.local/smokeping/
-      - SHARED_SECRET=password
-      - CACHE_DIR=/tmp
+      DOMAIN: docker.local
+      HOSTNAME: happydeliver.docker.local
     volumes:
-      - ./smokeping_conf:/config
-      - ./smokeping_data:/data
+      - ./happydeliver_data:/var/lib/happydeliver
+      - ./happydeliver_logs:/var/log/happydeliver
     ports:
-      - 8000:80
-```
-
-### Pinguem
-
-[Pinguem](https://github.com/Lifailon/pinguem) - веб-интерфейс и экспортер Prometheus для асинхронной проверки доступности выбранных хостов или подсетей с использованием библиотеки [node-ping](https://github.com/danielzzz/node-ping).
-
-```yaml
-services:
-  pinguem:
-    image: lifailon/pinguem:latest
-    container_name: pinguem
-    restart: unless-stopped
-    ports:
-      - 8085:8085 # Fronend (WebUI)
-      - 3005:3005 # Backend (API)
+      - 8525:25
+      - 8580:8080
 ```
 
 ### LibreSpeedTest
@@ -1075,6 +1156,22 @@ services:
       - 6990:80
 ```
 
+### CyberChef
+
+[CyberChef](https://github.com/gchq/CyberChef) - веб-приложение для выполнения всевозможных кибер-операций в веб-браузере, которые включают в себя простое кодирование (например, `XOR` и `Base64`), более сложное шифрование (например, `AES`, `DES` и `Blowfish`), создание двоичных и шестнадцатеричных дампов, сжатие и распаковка данных, вычисление хешей и контрольных сумм, парсинг `IPv6` и `X.509`, изменение кодировок символов и многое другое.
+
+🔗 [CyberChef Demo](https://gchq.github.io/CyberChef) ↗
+
+```yaml
+services:
+  cyberchef:
+    image: mpepping/cyberchef:latest
+    container_name: cyberchef
+    restart: unless-stopped
+    ports:
+      - 6990:8000
+```
+
 ### Transform
 
 [Transforms](https://github.com/ritz078/transform) - универсальный веб-конвертер.
@@ -1092,6 +1189,22 @@ services:
     restart: unless-stopped
     ports:
       - 3090:3000
+```
+
+### Mazanoke
+
+[Mazanoke](https://github.com/civilblur/mazanoke) - веб-приложение для сжатия (в процентах или мб), изменения разрешения (в пикселях) и конвертации изображений.
+
+🔗 [Mazanoke Demo](https://mazanoke.com) ↗
+
+```yaml
+services:
+  mazanoke:
+    image: ghcr.io/civilblur/mazanoke:latest
+    container_name: mazanoke
+    restart: unless-stopped
+    ports:
+      - 3474:80
 ```
 
 ### JSON Crack
@@ -4420,6 +4533,33 @@ services:
   #     - 1636:1636
 ```
 
+### Wexflow
+
+[Wexflow](https://github.com/aelassas/wexflow) - движок автоматизации процессов, который используется для перемещение или преобразование файлов, загрузка на FTP/SFTP, отправка электронных писем, запуск скриптов (PowerShell, Bash, Python и т. д.), планирование и объединение задач в цепочку, запуск рабочих процессов по событиям, cron или watchfolders, визуальное проектирование процессов (интерфейс Designer), интеграция с API и базами данных (поддерживается более 6 баз данных), поддерживает условную логики (if/else, switch, while), более 100 встроенных заданий и мобильное приложение для Android.
+
+```yaml
+services:
+  wexflow:
+    image: aelassas/wexflow:latest
+    container_name: wexflow
+    restart: unless-stopped
+    # SSL (optionals)
+    # volumes:
+    #   - ./wexflow_data/appsettings.json:/opt/wexflow/Wexflow.Server/appsettings.json:ro
+    #   - ./wexflow_data/wexflow.pfx:/opt/wexflow/Wexflow.Server/wexflow.pfx:ro
+    ports:
+      - 8338:8000 # admin:wexflow2018
+    #depends_on:
+    #  - mongo
+
+  # mongo:
+  #   image: mongo:latest
+  #   container_name: mongo
+  #   restart: unless-stopped
+  #   ports:
+  #     - 27017:27017
+```
+
 ## Vault Stack
 
 ### HashiCorp Vault
@@ -4627,6 +4767,112 @@ services:
 ```
 
 ## Monitoring Stack
+
+### Change Detection
+
+[Change Detection](https://github.com/dgtlmoon/changedetection.io) - следите за обновлениями на веб-сайтах, с поддержкой новостной RSS ленты, REST API, а также уведомлениями в Telegram, Discord, Slack, Webhook и другие каналы.
+
+```yaml
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io
+    container_name: changedetection
+    restart: unless-stopped
+    volumes:
+      - ./changedetection_data:/datastore
+    ports:
+      - 5000:5000
+```
+
+### Uptime Kuma
+
+[Uptime Kuma](https://github.com/louislam/uptime-kuma) - инструмент для мониторинга веб-приложений, поддерживающий настройку добавления хостов и правил с помощью веб-интерфейса.
+
+[Uptime Kuma API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - Swagger документация для Uptime Kuma API.
+
+🔗 [Uptime Kuma Demo](https://demo.kuma.pet/start-demo) ↗
+
+```yaml
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - 3001:3001
+    volumes:
+      - ./kuma_data:/app/data
+
+  uptime-kuma-api:
+    image: medaziz11/uptimekuma_restapi
+    container_name: uptime-kuma-api
+    restart: unless-stopped
+    environment:
+      - KUMA_SERVER=http://uptime-kuma:3001
+      - KUMA_USERNAME=admin
+      - KUMA_PASSWORD=KumaAdmin
+      - ADMIN_PASSWORD=KumaApiAdmin
+    ports:
+      - 3002:8000
+    volumes:
+      - ./kuma_api:/db
+    depends_on:
+      - uptime-kuma
+```
+
+### Gatus
+
+[Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
+
+🔗 [Gatus Health Dashboard Demo](https://gatus.io/demo) ↗
+
+🔗 [Gatus Demo](https://gatus.io/demo) ↗
+
+В демо-версии присутствует интерфейс (конструктор) для настройки и проверки правил мониторинга (без экспорта в формате конфигурации).
+
+```yaml
+services:
+  gatus:
+    image: twinproduction/gatus:latest
+    container_name: gatus
+    restart: unless-stopped
+    volumes:
+      - ./config:/config  # yaml configuration
+      - ./data:/data      # SQLite
+    ports:
+      - 8180:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+### StatPing
+
+[StatPing](https://github.com/statping/statping) - страница статуса для проверки доступности веб-сайтов с настройкой в веб-интерфейсе, автоматическим построением графиков и оповещениями в Telegram.
+
+🔗 [StatPing Android](https://play.google.com/store/apps/details?id=com.statping) ↗
+
+```yaml
+services:
+  statping:
+    image: statping/statping:latest
+    container_name: statping
+    restart: unless-stopped
+    volumes:
+      - ./unless-stopped_data:/app
+    ports:
+      - 8001:8080
+    # environment:
+    #   VIRTUAL_HOST: localhost
+    #   VIRTUAL_PORT: 8080
+    #   DB_CONN: statping-postgres
+    #   DB_HOST: statping-postgres
+    #   DB_DATABASE: statping
+    #   DB_USER: statping
+    #   DB_PASS: statping
+```
 
 ### Grafana
 
@@ -5265,9 +5511,36 @@ services:
       retries: 30
 ```
 
-### RSyslog GUI
+### Rsyslog Collector
 
-[RSyslog GUI](https://github.com/aguyonp/rsyslog-gui) - [RSyslog](https://github.com/aguyonp/rsyslog-gui) сервер и веб-интерфейс на базе [PimpMyLog](https://github.com/potsky/PimpMyLog) для анализа логов (чтения, сортировки и фильтрации по содержимому сообщений).
+[Rsyslog Collector](https://github.com/rsyslog/rsyslog) - централизованная система для сбора логов, который поддерживает сбор как системных логов (подключение к серверу через конфигурацию `/etc/rsyslog.conf`), так и контейнеров Docker с помощью драйвера логирования syslog. Контейнер собирает все логи в файл `/var/log/all.log` и не требует настройки конфигурации.
+
+```yaml
+services:
+  rsyslog-collector:
+    image: rsyslog/rsyslog-collector:latest
+    container_name: rsyslog-collector
+    restart: unless-stopped
+    volumes:
+      - ./log_data:/var/log
+      - /etc/hostname:/etc/hostname:ro
+    environment:
+      - ENABLE_UDP=on
+      - ENABLE_TCP=on
+      - ENABLE_RELP=off
+      - WRITE_ALL_FILE=on   # write all messages to /var/log/all.log
+      - WRITE_JSON_FILE=off # write JSON formatted messages to /var/log/all-json.log
+      - RSYSLOG_HOSTNAME=/etc/hostname
+      - RSYSLOG_ROLE=collector
+    ports:
+      - 10514:514/udp    # Syslog UDP
+      - 10514:514/tcp    # Syslog TCP
+      # - 20514:2514/tcp   # RELP
+```
+
+### Rsyslog GUI
+
+[Rsyslog GUI](https://github.com/aguyonp/rsyslog-gui) - [Rsyslog](https://github.com/aguyonp/rsyslog-gui) сервер и веб-интерфейс на базе [PimpMyLog](https://github.com/potsky/PimpMyLog) для анализа логов (чтения, сортировки и фильтрации по содержимому сообщений).
 
 ```yaml
 services:
@@ -5278,8 +5551,8 @@ services:
     volumes:
       - ./rsyslog_data:/var/log/net
     ports:
-      - 5141:80
-      - 514:514/udp
+      - 10080:80
+      - 10514:514/udp
     environment:
       - SYSLOG_USERNAME=admin
       - SYSLOG_PASSWORD=admin
@@ -5291,6 +5564,80 @@ services:
       interval: 3s
       retries: 3
       timeout: 3s
+```
+
+### Sloggo
+
+[Sloggo](https://github.com/phare/sloggo) - легковесный сборщик логов по стандарту RFC 5424 (протокол Syslog) на базе библиотеки [go-syslog](https://github.com/leodido/go-syslog). Для хранения данных использует встроенную базу данных [DuckDB](https://github.com/duckdb/duckdb) (like SQLite), а также предоставляет интерфейс на базе [data-table-filters](https://github.com/openstatusHQ/data-table-filters) для поиска и фильтрации.
+
+```yaml
+services:
+  sloggo:
+    image: ghcr.io/phare/sloggo:latest
+    container_name: sloggo
+    restart: unless-stopped
+    volumes:
+      - ./sloggo_data:/app/.duckdb
+    environment:
+      - SLOGGO_LISTENERS=tcp,udp
+      - SLOGGO_UDP_PORT=1514
+      - SLOGGO_TCP_PORT=2514
+      - SLOGGO_API_PORT=3080
+      - SLOGGO_LOG_RETENTION_MINUTES=43200 # 30 days (60*24*30)
+    ports:
+      - 1514:1514/udp
+      - 1514:2514/tcp
+      - 1080:3080/tcp
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://localhost:1514
+        tag: "{{.Name}}"
+        syslog-format: rfc5424
+```
+
+### Logspout
+
+[Logspout](https://github.com/gliderlabs/logspout) - маршрутизатор журналов для контейнеров Docker, работающий внутри Docker. Он подключается ко всем контейнерам на хосте и перенаправляет их логи на указанный сервер Syslog.
+
+```yaml
+services:
+  logspout:
+    image: gliderlabs/logspout:latest
+    container_name: logspout
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: syslog://sloggo:1514
+```
+
+### Fluent-bit
+
+```yaml
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    restart: unless-stopped
+    # ports:
+    #   - 24224:24224/tcp
+    #   - 24224:24224/udp
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+```
+
+### Vector
+
+```yaml
+services:
+  vector:
+    image: timberio/vector:nightly-alpine
+    container_name: vector
+    restart: unless-stopped
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./vector.toml:/etc/vector/vector.toml:ro
 ```
 
 ### Toolong
@@ -5320,7 +5667,7 @@ services:
 
 ### Scrutiny
 
-Scrutiny - решение для мониторинга и управления состоянием жесткого диска, объединяющее предоставленные производителем показатели SMART с реальными показателями отказов. Встроенная интеграция со `smartd`, автоматическое определение всех подключенных жестких дисков и настройка уведомлений через web-hook.
+[Scrutiny](https://github.com/AnalogJ/scrutiny) - решение для мониторинга и управления состоянием жесткого диска, объединяющее предоставленные производителем показатели SMART с реальными показателями отказов. Встроенная интеграция со `smartd`, автоматическое определение всех подключенных жестких дисков и настройка уведомлений через web-hook.
 
 ```yaml
 services:
@@ -5345,6 +5692,28 @@ services:
 ```
 
 ## Homelab Stack
+
+### Home Assistant
+
+[Home Assistant](https://github.com/home-assistant/core) - система домашней автоматизации для управления умными устройствами.
+
+🔗 [Home Assistant Demo](https://demo.home-assistant.io/#/lovelace/home) ↗
+
+```yaml
+services:
+  home-assistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: home-assistant
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    # ports:
+    #   - 8123:8123
+    volumes:
+      - ./config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+```
 
 ### HomePage
 
@@ -5400,6 +5769,22 @@ services:
       - homepage.name=Glances
       - homepage.icon=glances.png
       - homepage.href=http://glances.docker.local
+```
+
+### Glance
+
+[Glance](https://github.com/glanceapp/glance) - панель управления, которая объединяет все RSS каналы в одном месте, с встроенной поддержкой Hacker News posts, subreddit, YouTube channel, Twitch channels, релизы GitHub, статусы контейнеров Docker и другие возможности [конфигурации](https://github.com/glanceapp/glance/blob/main/docs/configuration.md#configuring-glance).
+
+```yaml
+services:
+  glance:
+    image: glanceapp/glance:latest
+    container_name: glance
+    restart: unless-stopped
+    volumes:
+      - ./glance_config:/app/config
+    ports:
+      - 9111:8080
 ```
 
 ### Dashy
@@ -5472,28 +5857,6 @@ services:
 #     file: ./flame_password
 
 # echo "FlamePassword" > ./flame_password
-```
-
-### Home Assistant
-
-[Home Assistant](https://github.com/home-assistant/core) - система домашней автоматизации для управления умными устройствами.
-
-🔗 [Home Assistant Demo](https://demo.home-assistant.io/#/lovelace/home) ↗
-
-```yaml
-services:
-  home-assistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
-    container_name: home-assistant
-    restart: unless-stopped
-    privileged: true
-    network_mode: host
-    # ports:
-    #   - 8123:8123
-    volumes:
-      - ./config:/config
-      - /etc/localtime:/etc/localtime:ro
-      - /run/dbus:/run/dbus:ro
 ```
 
 ### It's MyTabs
@@ -6505,7 +6868,7 @@ services:
 
 ### RSS Bridge
 
-[RSS Bridge](https://github.com/RSS-Bridge/rss-bridge) - генерирует RSS-каналы для веб-сайтов, у которых их нет, например, для Telegram каналов.
+[RSS Bridge](https://github.com/RSS-Bridge/rss-bridge) - генерирует RSS-каналы в форматах `Atom`/`XML` и `JSON` с поддержкой `HTML` разметки для веб-сайтов, у которых их нет. Поддерживает более 400 мостов, например, из Telegram каналов, фильтрацию по заголовкам или содержимому RSS каланов (например, предварительно сгенерированных).
 
 🔗 [RSS Bridge Demo](https://rss-bridge.org/bridge01) ↗
 
