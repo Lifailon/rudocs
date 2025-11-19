@@ -473,7 +473,8 @@
 - [FFmpeg](#ffmpeg)
 - [HandBrake](#handbrake)
 - [ImageMagick](#imagemagick)
-- [YouTube](#youtube)
+- [yt-dlp](#yt-dlp)
+- [WPF](#wpf)
 
 ---
 
@@ -9590,7 +9591,7 @@ Source: [ImageMagick](https://sourceforge.net/projects/imagemagick)
 `magick convert -delay 100 1.png 2.png 3.png output.gif` создать gif из изображений \
 `magick convert image1.jpg image2.jpg -append output.jpg` вертикально объединенить изображения
 
-## YouTube
+## yt-dlp
 ```PowerShell
 $release_latest = Invoke-RestMethod "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
 $url = $($release_latest.assets | Where-Object name -match "yt-dlp.exe").browser_download_url
@@ -9624,4 +9625,42 @@ $video = $($formats | Where-Object format_note -match 1080 | Where-Object ext -m
 $audio = $($formats | Where-Object resolution -match "audio" | Where-Object ext -match m4a)[-1].format_id
 cd "$home\Downloads"
 yt-dlp -f $video+$audio https://www.youtube.com/watch?v=gxplizjhqiw -o '%(title)s.%(ext)s'
+```
+## WPF
+
+Для генеранции форм интерфейса можно использовать Toolbox в [PSScriptPad](https://ironmansoftware.com/downloads) от Ironman или онлайн редактор [XAML](https://xaml.io) от [OpenSilver](https://github.com/OpenSilver/OpenSilver).
+
+```PowerShell
+Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName WindowsBase
+
+[xml]$xaml = @"
+    <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        Title="Фоновая задача в WPF" Height="200" Width="300">
+        <StackPanel VerticalAlignment="Center">
+            <ProgressBar Name="ProgressBar" Height="55" Margin="10" Minimum="0" Maximum="100" Width="662"/>
+            <Button Name="StartButton" Content="Запустить задачу" HorizontalAlignment="Center" Width="168" Height="62"/>
+        </StackPanel>
+    </Window>
+"@
+
+$reader = [System.Xml.XmlNodeReader]::new($xaml)
+$window = [Windows.Markup.XamlReader]::Load($reader)
+$progressBar = $window.FindName("ProgressBar")
+$startButton = $window.FindName("StartButton")
+
+$startButton.Add_Click({
+    Start-ThreadJob -ScriptBlock {
+        $window = $using:window
+        $progressBar = $using:progressBar
+        foreach($i in 1..100 ){
+            $window.Dispatcher.Invoke([action]{
+            $progressBar.Value = $i
+            },"Normal") 
+            Start-Sleep 0.1
+        }
+    }
+})
+
+$window.ShowDialog()
 ```
