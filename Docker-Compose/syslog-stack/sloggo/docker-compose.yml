@@ -1,7 +1,6 @@
 # logger -n localhost -P 1514 -t logger -p user.info "healthcheck"
 
 services:
-  # Syslog server and Web UI
   sloggo:
     image: ghcr.io/phare/sloggo:latest
     container_name: sloggo
@@ -16,8 +15,8 @@ services:
       - SLOGGO_LOG_RETENTION_MINUTES=43200 # 30 days (60*24*30)
     ports:
       - 1514:1514/udp
-      - 2514:2514/tcp
-      - 3080:3080/tcp
+      - 1514:2514/tcp
+      - 1080:3080/tcp
     logging:
       driver: syslog
       options:

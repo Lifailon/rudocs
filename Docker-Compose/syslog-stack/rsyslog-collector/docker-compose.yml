@@ -1,0 +1,20 @@
+services:
+  rsyslog-collector:
+    image: rsyslog/rsyslog-collector:latest
+    container_name: rsyslog-collector
+    restart: unless-stopped
+    volumes:
+      - ./log_data:/var/log
+      - /etc/hostname:/etc/hostname:ro
+    environment:
+      - ENABLE_UDP=on
+      - ENABLE_TCP=on
+      - ENABLE_RELP=off
+      - WRITE_ALL_FILE=on   # write all messages to /var/log/all.log
+      - WRITE_JSON_FILE=off # write JSON formatted messages to /var/log/all-json.log
+      - RSYSLOG_HOSTNAME=/etc/hostname
+      - RSYSLOG_ROLE=collector
+    ports:
+      - 10514:514/udp    # Syslog UDP
+      - 10514:514/tcp    # Syslog TCP
+      # - 20514:2514/tcp   # RELP

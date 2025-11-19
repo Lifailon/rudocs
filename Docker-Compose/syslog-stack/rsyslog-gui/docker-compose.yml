@@ -7,8 +7,8 @@ services:
     volumes:
       - ./rsyslog_data:/var/log/net
     ports:
-      - 5141:80
-      - 514:514/udp
+      - 10080:80
+      - 10514:514/udp
     environment:
       - SYSLOG_USERNAME=admin
       - SYSLOG_PASSWORD=admin
