@@ -1,0 +1,37 @@
+services:
+  # Syslog server and Web UI
+  sloggo:
+    image: ghcr.io/phare/sloggo:latest
+    container_name: sloggo
+    restart: unless-stopped
+    volumes:
+      - ./sloggo_data:/app/.duckdb
+    environment:
+      - SLOGGO_LISTENERS=tcp,udp
+      - SLOGGO_UDP_PORT=1514
+      - SLOGGO_TCP_PORT=2514
+      - SLOGGO_API_PORT=3080
+      - SLOGGO_LOG_RETENTION_MINUTES=43200 # 30 days (60*24*30)
+    ports:
+      - 1514:1514/udp
+      - 2514:2514/tcp
+      - 3080:3080/tcp
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://localhost:1514
+        tag: "{{.Name}}"
+        syslog-format: rfc5424
+
+  # logger -n localhost -P 1514 -t logger -p user.info "healthcheck"
+
+  # Agent for sending Docker container logs to Syslog server
+  # logspout:
+  #   image: gliderlabs/logspout:latest
+  #   container_name: logspout
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   command: syslog://sloggo:1514
+  #   depends_on:
+  #     - sloggo

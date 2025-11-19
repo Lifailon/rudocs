@@ -1,0 +1,12 @@
+KEY="./wexflow_data/wexflow.key"
+CRT="./wexflow_data/wexflow.crt"
+PFX="./wexflow_data/wexflow.pfx"
+PASSWORD="wexflow2018"
+DAYS=6935 # 19 years
+
+# Step 1: Generate a 2048-bit RSA private key in PEM format
+sudo openssl genpkey -algorithm RSA -out "$KEY" -pkeyopt rsa_keygen_bits:2048
+# Step 2: Generate a self-signed certificate
+sudo openssl req -new -x509 -key "$KEY" -out "$CRT" -days "$DAYS" -subj "/CN=localhost"
+# Step 3: Export to PKCS#12 (.pfx)
+sudo openssl pkcs12 -export -out "$PFX" -inkey "$KEY" -in "$CRT" -password pass:"$PASSWORD"
