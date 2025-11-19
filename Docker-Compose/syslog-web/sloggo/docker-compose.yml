@@ -1,3 +1,5 @@
+# logger -n localhost -P 1514 -t logger -p user.info "healthcheck"
+
 services:
   # Syslog server and Web UI
   sloggo:
@@ -23,9 +25,6 @@ services:
         tag: "{{.Name}}"
         syslog-format: rfc5424
 
-  # logger -n localhost -P 1514 -t logger -p user.info "healthcheck"
-
-  # Agent for sending Docker container logs to Syslog server
   # logspout:
   #   image: gliderlabs/logspout:latest
   #   container_name: logspout
@@ -33,5 +32,23 @@ services:
   #   volumes:
   #     - /var/run/docker.sock:/var/run/docker.sock:ro
   #   command: syslog://sloggo:1514
-  #   depends_on:
-  #     - sloggo
+
+  # fluent-bit:
+  #   image: fluent/fluent-bit:latest
+  #   container_name: fluent-bit
+  #   restart: unless-stopped
+  #   # ports:
+  #   #   - 24224:24224/tcp
+  #   #   - 24224:24224/udp
+  #   volumes:
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+
+  # vector:
+  #   image: timberio/vector:nightly-alpine
+  #   container_name: vector
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./vector.toml:/etc/vector/vector.toml:ro

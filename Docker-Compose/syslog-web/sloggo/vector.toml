@@ -1,0 +1,12 @@
+[sources.docker]
+type = "docker_logs"
+include_containers = ["*"]
+
+[sinks.syslog]
+type = "syslog"
+inputs = ["docker"]
+address = "sloggo:1514"
+mode = "udp"
+format = "rfc5424"
+appname = "docker"
+hostname = "${HOSTNAME}"
