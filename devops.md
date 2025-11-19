@@ -17,6 +17,7 @@
   - [WSL](#wsl)
   - [Install](#install)
   - [Proxy](#proxy)
+  - [Logging](#logging)
   - [Mirror](#mirror)
   - [Nexus](#nexus)
   - [Run](#run)
@@ -238,6 +239,44 @@ Environment="HTTPS_PROXY=http://docker:password@192.168.3.100:9090"
 `systemctl daemon-reload` \
 `systemctl restart docker`
 
+### Logging
+
+Нацелить логирование всех контейнеров по умолчанию на сервер syslog через файл `/etc/docker/daemon.json`:
+```yaml
+{
+  "log-driver": "syslog",
+  "log-opts": {
+    "syslog-address": "tcp://syslog.docker.local:2514",
+    "tag": "{{.Name}}"
+  }
+}
+```
+Изменить режим логирования выбранного контейнера в файле `docker-compose.yml`:
+```yaml
+services:
+  # Syslog server and Web UI
+  sloggo:
+    logging:
+      driver: syslog
+        options:
+          syslog-address: udp://localhost:1514
+          tag: "{{.Name}}"
+          syslog-format: rfc5424
+
+      # driver: json-file
+      # options:
+      #   max-size: 10m
+      #   max-file: 3
+
+      # driver: journald
+      # options:
+      #   tag: "{{.Name}}"
+
+      # driver: fluentd
+      # options:
+      #   fluentd-address: "fluentd-server:24224"
+      #   tag: "docker.{{.Name}}"
+```
 ### Mirror
 
 `echo '{ "registry-mirrors": ["https://dockerhub.timeweb.cloud"] }' > "/etc/docker/daemon.json"` \
