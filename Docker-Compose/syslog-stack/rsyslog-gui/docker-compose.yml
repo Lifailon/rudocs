@@ -1,22 +1,36 @@
 services:
-  # RSyslog server and WebUI based on PimpMyLog 
   rsyslog-gui:
     image: aguyonnet/rsyslog-gui
     container_name: rsyslog-gui
     restart: unless-stopped
     volumes:
       - ./rsyslog_data:/var/log/net
+      - ./rsyslog.conf:/etc/rsyslog.conf # to enable TCP
     ports:
       - 10080:80
       - 10514:514/udp
+      - 10514:514/tcp
     environment:
       - SYSLOG_USERNAME=admin
       - SYSLOG_PASSWORD=admin
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - logger -n localhost -t rsyslog-gui -p user.info "healthcheck"
-      start_period: 20s
-      interval: 3s
-      retries: 3
-      timeout: 3s
+    # healthcheck:
+    #   test:
+    #     - CMD-SHELL
+    #     - logger -n localhost -t rsyslog-gui -p user.info "healthcheck"
+    #   start_period: 30s
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 3
+
+  rsyslog-dockerlogs:
+    image: rsyslog/rsyslog-dockerlogs:latest
+    container_name: rsyslog-dockerlogs
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/hostname:/etc/hostname:ro
+    environment:
+      - REMOTE_SERVER_NAME=rsyslog-gui
+      - REMOTE_SERVER_PORT=514
+      - RSYSLOG_HOSTNAME=/etc/hostname
+      - RSYSLOG_ROLE=docker

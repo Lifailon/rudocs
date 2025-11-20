@@ -18,3 +18,16 @@ services:
       - 10514:514/udp    # Syslog UDP
       - 10514:514/tcp    # Syslog TCP
       # - 20514:2514/tcp   # RELP
+
+  rsyslog-dockerlogs:
+    image: rsyslog/rsyslog-dockerlogs:latest
+    container_name: rsyslog-dockerlogs
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/hostname:/etc/hostname:ro
+    environment:
+      - REMOTE_SERVER_NAME=rsyslog-collector
+      - REMOTE_SERVER_PORT=514
+      - RSYSLOG_HOSTNAME=/etc/hostname
+      - RSYSLOG_ROLE=docker

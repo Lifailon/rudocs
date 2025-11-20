@@ -5539,6 +5539,27 @@ services:
       # - 20514:2514/tcp   # RELP
 ```
 
+### Rsyslog Dockerlogs
+
+[Rsyslog Dockerlogs](https://www.rsyslog.com/doc/containers/dockerlogs.html) - запускает контейнер rsyslog для чтения журналов из демона Docker с помощью модуля [imdocker](https://www.rsyslog.com/doc/configuration/modules/imdocker.html) для переадресации в `rsyslog` сервер.
+
+```yaml
+services:
+  rsyslog-dockerlogs:
+    image: rsyslog/rsyslog-dockerlogs:latest
+    container_name: rsyslog-dockerlogs
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/hostname:/etc/hostname:ro
+    environment:
+      - REMOTE_SERVER_NAME=rsyslog-collector
+      # - REMOTE_SERVER_NAME=rsyslog-gui
+      - REMOTE_SERVER_PORT=514
+      - RSYSLOG_HOSTNAME=/etc/hostname
+      - RSYSLOG_ROLE=docker
+```
+
 ### Rsyslog GUI
 
 [Rsyslog GUI](https://github.com/aguyonp/rsyslog-gui) - [Rsyslog](https://github.com/aguyonp/rsyslog-gui) сервер и веб-интерфейс на базе [PimpMyLog](https://github.com/potsky/PimpMyLog) для анализа логов (чтения, сортировки и фильтрации по содержимому сообщений).
@@ -5551,20 +5572,22 @@ services:
     restart: unless-stopped
     volumes:
       - ./rsyslog_data:/var/log/net
+      - ./rsyslog.conf:/etc/rsyslog.conf # to enable TCP
     ports:
       - 10080:80
       - 10514:514/udp
+      - 10514:514/tcp
     environment:
       - SYSLOG_USERNAME=admin
       - SYSLOG_PASSWORD=admin
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - logger -n localhost -t rsyslog-gui -p user.info "healthcheck"
-      start_period: 20s
-      interval: 3s
-      retries: 3
-      timeout: 3s
+    # healthcheck:
+    #   test:
+    #     - CMD-SHELL
+    #     - logger -n localhost -t rsyslog-gui -p user.info "healthcheck"
+    #   start_period: 30s
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 3
 ```
 
 ### Sloggo
@@ -5614,6 +5637,8 @@ services:
 
 ### Fluent-bit
 
+[Fluent-bit](https://github.com/fluent/fluent-bit) - быстрый и легковесный агент для сбора логов, метрик и трассировок в системах Linux, BSD, OSX и Windows.
+
 ```yaml
   fluent-bit:
     image: fluent/fluent-bit:latest
@@ -5628,6 +5653,8 @@ services:
 ```
 
 ### Vector
+
+[Vector](https://github.com/vectordotdev/vector) - сквозной агент и агрегатор данных для сбора метрик и логов и перенаправления их в любые поставщики данных (заявлено, что работает до 10 раз быстрее любого альтернативного решения в этой области).
 
 ```yaml
 services:
