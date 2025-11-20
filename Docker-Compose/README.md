@@ -4544,12 +4544,13 @@ services:
     container_name: wexflow
     restart: unless-stopped
     # SSL (optionals)
-    # volumes:
-    #   - ./wexflow_data/appsettings.json:/opt/wexflow/Wexflow.Server/appsettings.json:ro
-    #   - ./wexflow_data/wexflow.pfx:/opt/wexflow/Wexflow.Server/wexflow.pfx:ro
+    volumes:
+      - ./wexflow_data/Database:/opt/wexflow/Wexflow/Database
+      # - ./wexflow_data/appsettings.json:/opt/wexflow/Wexflow.Server/appsettings.json:ro
+      # - ./wexflow_data/wexflow.pfx:/opt/wexflow/Wexflow.Server/wexflow.pfx:ro
     ports:
-      - 8338:8000 # admin:wexflow2018
-    #depends_on:
+      - 8000:8000 # admin:wexflow2018
+    # depends_on:
     #  - mongo
 
   # mongo:
