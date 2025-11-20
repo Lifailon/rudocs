@@ -574,6 +574,9 @@
         - VCS Jitsi Meet:
             icon: jitsi-meet.png
             href: https://meet.jit.si
+        - EmbedPDF:
+            icon: https://www.embedpdf.com/favicon.ico
+            href: https://app.embedpdf.com/
         - Grist:
             icon: grist.png
             href: https://docs.getgrist.com
