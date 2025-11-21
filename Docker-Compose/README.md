@@ -3802,7 +3802,7 @@ services:
       - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
 ```
 
-## k8s Stack
+## Kubernetes Stack
 
 ### Kompose UI
 
@@ -3817,6 +3817,12 @@ services:
     ports:
       - 3500:8000
 ```
+
+Альтернативные решения:
+
+[Compose Bridge Transformer](https://github.com/docker/compose-bridge-transformer) - официальный шаблон, который используется в команде `docker-compose bridge convert`
+
+[Katenary](https://github.com/Katenary/katenary) - инструмент для преобразования файлов `docker-compose` в рабочий Helm Chart для Kubernetes, с помощью одной команды `katenary convert -c docker-compose.yml -o ./charts`.
 
 ### Web kubectl
 
@@ -3839,7 +3845,7 @@ services:
 
 ### KubePi
 
-[KubePi](https://github.com/1Panel-dev/KubePi) — это современная панель управления Kubernetes (like [Kubernetes/Dashboard](https://github.com/kubernetes/dashboard)) и Helm Charts, которая позволяет администраторам импортировать и устранять неполадки приложений, работающих в нескольких кластерах Kubernetes, от от создателей [1panel](https://github.com/1Panel-dev/1Panel). Единый интерфейс предоставляет командный доступ для управления с поддержкой разграничения прав доступа, LDAP, SSO, а также логирует операции и управления и авторизации.
+[KubePi](https://github.com/1Panel-dev/KubePi) — это современная панель управления Kubernetes (like [Kubernetes/Dashboard](https://github.com/kubernetes/dashboard)), а также Helm Charts (like [Helm Dashboard](https://github.com/komodorio/helm-dashboard)) от создателей [1panel](https://github.com/1Panel-dev/1Panel). Единый интерфейс предоставляет командный доступ управления кластерами, с поддержкой разграничения прав доступа, LDAP, SSO, а также логирует операции управления и авторизации.
 
 ```yaml
   kubepi:
@@ -3849,6 +3855,40 @@ services:
     privileged: true
     ports:
       - 8181:80 # admin:kubepi
+```
+
+### Kubewall
+
+[Kubewall](https://github.com/kubewall/kubewall) - панель управления Kubernetes, с возможностью управления несколькими кластерами (импорт конфигурации через веб-интерфейс) и интеграцией ИИ (OpenAI, Claude, Gemini, DeepSeek, OpenRouter, Ollama, Qwen, LM Studio).
+
+```yaml
+services:
+  kubewall:
+    image: ghcr.io/kubewall/kubewall:latest
+    container_name: kubewall
+    restart: unless-stopped
+    volumes:
+      - ./kubewall_data:/.kubewall
+    ports:
+      - 7080:7080
+```
+
+### Kite
+
+[Kite](https://github.com/zxh326/kite) - легкая и современная панель управления Kubernetes, с поддержкой переключения между разными кластерами, указанными в `kubeconfig`.
+
+🔗 [Kite Demo](https://github.com/zxh326/kite) ↗
+
+```yaml
+services:
+  kite:
+    image: ghcr.io/zxh326/kite:latest
+    container_name: kite
+    restart: unless-stopped
+    volumes:
+      - ~/.kube/config:/root/.kube/config:ro
+    ports:
+      - 6060:8080
 ```
 
 ### Headlamp

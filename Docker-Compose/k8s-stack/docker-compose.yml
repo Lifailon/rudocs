@@ -20,7 +20,7 @@ services:
       - KUBECTL_INSECURE_SKIP_TLS_VERIFY=true
       - GOTTY_OPTIONS=--port 8080 --permit-write --permit-arguments
 
-  # Web interface for managing k8s (like Kubernetes Dashboard) and Helm Charts from 1panel
+  # Web interface for managing k8s (like Kubernetes Dashboard) and Charts (like Helm Dashboard) from 1panel
   kubepi:
     image: 1panel/kubepi
     container_name: kubepi
@@ -28,6 +28,24 @@ services:
     privileged: true
     ports:
       - 8181:80 # admin:kubepi
+
+  kubewall:
+    image: ghcr.io/kubewall/kubewall:latest
+    container_name: kubewall
+    restart: unless-stopped
+    volumes:
+      - ./kubewall_data:/.kubewall
+    ports:
+      - 7080:7080
+
+  kite:
+    image: ghcr.io/zxh326/kite:latest
+    container_name: kite
+    restart: unless-stopped
+    volumes:
+      - ~/.kube/config:/root/.kube/config:ro
+    ports:
+      - 6060:8080
 
   # Web interface for managing k8s (like Kubernetes Dashboard) from SIG
   # headlamp:
