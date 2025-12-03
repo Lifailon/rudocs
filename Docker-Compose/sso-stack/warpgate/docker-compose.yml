@@ -1,0 +1,13 @@
+services:
+  warpgate:
+    image: ghcr.io/warp-tech/warpgate
+    container_name: warpgate
+    restart: unless-stopped
+    volumes:
+      - ./warpgate_data:/data
+    ports:
+      - 2222:2222
+      - 8888:8888
+      - 33306:33306
+    stdin_open: true
+    tty: true

@@ -1,0 +1,22 @@
+services:
+  voidauth: 
+    image: voidauth/voidauth:latest
+    container_name: voidauth
+    restart: unless-stopped
+    environment:
+      - APP_URL=
+      - STORAGE_KEY=
+      - DB_PASSWORD=VoidAuthPass
+      - DB_HOST=voidauth-db
+    volumes:
+      - ./voidauth_config:/app/config
+    depends_on:
+      - voidauth-db
+
+  voidauth-db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=VoidAuthPass
+    volumes:
+      - ./voidauth_db:/var/lib/postgresql/18/docker
