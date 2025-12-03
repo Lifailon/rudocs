@@ -1,0 +1,27 @@
+services:
+  # Teraform UI
+  gaia:
+    image: gaiaapp/gaia
+    container_name: gaia
+    restart: unless-stopped
+    ports: 
+      - 8877:8877 # admin:admin123 and user:user123
+    environment:
+      - GAIA_MONGODB_URI=mongodb://gaia-mongo/gaia
+      - GAIA_RUNNER_API_PASSWORD=GaiaPassword
+      - GAIA_EXTERNAL_URL=http://gaia:8877
+
+  gaia-runner:
+    image: gaiaapp/runner
+    container_name: gaia-runner
+    restart: unless-stopped
+    environment:
+      - GAIA_URL=http://gaia:8877
+      - GAIA_RUNNER_API_PASSWORD=GaiaPassword
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  gaia-mongo:
+    image: mongo:4.4
+    container_name: gaia-mongo
+    restart: unless-stopped
