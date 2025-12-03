@@ -16,6 +16,24 @@ services:
       - 48010:48010
     ipc: host
 
+  # Streaming server for Moonlight 
+  wolf:
+    image: ghcr.io/games-on-whales/wolf:stable
+    container_name: wolf
+    restart: unless-stopped
+    device_cgroup_rules:
+      - 'c 13:* rmw'
+    volumes:
+      - /etc/wolf/:/etc/wolf
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /dev/:/dev/:rw
+      - /run/udev:/run/udev:rw
+    devices:
+      - /dev/dri
+      - /dev/uinput
+      - /dev/uhid
+    network_mode: host
+
   # GameCube/Wii Emulator in Web via Selkies
   dolphin:
     image: lscr.io/linuxserver/dolphin:latest
@@ -77,3 +95,15 @@ services:
       - ./games:/junie/games
     ports:
       - 8008:8000
+
+  # Self-hosted Quiz platform from the creator Nexterm and MySpeed
+  quizzle:
+    image: germannewsmaker/quizzle:latest
+    container_name: quizzle
+    restart: unless-stopped
+    environment:
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./quizzle_data:/quizzle/data
+    ports:
+      - 6412:6412
