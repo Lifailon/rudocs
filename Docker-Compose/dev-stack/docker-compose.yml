@@ -1,4 +1,20 @@
 services:
+  # Подключение к RDP, VNC, SSH и управление файлами через SFTP в браузере от создателя MySpeed
+  nexterm:
+    image: germannewsmaker/nexterm:latest
+    restart: unless-stopped
+    container_name: nexterm
+    environment:
+      # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
+      # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
+      - ENCRYPTION_KEY=9dbde894647845ab33e13a9334cdbadc5f8d22abe42df0b3daff431eec0df870
+    ports:
+      - 6989:6989
+    volumes:
+      - ./nexterm_data:/app/data
+
+############################################################ Tools ############################################################
+
   # Большая коллекция утилит для разработчиков (криптография, конверторы, веб инструменты и многое другое).
   it-tools:
     image: corentinth/it-tools:latest
@@ -47,19 +63,34 @@ services:
     labels:
       - traefik.enable=true
 
-  # Подключение к RDP, VNC, SSH и управление файлами через SFTP в брайзере
-  nexterm:
-    image: germannewsmaker/nexterm:latest
+############################################################ Playground ############################################################
+
+  # Улучшенная игровая площадка для запуска кода на Go
+  go-playground:
+    image: x1unix/go-playground:latest
+    container_name: go-playground
     restart: unless-stopped
-    container_name: nexterm
     environment:
-      # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
-      # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
-      - ENCRYPTION_KEY=9dbde894647845ab33e13a9334cdbadc5f8d22abe42df0b3daff431eec0df870
+      - APP_CLEAN_INTERVAL=30m
     ports:
-      - 6989:6989
-    volumes:
-      - ./nexterm_data:/app/data
+      - 9444:8000
+
+  # Игровая площадка для тестирования шаблонизатора Go
+  go-template-playground:
+    image: ghcr.io/rytsh/repeatit:latest
+    # image: lifailon/go-template-playground:latest # 0.5.5-amd64
+    container_name: go-template-playground
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - 9445:8080
+
+### Backlog
+## https://github.com/shipmight/helm-playground
+## https://github.com/dainiak/jinja2-playground
+
+############################################################ IDE ############################################################
 
   # VSCode в браузере
   code-server:
@@ -77,26 +108,39 @@ services:
     ports:
       - 9443:8443
 
-  # Улучшенная игровая площадка для запуска кода на Go
-  go-playground:
-    image: x1unix/go-playground:latest
-    container_name: go-playground
+  judge0-server:
+    image: judge0/judge0:latest
+    container_name: judge0-server
     restart: unless-stopped
-    environment:
-      - APP_CLEAN_INTERVAL=30m
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
     ports:
-      - 9444:8000
+      - "2358:2358"
+    privileged: true
 
-  # Игровая площадка для тестирования шаблонизатора Go
-  go-template-playground:
-    image: ghcr.io/rytsh/repeatit:latest
-    # image: lifailon/go-template-playground:latest # 0.5.5-amd64
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    container_name: go-template-playground
+  judge0-worker:
+    image: judge0/judge0:latest
+    container_name: judge0-worker
     restart: unless-stopped
-    stdin_open: true
-    tty: true
-    ports:
-      - 9445:8080
+    command: ["./scripts/workers"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+
+  judge0-db:
+    image: postgres:16.2
+    container_name: judge0-db
+    restart: unless-stopped
+    env_file: judge0.conf
+    volumes:
+      - ./judge0_data:/var/lib/postgresql/data/
+
+  judge0-redis:
+    image: redis:7.2.4
+    container_name: judge0-redis
+    restart: unless-stopped
+    command: [
+      "bash", "-c",
+      'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
+    ]
+    env_file: judge0.conf
