@@ -2,8 +2,8 @@ services:
   # Подключение к RDP, VNC, SSH и управление файлами через SFTP в браузере от создателя MySpeed
   nexterm:
     image: germannewsmaker/nexterm:latest
-    restart: unless-stopped
     container_name: nexterm
+    restart: unless-stopped
     environment:
       # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
       # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
@@ -12,6 +12,31 @@ services:
       - 6989:6989
     volumes:
       - ./nexterm_data:/app/data
+
+  # Сервер лицензирования
+  licenseapi:
+    image: germannewsmaker/licenseapi:development
+    container_name: nexlicenseapiterm
+    restart: unless-stopped
+    environment:
+      - MONGOOSE_STRING=mongodb://licenseapi-mongo:27017/licenseapi
+      - MAIL_SERVER=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USER=noreply@gmail.com
+      - MAIL_PASS=password
+      - APP_URL=http://localhost:8025
+      - DISABLE_SIGNUPS=false
+    ports:
+      - 8025:8025
+    depends_on:
+      - licenseapi-mongo
+
+  licenseapi-mongo:
+    image: mongo:latest
+    container_name: licenseapi-mongo
+    restart: unless-stopped
+    volumes:
+      - ./licenseapi_mongo_data:/data/db
 
 ############################################################ Tools ############################################################
 
