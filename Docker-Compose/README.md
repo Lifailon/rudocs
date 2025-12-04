@@ -2,7 +2,7 @@
     <a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="../Logo/compose-stacks.png"></a>
 </p>
 
-Коллекция стеков Docker Compose из более чем 200 сервисов. Каждое приложение было отлажено и проверено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose).
+Коллекция стеков Docker Compose из более чем 250 сервисов. Каждое приложение было проверено и отлажено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose).
 
 ---
 
@@ -1138,7 +1138,7 @@ services:
       # - $HOME/docker/nextcloud/log:/remotelogs/nextcloud:ro
 ```
 
-## Dev Stack
+## Development Stack
 
 ### IT Tools
 
@@ -1246,8 +1246,8 @@ services:
 services:
   nexterm:
     image: germannewsmaker/nexterm:latest
-    restart: unless-stopped
     container_name: nexterm
+    restart: unless-stopped
     environment:
       # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
       # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
@@ -1258,9 +1258,42 @@ services:
       - ./nexterm_data:/app/data
 ```
 
+### LicenseAPI
+
+[LicenseAPI](https://github.com/gnmyt/LicenseAPI) - размещенная на собственном сервере система лицензирования для программного обеспечения от создателя Nexterm и MySpeed. Поддерживает графический интерфейс управления, систему разрешений, назначение метаданных лицензиям, проверка лицензий в автономном режиме и интеграцию с использованием REST API или SDK.
+
+```yaml
+services:
+  licenseapi:
+    image: germannewsmaker/licenseapi:development
+    container_name: nexlicenseapiterm
+    restart: unless-stopped
+    environment:
+      - MONGOOSE_STRING=mongodb://licenseapi-mongo:27017/licenseapi
+      - MAIL_SERVER=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USER=noreply@gmail.com
+      - MAIL_PASS=password
+      - APP_URL=http://localhost:8025
+      - DISABLE_SIGNUPS=false
+    ports:
+      - 8025:8025
+    depends_on:
+      - licenseapi-mongo
+
+  licenseapi-mongo:
+    image: mongo:latest
+    container_name: licenseapi-mongo
+    restart: unless-stopped
+    volumes:
+      - ./licenseapi_mongo_data:/data/db
+```
+
 ### Code Server
 
 [Code Server](https://github.com/coder/code-server) - VSCode сервер в браузере.
+
+🔗 [VSCode Demo](https://vscode.dev) ↗
 
 ```yaml
 services:
@@ -1278,6 +1311,52 @@ services:
       - $HOME:/home
     ports:
       - 9443:8443
+```
+
+### Judge0
+
+[Judge0 IDE](https://github.com/judge0/ide) - онлайн-редактор кода, позволяющий писать и выполнять код (использует [Judge0](https://github.com/judge0/judge0) под капотом, для выполнения исходного кода) на широком спектре языков. Подходит для тех, кто хочет быстро внести правки и запустить код или изучаения нового языка, не открывая полнофункциональную IDE на своем компьютере.
+
+🔗 [Judge0 IDE Demo](https://ide.judge0.com) ↗
+
+```yaml
+service:
+  judge0-server:
+    image: judge0/judge0:latest
+    container_name: judge0-server
+    restart: unless-stopped
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "2358:2358"
+    privileged: true
+
+  judge0-worker:
+    image: judge0/judge0:latest
+    container_name: judge0-worker
+    restart: unless-stopped
+    command: ["./scripts/workers"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+
+  judge0-db:
+    image: postgres:16.2
+    container_name: judge0-db
+    restart: unless-stopped
+    env_file: judge0.conf
+    volumes:
+      - ./judge0_data:/var/lib/postgresql/data/
+
+  judge0-redis:
+    image: redis:7.2.4
+    container_name: judge0-redis
+    restart: unless-stopped
+    command: [
+      "bash", "-c",
+      'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
+    ]
+    env_file: judge0.conf
 ```
 
 ### Go Playground
@@ -1302,16 +1381,17 @@ services:
 
 [Repeatit](https://github.com/rytsh/repeatit) (Go Template Playground) - игровая площадка для проверки шаблонов GoLang. Поддерживает рендиринг текста и html шаблонов, функции spting и heml, а также ввод параметров шаблона в форматах yaml, json и toml.
 
-🔗 [Repeatit Demo](https://repeatit.io) ↗
+🔗 [Go Template Playground Demo](https://repeatit.io) ↗
+
+🔗 [Helm Playground Demo](https://helm-playground.com) ↗
+
+🔗 [Jinja2 Playground Demo](https://www.dainiak.com/jinja2-playground) ↗
 
 ```yaml
 services:
   go-template-playground:
     image: ghcr.io/rytsh/repeatit:latest
     # image: lifailon/go-template-playground:latest # 0.5.5-amd64
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
     container_name: go-template-playground
     restart: unless-stopped
     stdin_open: true
@@ -1363,6 +1443,136 @@ services:
 
 ## Database Stack
 
+### Tools
+
+- [Outerbase Studio SQLite Playground](https://studio.outerbase.com/local) - веб-интерфейс для управления базами данных.
+
+- [DBeaver](https://github.com/dbeaver/dbeaver)  - кросплатформенный и универсальный SQL-клиент и инструмент для работы с базами данных.
+
+- [Beekeeper Studio](https://github.com/beekeeper-studio/beekeeper-studio) - современный и простой в использовании SQL-клиент для MySQL, Postgres, SQLite, SQL Server и других баз данных для систем Linux, MacOS и Windows.
+
+- [HeidiSQL](https://github.com/HeidiSQL/HeidiSQL) - легковесный графический интерфейс для управления MySQL/MariaDB, SQL Server, PostgreSQL, SQLite, Interbase и Firebird для системы Windows.
+
+- [RainFrog](https://github.com/achristmascarl/rainfrog) - TUI для управления Postgres, MySQL, SQLite, DuckDB и Oracle.
+
+- [DBLab](https://github.com/danvergara/dblab) - TUI клиент для PostgreSQL, MySQL, SQLite3, Oracle и SQL Server.
+
+- [LazySQL](https://github.com/jorgerojas26/lazysql) - кроссплатформенный инструмент управления базами данных с помощью TUI.
+
+- [Dolphie](https://github.com/charles-001/dolphie) - TUI панель для аналитики MySQL/MariaDB и ProxySQL в реальном времени.
+
+- [usql](https://github.com/xo/usql) - универсальный интерфейс командной строки для PostgreSQL, MySQL, Oracle Database, SQLite3, Microsoft SQL Server и многих других баз данных, включая NoSQL и нереляционные базы данных.
+
+- [sq](https://github.com/neilotoole/sq) - инструмент командной строки, обеспечивающий доступ в стиле `jq` из баз данных, а также CSV или Excel.
+
+### DBGate
+
+[DBGate](https://github.com/dbgate/dbgate) - менеджер баз данных для MySQL, PostgreSQL, SQL Server, MongoDB, SQLite и других. Работает под управлением Windows, Linux, Mac или как веб-приложение.
+
+```yaml
+services:
+  dbgate:
+    image: dbgate/dbgate
+    container_name: dbgate
+    restart: unless-stopped
+    volumes:
+      - ./dbgate_data:/root/.dbgate
+    ports:
+      - 3400:3000
+    # environment:
+    #   CONNECTIONS: con1,con2,con3,con4
+    #   LABEL_con1: MySql
+    #   SERVER_con1: mysql
+    #   USER_con1: root
+    #   PASSWORD_con1: TEST
+    #   PORT_con1: 3306
+    #   ENGINE_con1: mysql@dbgate-plugin-mysql
+    #   LABEL_con2: Postgres
+    #   SERVER_con2: postgres
+    #   USER_con2: postgres
+    #   PASSWORD_con2: TEST
+    #   PORT_con2: 5432
+    #   ENGINE_con2: postgres@dbgate-plugin-postgres
+    #   LABEL_con3: MongoDB
+    #   URL_con3: mongodb://mongo:27017
+    #   ENGINE_con3: mongo@dbgate-plugin-mongo
+    #   LABEL_con4: SQLite
+    #   FILE_con4: /home/jan/feeds.sqlite
+    #   ENGINE_con4: sqlite@dbgate-plugin-sqlite
+```
+
+### Redis Insight
+
+[Redis Insight](https://github.com/redis/RedisInsight) - официальный веб-интерфейс для управления Redis.
+
+```yaml
+services:
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: unless-stopped
+    volumes:
+      - ./redisinsight_data:/data
+    environment:
+      - RI_APP_PORT=5540
+      - RI_APP_HOST=0.0.0.0
+      - RI_LOG_LEVEL=info
+      - RI_FILES_LOGGER=false
+      - RI_STDOUT_LOGGER=true
+      - RI_DATABASE_MANAGEMENT=true
+      - RI_REDIS_HOST=redis
+      - RI_REDIS_PORT=6379
+      - RI_REDIS_USERNAME=default
+      - RI_REDIS_PASSWORD=
+      - RI_REDIS_TLS=FALSE
+    ports:
+      - 5540:5540
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - ./redis_data:/data
+```
+
+### libSQL
+
+[libSQL](https://github.com/tursodatabase/libsql?tab=readme-ov-file) - форк SQLite, разработанный [Turso](https://github.com/tursodatabase/turso) для удаленного доступа к SQLite, аналогичный PostgreSQL или MySQL с встроенной поддержкой репликации данных.
+
+```yaml
+services:
+  libsql-main:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    container_name: some-sqld-main
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./libsql_main_data:/var/lib/sqld
+    environment:
+      - SQLD_NODE=primary
+    ports:
+      - 8080:8080
+      - 5001:5001
+
+  libsql-replica:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    container_name: some-sqld-replica
+    restart: unless-stopped
+    volumes:
+      - ./libsql_replica_data:/var/lib/sqld
+    environment:
+      - SQLD_NODE=replica
+      - SQLD_PRIMARY_URL=https://libsql-main:8080
+    ports:
+      - 8081:8080
+    tty: true
+    stdin_open: true
+```
+
+### PostgreSQL
+
 [PostgreSQL](https://github.com/postgres/postgres) - объектно-реляционная база данных (СУБД) с открытым исходным кодом.
 
 ```yaml
@@ -1390,17 +1600,90 @@ services:
 
 ```yaml
 services:
-  postgresweb:
-    container_name: postgresweb
+  pgweb:
+    container_name: pgweb
     image: sosedoff/pgweb:latest
     build: .
     environment:
       PGWEB_DATABASE_URL: postgres://dbuser:dbpass@postgresql:5432/dbname?sslmode=disable
     ports:
-      - 8081:8081
+      - 5443:8081
     healthcheck:
       test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
       interval: 5s
+    depends_on:
+      postgresql:
+        condition: service_healthy
+```
+
+### pgHero
+
+[pgHero](https://github.com/ankane/pghero) - Панель управления для производительности PostgreSQL.
+
+🔗 [pgHero Performance Dashboard Demo](https://pghero.dokkuapp.com/system) ↗
+
+```yaml
+services:
+  pghero:
+    image: ankane/pghero
+    container_name: pghero
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://user:pass@postgresql:5432/dbname
+    ports:
+      - 5444:8080
+    tty: true
+    stdin_open: true
+```
+
+### PostgreSUS
+
+[PostgreSUS](https://github.com/RostislavDugin/postgresus) - инструмент для резервного копирования, с поддержкой локального хранение бекапов, а также в Google Drive или S3 совместимом хранилища по расписанию с проверкой доступности (health check), визуализации в веб-интерфейсе и оповщениями в Telegram, Slack, Discord и другие системы.
+
+```yaml
+services:
+  postgresus:
+    image: rostislavdugin/postgresus:latest
+    container_name: postgresus
+    restart: unless-stopped
+    ports:
+      - 5445:4005
+    volumes:
+      - ./postgresus-data:/postgresus-data
+    depends_on:
+      - postgresql
+```
+
+### PG Backup
+
+[Docker PG Backup](https://github.com/kartoza/docker-pg-backup) - контейнер для резервного копирования любой совместимой с PostgreSQL базы данных (например, [PostGIS](https://postgis.net/)) по расписанию cron.
+
+```yaml
+services:
+  pg-backup:
+    image: kartoza/pg-backup:latest
+    container_name: pg-backup
+    restart: unless-stopped
+    volumes:
+      - db-backups:/backups
+    environment:
+      - DUMPPREFIX=PG
+      - POSTGRES_HOST=postgresql
+      - POSTGRES_USER=root
+      - POSTGRES_PASS=root
+      - POSTGRES_PORT=5432
+      - RUN_AS_ROOT=true
+      - CRON_SCHEDULE="*/5 * * * *"
+      - CONSOLE_LOGGING=TRUE
+      # S3
+      # - STORAGE_BACKEND=S3
+      # - ACCESS_KEY_ID=minio_admin
+      # - SECRET_ACCESS_KEY=secure_minio_secret
+      # - DEFAULT_REGION=us-west-2
+      # - BUCKET=pg_backups
+      # - HOST_BASE=minio:9000
+      # - HOST_BUCKET=backup
+      # - SSL_SECURE=False
     depends_on:
       postgresql:
         condition: service_healthy
@@ -1437,22 +1720,26 @@ services:
       - postgrest
 ```
 
-### PostgreSUS
+### pREST
 
-[PostgreSUS](https://github.com/RostislavDugin/postgresus) - инструмент для резервного копирования, с поддержкой локального хранение бекапов, а также в Google Drive или S3 совместимом хранилища по расписанию с проверкой доступности (health check), визуализации в веб-интерфейсе и оповщениями в Telegram, Slack, Discord и другие системы.
+[pREST](https://github.com/prest/prest) - простой и готовый к использованию API, который обеспечивает работающее в реальном времени и высокопроизводительное приложение поверх существующей или новой базы данных Postgres.
 
 ```yaml
-services:
-  postgresus:
-    image: rostislavdugin/postgresus:latest
-    container_name: postgresus
+  prest:
+    image: prest/prest:latest
+    container_name: prest
     restart: unless-stopped
+    environment:
+      - PREST_DEBUG=true
+      - PREST_PG_HOST=postgres
+      - PREST_PG_CACHE=false
+      - PREST_JWT_DEFAULT=false
+      - PREST_CACHE_ENABLED=false
     ports:
-      - 4005:4005
-    volumes:
-      - ./postgresus-data:/postgresus-data
+      - 3000:3000
     depends_on:
-      - postgresql
+      postgresql:
+        condition: service_healthy
 ```
 
 ### Patroni
@@ -1579,13 +1866,87 @@ networks:
 
 ```yaml
 services:
-  # Patroni Cluster Web Manager
   ivory:
     image: veegres/ivory:latest
     container_name: ivory
     restart: unless-stopped
     ports:
       - 7070:80
+```
+
+### Kafka
+
+[Apache Kafka](https://github.com/apache/kafka) - распределенная потоковая платформа с открытым исходным кодом, которая позволяет приложениям публиковать, подписываться, хранить и обрабатывать потоки данных. Для работы требует JVM и [Zookeeper](https://zookeeper.apache.org) для координации распределенных систем, обеспечения их согласованности и отказоустойчивости.
+
+```yaml
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - ./kafka-data:/var/lib/kafka/data
+    ports:
+      - 9092:9092
+    depends_on:
+      - zookeeper
+
+# Создать топик
+# docker exec kafka \
+#   kafka-topics --create \
+#   --topic test-topic \
+#   --bootstrap-server localhost:9092 \
+#   --replication-factor 1 \
+#   --partitions 3
+
+# Отправить сообщение
+# docker exec -it kafka \
+#   kafka-console-producer \
+#   --topic test-topic \
+#   --bootstrap-server localhost:9092
+
+# Получить сообщения
+# docker exec -it kafka \
+#   kafka-console-consumer \
+#   --topic test-topic \
+#   --from-beginning \
+#   --bootstrap-server localhost:9092
+```
+
+### Kafka UI
+
+[Kafbat UI](https://github.com/kafbat/kafka-ui) - веб-интерфейс для мониторинга и управления кластерами Apache Kafka.
+
+```yaml
+services:
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: kafka-ui
+    restart: unless-stopped
+    environment:
+      - DYNAMIC_CONFIG_ENABLED=true
+    volumes:
+      - ./kui_config.yml:/etc/kafkaui/dynamic_config.yaml
+    ports:
+      - 4080:8080
 ```
 
 ## Backup Stack
@@ -1726,6 +2087,24 @@ services:
       - 8300:80
 ```
 
+### Tiny File Manager
+
+[Tiny File Manager](https://github.com/prasathmani/tinyfilemanager) - универсальный веб-файловый PHP-менеджер, который позволяет хранить, загружать, редактировать и управлять файлами и папками прямо через веб-браузер.
+
+🔗 [Tiny File Manager Demo](https://tinyfilemanager.github.io/demo) ↗
+
+```yaml
+services:
+  tinyfilemanager:
+    image: tinyfilemanager/tinyfilemanager:master
+    container_name: tinyfilemanager
+    restart: unless-stopped
+    volumes:
+      - $HOME:/var/www/html/data
+    ports:
+      - 8080:80
+```
+
 ### DuFS
 
 [DuFS](https://github.com/sigoden/dufs) - уникальный служебный файловый сервер, который поддерживает статическое обслуживание, загрузку, поиск и удаленное управление через API.
@@ -1742,6 +2121,25 @@ services:
     - $HOME:/data
     - ./config.yaml:/config.yaml
     command: /data -A # --config /config.yaml
+```
+
+### GoSHS
+
+[GoSHS](https://github.com/patrickhener/goshs) - простая замена `SimpleHTTPServer` из Python, написанная на Go, которая позволяет загружать и скачивать файлы по HTTP/S с использованием сертификатов и базовой HTTP-аутентификации.
+
+```yaml
+services:
+  goshs:
+    image: patrickhener/goshs:latest
+    container_name: goshs
+    restart: unless-stopped
+    command: -d /public
+    volumes:
+      - $PWD:/pwd
+    ports:
+      - 8000:8000
+    stdin_open: true
+    tty: true
 ```
 
 ### Syncthing
@@ -2067,12 +2465,12 @@ services:
       - ./dns_data:/etc/dns
     environment:
       - DNS_SERVER_DOMAIN=dns.docker.local                  # Основное доменное имя, используемое этим DNS-сервером для своей идентификации.
-      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8               # Список адресов пересылки, разделённых запятыми.
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8               # Список адресов пересылки, разделенных запятыми.
       - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
       # - DNS_SERVER_ADMIN_PASSWORD=password                # Пароль администратора веб-консоли DNS.
       # - DNS_SERVER_ADMIN_PASSWORD_FILE=password.txt       # Путь к файлу, содержащему текстовый пароль администратора веб-консоли DNS.
       # - DNS_SERVER_PREFER_IPV6=false                      # DNS-сервер будет использовать IPv6 для запросов, когда это возможно, если эта опция включена.
-      # - DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES=172.17.0.1,127.0.0.1 # Список IP-адресов сетевых интерфейсов, разделённых запятыми, запросы на которых должен прослушивать веб-сервис. Адрес «172.17.0.1» — это встроенный мост Docker. Если не указано иное, «[::]» используется по умолчанию. Примечание! Этот параметр следует использовать только в сетевом режиме «host».
+      # - DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES=172.17.0.1,127.0.0.1 # Список IP-адресов сетевых интерфейсов, разделенных запятыми, запросы на которых должен прослушивать веб-сервис. Адрес «172.17.0.1» — это встроенный мост Docker. Если не указано иное, «[::]» используется по умолчанию. Примечание! Этот параметр следует использовать только в сетевом режиме «host».
       # - DNS_SERVER_WEB_SERVICE_HTTP_PORT=5380             # Номер порта TCP для веб-консоли DNS по протоколу HTTP.
       # - DNS_SERVER_WEB_SERVICE_HTTPS_PORT=53443           # Номер порта TCP для веб-консоли DNS по протоколу HTTPS.
       # - DNS_SERVER_WEB_SERVICE_ENABLE_HTTPS=false         # Включает HTTPS для веб-консоли DNS.
@@ -2081,8 +2479,8 @@ services:
       # - DNS_SERVER_RECURSION=AllowOnlyForPrivateNetworks  # Параметры рекурсии: Allow, Deny, AllowOnlyForPrivateNetworks, UseSpecifiedNetworkACL.
       # - DNS_SERVER_RECURSION_NETWORK_ACL=192.168.10.0/24  # Список IP-адресов или сетевых адресов, разделенных запятыми, для разрешения доступа. Добавьте символ «!» в начале, чтобы запретить доступ, например, «!192.168.10.0/24» запретит всю подсеть. Список ACL обрабатывается в том же порядке, в котором он указан. Если ни одна сеть не совпадает, политика по умолчанию запрещает все, кроме петлевой. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`.
       # - DNS_SERVER_RECURSION_DENIED_NETWORKS=1.1.1.0/24   # Список IP-адресов или сетевых адресов, разделенных запятыми, для запрета рекурсии. Действительно только для параметра рекурсии `UseSpecifiedNetworkACL`. Этот параметр устарел, вместо него следует использовать DNS_SERVER_RECURSION_NETWORK_ACL.
-      # - DNS_SERVER_ENABLE_BLOCKING=false                  # Настраивает DNS-сервер на блокировку доменных имён с использованием заблокированной зоны и зоны списка заблокированных доменов.
-      # - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false        # Указывает, должен ли DNS-сервер отвечать TXT-записями, содержащими отчёт о заблокированном домене, на запросы типа TXT.
+      # - DNS_SERVER_ENABLE_BLOCKING=false                  # Настраивает DNS-сервер на блокировку доменных имен с использованием заблокированной зоны и зоны списка заблокированных доменов.
+      # - DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT=false        # Указывает, должен ли DNS-сервер отвечать TXT-записями, содержащими отчет о заблокированном домене, на запросы типа TXT.
       # - DNS_SERVER_FORWARDER_PROTOCOL=Tcp                 # Параметры протокола пересылки: Udp, TCP, Tls, HTTPS, HttpsJson.
       # - DNS_SERVER_LOG_USING_LOCAL_TIME=true              # Включите этот параметр, чтобы использовать локальное время вместо UTC для ведения журнала.
     # Использовать сеть хоста в режиме DHCP или при использование кластеризации для инициализации внешнего IP
@@ -3003,6 +3401,186 @@ AUTHENTIK_REDIS__HOST=authentik-redis
 AUTHENTIK_SECRET_KEY=J+fcRg0PtPRrILSeahxEtZwKGKM7irzJU15qp3ImG4XYoHyzsId5tnZjVoPs9XTnH5NwYaviRCVQZKSQ # openssl rand 60 | base64 -w 80
 ```
 
+### Authelia
+
+[Authelia](https://github.com/authelia/authelia) - сервер аутентификации и авторизации с открытым исходным кодом, обеспечивающий несколько методов двухфакторной аутентификации и единый вход (SSO) для приложений через веб-портал. Он действует как компаньон для обратных прокси, разрешая, запрещая или перенаправляя запросы.
+
+```yaml
+services:
+  authelia:
+    image: docker.io/authelia/authelia:latest
+    container_name: authelia
+    restart: unless-stopped
+    environment:
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/secrets/JWT_SECRET
+      - AUTHELIA_SESSION_SECRET_FILE=/secrets/SESSION_SECRET
+      - AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE=/secrets/STORAGE_PASSWORD
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/secrets/STORAGE_ENCRYPTION_KEY
+    volumes:
+      - ./authelia_config:/config
+      - ./authelia_secrets:/secrets
+    ports:
+      - 9091:9091
+```
+
+### Keycloak
+
+[Keycloak](https://github.com/keycloak/keycloak) - сервер управления идентификацией и доступом с открытым исходным кодом. Позволяет добавить аутентификацию в приложения и защитить сервисы с минимальными усилиями (не нужно заниматься сохранением данных пользователей или их аутентификацией).
+
+```yaml
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.0
+    container_name: keycloak
+    restart: unless-stopped
+    command: start-dev
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    ports:
+      - 8080:8080
+```
+
+### Zitadel
+
+[Zitadel](https://github.com/zitadel/zitadel) - SSO решение, как альтернатива Keycloak. Поддерживает самообслуживание пользователей и идентификацию с помощью сторонних провайдеров, в том числе OpenID, OAuth 2.x, SAML2, LDAP, Passkey / FIDO2, OTP, 2FA.
+
+```yaml
+services:
+  zitadel:
+    restart: unless-stopped
+    image: ghcr.io/zitadel/zitadel:latest
+    command: start-from-init --masterkey "MasterkeyNeedsToHave32Characters"
+    environment:
+      ZITADEL_EXTERNALDOMAIN: localhost
+      ZITADEL_EXTERNALSECURE: false
+      ZITADEL_TLS_ENABLED: false
+      ZITADEL_DATABASE_POSTGRES_HOST: zitadel-db
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: postgres
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: postgres
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /current-dir/login-client.pat
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM_LOGIN_CLIENT
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: http://localhost:3000/ui/v2/login
+      ZITADEL_OIDC_DEFAULTLOGINURLV2: http://localhost:3000/ui/v2/login/login?authRequest=
+      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: http://localhost:3000/ui/v2/login/logout?post_logout_redirect=
+      ZITADEL_SAML_DEFAULTLOGINURLV2: http://localhost:3000/ui/v2/login/login?samlRequest=
+    healthcheck:
+      test:
+        - CMD
+        - /app/zitadel
+        - ready
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+    user: "0"
+    volumes:
+      - .:/current-dir:delegated
+    ports:
+      - 8080:8080
+      - 3000:3000
+    depends_on:
+      zitadel-db:
+        condition: service_healthy
+
+  login:
+    restart: unless-stopped
+    image: ghcr.io/zitadel/zitadel-login:latest
+    environment:
+      - ZITADEL_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
+      - ZITADEL_SERVICE_USER_TOKEN_FILE=/current-dir/login-client.pat
+    network_mode: service:zitadel
+    user: "0"
+    volumes:
+      - .:/current-dir:ro
+    depends_on:
+      zitadel:
+        condition: service_healthy
+        restart: false
+
+  zitadel-db:
+    restart: unless-stopped
+    image: postgres:17
+    environment:
+      PGUSER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: 
+      - CMD-SHELL
+      - pg_isready
+      - -d
+      - zitadel
+      - -U
+      - postgres
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 20s
+    ports:
+      - 5432:5432
+    volumes:
+      - ./zitadel_data:/var/lib/postgresql/data:rw
+```
+
+### Warpgate
+
+[Warpgate](https://github.com/warp-tech/warpgate) — интеллектуальный и полностью прозрачный хост-бастион SSH, HTTPS, MySQL и PostgreSQL, которому не требуется клиентское приложение или оболочка SSH. Поддерживает 2FA и SSO (TOTP и OpenID Connect), а также позволяет настроить свой DMZ, добавлять учетные записи пользователей и определять их определенным хостам и URL-адресам в сети. Warpgate будет записывать каждый сеанс, чтобы вы могли просмотреть его в реальном времени и воспроизвести позже через встроенный веб-интерфейс администратора.
+
+```yaml
+services:
+  warpgate:
+    image: ghcr.io/warp-tech/warpgate
+    container_name: warpgate
+    restart: unless-stopped
+    volumes:
+      - ./warpgate_data:/data
+    ports:
+      - 2222:2222
+      - 8888:8888
+      - 33306:33306
+    stdin_open: true
+    tty: true
+```
+
+### Voidauth
+
+[Voidauth](https://github.com/voidauth/voidauth) - провайдер SSO-аутентификации и поставщик OpenID Connect (OIDC) с открытым исходным кодом, который защищает ваши приложения, размещенные на собственном сервере. Поддерживает управление пользователями, пароли, приглашение пользователей, самостоятельную регистрацию, поддержку по электронной почте и другие функции.
+
+```yaml
+services:
+  voidauth: 
+    image: voidauth/voidauth:latest
+    container_name: voidauth
+    restart: unless-stopped
+    environment:
+      - APP_URL=
+      - STORAGE_KEY=
+      - DB_PASSWORD=VoidAuthPass
+      - DB_HOST=voidauth-db
+    volumes:
+      - ./voidauth_config:/app/config
+    depends_on:
+      - voidauth-db
+
+  voidauth-db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=VoidAuthPass
+    volumes:
+      - ./voidauth_db:/var/lib/postgresql/18/docker
+```
+
 ## PAM
 
 ### JumpServer
@@ -3641,6 +4219,24 @@ services:
   #   #   - DOZZLE_HOSTNAME=hv-us-101
   #   ports:
   #     - 7007:7007
+
+  # dozzle-journald:
+  #   image: debian:bookworm-slim
+  #   container_name: dozzle-journald
+  #   restart: always
+  #   volumes:
+  #     - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
+  #     - /run/systemd/system:/run/systemd/system:ro
+  #     - /run/systemd/journal/socket:/run/systemd/journal/socket:ro
+  #     - /etc/machine-id:/etc/machine-id:ro
+  #   command: 
+  #     - sh
+  #     - -c
+  #     - |
+  #       apt-get update && \
+  #         DEBIAN_FRONTEND=noninteractive \
+  #         apt-get install -y --no-install-recommends systemd \
+  #       journalctl --no-pager --follow
 
   # Container for monitoring syslog file on host
   # dozzle-syslog:
@@ -4573,6 +5169,39 @@ services:
   #     - 1636:1636
 ```
 
+### Gaia
+
+[Gaia](https://github.com/gaia-app/gaia) - пользовательский интерфейс для импорта и запуска модулей Terraform. Поддерживает импорт модулей из исходного кода (Github/Gitlab), проверку значений переменных Terraform (обязательные переменные, проверка на основе регулярных выражений), настройка значений по умолчанию или маскирование переменных для пользователей, запуск модулей (планирование/применение/уничтожение) и управление состоянием.
+
+```yaml
+services:
+  gaia:
+    image: gaiaapp/gaia
+    container_name: gaia
+    restart: unless-stopped
+    ports: 
+      - 8877:8877 # admin:admin123 and user:user123
+    environment:
+      - GAIA_MONGODB_URI=mongodb://gaia-mongo/gaia
+      - GAIA_RUNNER_API_PASSWORD=GaiaPassword
+      - GAIA_EXTERNAL_URL=http://gaia:8877
+
+  gaia-runner:
+    image: gaiaapp/runner
+    container_name: gaia-runner
+    restart: unless-stopped
+    environment:
+      - GAIA_URL=http://gaia:8877
+      - GAIA_RUNNER_API_PASSWORD=GaiaPassword
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  gaia-mongo:
+    image: mongo:4.4
+    container_name: gaia-mongo
+    restart: unless-stopped
+```
+
 ### Wexflow
 
 [Wexflow](https://github.com/aelassas/wexflow) - движок автоматизации процессов, который используется для перемещение или преобразование файлов, загрузка на FTP/SFTP, отправка электронных писем, запуск скриптов (PowerShell, Bash, Python и т. д.), планирование и объединение задач в цепочку, запуск рабочих процессов по событиям, cron или watchfolders, визуальное проектирование процессов (интерфейс Designer), интеграция с API и базами данных (поддерживается более 6 баз данных), поддерживает условную логики (if/else, switch, while), более 100 встроенных заданий и мобильное приложение для Android.
@@ -5412,6 +6041,40 @@ services:
 # curl -u root@example.com:6IKci6L9Xfaq0DiB -k http://192.168.3.101:5080/api/default/default/_json -d "[{\"level\":\"info\",\"job\":\"test\",\"log\":\"test message for openobserve\"}]"
 ```
 
+### HighLight
+
+[HighLight](https://github.com/highlight/highlight) - инструмент мониторинга нового поколения для разработчиков. В отличие от других (устаревших...) инструментов, отличается целостностью. Поддерживает мониторинг ошибок, логов и сессий.
+
+```yaml
+services:
+  backend:
+    image: ghcr.io/highlight/highlight-backend:latest
+    container_name: backend
+    restart: unless-stopped
+    volumes:
+      - ./highlight_data:/highlight-data
+      - ../backend/env.enc:/build/env.enc
+      - ../backend/env.enc.dgst:/build/env.enc.dgst
+      - ../backend/localhostssl/server.key:/build/localhostssl/server.key
+      - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
+    ports:
+      - 8082:8082
+    # env_file: .env
+
+  frontend:
+    image: ghcr.io/highlight/highlight-frontend:latest
+    container_name: frontend
+    restart: unless-stopped
+    volumes:
+      - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
+      - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
+    ports:
+      - 3000:3000
+      - 6006:6006
+      - 8080:8080
+    # env_file: .env
+```
+
 ### ELK Stack
 
 [Elasticsearch](https://github.com/elastic/elasticsearch) - распределенная поисковая и аналитическая система, основанная на библиотеке Apache Lucene. Она используется для быстрого поиска и анализа больших объемов данных в реальном времени, например, для полнотекстового поиска. Стек состоит из трех приложений:
@@ -5896,7 +6559,7 @@ services:
 
 ### Flame
 
-[Flame](https://github.com/pawelmalak/flame) - стартовая страница для вашего сервера, размещаемая на собственном сервере. Дизайн вдохновлён [SUI](https://github.com/jeroenpardon/sui), поддерживает аутентификацию, встроенный редактор для добавления и обновления закладок, а также интеграция с Docker и Kubernetes для автоматического добавления приложений на основе labels.
+[Flame](https://github.com/pawelmalak/flame) - стартовая страница для вашего сервера, размещаемая на собственном сервере. Дизайн вдохновлен [SUI](https://github.com/jeroenpardon/sui), поддерживает аутентификацию, встроенный редактор для добавления и обновления закладок, а также интеграция с Docker и Kubernetes для автоматического добавления приложений на основе labels.
 
 ```yaml
 services:
@@ -7394,6 +8057,30 @@ services:
     ipc: host
 ```
 
+### Wolf
+
+Wolf - потоковый сервер для [Moonlight](https://github.com/moonlight-stream/moonlight-qt), который позволяет нескольким удаленным пользователям совместно использовать один сервер для игр. Особенности включают поддержку многопользовательского режима, создание виртуальных столов с возможностью настройки разрешения и FPS, а также одновременное использование различных графических процессоров для задач, таких как кодирование и игры. Сервер обеспечивает низкую задержку в стриминге видео и аудио, совместим с игровыми контроллерами и ориентирован на Linux и Docker, что обеспечивает безопасность в низкопривилегированных контейнерах.
+
+```yaml
+services:
+  wolf:
+    image: ghcr.io/games-on-whales/wolf:stable
+    container_name: wolf
+    restart: unless-stopped
+    device_cgroup_rules:
+      - 'c 13:* rmw'
+    volumes:
+      - /etc/wolf/:/etc/wolf
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /dev/:/dev/:rw
+      - /run/udev:/run/udev:rw
+    devices:
+      - /dev/dri
+      - /dev/uinput
+      - /dev/uhid
+    network_mode: host
+```
+
 ### Dolphin
 
 [Dolphin](https://github.com/dolphin-emu/dolphin) - эмулятор GameCube и Wii собранный в [Docker образе](https://github.com/linuxserver/docker-dolphin) для запуска в браузере на базе [Selkies](https://github.com/selkies-project/selkies).
@@ -7482,4 +8169,22 @@ services:
       - ./games:/junie/games
     ports:
       - 8008:8000
+```
+
+### Quizzle
+
+[Quizzle](https://github.com/gnmyt/Quizzle) - платформа проведения викторин для школ от создателя [Nexterm](https://github.com/gnmyt/Nexterm) и [MySpeed](https://github.com/gnmyt/MySpeed).
+
+```yaml
+services:
+  quizzle:
+    image: germannewsmaker/quizzle:latest
+    container_name: quizzle
+    restart: unless-stopped
+    environment:
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./quizzle_data:/quizzle/data
+    ports:
+      - 6412:6412
 ```
