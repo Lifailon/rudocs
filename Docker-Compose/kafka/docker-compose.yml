@@ -1,0 +1,61 @@
+services:
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: kafka-ui
+    restart: unless-stopped
+    environment:
+      - DYNAMIC_CONFIG_ENABLED=true
+    volumes:
+      - ./kui_config.yml:/etc/kafkaui/dynamic_config.yaml
+    ports:
+      - 4080:8080
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - ./kafka-data:/var/lib/kafka/data
+    ports:
+      - 9092:9092
+    depends_on:
+      - zookeeper
+
+# Создать топик
+# docker exec kafka \
+#   kafka-topics --create \
+#   --topic test-topic \
+#   --bootstrap-server localhost:9092 \
+#   --replication-factor 1 \
+#   --partitions 3
+
+# Отправить сообщение
+# docker exec -it kafka \
+#   kafka-console-producer \
+#   --topic test-topic \
+#   --bootstrap-server localhost:9092
+
+# Получить сообщения
+# docker exec -it kafka \
+#   kafka-console-consumer \
+#   --topic test-topic \
+#   --from-beginning \
+#   --bootstrap-server localhost:9092
