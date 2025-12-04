@@ -120,30 +120,36 @@
             icon: https://github.com/georapbox/rss-feed-reader/blob/main/src/assets/app-icons/favicon-192.png?raw=true
             href: https://georapbox.github.io/rss-feed-reader
     - 🎮 Games:
-        - Steam:
-            icon: steam.png
-            href: https://store.steampowered.com/?l=russian
-        - EpicGames:
-            icon: https://static-assets-prod.epicgames.com/epic-store/static/favicon.ico
-            href: https://store.epicgames.com/en-US/free-games
-        - Nintendo eShop:
-            icon: https://assets.nintendo.com/image/upload/ncom/icons/fav-icons/favicon.ico
-            href: https://nintendo.com/us/store/games
-        - PSPrices:
-            icon: https://psprices.com/staticfiles/i/favicon/192.png
-            href: https://psprices.com/region-ru/collection/free
-        # - MetaCritic:
-        #     icon: https://www.metacritic.com/a/img/favicon.svg
-        #     href: https://www.metacritic.com
-        - OpenCritic:
-            icon: https://img.opencritic.com/app-icons/favicon-32x32.png
-            href: https://opencritic.com
+        - Retro Games:
+            icon: https://www.retrogames.onl/favicon.ico
+            href: https://www.retrogames.onl
         - Emulator.js:
             icon: https://raw.githubusercontent.com/EmulatorJS/EmulatorJS/refs/heads/main/docs/favicon.ico
             href: https://demo.emulatorjs.org
         - Junie Emulator:
             icon: https://namaneo.github.io/Junie/assets/favicon.png
             href: https://namaneo.github.io/Junie
+        - Steam:
+            icon: steam.png
+            href: https://store.steampowered.com/?l=russian
+        - PSPrices (Free):
+            icon: playstation.png
+            href: https://psprices.com/region-ru/collection/free
+        - EpicGames (Free):
+            icon: https://static-assets-prod.epicgames.com/epic-store/static/favicon.ico
+            href: https://store.epicgames.com/en-US/free-games
+        - Nintendo eShop:
+            icon: https://assets.nintendo.com/image/upload/ncom/icons/fav-icons/favicon.ico
+            href: https://nintendo.com/us/store/games
+        # - MetaCritic:
+        #     icon: https://www.metacritic.com/a/img/favicon.svg
+        #     href: https://www.metacritic.com
+        - OpenCritic:
+            icon: https://img.opencritic.com/app-icons/favicon-32x32.png
+            href: https://opencritic.com
+        - Wand Game Maps:
+            icon: https://wand.com/favicon.ico
+            href: https://wand.com/maps
         - Emu Land:
             icon: https://emu-land.net/favicon.png
             href: https://emu-land.net
@@ -159,6 +165,9 @@
         # - Game Voice:
         #     icon: https://gamesvoice.ru/favicon.ico
         #     href: https://gamesvoice.ru
+        # - Open Bomberman:
+        #     icon: https://openbomber.ru/images/favicon.png
+        #     href: https://openbomber.ru
         # - Doors & Treasures:
         #     icon: https://www.doors-treasures.com/img/other/maintitleN.png
         #     href: https://www.doors-treasures.com
@@ -214,7 +223,7 @@
         icon: qwen.png
         href: https://chat.qwen.ai
     - Mistral:
-        icon: https://chat.mistral.ai/favicon.ico
+        icon: https://chat.mistral.ai/favicons/favicon.ico
         href: https://chat.mistral.ai/chat
     - Google Gemini:
         icon: google-gemini.png
@@ -228,6 +237,9 @@
     - OpenRouter:
         icon: https://openrouter.ai/favicon.ico
         href: https://openrouter.ai
+    - Hugging Face:
+        icon: https://huggingface.co/favicon.ico
+        href: https://huggingface.co/models
     - 💌 Mail 📮:
         - Gmail:
             icon: gmail.png
@@ -300,14 +312,17 @@
         - Kubernetes Spec Explorer:
             icon: https://kubespec.dev/favicon.ico
             href: https://kubespec.dev
+        - Kompose UI:
+            icon: https://kompose.io/assets/favicons/favicon.ico
+            href: https://composetokube.com
+        - Helm Playground:
+            icon: https://helm-playground.com/favicon.png
+            href: https://helm-playground.com
 
 - 📚 Docs:
     - PowerShell Commands:
         icon: https://lifailon.github.io/favicon.png
         href: https://lifailon.github.io
-    - Xmind Linux Commands:
-        icon: https://xmind.com/favicon.ico
-        href: https://xmind.app/m/WwtB/
     - Devhints:
         icon: https://devhints.io/assets/favicon.png
         href: https://devhints.io
@@ -320,6 +335,9 @@
     - Learn X in Y minutes:
         icon: https://learnxinyminutes.com/favicon.ico
         href: https://learnxinyminutes.com
+    - Xmind Linux Commands:
+        icon: https://xmind.com/favicon.ico
+        href: https://xmind.app/m/WwtB
     - Backend Cheats:
         icon: github.png
         href: https://github.com/cheatsnake/backend-cheats/blob/master/README_RUS.md
@@ -353,7 +371,7 @@
             icon: deepl.png
             href: https://deepl.com/ru/translator
         - Reverso:
-            icon: https://reverso.net/assets/images/favicon.ico
+            icon: https://www.reverso.net/assets/images/favicon.ico
             href: https://reverso.net
     - Network:
         - Networking Toolbox:
@@ -437,213 +455,179 @@
             # href: https://httpbin.org
             href: https://httpbingo.org
 
-- Web Apps:
-    - Plex:
-        icon: plex.png
-        href: http://192.168.3.100:32400
-        siteMonitor: http://192.168.3.100:32400
-        widget:
-          type: plex
-          url: http://192.168.3.100:32400
-          key: dXeUhXD7aPusqCsd9e21
-    - qBittorrent:
-        icon: qbittorrent.png
-        href: http://192.168.3.100:8888
-        siteMonitor: http://192.168.3.100:8888
-        widget:
-          type: qbittorrent
-          url: http://192.168.3.100:8888
-          username: lifailon
-          password: RestApi
-          enableLeechProgress: true
-    # - Transmission:
-    #     icon: transmission.png
-    #     href: http://192.168.3.100:9091
-    #     siteMonitor: http://192.168.3.100:9091/transmission/web
-    #     widget:
-    #       type: transmission
-    #       url: http://192.168.3.100:9091
-    #       username: lifailon
-    #       password: RestApi
-    # - Jackett:
-    #     icon: jackett.png
-    #     href: http://192.168.3.100:9117
-    #     siteMonitor: http://192.168.3.100:9117
-    #     widget:
-    #       type: jackett
-    #       url: http://192.168.3.100:9117
-    #       password: JaCkett
-    # - Sonarr:
-    #     icon: sonarr.png
-    #     href: http://192.168.3.100:8989
-    #     siteMonitor: http://192.168.3.100:8989
-    #     widget:
-    #       type: sonarr
-    #       url: http://192.168.3.100:8989
-    #       key: 6548a75f92d54dc39b9421905563888c
-    # - TorAPI:
-    #     icon: tor.png
-    #     href: https://torapi.vercel.app/api/provider/list
-    #     siteMonitor: https://torapi.vercel.app/api/provider/list
-    #     widget:
-    #         type: customapi
-    #         url: https://torapi.vercel.app/api/provider/list
-    #         method: GET
-    #         refreshInterval: 60000 # 60s
-    #         # username: username
-    #         # password: password
-    #         # headers:
-    #         # requestBody:
-    #         # mappings:
-    #         #     - label: Providers
-    #         #       format: size
-    #         #     - label: Urls
-    #         #       field: 0.Urls
-    #         #       format: size
-    #         display: dynamic-list
-    #         mappings:
-    #             name: Provider  # Key
-    #             label: Urls.0   # Value
-    #             format: text
-    - 👩‍💻 Development:
-        - IT Tools:
-            icon: it-tools.png
-            href: https://it-tools.tech
-        - CyberChef:
-            icon: cyberchef.png
-            href: https://gchq.github.io/CyberChef
-        - Transform Web Converter:
-            icon: https://transform.tools/static/favicon.png
-            href: https://transform.tools
-        - JSON Crack:
-            icon: https://github.com/AykutSarac/jsoncrack.com/raw/main/public/assets/192.png
-            href: https://jsoncrack.com/editor
-        - Markmap:
-            icon: https://markmap.js.org/favicon.png
-            href: https://markmap.js.org/repl
-        # - Go Playground:
-        #     icon: https://go.dev/images/favicon-gopher.png
-        #     href: https://go.dev/play
-        - Go Playground Better:
-            icon: https://raw.githubusercontent.com/x1unix/go-playground/refs/heads/master/web/public/favicon.ico
-            href: https://goplay.tools
-        - Go Template Playground:
-            icon: https://repeatit.io/logo.svg
-            href: https://repeatit.io
-        - TS Playground:
-            icon: typescript.png
-            href: https://typescriptlang.org/play
-        # - HTML/CSS/JavaScript Playground:
-        #     icon: javascript.png
-        #     href: https://developer.mozilla.org/ru/play
-        # - Node.js Playground:
-        #     icon: nodejs.png
-        #     href: https://jsplayground.dev
-        # - Groovy Playground:
-        #     icon: https://groovy-lang.org/img/groovy-logo-white.svg
-        #     href: https://groovyide.com/playground
-        - Vue SFC Playground:
-            icon: https://play.vuejs.org/logo.svg
-            href: https://play.vuejs.org
-        - Vue FormKit Playground:
-            icon: https://formkit.com/favicon.ico
-            href: https://formkit.com/playground?fkv=latest&fileTab=Playground.vue&css-framework=genesis
-        - Vueform Builder:
-            icon: https://builder.vueform.com/favicon.ico
-            href: https://builder.vueform.com/demo
-        # - SurveyJS Creator:
-        #     icon: https://surveyjs.io/icon.svg
-        #     href: https://surveyjs.io/create-free-survey
-        # - Open Chakra UI:
-        #     icon: https://openchakra.app/favicon-32x32.png
-        #     href: https://openchakra.app
-        # - formBuilder:
-        #     icon: https://formbuilder.online/assets/img/favicon-32x32.png
-        #     href: https://formbuilder.online
-        #     # href: https://kevinchappell.github.io/formBuilder
-        - GrapesJS:
-            icon: https://github.com/GrapesJS/grapesjs/blob/dev/docs/.vuepress/public/logo-icon.png?raw=true
-            href: https://grapesjs.com/demo.html
-        - OpenSilver XAML Designer:
-            icon: https://xaml.io/favicon.ico
-            href: https://xaml.io
-        - KeePass Web:
-            # icon: https://app.keeweb.info/icons/favicon-32x32.png
-            icon: https://keepass.info/favicon.ico
-            href: https://app.keeweb.info
-        - VCS Jitsi Meet:
-            icon: jitsi-meet.png
-            href: https://meet.jit.si
-        - EmbedPDF:
-            icon: https://www.embedpdf.com/favicon.ico
-            href: https://app.embedpdf.com/
-        - Grist:
-            icon: grist.png
-            href: https://docs.getgrist.com
-        - ArchiveBox:
-            icon: archivebox.png
-            href: https://demo.archivebox.io/public
-        - Cobalt Media Downloader:
-            icon: cobalt.png
-            href: https://cobalt.tools
-        # - Emoji finder:
-        #     icon: https://emoji.muan.co/fav.png
-        #     href: https://emoji.muan.co
-        # - Shields:
-        #     icon: https://shields.io/img/favicon.ico
-        #     href: https://shields.io
-        # - Icons:
-        #     icon: https://icon-icons.com/favicon.ico
-        #     href: https://icon-icons.com/ru
-        - Images:
-            - Photopea:
-                icon: photopea.png
-                href: https://photopea.com
-            - Squoosh:
-                icon: https://squoosh.app/c/favicon-c9cf50ef.ico
-                href: https://squoosh.app
-            - Mazanoke:
-                icon: https://mazanoke.com/assets/images/favicon-32x32.png
-                href: https://mazanoke.com
-            - SVG Editor:
-                icon: https://svgedit.netlify.app/editor/images/logo.svg
-                href: https://svgedit.netlify.app/editor/index.html
-            - SVGOMG:
-                icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
-                href: https://jakearchibald.github.io/svgomg
-            # - Boxy SVG:
-            #     icon: https://boxy-svg.com/icons/favicon.svg
-            #     href: https://boxy-svg.com
-            - tldraw:
-                icon: https://www.tldraw.com/favicon.svg
-                href: https://tldraw.com
-            - Draw.io:
-                icon: draw-io.png
-                href: https://app.diagrams.net
-            - Mermaid:
-                icon: https://mermaid.live/favicon.png
-                href: https://mermaid.live/edit
-            - Apache ECharts:
-                icon: https://echarts.apache.org/en/images/favicon.png
-                href: https://echarts.apache.org/examples/en
-            - D2 Playground:
-                icon: https://play.d2lang.com/assets/icons/d2-logo.svg
-                href: https://play.d2lang.com
-            - PlantUML:
-                icon: plantuml.png
-                href: https://app.diagrams.net
-            - Sweet Home 3D:
-                icon: https://www.sweethome3d.com/images/icon.png
-                href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
-            - ASCII Generator:
-                icon: https://patorjk.com/candy.png
-                href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
-            # - Favicon Generator:
-            #     icon: https://favicongenerator.io/favicon.ico
-            #     href: https://favicongenerator.io
-            # - Artguru:
-            #     icon: https://www.artguru.ai/assets/favicon.ico
-            #     href: https://www.artguru.ai/ru/image-enhancer
+- 👩‍💻 Development:
+    - VSCode:
+        icon: vscode.png
+        href: https://vscode.dev
+    - Judge0 IDE:
+        icon: https://raw.githubusercontent.com/judge0/ide/refs/heads/master/favicons/favicon.ico
+        href: https://ide.judge0.com
+    - SQLite Online:
+        icon: https://sqliteonline.com/favicon.ico
+        href: https://sqliteonline.com
+    - Outerbase Studio:
+        icon: https://studio.outerbase.com/icon.png
+        href: https://studio.outerbase.com/playground/client
+    # - SQLite Playground:
+    #     icon: https://sqlime.org/img/favicon-64x64.png
+    #     href: https://sqlime.org
+    # - QuackDB:
+    #     icon: https://www.quackdb.com/favicon-32x32.png
+    #     href: https://www.quackdb.com
+    - IT Tools:
+        icon: it-tools.png
+        href: https://it-tools.tech
+    - CyberChef:
+        icon: cyberchef.png
+        href: https://gchq.github.io/CyberChef
+    - Transform Web Converter:
+        icon: https://transform.tools/static/favicon.png
+        href: https://transform.tools
+    - JSON Crack:
+        icon: https://github.com/AykutSarac/jsoncrack.com/raw/main/public/assets/192.png
+        href: https://jsoncrack.com/editor
+    - Markmap:
+        icon: https://markmap.js.org/favicon.png
+        href: https://markmap.js.org/repl
+    - Tech Playground:
+        icon: https://tech-playground.com/static/img/icon.png
+        href: https://tech-playground.com/playgrounds/nginx
+    # - Go Playground:
+    #     icon: https://go.dev/images/favicon-gopher.png
+    #     href: https://go.dev/play
+    - Go Playground Better:
+        icon: https://raw.githubusercontent.com/x1unix/go-playground/refs/heads/master/web/public/favicon.ico
+        href: https://goplay.tools
+    # - Scriggo Playground:
+    #     icon: https://play.scriggo.com/favicon.ico
+    #     href: https://play.scriggo.com
+    - Go Template Playground:
+        icon: https://repeatit.io/logo.svg
+        href: https://repeatit.io
+    - Jinja2 Playground:
+        icon: https://jinja.palletsprojects.com/en/stable/_static/jinja-icon.svg
+        href: https://www.dainiak.com/jinja2-playground
+        # href: https://huggingface.co/spaces/Xenova/jinja-playground
+    - GopherJS Playground:
+        icon: https://avatars.githubusercontent.com/u/6654647?s=200&v=4
+        href: https://gopherjs.github.io/playground
+    - TS Playground:
+        icon: typescript.png
+        href: https://typescriptlang.org/play
+    - JS Playground:
+        icon: https://jsplayground.dev/logo.svg
+        href: https://jsplayground.dev
+    - Monakai Code Editor:
+        icon: https://monokai.vercel.app/code.webp
+        href: https://monokai.vercel.app
+    # - Monaco Editor Playground:
+    #     icon: monaco.png
+    #     href: https://microsoft.github.io/monaco-editor/playground.html
+    # - Groovy Playground:
+    #     icon: https://groovy-lang.org/img/groovy-logo-white.svg
+    #     href: https://groovyide.com/playground
+    - Vue SFC Playground:
+        icon: https://play.vuejs.org/logo.svg
+        href: https://play.vuejs.org
+    - Vue FormKit Playground:
+        icon: https://formkit.com/favicon.ico
+        href: https://formkit.com/playground?fkv=latest&fileTab=Playground.vue&css-framework=genesis
+    - Vueform Builder:
+        icon: https://builder.vueform.com/favicon.ico
+        href: https://builder.vueform.com/demo
+    # - SurveyJS Creator:
+    #     icon: https://surveyjs.io/icon.svg
+    #     href: https://surveyjs.io/create-free-survey
+    # - Open Chakra UI:
+    #     icon: https://openchakra.app/favicon-32x32.png
+    #     href: https://openchakra.app
+    # - formBuilder:
+    #     icon: https://formbuilder.online/assets/img/favicon-32x32.png
+    #     href: https://formbuilder.online
+    #     # href: https://kevinchappell.github.io/formBuilder
+    - GrapesJS:
+        icon: https://github.com/GrapesJS/grapesjs/blob/dev/docs/.vuepress/public/logo-icon.png?raw=true
+        href: https://grapesjs.com/demo.html
+    - OpenSilver XAML Designer:
+        icon: https://xaml.io/favicon.ico
+        href: https://xaml.io
+    - KeePass Web:
+        # icon: https://app.keeweb.info/icons/favicon-32x32.png
+        icon: https://keepass.info/favicon.ico
+        href: https://app.keeweb.info
+    - VCS Jitsi Meet:
+        icon: jitsi-meet.png
+        href: https://meet.jit.si
+    - EmbedPDF:
+        icon: https://www.embedpdf.com/favicon.ico
+        href: https://app.embedpdf.com/
+    - Grist:
+        icon: grist.png
+        href: https://docs.getgrist.com
+    - ArchiveBox:
+        icon: archivebox.png
+        href: https://demo.archivebox.io/public
+    - Cobalt Media Downloader:
+        icon: cobalt.png
+        href: https://cobalt.tools
+    # - Emoji finder:
+    #     icon: https://emoji.muan.co/fav.png
+    #     href: https://emoji.muan.co
+    # - Shields:
+    #     icon: https://shields.io/img/favicon.ico
+    #     href: https://shields.io
+    # - Icons:
+    #     icon: https://icon-icons.com/favicon.ico
+    #     href: https://icon-icons.com/ru
+    - Images:
+        - Photopea:
+            icon: photopea.png
+            href: https://photopea.com
+        - Squoosh:
+            icon: https://squoosh.app/c/favicon-c9cf50ef.ico
+            href: https://squoosh.app
+        - Mazanoke:
+            icon: https://mazanoke.com/assets/images/favicon-32x32.png
+            href: https://mazanoke.com
+        - SVG Editor:
+            icon: https://svgedit.netlify.app/editor/images/logo.svg
+            href: https://svgedit.netlify.app/editor/index.html
+        - SVGOMG:
+            icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
+            href: https://jakearchibald.github.io/svgomg
+        # - Boxy SVG:
+        #     icon: https://boxy-svg.com/icons/favicon.svg
+        #     href: https://boxy-svg.com
+        - tldraw:
+            icon: https://www.tldraw.com/favicon.svg
+            href: https://tldraw.com
+        - Draw.io:
+            icon: draw-io.png
+            href: https://app.diagrams.net
+        - Mermaid:
+            icon: https://mermaid.live/favicon.png
+            href: https://mermaid.live/edit
+        - Apache ECharts:
+            icon: https://echarts.apache.org/en/images/favicon.png
+            href: https://echarts.apache.org/examples/en
+        - D2 Playground:
+            icon: https://play.d2lang.com/assets/icons/d2-logo.svg
+            href: https://play.d2lang.com
+        - PlantUML:
+            icon: plantuml.png
+            href: https://app.diagrams.net
+        - Sweet Home 3D:
+            icon: https://www.sweethome3d.com/images/icon.png
+            href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
+        - ASCII Generator:
+            icon: https://patorjk.com/candy.png
+            href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
+        # - Favicon Generator:
+        #     icon: https://favicongenerator.io/favicon.ico
+        #     href: https://favicongenerator.io
+        # - Artguru:
+        #     icon: https://www.artguru.ai/assets/favicon.ico
+        #     href: https://www.artguru.ai/ru/image-enhancer
 
 - 🐧 Nodes:
     - node-01 (hv-us-101):
@@ -661,6 +645,74 @@
         ping: 192.168.3.105
     - node-03 (rpi-106):
         ping: 192.168.3.106
+    - Web Apps:
+        - Plex:
+            icon: plex.png
+            href: http://192.168.3.100:32400
+            siteMonitor: http://192.168.3.100:32400
+            widget:
+              type: plex
+              url: http://192.168.3.100:32400
+              key: dXeUhXD7aPusqCsd9e21
+        - qBittorrent:
+            icon: qbittorrent.png
+            href: http://192.168.3.100:8888
+            siteMonitor: http://192.168.3.100:8888
+            widget:
+              type: qbittorrent
+              url: http://192.168.3.100:8888
+              username: lifailon
+              password: RestApi
+              enableLeechProgress: true
+        # - Transmission:
+        #     icon: transmission.png
+        #     href: http://192.168.3.100:9091
+        #     siteMonitor: http://192.168.3.100:9091/transmission/web
+        #     widget:
+        #       type: transmission
+        #       url: http://192.168.3.100:9091
+        #       username: lifailon
+        #       password: RestApi
+        # - Jackett:
+        #     icon: jackett.png
+        #     href: http://192.168.3.100:9117
+        #     siteMonitor: http://192.168.3.100:9117
+        #     widget:
+        #       type: jackett
+        #       url: http://192.168.3.100:9117
+        #       password: JaCkett
+        # - Sonarr:
+        #     icon: sonarr.png
+        #     href: http://192.168.3.100:8989
+        #     siteMonitor: http://192.168.3.100:8989
+        #     widget:
+        #       type: sonarr
+        #       url: http://192.168.3.100:8989
+        #       key: 6548a75f92d54dc39b9421905563888c
+        # - TorAPI:
+        #     icon: tor.png
+        #     href: https://torapi.vercel.app/api/provider/list
+        #     siteMonitor: https://torapi.vercel.app/api/provider/list
+        #     widget:
+        #         type: customapi
+        #         url: https://torapi.vercel.app/api/provider/list
+        #         method: GET
+        #         refreshInterval: 60000 # 60s
+        #         # username: username
+        #         # password: password
+        #         # headers:
+        #         # requestBody:
+        #         # mappings:
+        #         #     - label: Providers
+        #         #       format: size
+        #         #     - label: Urls
+        #         #       field: 0.Urls
+        #         #       format: size
+        #         display: dynamic-list
+        #         mappings:
+        #             name: Provider  # Key
+        #             label: Urls.0   # Value
+        #             format: text
     - Kubernetes Apps:
         - Headlamp:
             icon: headlamp.png
@@ -826,14 +878,14 @@
             #       version: 2
             #       url: http://192.168.3.101:8778
             #       key: kuDlHzAvzJS0ogD3yv2Jw4mLbRw9GeWMevGr3b9x4c751498
-            - NetData:
-                icon: netdata.png
-                server: local
-                container: traefik
-                href: http://192.168.3.101:19999
-                widget:
-                    type: netdata
-                    url: http://192.168.3.101:19999
+            # - NetData:
+            #     icon: netdata.png
+            #     server: local
+            #     container: traefik
+            #     href: http://192.168.3.101:19999
+            #     widget:
+            #         type: netdata
+            #         url: http://192.168.3.101:19999
             - Grafana:
                 icon: grafana.png
                 server: local
