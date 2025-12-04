@@ -15,15 +15,15 @@ services:
       test: pg_isready -U pgweb -h 127.0.0.1
       interval: 5s
 
-  # Web Client
-  postgresweb:
-    container_name: postgresweb
+  # Web UI Client
+  pgweb:
+    container_name: pgweb
     image: sosedoff/pgweb:latest
     build: .
     environment:
       PGWEB_DATABASE_URL: postgres://dbuser:dbpass@postgresql:5432/dbname?sslmode=disable
     ports:
-      - 8081:8081
+      - 5443:8081
     healthcheck:
       test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
       interval: 5s
@@ -31,9 +31,62 @@ services:
       postgresql:
         condition: service_healthy
 
+  # Performance Dashboard for PostgreSQL
+  pghero:
+    image: ankane/pghero
+    container_name: pghero
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://user:pass@postgresql:5432/dbname
+    ports:
+      - 5444:8080
+    tty: true
+    stdin_open: true
+
+  # Web UI for PostgreSQL Backup
+  postgresus:
+    image: rostislavdugin/postgresus:latest
+    container_name: postgresus
+    restart: unless-stopped
+    ports:
+      - 5445:4005
+    volumes:
+      - ./postgresus-data:/postgresus-data
+    depends_on:
+      - postgresql
+
+  # Cron job for PostgreSQL Backup
+  pg-backup:
+    image: kartoza/pg-backup:latest
+    container_name: pg-backup
+    restart: unless-stopped
+    volumes:
+      - db-backups:/backups
+    environment:
+      - DUMPPREFIX=PG
+      - POSTGRES_HOST=postgresql
+      - POSTGRES_USER=root
+      - POSTGRES_PASS=root
+      - POSTGRES_PORT=5432
+      - RUN_AS_ROOT=true
+      - CRON_SCHEDULE="*/5 * * * *"
+      - CONSOLE_LOGGING=TRUE
+      # S3
+      # - STORAGE_BACKEND=S3
+      # - ACCESS_KEY_ID=minio_admin
+      # - SECRET_ACCESS_KEY=secure_minio_secret
+      # - DEFAULT_REGION=us-west-2
+      # - BUCKET=pg_backups
+      # - HOST_BASE=minio:9000
+      # - HOST_BUCKET=backup
+      # - SSL_SECURE=False
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
   # REST API
   postgrest:
-    image: postgrest/postgrest
+    image: postgrest/postgrest:latest
     container_name: postgrest
     restart: unless-stopped
     ports:
@@ -45,8 +98,10 @@ services:
       - postgresql
 
   # Swagger UI for PostgREST
-  swagger:
-    image: swaggerapi/swagger-ui
+  postgrest-swagger:
+    image: swaggerapi/swagger-ui:latest
+    container_name: postgrest-swagger
+    restart: unless-stopped
     ports:
       - 3001:8080
     expose:
@@ -57,14 +112,19 @@ services:
       - postgresql
       - postgrest
 
-  # Backup System and Web UI
-  postgresus:
-    image: rostislavdugin/postgresus:latest
-    container_name: postgresus
+  # REST API
+  prest:
+    image: prest/prest:latest
+    container_name: prest
     restart: unless-stopped
+    environment:
+      - PREST_DEBUG=true
+      - PREST_PG_HOST=postgres
+      - PREST_PG_CACHE=false
+      - PREST_JWT_DEFAULT=false
+      - PREST_CACHE_ENABLED=false
     ports:
-      - 4005:4005
-    volumes:
-      - ./postgresus-data:/postgresus-data
+      - 3000:3000
     depends_on:
-      - postgresql
+      postgresql:
+        condition: service_healthy
