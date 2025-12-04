@@ -1,0 +1,83 @@
+services:
+  # Desktop or Web Database manager for MySQL, PostgreSQL, SQL Server, MongoDB, SQLite and others
+  dbgate:
+    image: dbgate/dbgate
+    container_name: dbgate
+    restart: unless-stopped
+    volumes:
+      - ./dbgate_data:/root/.dbgate
+    ports:
+      - 3400:3000
+    # environment:
+    #   CONNECTIONS: con1,con2,con3,con4
+    #   LABEL_con1: MySql
+    #   SERVER_con1: mysql
+    #   USER_con1: root
+    #   PASSWORD_con1: TEST
+    #   PORT_con1: 3306
+    #   ENGINE_con1: mysql@dbgate-plugin-mysql
+    #   LABEL_con2: Postgres
+    #   SERVER_con2: postgres
+    #   USER_con2: postgres
+    #   PASSWORD_con2: TEST
+    #   PORT_con2: 5432
+    #   ENGINE_con2: postgres@dbgate-plugin-postgres
+    #   LABEL_con3: MongoDB
+    #   URL_con3: mongodb://mongo:27017
+    #   ENGINE_con3: mongo@dbgate-plugin-mongo
+    #   LABEL_con4: SQLite
+    #   FILE_con4: /home/jan/feeds.sqlite
+    #   ENGINE_con4: sqlite@dbgate-plugin-sqlite
+
+  # Official Web UI for Redis
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: unless-stopped
+    volumes:
+      - ./redisinsight_data:/data
+    environment:
+      - RI_APP_PORT=5540
+      - RI_APP_HOST=0.0.0.0
+      - RI_LOG_LEVEL=info
+      - RI_FILES_LOGGER=false
+      - RI_STDOUT_LOGGER=true
+      - RI_DATABASE_MANAGEMENT=true
+      - RI_REDIS_HOST=
+      - RI_REDIS_PORT=6379
+      - RI_REDIS_USERNAME=default
+      - RI_REDIS_PASSWORD=
+      - RI_REDIS_TLS=FALSE
+    ports:
+      - 5540:5540
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - ./redis_data:/data
+
+  # Remote SQLite server with replication support 
+  libsql-main:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    container_name: some-sqld-main
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    environment:
+      - SQLD_NODE=primary
+    ports:
+      - 8080:8080
+
+  libsql-replica:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    container_name: some-sqld-replica
+    restart: unless-stopped
+    environment:
+      - SQLD_NODE=replica
+      - SQLD_PRIMARY_URL=https://libsql-main:8080
+    ports:
+      - 8081:8080
+    tty: true
+    stdin_open: true
