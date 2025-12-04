@@ -13,6 +13,15 @@ services:
     ports:
       - 8300:80
 
+  # tinyfilemanager:
+  #   image: tinyfilemanager/tinyfilemanager:master
+  #   container_name: tinyfilemanager
+  #   restart: unless-stopped
+  #   volumes:
+  #     - $HOME:/var/www/html/data
+  #   ports:
+  #     - 8080:80
+
   # dufs:
   #   image: sigoden/dufs
   #   container_name: dufs
@@ -23,6 +32,18 @@ services:
   #   - $HOME:/data
   #   - ./config.yaml:/config.yaml
   #   command: /data -A # --config /config.yaml
+
+  # goshs:
+  #   image: patrickhener/goshs:latest
+  #   container_name: goshs
+  #   restart: unless-stopped
+  #   command: -d /public
+  #   volumes:
+  #     - $PWD:/pwd
+  #   ports:
+  #     - 8000:8000
+  #   stdin_open: true
+  #   tty: true
 
   # File Synchronization
   file-syncthing:

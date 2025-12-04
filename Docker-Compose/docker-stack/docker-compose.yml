@@ -204,7 +204,24 @@ services:
   #   ports:
   #     - 7007:7007
 
-  # Container for monitoring syslog file on host
+  # dozzle-journald:
+  #   image: debian:bookworm-slim
+  #   container_name: dozzle-journald
+  #   restart: always
+  #   volumes:
+  #     - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
+  #     - /run/systemd/system:/run/systemd/system:ro
+  #     - /run/systemd/journal/socket:/run/systemd/journal/socket:ro
+  #     - /etc/machine-id:/etc/machine-id:ro
+  #   command: 
+  #     - sh
+  #     - -c
+  #     - |
+  #       apt-get update && \
+  #         DEBIAN_FRONTEND=noninteractive \
+  #         apt-get install -y --no-install-recommends systemd \
+  #       journalctl --no-pager --follow
+
   # dozzle-syslog:
   #   image: alpine
   #   container_name: dozzle-syslog
