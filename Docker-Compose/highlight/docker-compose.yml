@@ -1,0 +1,27 @@
+services:
+  backend:
+    image: ghcr.io/highlight/highlight-backend:latest
+    container_name: backend
+    restart: unless-stopped
+    volumes:
+      - ./highlight_data:/highlight-data
+      - ../backend/env.enc:/build/env.enc
+      - ../backend/env.enc.dgst:/build/env.enc.dgst
+      - ../backend/localhostssl/server.key:/build/localhostssl/server.key
+      - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
+    ports:
+      - 8082:8082
+    env_file: .env
+
+  frontend:
+    image: ghcr.io/highlight/highlight-frontend:latest
+    container_name: frontend
+    restart: unless-stopped
+    volumes:
+      - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
+      - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
+    ports:
+      - 3000:3000
+      - 6006:6006
+      - 8080:8080
+    env_file: .env
