@@ -23,9 +23,6 @@
     - Killercoda Playground:
         icon: https://killercoda.com/favicon.ico
         href: https://killercoda.com/creator/scenarios/lazyjournal
-    - PowerShell Gallery:
-        icon: https://powershellgallery.com/favicon.ico
-        href: https://powershellgallery.com
     - NuGet:
         icon: https://nuget.org/favicon.ico
         href: https://nuget.org/profiles/Lifailon
@@ -38,6 +35,12 @@
     - Chocolatey:
         icon: https://img.chocolatey.org/logos/chocolatey-icon.svg
         href: https://community.chocolatey.org/packages
+    - PowerShell Gallery:
+        icon: https://powershellgallery.com/favicon.ico
+        href: https://powershellgallery.com
+    - PowerShell Module:
+        icon: microsoft.png
+        href: https://learn.microsoft.com/ru-ru/powershell/module
     - NPM:
         icon: npm.png
         href: https://npmjs.com/~lifailon
@@ -62,6 +65,9 @@
     - Homepage Widgets:
         icon: homepage.png
         href: https://gethomepage.dev/widgets
+    - Jenkins Plugins:
+        icon: jenkins.png
+        href: https://jenkins.io/doc/pipeline/steps
     - Traefik Plugins:
         icon: traefik.png
         href: https://plugins.traefik.io/plugins

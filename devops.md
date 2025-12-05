@@ -101,6 +101,7 @@
 - [Jenkins](#jenkins)
   - [API](#api)
   - [Plugins](#plugins)
+  - [Credentials](#credentials)
   - [SSH Steps and Artifacts](#ssh-steps-and-artifacts)
   - [Upload File Parameter](#upload-file-parameter)
   - [Input Text and File](#input-text-and-file)
@@ -2188,6 +2189,25 @@ port: 8467
 # Получить пароль
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
+
+Режимы синхронизации:
+
+- **Force** - принудительно пересоздает ресурсы, даже если Kubernetes запрещает их изменение без подтверждения (эквивалент, `kubectl --force`).
+- **Prune** - удаляет любые ресурсы в кластере, которые отсутствуют в текущем состоянии Git-репозитория (т.е. помечены желтой корзиной).
+- **Dry Run** - тестовый запуск (проверка синхронизации), позволяющий отобразить какие изменения будут применены к кластеру без фактического их выполнения.
+- **Apply Only** - будет только добавлять/обновлять ресурсы, но никогда не удалит ресурсы (обратное действие **Prune**).
+
+Опции синхронизации:
+
+- **Skip Schema Validation** - отключает проверку на соответствие YAML-манифестов официальной схеме Kubernetes OpenAPI, например, для работы с кастомными ресурсами (CRD) или при ошибках валидации.
+- **Auto-Create Namespace** - автоматическое создание namespace перед синхронизацией ресурсов, если пространство имен, указанное в манифесте, не существует.
+- **Prune Last** - изменяет порядок, сначала применяет новые ресурсы, дожидается их готовности, и только потом удаляет старые/устаревшие ресурсы.
+- **Apply Out of Sync Only** - обрабатывает только те ресурсы, которые Argo CD пометил как Out of Sync (который определяется после Refresh в процессе сравнения с Git-репозиторием), пропуская все остальные, ускоряя процесс.
+- **Respect Ignore Differences** - игнорировать изменения в определенных полях, например, количество реплик, если используется HPA (Horizontal Pod Autoscaling).
+- **Server-Side Apply** - использует логику объединения изменений на стороне API-сервера Kubernetes, а не на стороне клиента Argo CD, что помогает с большими ресурсами и предотвращает конфликты last-applied-configuration.
+- **Replace** - вместо стандартного `kubectl apply`, для объединения изменений, использует `kubectl replace`, где полностью заменяются существующие объекты, или `kubectl create`, если объекта нет.
+- **Retry** - если синхронизация завершается с ошибкой (например, API-сервер недоступен или лимит запросов превышен), будет повторяться попытка синхронизации через заданные интервалы времени.
+
 ### Keel
 
 [Keel](https://github.com/keel-hq/keel) — это инструмент для автоматизации обновлений образов в Kubernetes.
@@ -2933,29 +2953,69 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 ```
 ### Plugins
 
-| Плагин                                                                          | Описание                                                                                                    |
-| -                                                                               | -                                                                                                           |
-| [Pipeline Stage View](https://plugins.jenkins.io/pipeline-stage-view)           | Визуализация шагов (stages) в интерфейсе проекта с временем их выполнения.                                  |
-| [Rebuilder](https://plugins.jenkins.io/rebuild)                                 | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке.       |
-| [Schedule Build](https://plugins.jenkins.io/schedule-build)                     | Позволяет запланировать сборку на указанный момент времени.                                                 |
-| [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)        | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.  |
-| [Export Job Parameters](https://plugins.jenkins.io/export-job-parameters)       | Добавляет кнопку `Export Job Parameters` для конвертации все параметров в декларативный синтаксис Pipeline. |
-| [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                      | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                          |
-| [Active Choices Parameters](https://plugins.jenkins.io/uno-choice)              | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                          |
-| [File Parameters](https://plugins.jenkins.io/file-parameters)                   | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).        |
-| [Separator Parameter](https://plugins.jenkins.io/parameter-separator)           | Параметр для разграничения набора параметров на странице сборки задания с поддержкой HTML.                  |
-| [Custom Tools](https://plugins.jenkins.io/custom-tools-plugin)                  | Позволяет загружать пакеты из интернета с помощью предустановленного набора команд.                         |
-| [Ansible](https://plugins.jenkins.io/ansible)                                   | Параметраризует запуск `ansible-playbook` (требуется установка на агенте) через метод `ansiblePlaybook`.    |
-| [HashiCorp Vault](https://plugins.jenkins.io/hashicorp-vault-plugin)            | Автоматизирует процесс получения содержимого значений из Vault с помощью метода `withVault`                 |
-| [HTTP Request](https://plugins.jenkins.io/http_request)                         | Простой REST API Client для отправки и обработки `GET` и `POST` запросов через метод `httpRequest`.         |
-| [Pipeline Utility Steps](https://plugins.jenkins.io/pipeline-utility-steps)     | Добавляет методы `readJSON` и `writeJSON`.                                                                  |
-| [ANSI Color](https://plugins.jenkins.io/ansicolor)                              | Добавляет поддержку стандартных escape-последовательностей ANSI для покраски вывода.                        |
-| [Email Extension](https://plugins.jenkins.io/email-ext)                         | Отправка сообщений на почту из Pipeline.                                                                    |
-| [Test Results Analyzer](https://plugins.jenkins.io/test-results-analyzer)       | Показывает историю результатов сборки `junit` тестов в табличном древовидном виде.                          |
-| [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status)   | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                   |
-| [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                     | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.              |
-| [Web Monitoring](https://plugins.jenkins.io/monitoring)                         | Добавляет конечную точку `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.               |
-| [CloudBees Disk Usage](https://plugins.jenkins.io/cloudbees-disk-usage-simple)  | Отображает использование диска всеми заданиями во вкладке `Manage-> Disk usage`.                            |
+| Плагин                                                                                  | Описание                                                                                                                |
+| -                                                                                       | -                                                                                                                       |
+| [Pipeline: Nodes and Processes](https://plugins.jenkins.io/pipeline-stage-view)         | Плагин, который предоставляет доступ к интерпретаторам `sh`, `bat`, `powershell` и `pwsh`                               |
+| [Pipeline Utility Steps](https://jenkins.io/doc/pipeline/steps/pipeline-utility-steps)  | Добавляет методы `readJSON`, `writeJSON`, `readYaml`, `writeYaml`, `readTOML`, `writeTOM`, `untar`, `unzip`, и другие.  |
+| [HTTP Request](https://plugins.jenkins.io/http_request)                                 | Простой REST API Client для отправки и обработки `GET` и `POST` запросов через метод `httpRequest`.                     |
+| [Credentials Binding Plugin](https://jenkins.io/doc/pipeline/steps/credentials-binding) | Добавляет метод `withCredentials` для доступа к секретам.                                                               |
+| [HashiCorp Vault](https://plugins.jenkins.io/hashicorp-vault-plugin)                    | Автоматизирует процесс получения содержимого значений из Vault с помощью метода `withVault`                             |
+| [Ansible](https://plugins.jenkins.io/ansible)                                           | Параметраризует запуск `ansible-playbook` (требуется установка на агенте) через метод `ansiblePlaybook`.                |
+| [Pipeline Stage View](https://plugins.jenkins.io/pipeline-stage-view)                   | Визуализация шагов (stages) в интерфейсе проекта с временем их выполнения.                                              |
+| [Rebuilder](https://plugins.jenkins.io/rebuild)                                         | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке.                   |
+| [Schedule Build](https://plugins.jenkins.io/schedule-build)                             | Позволяет запланировать сборку на указанный момент времени.                                                             |
+| [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)                | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.              |
+| [Export Job Parameters](https://plugins.jenkins.io/export-job-parameters)               | Добавляет кнопку `Export Job Parameters` для конвертации все параметров в декларативный синтаксис Pipeline.             |
+| [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                              | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                                      |
+| [Active Choices Parameters](https://plugins.jenkins.io/uno-choice)                      | Активные параметры, которые позволяют динамически обновлять содержимое параметров.                                      |
+| [File Parameters](https://plugins.jenkins.io/file-parameters)                           | Поддержка параметров для загрузки файлов (перезагрузить Jenkins для использования нового параметра).                    |
+| [Separator Parameter](https://plugins.jenkins.io/parameter-separator)                   | Параметр для разграничения набора параметров на странице сборки задания с поддержкой HTML.                              |
+| [Custom Tools](https://plugins.jenkins.io/custom-tools-plugin)                          | Позволяет загружать пакеты из интернета с помощью предустановленного набора команд.                                     |
+| [ANSI Color](https://plugins.jenkins.io/ansicolor)                                      | Добавляет поддержку стандартных escape-последовательностей ANSI для покраски вывода.                                    |
+| [Email Extension](https://plugins.jenkins.io/email-ext)                                 | Отправка сообщений на почту из Pipeline.                                                                                |
+| [Test Results Analyzer](https://plugins.jenkins.io/test-results-analyzer)               | Показывает историю результатов сборки `junit` тестов в табличном древовидном виде.                                      |
+| [Embeddable Build Status](https://plugins.jenkins.io/embeddable-build-status)           | Предоставляет настраиваемые значки (like `shields.io`), который возвращает статус сборки.                               |
+| [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                             | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных.                          |
+| [Web Monitoring](https://plugins.jenkins.io/monitoring)                                 | Добавляет конечную точку `/monitoring` для отображения графиков мониторинга в веб-интерфейсе.                           |
+| [CloudBees Disk Usage](https://plugins.jenkins.io/cloudbees-disk-usage-simple)          | Отображает использование диска всеми заданиями во вкладке `Manage-> Disk usage`.                                        |
+
+### Credentials
+
+Примеры использования метода `withCredentials` для извлечения и использования секретов:
+
+```Groovy
+withCredentials([string(
+  credentialsId: 'github-token', variable: 'TOKEN'
+)]) {
+  sh 'curl -H "Authorization: Bearer $TOKEN" https://api.github.com/rate_limit'
+}
+
+withCredentials([usernamePassword(
+  credentialsId: 'nexus-creds',
+  usernameVariable: 'NEXUS_USER',
+  passwordVariable: 'NEXUS_PASS'
+)]) {
+  sh 'echo "$NEXUS_PASS" | docker login -u "$NEXUS_USER" --password-stdin registry.example.com'
+}
+
+withCredentials([sshUserPrivateKey(
+  credentialsId: params.credentials,
+  usernameVariable: 'SSH_USER',
+  keyFileVariable: 'SSH_KEY',
+  passphraseVariable: ''
+)]) {
+    // sh 'GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no" git fetch'
+    writeFile(file: env.SSH_KEY_FILE, text: readFile(SSH_KEY))
+    sh "chmod 600 ${env.SSH_KEY_FILE}"
+}
+
+withCredentials([file(
+  credentialsId: 'google-cloud-key',
+  variable: 'KEYFILE'
+)]) {
+  sh 'gcloud auth activate-service-account --key-file="$KEYFILE"'
+}
+```
 
 ### SSH Steps and Artifacts
 
@@ -3384,6 +3444,14 @@ pipeline {
         timestamps()
         timeout(time: 10, unit: "MINUTES")
     }
+    environment {
+        KUBECONFIG = "${WORKSPACE}/kubeconfig"
+        KUBECTLPATH = tool(
+            name: "kubectl-amd64-1.33.3",
+            type: "com.cloudbees.jenkins.plugins.customtools.CustomTool"
+        )
+        PATH = "${KUBECTLPATH}:${env.PATH}"
+    }
     parameters {
         separator(
             name: "separatorVault",
@@ -3432,22 +3500,7 @@ pipeline {
         //     script: [$class: "GroovyScript", box: true, script: [script: '''return [activeChoicesParameter]''']]
         // )
     }
-    environment {
-        KUBECONFIG = "${WORKSPACE}/kubeconfig"
-        KUBECTLPATH = tool(
-            name: "kubectl-amd64-1.33.3",
-            type: "com.cloudbees.jenkins.plugins.customtools.CustomTool"
-        )
-        PATH = "${KUBECTLPATH}:${env.PATH}"
-    }
     stages {
-        // stage("Checkout") {
-        //     steps {
-        //         script {
-        //             checkout scm
-        //         }
-        //     }
-        // }
         stage("Get kubeconfig from Vault") {
             steps {
                 script {
@@ -3479,7 +3532,7 @@ pipeline {
                     ) {
                         // Записываем содержимое в файл
                         writeFile(
-                            file: "${WORKSPACE}/kubeconfig", // Не принимает переопределенные env
+                            file: "${WORKSPACE}/kubeconfig", // Не принимает переменные из environment
                             text: kubeconfig
                         )
                     }
@@ -3503,14 +3556,15 @@ pipeline {
                         log.success("Конфигурация получена")
                         log.success(firstLine)
                     }
-                    log.info("Проверяем версию kubectl")
-                    sh(
+                    log.info("Проверка версии kubectl")
+                    def kubectlVersion = sh(
                         script: """
-                            kubectl version --output=json
+                            kubectl version --output=json || true
                         """,
-                        returnStatus: true, // Не возвращаем статус (игнорируем ошибки)
-                        returnStdout: false // Выводим stdout
+                        returnStatus: false, // Возвращяет код возврата если true (для проверки или игнорирования ошибок)
+                        returnStdout: true   // Возвращяет вывод в переменную
                     )
+                    log.success(kubectlVersion)
                 }
             }
         }
