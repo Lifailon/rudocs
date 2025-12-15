@@ -23,6 +23,12 @@
     - Killercoda Playground:
         icon: https://killercoda.com/favicon.ico
         href: https://killercoda.com/creator/scenarios/lazyjournal
+    - Google Cloud Shell:
+        icon: google.png
+        href: https://shell.cloud.google.com
+    - Microsoft Azure:
+        icon: azure.png
+        href: https://portal.azure.com/#home
     - NuGet:
         icon: https://nuget.org/favicon.ico
         href: https://nuget.org/profiles/Lifailon
@@ -65,9 +71,6 @@
     - Homepage Widgets:
         icon: homepage.png
         href: https://gethomepage.dev/widgets
-    - Jenkins Plugins:
-        icon: jenkins.png
-        href: https://jenkins.io/doc/pipeline/steps
     - Traefik Plugins:
         icon: traefik.png
         href: https://plugins.traefik.io/plugins
@@ -126,45 +129,30 @@
             icon: https://github.com/georapbox/rss-feed-reader/blob/main/src/assets/app-icons/favicon-192.png?raw=true
             href: https://georapbox.github.io/rss-feed-reader
     - 🎮 Games:
-        - Retro Games:
-            icon: https://www.retrogames.onl/favicon.ico
-            href: https://www.retrogames.onl
-        - Emulator.js:
-            icon: https://raw.githubusercontent.com/EmulatorJS/EmulatorJS/refs/heads/main/docs/favicon.ico
-            href: https://demo.emulatorjs.org
-        - Junie Emulator:
-            icon: https://namaneo.github.io/Junie/assets/favicon.png
-            href: https://namaneo.github.io/Junie
         - Steam:
             icon: steam.png
             href: https://store.steampowered.com/?l=russian
-        - PSPrices (Free):
+        - SteamDB:
+            icon: https://steamdb.info/static/logos/192px.png
+            href: https://steamdb.info/sales
+        - PSPrices:
             icon: playstation.png
             href: https://psprices.com/region-ru/collection/free
-        - EpicGames (Free):
+        - EpicGames:
             icon: https://static-assets-prod.epicgames.com/epic-store/static/favicon.ico
             href: https://store.epicgames.com/en-US/free-games
         - Nintendo eShop:
             icon: https://assets.nintendo.com/image/upload/ncom/icons/fav-icons/favicon.ico
             href: https://nintendo.com/us/store/games
-        # - MetaCritic:
-        #     icon: https://www.metacritic.com/a/img/favicon.svg
-        #     href: https://www.metacritic.com
+        - MetaCritic:
+            icon: https://www.metacritic.com/a/img/favicon.svg
+            href: https://www.metacritic.com
         - OpenCritic:
             icon: https://img.opencritic.com/app-icons/favicon-32x32.png
             href: https://opencritic.com
         - Wand Game Maps:
             icon: https://wand.com/favicon.ico
             href: https://wand.com/maps
-        - Emu Land:
-            icon: https://emu-land.net/favicon.png
-            href: https://emu-land.net
-        - Nintendo Moy:
-            icon: https://nintendo.moy.su/favicon.ico
-            href: https://nintendo.moy.su
-        - asst2game:
-            icon: https://asst2game.ru/templates/asst2game/images/favicon.ico
-            href: https://asst2game.ru/consoles
         # - Zelda64Rus:
         #     icon: https://shedevr.org.ru/zelda64rus/favicon.ico
         #     href: https://shedevr.org.ru/zelda64rus/translations.html
@@ -177,6 +165,28 @@
         # - Doors & Treasures:
         #     icon: https://www.doors-treasures.com/img/other/maintitleN.png
         #     href: https://www.doors-treasures.com
+        - Emulators:
+            - Retro Assembly:
+                icon: https://retroassembly.com/assets/logo/logo.svg
+                href: https://retroassembly.com/ru
+            - Emulator.js:
+                icon: https://raw.githubusercontent.com/EmulatorJS/EmulatorJS/refs/heads/main/docs/favicon.ico
+                href: https://demo.emulatorjs.org
+            - Junie Emulator:
+                icon: https://namaneo.github.io/Junie/assets/favicon.png
+                href: https://namaneo.github.io/Junie
+            - Retro Games:
+                icon: https://www.retrogames.onl/favicon.ico
+                href: https://www.retrogames.onl
+            - asst2game:
+                icon: https://asst2game.ru/templates/asst2game/images/favicon.ico
+                href: https://asst2game.ru/consoles
+            - Emu Land:
+                icon: https://emu-land.net/favicon.png
+                href: https://emu-land.net
+            - Nintendo Moy:
+                icon: https://nintendo.moy.su/favicon.ico
+                href: https://nintendo.moy.su
     - 🧲 Trackers:
         - Kinozal:
             # icon: https://kinozal.tv/pic/favicon.ico
@@ -324,6 +334,19 @@
         - Helm Playground:
             icon: https://helm-playground.com/favicon.png
             href: https://helm-playground.com
+    - DevOps:
+        - Jenkins Plugins:
+            icon: jenkins.png
+            href: https://jenkins.io/doc/pipeline/steps 
+        - Groovy Compiler:
+            icon: https://gwc-experiment.appspot.com/favicon.ico
+            href: https://onecompiler.com/groovy
+        # - Groovy Web Console:
+        #     icon: https://gwc-experiment.appspot.com/favicon.ico
+        #     href: https://gwc-experiment.appspot.com
+        # - Groovy IDE:
+        #     icon: https://groovy-lang.org/img/favicon.ico
+        #     href: https://groovyide.com/playground
 
 - 📚 Docs:
     - PowerShell Commands:
@@ -456,10 +479,38 @@
         - HTTP Headers:
             icon: https://static.modheader.com/favicons/favicon-96x96.png
             href: https://modheader.com/headers
-        - HTTPBin:
-            icon: https://httpbin.org/static/favicon.ico
-            # href: https://httpbin.org
-            href: https://httpbingo.org
+    - Apps:
+        - KeePass Web:
+            # icon: https://app.keeweb.info/icons/favicon-32x32.png
+            icon: https://keepass.info/favicon.ico
+            href: https://app.keeweb.info
+        - Embed PDF:
+            icon: https://www.embedpdf.com/favicon.ico
+            href: https://app.embedpdf.com/
+        - Grist Excel:
+            icon: grist.png
+            href: https://docs.getgrist.com
+        - Archive Box:
+            icon: archivebox.png
+            href: https://demo.archivebox.io/public
+        - Jitsi Meet:
+            icon: jitsi-meet.png
+            href: https://meet.jit.si
+        - Recorder:
+            icon: https://recorder.getcontrast.io/logo.svg
+            href: https://recorder.getcontrast.io
+        - Cobalt Media Downloader:
+            icon: cobalt.png
+            href: https://cobalt.tools
+        # - Emoji finder:
+        #     icon: https://emoji.muan.co/fav.png
+        #     href: https://emoji.muan.co
+        # - Shields:
+        #     icon: https://shields.io/img/favicon.ico
+        #     href: https://shields.io
+        # - Icons:
+        #     icon: https://icon-icons.com/favicon.ico
+        #     href: https://icon-icons.com/ru
 
 - 👩‍💻 Development:
     - VSCode:
@@ -468,18 +519,6 @@
     - Judge0 IDE:
         icon: https://raw.githubusercontent.com/judge0/ide/refs/heads/master/favicons/favicon.ico
         href: https://ide.judge0.com
-    - SQLite Online:
-        icon: https://sqliteonline.com/favicon.ico
-        href: https://sqliteonline.com
-    - Outerbase Studio:
-        icon: https://studio.outerbase.com/icon.png
-        href: https://studio.outerbase.com/playground/client
-    # - SQLite Playground:
-    #     icon: https://sqlime.org/img/favicon-64x64.png
-    #     href: https://sqlime.org
-    # - QuackDB:
-    #     icon: https://www.quackdb.com/favicon-32x32.png
-    #     href: https://www.quackdb.com
     - IT Tools:
         icon: it-tools.png
         href: https://it-tools.tech
@@ -529,9 +568,6 @@
     # - Monaco Editor Playground:
     #     icon: monaco.png
     #     href: https://microsoft.github.io/monaco-editor/playground.html
-    # - Groovy Playground:
-    #     icon: https://groovy-lang.org/img/groovy-logo-white.svg
-    #     href: https://groovyide.com/playground
     - Vue SFC Playground:
         icon: https://play.vuejs.org/logo.svg
         href: https://play.vuejs.org
@@ -557,34 +593,19 @@
     - OpenSilver XAML Designer:
         icon: https://xaml.io/favicon.ico
         href: https://xaml.io
-    - KeePass Web:
-        # icon: https://app.keeweb.info/icons/favicon-32x32.png
-        icon: https://keepass.info/favicon.ico
-        href: https://app.keeweb.info
-    - VCS Jitsi Meet:
-        icon: jitsi-meet.png
-        href: https://meet.jit.si
-    - EmbedPDF:
-        icon: https://www.embedpdf.com/favicon.ico
-        href: https://app.embedpdf.com/
-    - Grist:
-        icon: grist.png
-        href: https://docs.getgrist.com
-    - ArchiveBox:
-        icon: archivebox.png
-        href: https://demo.archivebox.io/public
-    - Cobalt Media Downloader:
-        icon: cobalt.png
-        href: https://cobalt.tools
-    # - Emoji finder:
-    #     icon: https://emoji.muan.co/fav.png
-    #     href: https://emoji.muan.co
-    # - Shields:
-    #     icon: https://shields.io/img/favicon.ico
-    #     href: https://shields.io
-    # - Icons:
-    #     icon: https://icon-icons.com/favicon.ico
-    #     href: https://icon-icons.com/ru
+    - Database:
+        - Outerbase Studio:
+            icon: https://raw.githubusercontent.com/outerbase/studio/refs/heads/develop/src/app/icon.png
+            href: https://studio.outerbase.com/playground/client
+        - SQLite Online:
+            icon: https://sqliteonline.com/favicon.ico
+            href: https://sqliteonline.com
+        - SQLite Playground:
+            icon: https://sqlime.org/img/favicon-64x64.png
+            href: https://sqlime.org
+        - QuackDB:
+            icon: https://www.quackdb.com/favicon-32x32.png
+            href: https://www.quackdb.com
     - Images:
         - Photopea:
             icon: photopea.png
@@ -595,15 +616,6 @@
         - Mazanoke:
             icon: https://mazanoke.com/assets/images/favicon-32x32.png
             href: https://mazanoke.com
-        - SVG Editor:
-            icon: https://svgedit.netlify.app/editor/images/logo.svg
-            href: https://svgedit.netlify.app/editor/index.html
-        - SVGOMG:
-            icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
-            href: https://jakearchibald.github.io/svgomg
-        # - Boxy SVG:
-        #     icon: https://boxy-svg.com/icons/favicon.svg
-        #     href: https://boxy-svg.com
         - tldraw:
             icon: https://www.tldraw.com/favicon.svg
             href: https://tldraw.com
@@ -628,12 +640,19 @@
         - ASCII Generator:
             icon: https://patorjk.com/candy.png
             href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
-        # - Favicon Generator:
-        #     icon: https://favicongenerator.io/favicon.ico
-        #     href: https://favicongenerator.io
-        # - Artguru:
-        #     icon: https://www.artguru.ai/assets/favicon.ico
-        #     href: https://www.artguru.ai/ru/image-enhancer
+        - Favicon Generator:
+            icon: https://favicongenerator.io/favicon.svg
+            href: https://favicongenerator.io
+        - SVG Editor:
+            icon: https://raw.githubusercontent.com/SVG-Edit/svgedit/refs/heads/master/src/editor/images/logo.svg
+            # href: https://svgedit.netlify.app/editor/index.html
+            href: https://svgplayground.com
+        - SVGOMG:
+            icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
+            href: https://jakearchibald.github.io/svgomg
+        # - Boxy SVG:
+        #     icon: https://boxy-svg.com/icons/favicon.svg
+        #     href: https://boxy-svg.com
 
 - 🐧 Nodes:
     - node-01 (hv-us-101):
