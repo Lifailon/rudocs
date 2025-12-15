@@ -267,10 +267,12 @@
   - [CreateElement](#createelement)
 - [JSON](#json)
 - [YAML](#yaml)
+  - [PSYaml](#psyaml)
+  - [PowerShell-YAML](#powershell-yaml)
 - [TOML](#toml)
 - [Markdown](#markdown)
-  - [Convert Markdown to HTML](#convert-markdown-to-html)
   - [PSMarkdown](#psmarkdown)
+  - [Convert Markdown to HTML](#convert-markdown-to-html)
   - [ConvertFrom-MarkdownV2](#convertfrom-markdownv2)
 - [ConvertTo-Markdown](#convertto-markdown)
 - [HTML](#html)
@@ -4927,29 +4929,40 @@ $OOKLA  = '
 $ookla.result
 ```
 ## YAML
+
+### PSYaml
+
+[PSYaml](https://github.com/Phil-Factor/PSYaml) - модуль для конвертации данных из и в формат `YAML`.
 ```PowerShell
-Import-Module PSYaml` используется в Docker/Ansible
+Install-Module PSYaml
+Import-Module PSYaml
+
 $netplan = "
-network:` словарь по типу - ключ : значение с вложенными словарями
+network: словарь по типу - ключ : значение с вложенными словарями
   ethernets:
     ens160:
       dhcp4: yes
       dhcp6: no
       nameservers:
-        addresses:` [8.8.8.8, 1.1.1.1]` список данных (строк)
+        addresses: [8.8.8.8, 1.1.1.1] список данных (строк)
 		  - 8.8.8.8
 		  - 1.1.1.1
   version: 2
 "
 $network = ConvertFrom-Yaml $netplan
 $network.Values.ethernets.ens160.nameservers
+```
 
-$DataType = "
-int: !!int 10.1
-flo: !!float 10.1
-str: !!str string
-bool: !!bool` boolean
-"
+### PowerShell-YAML
+
+[PowerShell-YAML](https://github.com/cloudbase/powershell-yaml) - модуль PowerShell для обертки [YamlDotNet](https://github.com/aaubry/YamlDotNet) для сериализации и десериализации простых объектов PowerShell в формат `YAML` и обратно.
+```PowerShell
+Install-Module powershell-yaml
+Import-Module powershell-yaml
+
+$Array = @{"hello"="world"; "anArray"=@(1,2,3); "nested"=@{"array"=@("this", "is", "an", "array")}}
+$yaml = $Array | ConvertTo-Yaml
+$yaml | ConvertFrom-Yaml
 ```
 ## TOML
 
@@ -4960,6 +4973,18 @@ bool: !!bool` boolean
 
 ## Markdown
 
+### PSMarkdown
+
+[PSMarkdown](https://github.com/ishu3101/PSMarkdown) - модуль PowerShell, позволяющий преобразовывать объекты PowerShell в таблицы Markdown и обратно.
+
+```PowerShell
+Install-Module PSMarkdown
+Get-Command -Module PSMarkdown
+
+$mdTable = Get-Process | Where-Object {$_.cpu -gt 1000} | Select-Object ID,CPU,Name,Path,Company
+$mdTable | ConvertTo-Markdown
+$mdTable | ConvertTo-Markdown | ConvertFrom-Markdown
+```
 ### Convert Markdown to HTML
 ```PowerShell
 function ConvertFrom-MarkdownToHtml {
@@ -4980,10 +5005,6 @@ function ConvertFrom-MarkdownToHtml {
 }
 ```
 `Get-Content index.md -Raw | ConvertFrom-MarkdownToHtml | Out-File index.html`
-
-### PSMarkdown
-
-Install-Module PSMarkdown
 
 ### ConvertFrom-MarkdownV2
 ```PowerShell
