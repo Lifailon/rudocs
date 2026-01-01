@@ -1,0 +1,11 @@
+services:
+  thinkdashboard:
+    image: ghcr.io/matiasdesuu/thinkdashboard:latest
+    container_name: thinkdashboard
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+    ports:
+      - 8080:8080
+    volumes:
+      - ./thinkdashboard_data:/app/data
