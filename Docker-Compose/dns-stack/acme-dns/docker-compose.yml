@@ -1,0 +1,13 @@
+services:
+  acme-dns:
+    image: joohoi/acme-dns:latest
+    container_name: acme-dns
+    restart: unless-stopped
+    ports:
+      - 53:53
+      - 53:53/udp
+      - 80:80
+      - 443:443
+    volumes:
+      - ./conf:/etc/acme-dns:ro
+      - ./data:/var/lib/acme-dns

@@ -280,6 +280,24 @@ services:
   #     - 2869:2869
   #     - 8000-8010:8000-8010
 
+  # posterizarr:
+  #   image: ghcr.io/fscorrupt/posterizarr:latest
+  #   container_name: posterizarr
+  #   hostname: posterizarr
+  #   restart: unless-stopped
+  #   environment:
+  #     - TZ=Etc/UTC+3
+  #     - TERM=xterm
+  #     - RUN_TIME=disabled
+  #   user: 1000:1000
+  #   ports:
+  #     - 8000:8000
+  #   volumes:
+  #     - ./posterizarr/config:/config
+  #     - ./posterizarr/assets:/assets
+  #     - ./posterizarr/assetsbackup:/assetsbackup
+  #     - ./posterizarr/manualassets:/manualassets
+
 ################################################### PVR ###################################################
 
   # sonarr:

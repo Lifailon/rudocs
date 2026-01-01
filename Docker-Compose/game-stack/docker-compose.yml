@@ -68,6 +68,16 @@ services:
       - 3002:3000
     shm_size: 1gb
 
+  # Web-based personal retro game collection
+  retroassembly:
+    image: arianrhodsandlot/retroassembly
+    container_name: retroassembly
+    restart: unless-stopped
+    volumes:
+      - ./game_data:/app/data # ROMs and save states
+    ports:
+      - 8000:8000
+
   # RetroArch web-based interface
   emulator.js:
     image: lscr.io/linuxserver/emulatorjs:latest

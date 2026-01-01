@@ -1,0 +1,14 @@
+# git clone https://github.com/GVCoder09/NoDPI
+# cd NoDPI
+# sudo docker build -t nodpi-proxy .
+
+services:
+  nodpi-proxy:
+    image: nodpi-proxy
+    container_name: nodpi
+    restart: unless-stopped
+    ports:
+      - 8881:8881
+    volumes:
+      - ./blacklist.txt:/tmp/nodpi/blacklist.txt
+    command: --host 127.0.0.1 --port 8881 --blacklist /tmp/nodpi/blacklist.txt --quiet

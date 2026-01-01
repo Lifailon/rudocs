@@ -1,4 +1,29 @@
 services:
+  # Платформа для управлени SSH-подключениями с доступом к файлам и мониторингом ресурсов
+  termix:
+    image: ghcr.io/lukegus/termix:latest
+    container_name: termix
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+    ports:
+      - 6988:8080
+    volumes:
+      - ./termix_data:/app/data
+
+  # kkterminal:
+  #   image: zyyzyykk/kkterminal:latest
+  #   container_name: kkterminal
+  #   restart: unless-stopped
+  #   ports:
+  #     - 6989:3000
+  #   environment:
+  #     - BANNER=kkTerminal
+  #     - STORAGE=P5P1SIqVe6kaOxMX
+  #     - PASSWORD=admin
+  #   volumes:
+  #     - ./cloud_data:/cloud
+
   # Подключение к RDP, VNC, SSH и управление файлами через SFTP в браузере от создателя MySpeed
   nexterm:
     image: germannewsmaker/nexterm:latest
@@ -111,9 +136,9 @@ services:
     ports:
       - 9445:8080
 
-### Backlog
-## https://github.com/shipmight/helm-playground
-## https://github.com/dainiak/jinja2-playground
+  # Backlog
+  # https://github.com/shipmight/helm-playground
+  # https://github.com/dainiak/jinja2-playground
 
 ############################################################ IDE ############################################################
 
@@ -133,6 +158,7 @@ services:
     ports:
       - 9443:8443
 
+  # IDE в браузере
   judge0-server:
     image: judge0/judge0:latest
     container_name: judge0-server
