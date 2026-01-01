@@ -17,6 +17,44 @@ services:
     ports:
       - 3333:3333
 
+  # arcane:
+  #   image: ghcr.io/getarcaneapp/arcane:latest
+  #   container_name: arcane
+  #   restart: always
+  #   ports:
+  #     - 3552:3552
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./arcane_data:/app/data
+  #   environment:
+  #     - APP_URL=http://localhost:3552
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - ENCRYPTION_KEY=37b916203568c0dfe4580bf6f562b81ff95e7c8235a63812b535970ec8c2e9f3
+  #     - JWT_SECRET=b39de98d51a4e53a5a83731b6c10aea4772419cbf869a74152f997a6de23ba5c
+  #     - LOG_LEVEL=info
+  #     - LOG_JSON=false
+  #     - OIDC_ENABLED=false
+  #     - POSTGRES_DB=arcane
+  #     - POSTGRES_USER=arcane
+  #     - POSTGRES_PASSWORD=arcane
+  #     - DATABASE_URL=postgresql://arcane:arcane@arcane-postgres:5432/arcane
+  #   depends_on:
+  #     - postgres
+
+  # arcane-postgres:
+  #   image: postgres:17-alpine
+  #   container_name: arcane-postgres
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_DB=arcane
+  #     - POSTGRES_USER=arcane
+  #     - POSTGRES_PASSWORD=arcane
+  #   volumes:
+  #     - ./postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - 5432:5432
+
   # Web interface for docker managing containers
   # dweebui:
   #   image: lllllllillllllillll/dweebui:latest
@@ -190,7 +228,7 @@ services:
       # Подключиться к удаленному хосту через Dozzle Agent
       # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
     ports:
-      - 9090:8080
+      - 9999:8080
 
   # dozzle-agent:
   #   image: amir20/dozzle:latest
@@ -271,6 +309,23 @@ services:
     # ports:
     #   - 45876:45876
 
+  # dockmon:
+  #   image: darthnorse/dockmon:latest
+  #   container_name: dockmon
+  #   restart: always
+  #   ports:
+  #     - 8008:443
+  #   environment:
+  #     - TZ=Etc/GMT+3
+  #   volumes:
+  #     - ./dockmon_data:/app/data
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-k", "-f", "https://localhost:443/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
 ################################################### Proxy ###################################################
 
   docker-socket-proxy:
@@ -333,7 +388,7 @@ services:
   #   container_name: docker-registry
   #   ports:
   #     - 5000:5000
-  #   restart: unless-stopped
+  #   restart: always
   #   volumes:
   #     - ./regrepo:/var/lib/registry
   #     - ./certs:/certs
@@ -351,7 +406,7 @@ services:
   nexus:
     image: sonatype/nexus3:latest
     container_name: nexus
-    restart: unless-stopped
+    restart: always
     ports:
       - "8881:8081"
       - "8882:8082" # Settings => Repositories => Create repository => docker-hosted => HTTP
