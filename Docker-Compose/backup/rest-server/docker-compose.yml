@@ -1,0 +1,9 @@
+services:
+  rest-server:
+    image: restic/rest-server
+    container_name: rest-server
+    restart: always
+    ports:
+      - 2048:8000
+    volumes:
+      - ./backup_data:/data
