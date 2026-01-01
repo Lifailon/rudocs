@@ -1,0 +1,42 @@
+services:
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    restart: unless-stopped
+    ports:
+      - 8844:80
+    environment:
+      GOTIFY_DEFAULTUSER_PASS: admin
+    volumes:
+      - ./gotify_data:/app/data
+
+  apprise:
+    image: caronc/apprise:latest
+    container_name: apprise
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    volumes:
+      - ./apprise_config:/config
+
+  alerta-api:
+    image: ghcr.io/alerta/alerta-api
+    container_name: alerta
+    restart: unless-stopped
+    ports:
+      - 8845:8080
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@alerta-db:5432/monitoring
+    depends_on:
+      - alerta-db
+
+  alerta-db:
+    image: alerta-db
+    container_name: alerta-db
+    restart: unless-stopped
+    # ports:
+    #   - 5432:5432
+    environment:
+      POSTGRES_DB: monitoring
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
