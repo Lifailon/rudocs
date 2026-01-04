@@ -11,6 +11,10 @@ entryPoints:
     address: ":443"
     http:
       tls: {}
+    transport:
+      keepAliveMaxRequests: 0
+      respondingTimeouts:
+        idleTimeout: "30m"
   traefik:
     address: ":8080"
   metrics:
@@ -26,12 +30,12 @@ ping:
   terminatingStatusCode: 204
 
 # Jaeger
-tracing:
-  serviceName: traefik
-  otlp:
-    grpc:
-      endpoint: 192.168.3.101:4317
-      insecure: true
+# tracing:
+#   serviceName: traefik
+#   otlp:
+#     grpc:
+#       endpoint: 192.168.3.101:4317
+#       insecure: true
 
 # Prometheus
 metrics:
@@ -58,11 +62,10 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: true
-    # Default format for compose: <service_name>-<project_name>
+    # Default rule format for compose: <service_name>-<project_name>
     # defaultRule: "Host(`{{ .Name }}.docker.local`)"
     # Template format for index function: index <map> <key>
     defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .Name }}.docker.local`)"
-
   file:
     directory: /rules
     watch: true
