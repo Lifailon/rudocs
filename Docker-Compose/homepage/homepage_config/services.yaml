@@ -23,6 +23,9 @@
     - Killercoda Playground:
         icon: https://killercoda.com/favicon.ico
         href: https://killercoda.com/creator/scenarios/lazyjournal
+    # - KodeKloud Playground:
+    #     icon: kodekloud.png
+    #     href: https://kodekloud.com/public-playgrounds
     - Google Cloud Shell:
         icon: google.png
         href: https://shell.cloud.google.com
@@ -68,12 +71,15 @@
     - Alpine:
         icon: alpine-linux.png
         href: https://pkgs.alpinelinux.org/packages
-    - Homepage Widgets:
-        icon: homepage.png
-        href: https://gethomepage.dev/widgets
+    - Jenkins Plugins:
+        icon: jenkins.png
+        href: https://jenkins.io/doc/pipeline/steps 
     - Traefik Plugins:
         icon: traefik.png
         href: https://plugins.traefik.io/plugins
+    - Homepage Widgets:
+        icon: homepage.png
+        href: https://gethomepage.dev/widgets
     - Wox Pluggins:
         icon: http://wox.one/favicon.ico
         href: http://wox.one/u/7083
@@ -256,6 +262,19 @@
     - Hugging Face:
         icon: https://huggingface.co/favicon.ico
         href: https://huggingface.co/models
+    - Translators:
+        - Yandex:
+            icon: https://translate.yandex.ru/icons/favicon.ico
+            href: https://translate.yandex.ru
+        - Google:
+            icon: google-translate.png
+            href: https://translate.google.com/?sl=en&tl=ru
+        - DeepL:
+            icon: deepl.png
+            href: https://deepl.com/ru/translator
+        - Reverso:
+            icon: https://www.reverso.net/assets/images/favicon.ico
+            href: https://reverso.net
     - 💌 Mail 📮:
         - Gmail:
             icon: gmail.png
@@ -331,22 +350,15 @@
         - Kompose UI:
             icon: https://kompose.io/assets/favicons/favicon.ico
             href: https://composetokube.com
+        - K8YAML:
+            icon: kubernetes.png
+            href: https://k8syaml.com
+        - Kubernetes YAML Generator:
+            icon: https://8gwifi.org/favicon.ico
+            href: https://8gwifi.org/kube.jsp
         - Helm Playground:
             icon: https://helm-playground.com/favicon.png
             href: https://helm-playground.com
-    - DevOps:
-        - Jenkins Plugins:
-            icon: jenkins.png
-            href: https://jenkins.io/doc/pipeline/steps 
-        - Groovy Compiler:
-            icon: https://gwc-experiment.appspot.com/favicon.ico
-            href: https://onecompiler.com/groovy
-        # - Groovy Web Console:
-        #     icon: https://gwc-experiment.appspot.com/favicon.ico
-        #     href: https://gwc-experiment.appspot.com
-        # - Groovy IDE:
-        #     icon: https://groovy-lang.org/img/favicon.ico
-        #     href: https://groovyide.com/playground
 
 - 📚 Docs:
     - PowerShell Commands:
@@ -389,20 +401,7 @@
     #     href: https://overapi.com
     # - Bash Oneliner:
     #     href: https://onceupon.github.io/Bash-Oneliner
-    - Translators:
-        - Yandex:
-            icon: https://translate.yandex.ru/icons/favicon.ico
-            href: https://translate.yandex.ru
-        - Google:
-            icon: google-translate.png
-            href: https://translate.google.com/?sl=en&tl=ru
-        - DeepL:
-            icon: deepl.png
-            href: https://deepl.com/ru/translator
-        - Reverso:
-            icon: https://www.reverso.net/assets/images/favicon.ico
-            href: https://reverso.net
-    - Network:
+    - Network Tools:
         - Networking Toolbox:
             icon: https://raw.githubusercontent.com/Lissy93/networking-toolbox/refs/heads/main/static/icon.png
             href: https://networkingtoolbox.net
@@ -412,33 +411,36 @@
         - IP Check:
             icon: https://ipcheck.ing/favicon.svg
             href: https://ipcheck.ing
-        # - IP Info:
-        #     icon: https://ipinfo.io/favicon.ico
-        #     href: https://ipinfo.io/8.8.8.8
-        - Proxy Check:
-            icon: https://hide-my-name.com/favicon.ico
-            href: https://hide-my-name.com/proxy-checker
         - Check Host:
             icon: https://check-host.net/checkhost-favicon.png
             href: https://check-host.net
         - Zone Master:
-            icon: https://zonemaster.net/en/assets/favicon/zonemaster_32x32.png
-            href: https://zonemaster.net/en/run-test
+            icon: https://zonemaster.net/favicon/zonemaster_32x32.png
+            href: https://zonemaster.net/en
+        - Technitium DNS Client:
+            icon: https://dnsclient.net/favicon.ico
+            href: https://dnsclient.net
+        - MAC Address Lookup:
+            icon: https://maclookup.app/img/ico/favicon.ico
+            href: https://maclookup.app/search
+        - Proxy Check:
+            icon: https://hide-my-name.com/favicon.ico
+            href: https://hide-my-name.com/proxy-checker
         - Looking Glass:
             icon: https://looking.house/favicon.ico
             href: https://looking.house/looking-glass
-        - Ookla SpeedTest:
-            icon: https://www.speedtest.net/favicon.ico
-            href: https://speedtest.net
+        # - Ookla SpeedTest:
+        #     icon: https://www.speedtest.net/favicon.ico
+        #     href: https://speedtest.net
         - CloudFlare SpeedTest:
             icon: https://cloudflare.com/favicon.ico
             href: https://speed.cloudflare.com
-        # - Libre SpeedTest:
-        #     icon: https://librespeed.org/favicon.ico
-        #     href: https://librespeed.org
-        # - Open SpeedTest:
-        #     icon: https://open.cachefly.net/assets/images/icons/favicon.ico
-        #     href: https://openspeedtest.com
+        - Libre SpeedTest:
+            icon: https://librespeed.org/favicon.ico
+            href: https://librespeed.org
+        - Open SpeedTest:
+            icon: https://open.cachefly.net/assets/images/icons/favicon.ico
+            href: https://openspeedtest.com
     - API:
         - Restfox API Client:
             icon: https://restfox.dev/favicon.png
@@ -479,7 +481,10 @@
         - HTTP Headers:
             icon: https://static.modheader.com/favicons/favicon-96x96.png
             href: https://modheader.com/headers
-    - Apps:
+        # - CodAPI Curl playground:
+        #     icon: https://codapi.org/assets/favicon/favicon.ico
+        #     href: https://codapi.org/curl
+    - Web Apps:
         - KeePass Web:
             # icon: https://app.keeweb.info/icons/favicon-32x32.png
             icon: https://keepass.info/favicon.ico
@@ -531,6 +536,9 @@
     - JSON Crack:
         icon: https://github.com/AykutSarac/jsoncrack.com/raw/main/public/assets/192.png
         href: https://jsoncrack.com/editor
+    - QuickType (JSON to Code):
+        icon: https://app.quicktype.io/favicon.ico
+        href: https://app.quicktype.io
     - Markmap:
         icon: https://markmap.js.org/favicon.png
         href: https://markmap.js.org/repl
@@ -553,24 +561,33 @@
         icon: https://jinja.palletsprojects.com/en/stable/_static/jinja-icon.svg
         href: https://www.dainiak.com/jinja2-playground
         # href: https://huggingface.co/spaces/Xenova/jinja-playground
-    - GopherJS Playground:
-        icon: https://avatars.githubusercontent.com/u/6654647?s=200&v=4
-        href: https://gopherjs.github.io/playground
+    # - GopherJS Playground:
+    #     icon: https://avatars.githubusercontent.com/u/6654647?s=200&v=4
+    #     href: https://gopherjs.github.io/playground
     - TS Playground:
         icon: typescript.png
         href: https://typescriptlang.org/play
     - JS Playground:
         icon: https://jsplayground.dev/logo.svg
         href: https://jsplayground.dev
-    - Monakai Code Editor:
-        icon: https://monokai.vercel.app/code.webp
-        href: https://monokai.vercel.app
-    # - Monaco Editor Playground:
-    #     icon: monaco.png
-    #     href: https://microsoft.github.io/monaco-editor/playground.html
+    # - Monakai Code Editor:
+    #     icon: https://monokai.vercel.app/code.webp
+    #     href: https://monokai.vercel.app
+    - Groovy Compiler:
+        icon: https://gwc-experiment.appspot.com/favicon.ico
+        href: https://onecompiler.com/groovy
+    # - Groovy Web Console:
+    #     icon: https://gwc-experiment.appspot.com/favicon.ico
+    #     href: https://gwc-experiment.appspot.com
+    # - Groovy IDE:
+    #     icon: https://groovy-lang.org/img/favicon.ico
+    #     href: https://groovyide.com/playground
     - Vue SFC Playground:
         icon: https://play.vuejs.org/logo.svg
         href: https://play.vuejs.org
+    - PrimeVue Playground:
+        icon: https://primevue.org/favicon.ico
+        href: https://primevue.org/playground
     - Vue FormKit Playground:
         icon: https://formkit.com/favicon.ico
         href: https://formkit.com/playground?fkv=latest&fileTab=Playground.vue&css-framework=genesis
@@ -610,15 +627,46 @@
         - Photopea:
             icon: photopea.png
             href: https://photopea.com
+        - tldraw:
+            icon: https://www.tldraw.com/favicon.svg
+            href: https://tldraw.com
         - Squoosh:
             icon: https://squoosh.app/c/favicon-c9cf50ef.ico
             href: https://squoosh.app
         - Mazanoke:
             icon: https://mazanoke.com/assets/images/favicon-32x32.png
             href: https://mazanoke.com
-        - tldraw:
-            icon: https://www.tldraw.com/favicon.svg
-            href: https://tldraw.com
+        - Carbon:
+            icon: https://carbon.now.sh/favicon.ico
+            href: https://carbon.now.sh
+        - Supasnap:
+            icon: https://supasnap.com/images/favicons/favicon-32x32.png
+            href: https://supasnap.com/create
+        - PhotoRetrica:
+            icon: https://photoretrica.com/images/logo-2.svg
+            href: https://photoretrica.com/ru/round-corners
+        - I💙IMG:
+            icon: https://www.iloveimg.com/img/favicons-img/favicon-16x16.png
+            href: https://www.iloveimg.com/ru/compress-image
+        # - Sweet Home 3D:
+        #     icon: https://www.sweethome3d.com/images/icon.png
+        #     href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
+        - ASCII Generator:
+            icon: https://patorjk.com/candy.png
+            href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
+        - SVG Editor:
+            icon: https://raw.githubusercontent.com/SVG-Edit/svgedit/refs/heads/master/src/editor/images/logo.svg
+            # href: https://svgedit.netlify.app/editor/index.html
+            href: https://svgplayground.com
+        - SVGOMG:
+            icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
+            href: https://jakearchibald.github.io/svgomg
+        # - Boxy SVG:
+        #     icon: https://boxy-svg.com/icons/favicon.svg
+        #     href: https://boxy-svg.com
+        # - Favicon Generator:
+        #     icon: https://favicongenerator.io/favicon.svg
+        #     href: https://favicongenerator.io
         - Draw.io:
             icon: draw-io.png
             href: https://app.diagrams.net
@@ -633,26 +681,7 @@
             href: https://play.d2lang.com
         - PlantUML:
             icon: plantuml.png
-            href: https://app.diagrams.net
-        - Sweet Home 3D:
-            icon: https://www.sweethome3d.com/images/icon.png
-            href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
-        - ASCII Generator:
-            icon: https://patorjk.com/candy.png
-            href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
-        - Favicon Generator:
-            icon: https://favicongenerator.io/favicon.svg
-            href: https://favicongenerator.io
-        - SVG Editor:
-            icon: https://raw.githubusercontent.com/SVG-Edit/svgedit/refs/heads/master/src/editor/images/logo.svg
-            # href: https://svgedit.netlify.app/editor/index.html
-            href: https://svgplayground.com
-        - SVGOMG:
-            icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
-            href: https://jakearchibald.github.io/svgomg
-        # - Boxy SVG:
-        #     icon: https://boxy-svg.com/icons/favicon.svg
-        #     href: https://boxy-svg.com
+            href: https://www.plantuml.com/plantuml/uml
 
 - 🐧 Nodes:
     - node-01 (hv-us-101):
@@ -801,7 +830,7 @@
                 icon: dozzle.png
                 server: local
                 container: dozzle
-                href: http://192.168.3.101:9090
+                href: http://192.168.3.101:9999
             - beszel:
                 icon: beszel.png
                 server: local
@@ -915,11 +944,11 @@
                 icon: grafana.png
                 server: local
                 container: grafana
-                href: http://192.168.3.101:9091
+                href: http://192.168.3.101:9089
                 widget:
                   type: grafana
                   version: 1
-                  url: http://192.168.3.101:9091
+                  url: http://192.168.3.101:9089
                   username: admin
                   password: GrafanaAdmin
             - Loki:
@@ -942,15 +971,15 @@
                 icon: prometheus.png
                 server: local
                 container: prometheus
-                href: http://192.168.3.101:9092
+                href: http://192.168.3.101:9090
                 widget:
                   type: prometheus
-                  url: http://192.168.3.101:9092
+                  url: http://192.168.3.101:9090
             - Prometheus Metrics:
                 icon: prometheus.png
                 widget:
                   type: prometheusmetric
-                  url: http://192.168.3.101:9092
+                  url: http://192.168.3.101:9090
                   refreshInterval: 10000
                   metrics:
                     - label: node-01
