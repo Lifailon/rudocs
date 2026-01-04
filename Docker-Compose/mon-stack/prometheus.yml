@@ -154,6 +154,11 @@ scrape_configs:
   #   basic_auth:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 
+  # - job_name: github-exporter
+  #   static_configs:
+  #     - targets:
+  #         - github-exporter:9171
+
 ################################################### Speedtest ###################################################
 
   # - job_name: myspeed

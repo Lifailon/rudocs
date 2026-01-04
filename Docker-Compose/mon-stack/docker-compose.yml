@@ -6,14 +6,14 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    restart: unless-stopped
+    restart: always
     ports:
-      - 9091:3000
+      - 9089:3000
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin # grafana-cli admin reset-admin-password newpassword
       # - GF_DATABASE_TYPE=postgres
-      # - GF_DATABASE_HOST=postgres:5432
+      # - GF_DATABASE_HOST=grafana-db:5432
       # - GF_DATABASE_NAME=grafana
       # - GF_DATABASE_USER=grafana
       # - GF_DATABASE_PASSWORD=grafana
@@ -21,10 +21,10 @@ services:
     volumes:
       - ./grafana_data:/var/lib/grafana
 
-  # postgres:
+  # grafana-db:
   #   image: postgres:latest
-  #   container_name: postgres
-  #   restart: unless-stopped
+  #   container_name: grafana-db
+  #   restart: always
   #   environment:
   #     POSTGRES_DB: grafana
   #     POSTGRES_USER: grafana
@@ -34,25 +34,30 @@ services:
   #   ports:
   #     - 5432:5432
 
-  # База данных временных рядов для хранения метрик
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alert-rules.yml:/etc/prometheus/alert.yml
       - ./prometheus_data:/prometheus
     ports:
-      - 9092:9090
+      - 9090:9090
     # dns:
     #   - 192.168.3.101
 
-  # Система оповещений (например, в Telegram, поддерживает свой Web интерфейс)
+  # pushgateway:
+  #   image: prom/pushgateway:latest
+  #   container_name: pushgateway
+  #   restart: always
+  #   ports:
+  #     - 9091:9091
+
   alertmanager:
     image: prom/alertmanager
     container_name: alertmanager
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
@@ -62,30 +67,10 @@ services:
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
 
-  # Веб-конструктор для анализа и визуализации запросов PromQL (уже встроен в интерфейс Prometheus)
-  # promlens:
-  #   image: prom/promlens
-  #   container_name: promlens
-  #   restart: unless-stopped
-  #   ports:
-  #     - 9094:8080
-
-  # Автономный шлюз-экспорт для сбора метрик через API (выступает в роли listener для приема метрик из скриптов, как в InfluxDB)
-  # pushgateway:
-  #   image: prom/pushgateway:latest
-  #   container_name: pushgateway
-  #   restart: unless-stopped
-  #   ports:
-  #     - 9095:9091
-
-################################################### Metrics ###################################################
-
-  # Мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC для предоставления метрик в формате Prometheus (like Gatus).
-  # http://blackbox:9115/probe?target=https://google.com&module=http
   blackbox:
     image: prom/blackbox-exporter:latest
     container_name: blackbox
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
     ports:
@@ -93,19 +78,17 @@ services:
     command:
       - --config.file=/etc/blackbox_exporter/config.yml
 
-  # Агент для сбора системных метрик Linux
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
-    restart: unless-stopped
+    restart: always
     # ports:
     #   - 9100:9100
 
-  # Агент для сбора метрик запущенных процессов
   process-exporter:
     image: ncabatoff/process-exporter
     container_name: process-exporter
-    restart: unless-stopped
+    restart: always
     privileged: true
     volumes:
       - /proc:/host/proc
@@ -118,37 +101,45 @@ services:
       - -config.path
       - /conf.yml
 
-  # Агент для сбора метрик из контейнеров Docker от Google (поддерживает свой Web интерфейс для визуализации метрик)
+  # github-exporter:
+  #   image: githubexporter/github-exporter:latest
+  #   container_name: github-exporter
+  #   restart: always
+  #   environment:
+  #     - REPOS=Lifailon/PS-Commands,Lifailon/lazyjournal
+  #     - USERS=Lifailon
+  #     # - GITHUB_TOKEN=
+  #   # ports:
+  #   #   - 9171:9171
+  #   tty: true
+  #   stdin_open: true
+
   # cadvisor:
   #   image: gcr.io/cadvisor/cadvisor:latest
   #   container_name: cadvisor
-  #   restart: unless-stopped
+  #   restart: always
   #   volumes:
   #     - /:/rootfs:ro
   #     - /var/run:/var/run:rw
   #     - /sys:/sys:ro
   #     - /var/lib/docker/:/var/lib/docker:ro
-  #   ports:
-  #     - 8080:8080
+  #   # ports:
+  #   #   - 8080:8080
 
-  # Легковесный агент для сбора метрик из контейнеров Docker
   logporter:
     image: lifailon/logporter:latest
     container_name: logporter
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     # ports:
     #   - 9333:9333
 
-################################################### Logs ###################################################
-
-  # Система агрегации логов
   loki-server:
     image: grafana/loki:latest
     container_name: loki-server
-    restart: unless-stopped
-    user: "root"
+    restart: always
+    user: root
     volumes:
       - ./loki-server.yml:/etc/loki/loki-config.yaml
       - ./loki_data:/loki
@@ -156,11 +147,10 @@ services:
     ports:
       - 3100:3100
 
-  # Агент для сбора логов
   loki-promtail:
     image: grafana/promtail:latest
     container_name: loki-promtail
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
