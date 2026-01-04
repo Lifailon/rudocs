@@ -194,31 +194,6 @@ max_filesize = 50000000     # Max file size in bytes
 # output_folder = "/download"
 ```
 
-### SMTP to Telegram
-
-[SMTP to Telegram](https://github.com/KostyaEsmukov/smtp_to_telegram) - SMTP сервер (листенер) для переадресации сообщений в Telegram.
-
-```yaml
-services:
-  smtp2telegram:
-    image: kostyaesmukov/smtp_to_telegram
-    container_name: smtp2telegram
-    restart: unless-stopped
-    environment:
-      - ST_SMTP_LISTEN=0.0.0.0:2525
-      - ST_TELEGRAM_CHAT_IDS=
-      - ST_TELEGRAM_BOT_TOKEN=
-      - "ST_TELEGRAM_MESSAGE_TEMPLATE=Subject: {subject}\\\\n\\\\n{body}"
-    ports:
-      - 2525:2525
-
-# echo -e "Subject: Test\n\nThis is test body" | curl smtp://localhost:2525 \
-#   --mail-from admin@docker.local \
-#   --mail-rcpt admin@docker.local \
-#   --user admin:admin \
-#   -T -
-```
-
 ### RSS to Telegram Bot
 
 [RSS to Telegram Bot](https://github.com/BoKKeR/RSS-to-Telegram-Bot) - мониторит указанные RSS-ленты, добавленные через интерфейс Telegram и отправляет ссылки при обнаружение новых новостей.
@@ -284,6 +259,27 @@ services:
       - ./telegram_bot_api_data:/var/lib/telegram-bot-api
     ports:
       - 8081:8081
+```
+
+### Telegram Media Downloader
+
+[Telegram Media Downloader](https://github.com/tangyoha/telegram_media_downloader) - приложение для массовой загрузки медиафайлов из Telegram чатов и каналов, включая аудио, документы, фото и видео.
+
+```yaml
+services:
+  telegram-downloader:
+    image: tangyoha/telegram_media_downloader:latest
+    container_name: telegram-downloader
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    volumes:
+      - ./downloads:/app/downloads
+      - ./config.yaml:/app/config.yaml
+      - ./data.yaml:/app/data.yaml
+      - ./log/:/app/log/
+      - ./sessions/:/app/sessions
+      - ./temp/:/app/temp
 ```
 
 ## LLM Stack
@@ -748,41 +744,42 @@ services:
 
 ### NetAlertX
 
-[NetAlertX](https://github.com/jokob-sk/NetAlertX) - сканер присутствия и обнаружения в локальной или WiFi сети с отправкой уведомлений, например, в Telegram.
+[NetAlertX](https://github.com/jokob-sk/NetAlertX) - сканер присутствия (форк [Pi.Alert](https://github.com/leiweibau/Pi.Alert) для Docker) и обнаружения в локальной или WiFi сети с отправкой уведомлений (например, в Telegram через [Apprise](https://github.com/caronc/apprise)).
 
 ```yaml
 services:
+  # sudo mkdir -p ./netalertx_data/db ./netalertx_data/config
+  # sudo chown -R 20211:20211 ./netalertx_data
+  # sudo chmod -R 775 ./netalertx_data
+  # sudo rm -f ./netalertx_data/db/app.db
   netalertx:
-    image: ghcr.io/jokob-sk/netalertx:latest
+    image: jokobsk/netalertx:latest
     container_name: netalertx
     restart: unless-stopped
-    environment:
-      - PUID=200
-      - PGID=300
-      - TZ=Etc/GMT+3
-      - PORT=20211
+    read_only: true
+    mem_limit: 2048m
+    mem_reservation: 1024m
+    cpu_shares: 512
+    pids_limit: 512
+    user: 20211:20211
     network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN         # Требуется для сканирования ARP 
+      - NET_RAW           # Требуется для операций с необработанными сокетами
+      - NET_BIND_SERVICE  # Требуется для привязки к привилегированным портам (nbtscan)
     volumes:
-      - ./netalertx_config:/app/config
-      - ./netalertx_db:/app/db
+      - ./netalertx_data:/data
+      - /etc/localtime:/etc/localtime:ro
     tmpfs:
-      - /app/api
-```
-
-### Apprise
-
-[Apprise](https://github.com/caronc/apprise) - система для отправки уведомления более чем в 100+ служб, с поддержкой веб интерфейса для настройки конфигураций (используется в NetAlertX для отправки уведомлений в Telegram).
-
-```yaml
-services:
-  apprise:
-    image: caronc/apprise:latest
-    container_name: apprise
-    restart: unless-stopped
-    ports:
-      - 8000:8000
-    volumes:
-      - ./apprise_config:/config
+      - /tmp:uid=20211,gid=20211,mode=1700,rw,noexec,nosuid,nodev,async,noatime,nodiratime
+    environment:
+      - LISTEN_ADDR=0.0.0.0
+      - PORT=20211
+      - GRAPHQL_PORT=20212
+      - ALWAYS_FRESH_INSTALL=false
+      - NETALERTX_DEBUG=0
 ```
 
 ### IVRE
@@ -871,72 +868,67 @@ services:
       - 8083:8083
 ```
 
-### MailPit
+### Gotify
 
-[MailPit](https://github.com/axllent/mailpit) - SMTP-сервер для тестирования электронной почты, основанный на [MailHog](https://github.com/mailhog/MailHog) (который больше не поддерживается), с поддержкой веб-интерфейса (SMTP-клиент) для просмотра получаемх писем, а также API для автоматизированного тестирования и интеграции.
-
-🔗 [MailPit API Docs](https://mailpit.axllent.org/docs/api-v1/view.html#get-/api/v1/info) ↗
+[Gotify](https://github.com/gotify/server) - легковесный сервер для отправки и получения push-уведомлений в режиме реального времени, работающий через Веб-сокеты, который позволяет развернуть собственный сервис уведомлений, получая сообщения через API на мобильные приложения или в Веб-интерфейс. Поддерживает отправку сообщений через REST-API, Swagger документацию, управление пользователями и приложениями через WebUI и собственное Android приложение.
 
 ```yaml
 services:
-  mailpit:
-    image: axllent/mailpit
-    container_name: mailpit
+  gotify:
+    image: gotify/server
+    container_name: gotify
     restart: unless-stopped
-    volumes:
-      - ./mailpit_data:/data
-    environment:
-      - TZ=Etc/GMT+3
-      - MP_DATABASE=/data/mailpit.db
-      # - MP_UI_AUTH_FILE=/data/authfile
-      - MP_SMTP_AUTH_ACCEPT_ANY=1
-      - MP_SMTP_AUTH_ALLOW_INSECURE=1
     ports:
-      - 8125:8025
-      - 8225:1025
+      - 8844:80
+    environment:
+      GOTIFY_DEFAULTUSER_PASS: admin
+    volumes:
+      - ./gotify_data:/app/data
 ```
 
-### MailDev
+### Apprise
 
-[MailDev](https://github.com/maildev/maildev) - SMTP-сервер и веб-интерфейс для просмотра и тестирования почты во время разработки (например, используется для проверки содержимого письма при отправки оповещений, сброса пароля и т.п.).
+[Apprise](https://github.com/caronc/apprise) - система для отправки уведомления более чем в 100+ служб, с поддержкой веб интерфейса для настройки конфигураций (используется в [NetAlertX](https://github.com/jokob-sk/NetAlertX) для отправки уведомлений в Telegram).
 
 ```yaml
 services:
-  maildev:
-    image: maildev/maildev
-    container_name: maildev
+  apprise:
+    image: caronc/apprise:latest
+    container_name: apprise
     restart: unless-stopped
-    environment:
-      - TZ=Etc/GMT+3
-      - MAILDEV_WEB_PORT=1080
-      - MAILDEV_SMTP_PORT=1025
     ports:
-      - 8028:1080
-      - 8025:1025
+      - 8000:8000
+    volumes:
+      - ./apprise_config:/config
 ```
 
-### Happy Deliver
+### Alerta
 
-[Happy Deliver](https://github.com/happyDomain/happydeliver) - инструмент для тестирования доставки электронных писем, с анализом писем и оценкой `SPF`, `DKIM`, `DMARC`, `BIMI`, `ARC`, SpamAssassin, записи `DNS`, статус черного списка, качество контента и многое другое. Поддерживает полнофункциональный REST API для создания тестов и получения отчетов, встроенный сервер `LMTP` для бесшовной интеграции `MTA` и присвоения оценок (от `A` до `F`).
-
-🔗 [Happy Deliver Demo](https://happydeliver.org) ↗
+[Alerta](https://github.com/alerta/alerta) - инструмент, который озволяет с помощью одной системы отслеживать оповещения из множества других инструментов мониторинга на одном экране.
 
 ```yaml
 services:
-  happydeliver:
-    image: happydomain/happydeliver:latest
-    container_name: happydeliver
+  alerta-api:
+    image: ghcr.io/alerta/alerta-api
+    container_name: alerta
     restart: unless-stopped
-    hostname: happydeliver.docker.local
-    environment:
-      DOMAIN: docker.local
-      HOSTNAME: happydeliver.docker.local
-    volumes:
-      - ./happydeliver_data:/var/lib/happydeliver
-      - ./happydeliver_logs:/var/log/happydeliver
     ports:
-      - 8525:25
-      - 8580:8080
+      - 8845:8080
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@alerta-db:5432/monitoring
+    depends_on:
+      - alerta-db
+
+  alerta-db:
+    image: alerta-db
+    container_name: alerta-db
+    restart: unless-stopped
+    # ports:
+    #   - 5432:5432
+    environment:
+      POSTGRES_DB: monitoring
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 ```
 
 ### LibreSpeedTest
@@ -1138,6 +1130,135 @@ services:
       # - $HOME/docker/nextcloud/log:/remotelogs/nextcloud:ro
 ```
 
+## SMTP Stack
+
+### SMTP to Telegram
+
+[SMTP to Telegram](https://github.com/KostyaEsmukov/smtp_to_telegram) - SMTP сервер (листенер) для переадресации сообщений в Telegram.
+
+```yaml
+services:
+  smtp2telegram:
+    image: kostyaesmukov/smtp_to_telegram
+    container_name: smtp2telegram
+    restart: unless-stopped
+    environment:
+      - ST_SMTP_LISTEN=0.0.0.0:2525
+      - ST_TELEGRAM_CHAT_IDS=
+      - ST_TELEGRAM_BOT_TOKEN=
+      - "ST_TELEGRAM_MESSAGE_TEMPLATE=Subject: {subject}\\\\n\\\\n{body}"
+    ports:
+      - 2525:2525
+
+# echo -e "Subject: Test\n\nThis is test body" | curl smtp://localhost:2525 \
+#   --mail-from admin@docker.local \
+#   --mail-rcpt admin@docker.local \
+#   --user admin:admin \
+#   -T -
+```
+
+### Docker MailServer
+
+[Docker MailServer](https://github.com/docker-mailserver/docker-mailserver) - простой и готовый к продакшену контейнеризированный почтовый сервер в стеке из SMTP, IMAP, LDAP, анти-спам системы и антивируса. Настраивается с помощью одного конфигурационного файл, не требует SQL базы данных.
+
+```yaml
+services:
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    container_name: mailserver
+    restart: always
+    hostname: mail.docker.local
+    env_file: mailserver.env
+    ports:
+      - 25:25    # SMTP
+      - 143:143  # IMAP4
+      - 465:465  # ESMTP
+      - 587:587  # ESMTP
+      - 993:993  # IMAP4
+    volumes:
+      - ./docker-data/dms/mail-data/:/var/mail/
+      - ./docker-data/dms/mail-state/:/var/mail-state/
+      - ./docker-data/dms/mail-logs/:/var/log/mail/
+      - ./docker-data/dms/config/:/tmp/docker-mailserver/
+      - /etc/localtime:/etc/localtime:ro
+    stop_grace_period: 1m
+    # Uncomment if using `ENABLE_FAIL2BAN=1`:
+    # cap_add:
+    #   - NET_ADMIN
+    healthcheck:
+      test: "ss --listening --ipv4 --tcp | grep --silent ':smtp' || exit 1"
+      timeout: 3s
+      retries: 0
+```
+
+### MailPit
+
+[MailPit](https://github.com/axllent/mailpit) - SMTP-сервер для тестирования электронной почты, основанный на [MailHog](https://github.com/mailhog/MailHog) (который больше не поддерживается), с поддержкой веб-интерфейса (SMTP-клиент) для просмотра получаемх писем, а также API для автоматизированного тестирования и интеграции.
+
+🔗 [MailPit API Docs](https://mailpit.axllent.org/docs/api-v1/view.html#get-/api/v1/info) ↗
+
+```yaml
+services:
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - ./mailpit_data:/data
+    environment:
+      - TZ=Etc/GMT+3
+      - MP_DATABASE=/data/mailpit.db
+      # - MP_UI_AUTH_FILE=/data/authfile
+      - MP_SMTP_AUTH_ACCEPT_ANY=1
+      - MP_SMTP_AUTH_ALLOW_INSECURE=1
+    ports:
+      - 8125:8025
+      - 8225:1025
+```
+
+### MailDev
+
+[MailDev](https://github.com/maildev/maildev) - SMTP-сервер и веб-интерфейс для просмотра и тестирования почты во время разработки (например, используется для проверки содержимого письма при отправки оповещений, сброса пароля и т.п.).
+
+```yaml
+services:
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    restart: unless-stopped
+    environment:
+      - TZ=Etc/GMT+3
+      - MAILDEV_WEB_PORT=1080
+      - MAILDEV_SMTP_PORT=1025
+    ports:
+      - 8028:1080
+      - 8025:1025
+```
+
+### Happy Deliver
+
+[Happy Deliver](https://github.com/happyDomain/happydeliver) - инструмент для тестирования доставки электронных писем, с анализом писем и оценкой `SPF`, `DKIM`, `DMARC`, `BIMI`, `ARC`, SpamAssassin, записи `DNS`, статус черного списка, качество контента и многое другое. Поддерживает полнофункциональный REST API для создания тестов и получения отчетов, встроенный сервер `LMTP` для бесшовной интеграции `MTA` и присвоения оценок (от `A` до `F`).
+
+🔗 [Happy Deliver Demo](https://happydeliver.org) ↗
+
+```yaml
+services:
+  happydeliver:
+    image: happydomain/happydeliver:latest
+    container_name: happydeliver
+    restart: unless-stopped
+    hostname: happydeliver.docker.local
+    environment:
+      DOMAIN: docker.local
+      HOSTNAME: happydeliver.docker.local
+    volumes:
+      - ./happydeliver_data:/var/lib/happydeliver
+      - ./happydeliver_logs:/var/log/happydeliver
+    ports:
+      - 8525:25
+      - 8580:8080
+```
+
 ## Development Stack
 
 ### IT Tools
@@ -1237,6 +1358,44 @@ services:
 🔗 [Markmap Demo](https://markmap.js.org/repl) ↗
 
 🔗 [Markmap VSCode Extension](https://github.com/markmap/markmap-vscode)  ↗
+
+### Termix
+
+[Termix](https://github.com/Termix-SSH/Termix) - платформа для управления серверами с веб-интерфейсом. Поддерживает SSH-терминал с разделением экрана, управление SSH-туннелями, удалённый редактор файлов с подсветкой синтаксиса и мониторинг ресурсов сервера.
+
+```yaml
+services:
+  termix:
+    image: ghcr.io/lukegus/termix:latest
+    container_name: termix
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+    ports:
+      - 6988:8080
+    volumes:
+      - ./termix_data:/app/data
+```
+
+### kkTerminal
+
+[kkTerminal](https://github.com/zyyzyykk/kkTerminal) - веб-терминал для SSH-подключений с доступом к файлам и базовым мониторингом.
+
+```yaml
+services:
+  kkterminal:
+    image: zyyzyykk/kkterminal:latest
+    container_name: kkterminal
+    restart: unless-stopped
+    ports:
+      - 6989:3000
+    environment:
+      - BANNER=kkTerminal
+      - STORAGE=P5P1SIqVe6kaOxMX
+      - PASSWORD=admin
+    volumes:
+      - ./cloud_data:/cloud
+```
 
 ### NexTerm
 
@@ -1931,9 +2090,9 @@ services:
 #   --bootstrap-server localhost:9092
 ```
 
-### Kafka UI
+### Kafbat
 
-[Kafbat UI](https://github.com/kafbat/kafka-ui) - веб-интерфейс для мониторинга и управления кластерами Apache Kafka.
+[Kafbat/Kafka UI](https://github.com/kafbat/kafka-ui) - веб-интерфейс для мониторинга и управления кластерами Apache Kafka.
 
 ```yaml
 services:
@@ -1949,7 +2108,238 @@ services:
       - 4080:8080
 ```
 
+### Kafka UI
+
+[Kafka UI](https://github.com/provectus/kafka-ui) - веб-интерфейс для управления Apache Kafka.
+
+```yaml
+services:
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka0:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schemaregistry0:8085
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect0:8083
+      KAFKA_CLUSTERS_1_NAME: secondLocal
+      KAFKA_CLUSTERS_1_BOOTSTRAPSERVERS: kafka1:29092
+      KAFKA_CLUSTERS_1_METRICS_PORT: 9998
+      KAFKA_CLUSTERS_1_SCHEMAREGISTRY: http://schemaregistry1:8085
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    depends_on:
+      - kafka0
+      - kafka1
+      - schemaregistry0
+      - schemaregistry1
+      - kafka-connect0
+
+  kafka0:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka0
+    hostname: kafka0
+    restart: unless-stopped
+    ports:
+      - 9092:9092
+      - 9997:9997
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka0:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka0:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka0:29092,CONTROLLER://kafka0:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    volumes:
+      - ./scripts/update_run.sh:/tmp/update_run.sh
+    command: "bash -c 'if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/update_run.sh && /etc/confluent/docker/run ; fi'"
+
+  kafka1:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka1
+    hostname: kafka1
+    restart: unless-stopped
+    ports:
+      - 9093:9092
+      - 9998:9998
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka1:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9998
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9998
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka1:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka1:29092,CONTROLLER://kafka1:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    volumes:
+      - ./scripts/update_run.sh:/tmp/update_run.sh
+    command: "bash -c 'if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/update_run.sh && /etc/confluent/docker/run ; fi'"
+
+  schemaregistry0:
+    image: confluentinc/cp-schema-registry:7.2.1
+    ports:
+      - 8085:8085
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka0:29092
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry0
+      SCHEMA_REGISTRY_LISTENERS: http://schemaregistry0:8085
+      SCHEMA_REGISTRY_SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "http"
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+    depends_on:
+      - kafka0
+
+  schemaregistry1:
+    image: confluentinc/cp-schema-registry:7.2.1
+    ports:
+      - 18085:8085
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka1:29092
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry1
+      SCHEMA_REGISTRY_LISTENERS: http://schemaregistry1:8085
+      SCHEMA_REGISTRY_SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "http"
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+    depends_on:
+      - kafka1
+
+  kafka-connect0:
+    image: confluentinc/cp-kafka-connect:7.2.1
+    ports:
+      - 8083:8083
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka0:29092
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: _connect_configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: _connect_offset
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: _connect_status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schemaregistry0:8085
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schemaregistry0:8085
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect0
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+    depends_on:
+      - kafka0
+      - schemaregistry0
+
+  kafka-init-topics:
+    image: confluentinc/cp-kafka:7.2.1
+    volumes:
+       - ./data/message.json:/data/message.json
+    depends_on:
+      - kafka1
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+               cub kafka-ready -b kafka1:29092 1 30 && \
+               kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
+               kafka-topics --create --topic second.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
+               kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
+               kafka-console-producer --bootstrap-server kafka1:29092 -topic second.users < /data/message.json'"
+```
+
 ## Backup Stack
+
+### Restic
+
+[Restic](https://github.com/restic/restic) — это быстрая, эффективная и безопасная программа для резервного копирования, которая поддерживает хранение резервных копий на S3, SFTP, [REST Server](https://github.com/restic/rest-server), Rclone как backend и других хранилищах.
+
+### REST Server
+
+[REST Server](https://github.com/restic/rest-server) - HTTP-сервер, реализующий REST API бэкэнда для Restic, который предоставляет безопасный и эффективный способ удалённого резервного копирования данных с помощью клиента резервного копирования restic по адресу `rest: URL`.
+
+```yaml
+services:
+  rest-server:
+    image: restic/rest-server
+    container_name: rest-server
+    restart: always
+    ports:
+      - 2048:8000
+    volumes:
+      - ./backup_data:/data
+```
+
+### Zerobyte
+
+[Zerobyte](https://github.com/nicotsx/zerobyte) - инструмент автоматизации резервного копирования для хранения данных в нескольких хранилищах. Он создан на основе Restic и предоставляет современный веб-интерфейс для планирования, управления и мониторинга зашифрованного резервного копирования удаленного хранилища. Поддерживает источники данных (volumes) из локального хранилища, NFS, SMB и WebDAV, хранилища данных (repositories) в S3, SSH/SFTP, rcloud (40+ cloud providers) и отправку уведомлений в Telegram, Discord, Slack, [Pushover](https://pushover.net/api), [Gotify](https://github.com/gotify/server), а также по SMTP или через [Shoutrrr](https://github.com/containrrr/shoutrrr).
+
+```yaml
+services:
+  zerobyte:
+    image: ghcr.io/nicotsx/zerobyte:v0.19
+    container_name: zerobyte
+    restart: always
+    ports:
+      - 4096:4096
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+    environment:
+      - TZ=Etc/UTC+3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/lib/zerobyte:/var/lib/zerobyte
+      - /home/lifailon/docker/gitea/gitea_data:/backup_data/gitea
+```
+
+### Backrest
+
+[Backrest](https://github.com/garethgeorge/backrest) — это веб-интерфейс для резервного копирования, построенное на основе Restic.
+
+```yaml
+services:
+  backrest:
+    image: garethgeorge/backrest:latest
+    container_name: backrest
+    restart: unless-stopped
+    hostname: backrest
+    volumes:
+      - ./backrest/data:/data
+      - ./backrest/config:/config
+      - ./backrest/cache:/cache
+      - ./backrest/tmp:/tmp
+      - ./backrest/rclone:/root/.config/rclone  # Mount for rclone config (needed when using rclone remotes)
+      - /path/to/backup/data:/userdata          # Mount local paths to backup
+      - /path/to/local/repos:/repos             # Mount local repos (optional for remote storage)
+    environment:
+      - BACKREST_DATA=/data
+      - BACKREST_CONFIG=/config/config.json
+      - XDG_CACHE_HOME=/cache
+      - TMPDIR=/tmp
+      - TZ=Etc/UTC+3
+    ports:
+      - 9898:9898
+```
 
 ### Duplicati
 
@@ -2008,35 +2398,31 @@ services:
         - /home/lifailon/docker:/data:ro
 ```
 
-### Restic
+### Proxmox Backup Server
 
-[Restic](https://github.com/restic/restic) — это быстрая, эффективная и безопасная программа для резервного копирования, которая поддерживает хранение резервных копий на S3, SFTP, [REST Server](https://github.com/restic/rest-server), Rclone как backend и других хранилищах.
-
-[Backrest](https://github.com/garethgeorge/backrest) — это веб-интерфейс для резервного копирования, построенное на основе Restic.
+[PBS (Proxmox Backup Server)](https://github.com/ayufan/pve-backup-server-dockerfiles) - неофициальная сборка Proxmox Backup Server для запуска в контейнере на разных платформах.
 
 ```yaml
 services:
-  backrest:
-    image: garethgeorge/backrest:latest
-    container_name: backrest
+  proxmox-backup-server:
+    image: ayufan/proxmox-ve:latest
+    container_name: proxmox-backup-server
     restart: unless-stopped
-    hostname: backrest
-    volumes:
-      - ./backrest/data:/data
-      - ./backrest/config:/config
-      - ./backrest/cache:/cache
-      - ./backrest/tmp:/tmp
-      - ./backrest/rclone:/root/.config/rclone  # Mount for rclone config (needed when using rclone remotes)
-      - /path/to/backup/data:/userdata          # Mount local paths to backup
-      - /path/to/local/repos:/repos             # Mount local repos (optional for remote storage)
-    environment:
-      - BACKREST_DATA=/data
-      - BACKREST_CONFIG=/config/config.json
-      - XDG_CACHE_HOME=/cache
-      - TMPDIR=/tmp
-      - TZ=Etc/UTC+3
+    stop_signal: SIGHUP
     ports:
-      - 9898:9898
+      - 8007:8007
+    volumes:
+      - ./pbs_etc:/etc/proxmox-backup
+      - ./pbs_logs:/var/log/proxmox-backup
+      - ./pbs_lib:/var/lib/proxmox-backup
+    mem_limit: 2G
+    tmpfs:
+      - /run
+    # smartctl support
+    cap_add:
+      - SYS_RAWIO
+    devices:
+      - /dev/sda
 ```
 
 ## FS Stack
@@ -2449,6 +2835,32 @@ ADMIN_PASSWORD=admin
 HTTP_PORT=8080
 ```
 
+### localstack
+
+[Local Stack](https://github.com/localstack/localstack) - эмулятор облачных сервисов, работающий в одном контейнере на ноутбуке или в среде CI. Позволяет запускать свои приложения AWS или Lambda-функции полностью на локальном компьютере, не подключаясь к удаленному облачному провайдеру.
+
+```yaml
+services:
+  localstack:
+    image: localstack/localstack
+    # image: localstack/localstack-pro
+    container_name: localstack
+    restart: unless-stopped
+    ports:
+      - 4566:4566            # LocalStack Gateway
+      - 4510-4559:4510-4559  # external services port range
+      # - 443:443            # LocalStack HTTPS Gateway (Pro)
+    environment:
+      # Activate LocalStack Pro: https://docs.localstack.cloud/getting-started/auth-token/
+      # - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?}  # required for Pro
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=0
+      - PERSISTENCE=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack_data:/var/lib/localstack
+```
+
 ## DNS Stack
 
 ### Technitium DNS Server
@@ -2500,6 +2912,24 @@ services:
       # - 53443:53443/tcp   # Cluster
     # sysctls:
     #   - net.ipv4.ip_local_port_range=1024 65000
+```
+
+### DNS Client
+
+[DNS Client](https://github.com/TechnitiumSoftware/net.dnsclient) - веб-клиент, уже встроенный в DNS сервер, который позволяет отправлять запросы к любому DNS-серверу. Поддерживает проверку DNSSEC с использованием алгоритмов RSA, ECDSA и EdDSA для всех транспортных протоколов DNS, а также поддерживает протоколы DNS-over-HTTPS, DNS-over-TLS и DNS-over-QUIC.
+
+
+🔗 [DNS Client Demo](https://dnsclient.net) ↗
+
+```yaml
+services:
+  dns-client:
+    image: technitium/dns-client:latest
+    container_name: dns-client
+    restart: unless-stopped
+    hostname: dns-client
+    ports:
+      - 8001:8001/tcp
 ```
 
 ### Pi-hole
@@ -2786,6 +3216,10 @@ services:
       - 53/tcp
       - 8053:8080
 ```
+
+### ACME DNS
+
+[ACME DNS](https://github.com/joohoi/acme-dns) - DNS-сервер с RESTful HTTP API, предоставляющий простой способ автоматизации запросов DNS ACME.
 
 ## Proxy Stack
 
@@ -3270,6 +3704,27 @@ services:
       PASSWORD: "false"
     ports:
       - "8002:8002"
+```
+
+### NoDPI
+
+[NoDPI](https://github.com/GVCoder09/NoDPI/blob/main/README.ru.md) - утилита для обхода DPI (Deep Packet Inspection).
+
+```yaml
+# git clone https://github.com/GVCoder09/NoDPI
+# cd NoDPI
+# sudo docker build -t nodpi-proxy .
+
+services:
+  nodpi-proxy:
+    image: nodpi-proxy
+    container_name: nodpi
+    restart: unless-stopped
+    ports:
+      - 8881:8881
+    volumes:
+      - ./blacklist.txt:/tmp/nodpi/blacklist.txt
+    command: --host 127.0.0.1 --port 8881 --blacklist /tmp/nodpi/blacklist.txt --quiet
 ```
 
 ## VRRP
@@ -4065,6 +4520,54 @@ services:
       AGENT_NAME: "rpi-106"
 ```
 
+### Arcan
+
+[Arcane](https://github.com/getarcaneapp/arcane) - интерфейс WebUI для управления контейнерами Docker, образами, сетями и томами. Для установки можно использовать [генератор compose](https://getarcane.app/generator) для настройки подключения БД PostgreSQL и OIDC Authentication.
+
+```yaml
+# Username: arcane
+# Password: arcane-admin
+
+services:
+  arcane:
+    image: ghcr.io/getarcaneapp/arcane:latest
+    container_name: arcane
+    restart: unless-stopped
+    ports:
+      - 3552:3552
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./arcane_data:/app/data
+    environment:
+      - APP_URL=http://localhost:3552
+      - PUID=1000
+      - PGID=1000
+      - ENCRYPTION_KEY=37b916203568c0dfe4580bf6f562b81ff95e7c8235a63812b535970ec8c2e9f3
+      - JWT_SECRET=b39de98d51a4e53a5a83731b6c10aea4772419cbf869a74152f997a6de23ba5c
+      - LOG_LEVEL=info
+      - LOG_JSON=false
+      - OIDC_ENABLED=false
+  #     - POSTGRES_DB=arcane
+  #     - POSTGRES_USER=arcane
+  #     - POSTGRES_PASSWORD=arcane
+  #     - DATABASE_URL=postgresql://arcane:arcane@arcane-postgres:5432/arcane
+  #   depends_on:
+  #     - postgres
+
+  # arcane-postgres:
+  #   image: postgres:17-alpine
+  #   container_name: arcane-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_DB=arcane
+  #     - POSTGRES_USER=arcane
+  #     - POSTGRES_PASSWORD=arcane
+  #   volumes:
+  #     - ./postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - 5432:5432
+```
+
 ### DweebUI
 
 [DweebUI](https://github.com/lllllllillllllillll/DweebUI) - веб-интерфейс для мониторинга ресурсов и управления контейнерамм, образами, томами и сетями, а также имеет встроенный магазин приложений (не работают логи и нет доступа к терминалу).
@@ -4206,7 +4709,7 @@ services:
       # Подключиться к удаленному хосту через Dozzle Agent
       # - DOZZLE_REMOTE_AGENT=192.168.3.105:7007,192.168.3.106:7007
     ports:
-      - 9090:8080
+      - 9999:8080
 
   # dozzle-agent:
   #   image: amir20/dozzle:latest
@@ -4292,6 +4795,30 @@ services:
       - LISTEN=45876
     # ports:
     #   - 45876:45876
+```
+
+### DockMon
+
+[DockMon](https://github.com/darthnorse/dockmon) - платформа для мониторинга и управления Docker-контейнерами, которая поддерживает многохостный мониторинг и предлагает настраиваемый дашборд с WebSocket-обновлениями. Ключевые возможности включают статистику CPU, памяти, сети, просмотр логов, полный журнал событий, систему авто-рестарта и оповещения через различные платформы. 
+
+```yaml
+services:
+  dockmon:
+    image: darthnorse/dockmon:latest
+    container_name: dockmon
+    restart: always
+    ports:
+      - 8008:443
+    environment:
+      - TZ=Etc/GMT+3
+    volumes:
+      - ./dockmon_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:443/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 ```
 
 ### Docker Socket Proxy
@@ -5230,6 +5757,47 @@ services:
   #     - 27017:27017
 ```
 
+### n8n
+
+[n8n](https://github.com/n8n-io/n8n) - платформа автоматизации рабочих процессов с встроенными возможностями ИИ. Сочетание визуального создания кода с пользовательским кодом и более 400 интеграций.
+
+```yaml
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: always
+    ports:
+      - 5678:5678
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.n8n.rule=Host(`n8n.docker.local`)
+      - traefik.http.routers.n8n.tls=true
+      - traefik.http.routers.n8n.entrypoints=web,websecure
+      - traefik.http.routers.n8n.tls.certresolver=mytlschallenge
+      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
+      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
+      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
+      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
+      - traefik.http.middlewares.n8n.headers.SSLHost=docker.local
+      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.n8n.headers.STSPreload=true
+      - traefik.http.routers.n8n.middlewares=n8n@docker
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_HOST=n8n.docker.local
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_RUNNERS_ENABLED=true
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.docker.local/
+      - GENERIC_TIMEZONE=Etc/UTC+3
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+      - ./n8n_files:/files
+```
+
 ## Vault Stack
 
 ### HashiCorp Vault
@@ -5555,14 +6123,14 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    restart: unless-stopped
+    restart: always
     ports:
-      - 9091:3000
+      - 9089:3000
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin # grafana-cli admin reset-admin-password newpassword
       # - GF_DATABASE_TYPE=postgres
-      # - GF_DATABASE_HOST=postgres:5432
+      # - GF_DATABASE_HOST=grafana-db:5432
       # - GF_DATABASE_NAME=grafana
       # - GF_DATABASE_USER=grafana
       # - GF_DATABASE_PASSWORD=grafana
@@ -5570,10 +6138,10 @@ services:
     volumes:
       - ./grafana_data:/var/lib/grafana
 
-  # postgres:
+  # grafana-db:
   #   image: postgres:latest
-  #   container_name: postgres
-  #   restart: unless-stopped
+  #   container_name: grafana-db
+  #   restart: always
   #   environment:
   #     POSTGRES_DB: grafana
   #     POSTGRES_USER: grafana
@@ -5600,31 +6168,41 @@ services:
 
 [Process Exporter](https://github.com/ncabatoff/process-exporter) - экспортер Prometheus для сбора метрик запущенных процессов.
 
+[github-exporter](https://github.com/githubexporter/github-exporter) - предоставляет базовые метрики для репозиториев из API GitHub через совместимую с Prometheus конечную точку.
+
 [cAdvisor](https://github.com/google/cadvisor) (Container Advisor) - экспортер метрик для всех запущенных контейнеров Docker с собственным веб-интерфейсом от Google.
 
 [LogPorter](https://github.com/Lifailon/logporter) - простая и легковесная альтернатива cAdvisor для получения всех основных метрик из контейнеров Docker.
 
 ```yaml
 # mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
+# mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
 
 services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alert-rules.yml:/etc/prometheus/alert.yml
       - ./prometheus_data:/prometheus
     ports:
-      - 9092:9090
+      - 9090:9090
     # dns:
     #   - 192.168.3.101
+
+  # pushgateway:
+  #   image: prom/pushgateway:latest
+  #   container_name: pushgateway
+  #   restart: always
+  #   ports:
+  #     - 9091:9091
 
   alertmanager:
     image: prom/alertmanager
     container_name: alertmanager
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
       # Custom template
@@ -5634,25 +6212,10 @@ services:
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
 
-  # promlens:
-  #   image: prom/promlens
-  #   container_name: promlens
-  #   restart: unless-stopped
-  #   ports:
-  #     - 9094:8080
-
-  # pushgateway:
-  #   image: prom/pushgateway:latest
-  #   container_name: pushgateway
-  #   restart: unless-stopped
-  #   ports:
-  #     - 9095:9091
-
-  # http://blackbox:9115/probe?target=https://google.com&module=http
   blackbox:
     image: prom/blackbox-exporter:latest
     container_name: blackbox
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
     ports:
@@ -5660,38 +6223,17 @@ services:
     command:
       - --config.file=/etc/blackbox_exporter/config.yml
 
-  # cadvisor:
-  #   image: gcr.io/cadvisor/cadvisor:latest
-  #   container_name: cadvisor
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /:/rootfs:ro
-  #     - /var/run:/var/run:rw
-  #     - /sys:/sys:ro
-  #     - /var/lib/docker/:/var/lib/docker:ro
-  #   ports:
-  #     - 8080:8080
-
-  logporter:
-    image: lifailon/logporter:latest
-    container_name: logporter
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    # ports:
-    #   - 9333:9333
-
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
-    restart: unless-stopped
+    restart: always
     # ports:
     #   - 9100:9100
 
   process-exporter:
     image: ncabatoff/process-exporter
     container_name: process-exporter
-    restart: unless-stopped
+    restart: always
     privileged: true
     volumes:
       - /proc:/host/proc
@@ -5703,6 +6245,40 @@ services:
       - /host/proc
       - -config.path
       - /conf.yml
+
+  github-exporter:
+    image: githubexporter/github-exporter:latest
+    container_name: github-exporter
+    restart: always
+    environment:
+      - REPOS=Lifailon/PS-Commands,Lifailon/lazyjournal
+      - USERS=Lifailon
+      # - GITHUB_TOKEN=
+    # ports:
+    #   - 9171:9171
+    tty: true
+    stdin_open: true
+
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:latest
+  #   container_name: cadvisor
+  #   restart: always
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #   # ports:
+  #   #   - 8080:8080
+
+  logporter:
+    image: lifailon/logporter:latest
+    container_name: logporter
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # ports:
+    #   - 9333:9333
 ```
 
 ### Loki
@@ -5713,12 +6289,11 @@ services:
 # mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
 
 services:
-  # Система агрегации логов
   loki-server:
     image: grafana/loki:latest
     container_name: loki-server
-    restart: unless-stopped
-    user: "root"
+    restart: always
+    user: root
     volumes:
       - ./loki-server.yml:/etc/loki/loki-config.yaml
       - ./loki_data:/loki
@@ -5726,11 +6301,10 @@ services:
     ports:
       - 3100:3100
 
-  # Агент для сбора логов
   loki-promtail:
     image: grafana/promtail:latest
     container_name: loki-promtail
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -6396,6 +6970,86 @@ services:
       - /var/log:/var/log:ro
 ```
 
+### PatchMon
+
+[PatchMon](https://github.com/PatchMon/PatchMon) - централизованное управление обновлениями в различных серверных средах. Агенты обмениваются данными с сервером PatchMon только по исходящим каналам, исключая входящие порты на контролируемых хостах, обеспечивая при этом всестороннюю видимость и безопасную автоматизацию.
+
+```yaml
+services:
+  patchmon:
+    image: ghcr.io/patchmon/patchmon-backend:latest
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://patchmon_user:patchmon_pass@patchmon-db:5432/patchmon_db
+      JWT_SECRET: # CREATE A STRONG SECRET AND PUT IT HERE
+      SERVER_PROTOCOL: http
+      SERVER_HOST: localhost
+      SERVER_PORT: 3000
+      CORS_ORIGIN: http://localhost:3000
+      # Database Connection Pool Configuration (Prisma)
+      DB_CONNECTION_LIMIT: 30
+      DB_POOL_TIMEOUT: 20
+      DB_CONNECT_TIMEOUT: 10
+      DB_IDLE_TIMEOUT: 300
+      DB_MAX_LIFETIME: 1800
+      # Rate Limiting (times in milliseconds)
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 5000
+      AUTH_RATE_LIMIT_WINDOW_MS: 600000
+      AUTH_RATE_LIMIT_MAX: 500
+      AGENT_RATE_LIMIT_WINDOW_MS: 60000
+      AGENT_RATE_LIMIT_MAX: 1000
+      # Redis Configuration
+      REDIS_HOST: patchmon-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_pass
+      REDIS_DB: 0
+    volumes:
+      - ./agent_files:/app/agents
+    depends_on:
+      patchmon-db:
+        condition: service_healthy
+      patchmon-redis:
+        condition: service_healthy
+
+  frontend:
+    image: ghcr.io/patchmon/patchmon-frontend:latest
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  patchmon-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: patchmon_db
+      POSTGRES_USER: patchmon_user
+      POSTGRES_PASSWORD: patchmon_pass
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U patchmon_user -d patchmon_db"]
+      interval: 3s
+      timeout: 5s
+      retries: 7
+
+  patchmon-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass redis_pass
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "redis_pass", "ping"]
+      interval: 3s
+      timeout: 5s
+      retries: 7
+```
+
 ### Scrutiny
 
 [Scrutiny](https://github.com/AnalogJ/scrutiny) - решение для мониторинга и управления состоянием жесткого диска, объединяющее предоставленные производителем показатели SMART с реальными показателями отказов. Встроенная интеграция со `smartd`, автоматическое определение всех подключенных жестких дисков и настройка уведомлений через web-hook.
@@ -6420,6 +7074,24 @@ services:
       # - /dev/mmcblk0
       # - /dev/mmcblk0p1
       # - /dev/mmcblk0p2
+```
+
+### QDirStat
+
+[QDirStat](https://github.com/shundhammer/qdirstat) - графическое приложение для анализа дискового пространства в стиле [WizTree](https://diskanalyzer.com) и [SpaceSniffer](https://sourceforge.net/projects/spacesniffer), которое предоставляет визуализацию размера папок и файлов в древовидном и цветном формате.
+
+
+```yaml
+services:
+  qdirstat:
+    image: jlesage/qdirstat
+    container_name: qdirstat
+    restart: unless-stopped
+    ports:
+      - 5800:5800
+    volumes:
+      - ./qdirstat_conf:/config:rw
+      - ./qdirstat_data:/storage:ro
 ```
 
 ## Homelab Stack
@@ -6518,6 +7190,42 @@ services:
       - 9111:8080
 ```
 
+### Linkwarden
+
+[Linkwarden](https://github.com/linkwarden/linkwarden) - самостоятельный менеджер закладок с открытым исходным кодом для совместной работы, позволяющий собирать, читать, комментировать и полностью сохранять все важное в одном месте.
+
+```yaml
+services:
+  linkwarden-db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=linkwarden
+      - POSTGRES_USER=linkwarden
+      - POSTGRES_PASSWORD=linkwarden
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+
+  linkwarden:
+    image: ghcr.io/linkwarden/linkwarden:latest
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://linkwarden:linkwarden@linkwarden-db:5432/linkwarden
+    ports:
+      - 3000:3000
+    volumes:
+      - ./linkwarden_data:/data/data
+    depends_on:
+      - linkwarden-db
+      - meilisearch
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12.8
+    restart: always
+    volumes:
+      - ./meili_data:/meili_data
+```
+
 ### Dashy
 
 [Dashy](https://github.com/Lissy93/dashy) - панель управления, которая поддерживает мониторинг статуса, виджеты для отображения информации и динамического контента из собственных сервисов, темы, наборы значков, редактор пользовательского интерфейса, SSO, конфигурация на основе одного yaml файла, а также возможность настройки через веб-интерфейс
@@ -6588,6 +7296,24 @@ services:
 #     file: ./flame_password
 
 # echo "FlamePassword" > ./flame_password
+```
+
+### ThinkDashboard
+
+[ThinkDashboard](https://github.com/MatiasDesuu/ThinkDashboard) - легковесная, размещаемая на собственном сервере панель закладок, созданная на Go и чистом JavaScript.
+
+```yaml
+services:
+  thinkdashboard:
+    image: ghcr.io/matiasdesuu/thinkdashboard:latest
+    container_name: thinkdashboard
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+    ports:
+      - 8080:8080
+    volumes:
+      - ./thinkdashboard_data:/app/data
 ```
 
 ### It's MyTabs
@@ -7195,6 +7921,50 @@ ALLOWPLUGINS=false
 LOCALSESSIONRECORDING=false
 MINIFY=true
 ARGS=
+```
+
+### EternalVows
+
+[EternalVows](https://github.com/jacoknapp/EternalVows) - легковесный шаблон свадебного сайта для самостоятельного размещений. Позволяет настроить имена, дату, место проведения, историю, расписание, детали площадки (с картой), ссылки на подарочные реестры, часто задаваемые вопросы и опциональные ссылки для обмена фотографиями через YAML файл без необходимости пересборки.
+
+```yaml
+services:
+  eternalvows:
+    image: ghcr.io/jacoknapp/eternalvows:latest
+    container_name: eternalvows
+    restart: unless-stopped
+    environment:
+      - PORT=5500
+    ports:
+      - 5500:5500
+    volumes:
+      - ./config:/app/config
+```
+
+### Windows
+
+[Windows](https://github.com/dockur/windows) внутри контейнера Docker.
+
+```yaml
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows
+    restart: always
+    environment:
+      VERSION: 11
+    ports:
+      - 8006:8006
+      - 3389:3389/tcp
+      - 3389:3389/udp
+    volumes:
+      - ./windows:/storage
+    stop_grace_period: 2m
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
 ```
 
 ## Kanban
@@ -8032,6 +8802,31 @@ services:
       - 9696:9696
 ```
 
+### Posterizarr
+
+[Posterizarr](https://github.com/fscorrupt/posterizarr) - автоматизированный конструктор постеров для Plex и Jellyfin/Emby. Это PowerShell скрипт с полноценным веб-интерфейсом, который автоматизирует генерацию изображений для вашей медиатеки. Он загружает обложки с Fanart.tv, TMDB, TVDB, Plex и IMDb, уделяя особое внимание изображениям без текста и применяя ваши собственные пользовательские наложения и текст.
+
+```yaml
+services:
+  posterizarr:
+    image: ghcr.io/fscorrupt/posterizarr:latest
+    container_name: posterizarr
+    hostname: posterizarr
+    restart: unless-stopped
+    environment:
+      - TZ=Etc/UTC+3
+      - TERM=xterm
+      - RUN_TIME=disabled
+    user: 1000:1000
+    ports:
+      - 8000:8000
+    volumes:
+      - ./posterizarr/config:/config
+      - ./posterizarr/assets:/assets
+      - ./posterizarr/assetsbackup:/assetsbackup
+      - ./posterizarr/manualassets:/manualassets
+```
+
 ## Game Stack
 
 ### Sunshine
@@ -8125,6 +8920,22 @@ services:
       - 3001:3001
       - 3002:3000
     shm_size: 1gb
+```
+
+### RetroAssembly
+
+[RetroAssembly](https://github.com/arianrhodsandlot/retroassembly) - библиотека ретро-игры в браузере, с поддержку виртуального контроллера.
+
+```yaml
+services:
+  retroassembly:
+    image: arianrhodsandlot/retroassembly
+    container_name: retroassembly
+    restart: unless-stopped
+    volumes:
+      - ./game_data:/app/data # ROMs and save states
+    ports:
+      - 8000:8000
 ```
 
 ### Emulator.js
