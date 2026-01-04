@@ -102,6 +102,7 @@
   - [API](#api)
   - [Plugins](#plugins)
   - [Credentials](#credentials)
+  - [configFile](#configfile)
   - [SSH Agent](#ssh-agent)
   - [SSH Steps and Artifacts](#ssh-steps-and-artifacts)
   - [Upload File Parameter](#upload-file-parameter)
@@ -572,16 +573,21 @@ networks:
 
 ### Remove
 
-`systemctl stop docker.service` \
-`systemctl stop docker.socket` \
-`pkill -f docker` \
-`pkill -f containerd` \
-`apt purge docker.io -y || dpkg --purge docker.io` \
-`dpkg -l | grep docker` \
-`rm -rf /var/lib/docker` \
-`rm -rf /run/docker` \
-`rm -rf /run/docker.sock`
+`docker image prune -a` удалить все образы, которые не используются хотя бы одним контейнером \
+`docker images -q | xargs docker rmi` удалить все образы
 
+Удаление системы контейнеризации:
+```yaml
+systemctl stop docker.service
+systemctl stop docker.socket
+pkill -f docker
+pkill -f containerd
+apt purge docker.io -y || dpkg --purge docker.io
+dpkg -l | grep docker
+rm -rf /var/lib/docker
+rm -rf /run/docker
+rm -rf /run/docker.sock
+```
 ### Diff
 
 `docker diff <container_id_or_name>` отображает изменения, внесённые в файловую систему контейнера по сравнению с исходным образом
@@ -3234,6 +3240,22 @@ withCredentials([file(
 )]) {
   sh 'gcloud auth activate-service-account --key-file="$KEYFILE"'
 }
+```
+
+### configFile
+
+Загрузка конфигурации из Jenkins:
+
+```Groovy
+configFileProvider([configFile(
+    fileId: 'dev-config',
+    variable: 'DEV_CONFIG'
+)]) {
+    sh "cp ${DEV_CONFIG} devsecops-config.yml"
+}
+def config = readYaml(
+    file: 'dev-config.yml'
+)
 ```
 
 ### SSH Agent
