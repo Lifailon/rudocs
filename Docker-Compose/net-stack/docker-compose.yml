@@ -1,4 +1,71 @@
 services:
+  # sudo mkdir -p ./netalertx_data/db ./netalertx_data/config
+  # sudo chown -R 20211:20211 ./netalertx_data
+  # sudo chmod -R 775 ./netalertx_data
+  # sudo rm -f ./netalertx_data/db/app.db
+  netalertx:
+    image: jokobsk/netalertx:latest
+    container_name: netalertx
+    restart: unless-stopped
+    read_only: true
+    mem_limit: 2048m
+    mem_reservation: 1024m
+    cpu_shares: 512
+    pids_limit: 512
+    user: 20211:20211
+    network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN         # Требуется для сканирования ARP 
+      - NET_RAW           # Требуется для операций с необработанными сокетами
+      - NET_BIND_SERVICE  # Требуется для привязки к привилегированным портам (nbtscan)
+    volumes:
+      - ./netalertx_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    tmpfs:
+      - /tmp:uid=20211,gid=20211,mode=1700,rw,noexec,nosuid,nodev,async,noatime,nodiratime
+    environment:
+      - LISTEN_ADDR=0.0.0.0
+      - PORT=20211
+      - GRAPHQL_PORT=20212
+      - ALWAYS_FRESH_INSTALL=false
+      - NETALERTX_DEBUG=0
+
+  # Web Dashbord for nmap XML reports
+  # nmap -sT -A -T4 -oX ./nmap_reports/network.xml 192.168.3.0/24
+  webmap:
+    image: reborntc/webmap:latest
+    container_name: webmap
+    restart: unless-stopped
+    ports:
+      - 7005:8000
+    volumes:
+      - ./nmap_reports:/opt/xml
+
+  # Network Traffic Monitoring
+  ntopng:
+    image: ntop/ntopng:latest
+    container_name: ntopng
+    restart: unless-stopped
+    volumes:
+      - ./ntopng_data:/var/lib/ntopng
+    # command: --community -d /var/lib/ntopng -i eth0 -r ntopng-redis:6379@0 -w 0.0.0.0:3080
+    command: --community -d /var/lib/ntopng -i eth0 -r localhost:6379@0 -w 0.0.0.0:3080
+    network_mode: host
+    # ports:
+    #   - 3080:3080
+
+  ntopng-redis:
+    image: redis:alpine
+    restart: unless-stopped
+    container_name: ntopng-redis
+    volumes:
+      - ./ntopng_redis:/data
+    command: --save 900 1
+    ports:
+      - 6379:6379
+
   # 100+ offline-first networking tools and utilities
   networking-toolbox:
     image: lissy93/networking-toolbox:latest
@@ -34,67 +101,6 @@ services:
     tty: true
     ports:
       - 3102:18966
-
-  # Network Traffic Monitoring
-  ntopng:
-    image: ntop/ntopng:latest
-    container_name: ntopng
-    restart: unless-stopped
-    volumes:
-      - ./ntopng_data:/var/lib/ntopng
-    # command: --community -d /var/lib/ntopng -i eth0 -r ntopng-redis:6379@0 -w 0.0.0.0:3080
-    command: --community -d /var/lib/ntopng -i eth0 -r localhost:6379@0 -w 0.0.0.0:3080
-    network_mode: host
-    # ports:
-    #   - 3080:3080
-
-  ntopng-redis:
-    image: redis:alpine
-    restart: unless-stopped
-    container_name: ntopng-redis
-    volumes:
-      - ./ntopng_redis:/data
-    command: --save 900 1
-    ports:
-      - 6379:6379
-
-  # Network scaner and alerts
-  netalertx:
-    image: ghcr.io/jokob-sk/netalertx:latest
-    container_name: netalertx
-    restart: unless-stopped
-    environment:
-      - PUID=200
-      - PGID=300
-      - TZ=Etc/GMT+3
-      - PORT=20211
-    network_mode: host
-    volumes:
-      - ./netalertx_config:/app/config
-      - ./netalertx_db:/app/db
-    tmpfs:
-      - /app/api
-
-  # Notifications Manager
-  apprise:
-    image: caronc/apprise:latest
-    container_name: apprise
-    restart: unless-stopped
-    ports:
-      - 8000:8000
-    volumes:
-      - ./apprise_config:/config
-
-  # Web Dashbord for nmap XML reports
-  # nmap -sT -A -T4 -oX ./nmap_reports/network.xml 192.168.3.0/24
-  webmap:
-    image: reborntc/webmap:latest
-    container_name: webmap
-    restart: unless-stopped
-    ports:
-      - 7005:8000
-    volumes:
-      - ./nmap_reports:/opt/xml
 
   # RTSP Client
   rtsptoweb:
