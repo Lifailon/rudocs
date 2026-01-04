@@ -2,7 +2,7 @@
     <a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="../Logo/compose-stacks.png"></a>
 </p>
 
-Коллекция стеков Docker Compose из более чем 250 сервисов. Каждое приложение было проверено и отлажено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose).
+Коллекция стеков Docker Compose из более чем 300 сервисов. Каждое приложение было проверено и отлажено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose).
 
 ---
 
