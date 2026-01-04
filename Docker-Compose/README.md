@@ -2453,6 +2453,75 @@ services:
       -p
 ```
 
+### SFTPGo
+
+[SFTPGo](https://github.com/drakkan/sftpgo) - SFTP, HTTP/S, FTP/S и WebDAV сервер, с поддержкой хранилища в локальной файловой системе, объектно-совместимом S3 хранилище, Google Cloud Storage, Azure Blob Storage или других SFTP-серверах.
+
+```yaml
+services:
+  sftpgo:
+    image: drakkan/sftpgo:edge
+    container_name: sftpgo
+    restart: unless-stopped
+    ports:
+      - 2022:2022
+      - 8088:8080
+```
+
+### Syncthing
+
+[Syncthing](https://github.com/syncthing/syncthing) - программа для непрерывной синхронизации файлов между двумя или более компьютерами. Работает на основе Block Exchange Protocol (BEP) для обмена данными, который использует TLS-шифрование для безопасной передачи данных по протоколу TCP.
+
+```yaml
+services:
+  file-syncthing:
+    image: syncthing/syncthing
+    container_name: file-syncthing
+    restart: unless-stopped
+    network_mode: host
+    # ports:
+    #   - 8384:8384         # Web UI
+    #   - 22000:22000/tcp   # TCP file transfers
+    #   - 22000:22000/udp   # QUIC file transfers
+    #   - 21027:21027/udp   # Receive local discovery broadcasts
+    environment:
+      - PUID=0
+      - PGID=0
+    volumes:
+      - ./syncthing_data:/var/syncthing   # configs
+      - $HOME/docker:/sync_data           # src sync data on server
+      # - ./backup:/sync_data             # dst sync data on client (mkdir backup && chown -R 1000:1000 backup)
+    healthcheck:
+      test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+```
+
+### h5ai
+
+[h5ai](https://github.com/lrsjng/h5ai) - современный интерфейс веб-сервера для файлового индексера. Визуально напоминается FTP сервер для удобного отображения и загрузки (например, его использует [Libretro/RetroArch](https://buildbot.libretro.com) для публикации релизов).
+
+```yaml
+services:
+  h5ai:
+    image: awesometic/h5ai
+    container_name: h5ai
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - HTPASSWD=false
+      - HTPASSWD_USER=admin
+      - HTPASSWD_PW=admin
+    volumes:
+      - $HOME/docker:/h5ai    # public data
+      - ./h5ai_conf:/config
+    ports:
+      - 8889:80
+```
+
 ### FileBrowser
 
 [FileBrowser](https://github.com/filebrowser/filebrowser) - веб-интерфейс для управления файлами в указанном каталоге. Поддерживает управление пользователями, загрузку, удаление, просмотр и редактирование файлов.
@@ -2526,75 +2595,6 @@ services:
       - 8000:8000
     stdin_open: true
     tty: true
-```
-
-### Syncthing
-
-[Syncthing](https://github.com/syncthing/syncthing) - программа для непрерывной синхронизации файлов между двумя или более компьютерами. Работает на основе Block Exchange Protocol (BEP) для обмена данными, который использует TLS-шифрование для безопасной передачи данных по протоколу TCP.
-
-```yaml
-services:
-  file-syncthing:
-    image: syncthing/syncthing
-    container_name: file-syncthing
-    restart: unless-stopped
-    network_mode: host
-    # ports:
-    #   - 8384:8384         # Web UI
-    #   - 22000:22000/tcp   # TCP file transfers
-    #   - 22000:22000/udp   # QUIC file transfers
-    #   - 21027:21027/udp   # Receive local discovery broadcasts
-    environment:
-      - PUID=0
-      - PGID=0
-    volumes:
-      - ./syncthing_data:/var/syncthing   # configs
-      - $HOME/docker:/sync_data           # src sync data on server
-      # - ./backup:/sync_data             # dst sync data on client (mkdir backup && chown -R 1000:1000 backup)
-    healthcheck:
-      test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
-      interval: 1m
-      timeout: 10s
-      retries: 3
-```
-
-### h5ai
-
-[h5ai](https://github.com/lrsjng/h5ai) - современный интерфейс веб-сервера для файлового индексера. Визуально напоминается FTP сервер для удобного отображения и загрузки (например, его использует [Libretro/RetroArch](https://buildbot.libretro.com) для публикации релизов).
-
-```yaml
-services:
-  h5ai:
-    image: awesometic/h5ai
-    container_name: h5ai
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-      - HTPASSWD=false
-      - HTPASSWD_USER=admin
-      - HTPASSWD_PW=admin
-    volumes:
-      - $HOME/docker:/h5ai    # public data
-      - ./h5ai_conf:/config
-    ports:
-      - 8889:80
-```
-
-### SFTPGo
-
-[SFTPGo](https://github.com/drakkan/sftpgo) - сервер SFTP, HTTP/S, FTP/S и WebDAV, с поддержкой объектное-совместимого S3 хранилища, Google Cloud Storage, файловой системы хранкения и другие SFTP-серверы.
-
-```yaml
-services:
-  sftpgo:
-    image: drakkan/sftpgo:edge
-    container_name: sftpgo
-    restart: unless-stopped
-    ports:
-      - 2022:2022
-      - 8088:8080
 ```
 
 ## S3 Stack
