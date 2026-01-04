@@ -1,0 +1,11 @@
+services:
+  eternalvows:
+    image: ghcr.io/jacoknapp/eternalvows:latest
+    container_name: eternalvows
+    restart: unless-stopped
+    environment:
+      - PORT=5500
+    ports:
+      - 5500:5500
+    volumes:
+      - ./config:/app/config

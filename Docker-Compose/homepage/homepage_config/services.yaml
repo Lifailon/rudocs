@@ -23,9 +23,6 @@
     - Killercoda Playground:
         icon: https://killercoda.com/favicon.ico
         href: https://killercoda.com/creator/scenarios/lazyjournal
-    # - KodeKloud Playground:
-    #     icon: kodekloud.png
-    #     href: https://kodekloud.com/public-playgrounds
     - Google Cloud Shell:
         icon: google.png
         href: https://shell.cloud.google.com
@@ -35,9 +32,6 @@
     - NuGet:
         icon: https://nuget.org/favicon.ico
         href: https://nuget.org/profiles/Lifailon
-    # - WinGet:
-    #     icon: https://winget.run/favicon.ico
-    #     href: https://winget.run
     - Scoop:
         icon: https://avatars.githubusercontent.com/u/16618068
         href: https://scoop.sh
@@ -71,18 +65,24 @@
     - Alpine:
         icon: alpine-linux.png
         href: https://pkgs.alpinelinux.org/packages
-    - Jenkins Plugins:
-        icon: jenkins.png
-        href: https://jenkins.io/doc/pipeline/steps 
-    - Traefik Plugins:
-        icon: traefik.png
-        href: https://plugins.traefik.io/plugins
+    - FlatHub:
+        icon: flathub.png
+        href: https://flathub.org/ru/apps/collection/popular/1
+    - KDE Apps:
+        icon: https://apps.kde.org/favicon-32x32.png
+        href: https://apps.kde.org/ru/platforms/windows
     - Homepage Widgets:
         icon: homepage.png
         href: https://gethomepage.dev/widgets
     - Wox Pluggins:
         icon: http://wox.one/favicon.ico
         href: http://wox.one/u/7083
+    - Jenkins Plugins:
+        icon: jenkins.png
+        href: https://jenkins.io/doc/pipeline/steps 
+    - Traefik Plugins:
+        icon: traefik.png
+        href: https://plugins.traefik.io/plugins
     - Mozilla Firefox Addons:
         icon: firefox.png
         href: https://addons.mozilla.org/ru/firefox/user/18561955
@@ -262,6 +262,9 @@
     - Hugging Face:
         icon: https://huggingface.co/favicon.ico
         href: https://huggingface.co/models
+    - DeepWiki:
+        icon: https://deepwiki.com/icon.png
+        href: https://deepwiki.com
     - Translators:
         - Yandex:
             icon: https://translate.yandex.ru/icons/favicon.ico
