@@ -8,6 +8,10 @@
 
 ---
 
+[PowerShell](https://github.com/PowerShell/PowerShell) - это объектно-ориентированный и кроссплатформенный язык программирования с открытым исходным кодом (начиная с 6-ой версии **Core**). Он способен напрямую взаимодействовать с классами и методами `C#` через платформу `.NET`, что позволяет создавать программы с графическим интерфейсом на базе [WinForms](https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms) или [WPF](https://ru.wikipedia.org/wiki/Windows_Presentation_Foundation), TUI на базе [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui), веб-сервера и `REST API` с помощью класса [HttpListener](https://github.com/Lifailon/PS-Commands/blob/rsa/HttpListener/KeePassREST.psm1) или [Pode](https://github.com/Badgerati/Pode) framework, управлять браузером с помощь библиотеки [Selenium](https://github.com/Lifailon/Selenium-Modules), базами данных (поддерживается большенство СУБД через [ODBC](https://ru.wikipedia.org/wiki/ODBC) драйверы или `.NET` коннекторы) и языками разметки (нативная поддержка `XML`, `JSON` и `CSV`, а также другими с помощью модулей или парсинг `HTML` через библиотеку [HAP](https://github.com/zzzprojects/html-agility-pack)) как с любыми другими объектами за счет типовой экосистемы взаимодействия. Такой язык в первую очередь будет полезен DevOps инженерам и системным администраторам, так как является незаменимым инструментом для автоматизации Windows систем, управления облачной инфрастуры Microsoft Azure и компонентами Windows Server, такими как `Hyper-V`, `Active Directory`, `MS Exchange`, `DNS`, `DHCP`, `SMB` и другими.
+
+---
+
 <h2 align="left">
     Навигация:
 </h2>
@@ -343,8 +347,9 @@
   - [INSERT](#insert-1)
   - [DELETE](#delete-1)
 - [ODBC](#odbc)
-- [PostgreSQL](#postgresql)
-  - [ODBC Driver](#odbc-driver)
+  - [Elasticsearch](#elasticsearch-1)
+  - [ClickHouse](#clickhouse)
+  - [PostgreSQL](#postgresql)
   - [npgsql](#npgsql)
 - [WMI](#wmi)
   - [WMI/CIM](#wmicim)
@@ -4296,8 +4301,9 @@ set { Marshal.ThrowExceptionForHR(Vol().SetMute(value, System.Guid.Empty)); }
 
 ### NetSessionEnum
 
-[Function](https://learn.microsoft.com/ru-ru/windows/win32/api/lmshare/nf-lmshare-netsessionenum?redirectedfrom=MSDN) \
-[Source](https://fuzzysecurity.com/tutorials/24.html)
+[Функцияя (методы)](https://learn.microsoft.com/ru-ru/windows/win32/api/lmshare/nf-lmshare-netsessionenum?redirectedfrom=MSDN)
+
+[Оригинальный источник](https://fuzzysecurity.com/tutorials/24.html)
 ```PowerShell
 function Invoke-NetSessionEnum {
 param (
@@ -4371,8 +4377,9 @@ echo "`nCalling NetApiBufferFree, no memleaks here!"
 
 ### CopyFile
 
-[Function](https://learn.microsoft.com/ru-ru/windows/win32/api/winbase/nf-winbase-copyfile) \
-[Source](https://devblogs.microsoft.com/scripting/use-powershell-to-interact-with-the-windows-api-part-1/)
+[Функции](https://learn.microsoft.com/ru-ru/windows/win32/api/winbase/nf-winbase-copyfile)
+
+[Оригинальный источник](https://devblogs.microsoft.com/scripting/use-powershell-to-interact-with-the-windows-api-part-1)
 ```PowerShell
 $MethodDefinition = @"
 [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
@@ -4383,7 +4390,7 @@ $Kernel32::CopyFile("$($Env:SystemRoot)\System32\calc.exe", "$($Env:USERPROFILE)
 ```
 ### ShowWindowAsync
 
-[Function](https://learn.microsoft.com/ru-ru/windows/win32/api/winuser/nf-winuser-showwindowasync)
+[Функции](https://learn.microsoft.com/ru-ru/windows/win32/api/winuser/nf-winuser-showwindowasync)
 ```PowerShell
 $Signature = @"
 [DllImport("user32.dll")]public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
@@ -4423,7 +4430,7 @@ Start-Sleep -Seconds 0.5
 ```
 ## Console API
 
-[Source](https://powershell.one/tricks/input-devices/detect-key-press)
+[Оригинальный источник](https://powershell.one/tricks/input-devices/detect-key-press)
 
 `[Console] | Get-Member -Static` \
 `[Console]::BackgroundColor = "Blue"` \
@@ -4530,7 +4537,7 @@ $date = Get-Date -f hh:mm:ss
 
 ### UDP-Socket
 
-[Source](https://cloudbrothers.info/en/test-udp-connection-powershell/)
+[Оригинальный источник](https://cloudbrothers.info/en/test-udp-connection-powershell)
 ```PowerShell
 function Start-UDPServer {
     param(
@@ -5170,7 +5177,7 @@ ps | Select ProcessName, Id, CPU, WorkingSet, *MemorySize | New-Table "All Proce
 ```
 ## HtmlAgilityPack
 
-[Source](https://www.nuget.org/packages/HtmlAgilityPack)
+Пакет в менеджере пакетов [NuGet](https://www.nuget.org/packages/HtmlAgilityPack)
 ```PowerShell
 # Загрузка библиотеки C#, которая позволяет парсить HTML-документы, выбирать элементы DOM и извлекать из них данные
 Add-Type -Path "C:\Users\Lifailon\Downloads\HtmlAgilityPack\Net40\HtmlAgilityPack.dll"
@@ -6401,10 +6408,12 @@ while True:
 ```
 ## Elasticsearch
 
-`Install-Module -Name Elastic.Console -AllowPrerelease` [github source](https://github.com/elastic/powershell/blob/master/Elastic.Console/README.md) \
-`Get-Command -Module Elastic.Console` \
-`Get-ElasticsearchVersion` \
-`Set-ElasticsearchVersion 7.3.0` \
+Исходник на [GitHub](https://github.com/elastic/powershell/blob/master/Elastic.Console/README.md).
+
+`Install-Module -Name Elastic.Console -AllowPrerelease` установить модуль \
+`Get-Command -Module Elastic.Console` вывести список команд \
+`Get-ElasticsearchVersion` отобразить версию \
+`Set-ElasticsearchVersion 7.3.0` сменить версию \
 `Invoke-Elasticsearch` REST API запросы
 
 ## CData
@@ -6465,7 +6474,9 @@ $cmd.ExecuteNonQuery()
 `Get-Command -Module Wdac` \
 `Get-OdbcDriver | ft` список установленных драйверов
 
-[Elasticsearch ODBC драйвер для доступа к данным Elasticsearch из Microsoft PowerShell](https://www.elastic.co/guide/en/elasticsearch/reference/current/sql-client-apps-ps1.html)
+### Elasticsearch
+
+[ODBC драйвер](https://www.elastic.co/guide/en/elasticsearch/reference/current/sql-client-apps-ps1.html) для доступа к данным Elasticsearch из PowerShell.
 ```PowerShell
 $connectstring = "DSN=Local Elasticsearch;"
 $sql = "SELECT * FROM library"
@@ -6478,11 +6489,32 @@ $null = $da.fill($dt)
 $conn.close()
 $dt
 ```
-## PostgreSQL
+### ClickHouse
 
-### ODBC Driver
+Последняя версия ODBC драйвера доступна на [GitHub](https://github.com/ClickHouse/clickhouse-odbc/releases/latest).
 
-[Скачать и установить драйвер](https://www.postgresql.org/ftp/odbc/versions/msi/)
+[Оригинальный источник](https://clickhouse.com/docs/ru/interfaces/odbc).
+```PowerShell
+$url = "http://127.0.0.1:8123/"
+$user = "default"
+$password = ""
+$conn = New-Object System.Data.Odbc.OdbcConnection("`
+    Driver={ClickHouse ODBC Driver (Unicode)};`
+    Url=$url;`
+    Username=$username;`
+    Password=$password")
+$conn.Open()
+$cmd = $conn.CreateCommand()
+$cmd.CommandText = "select version()"
+$reader = $cmd.ExecuteReader()
+$reader.Read()
+$reader.GetValue(0)
+$reader.Close()
+$conn.Close()
+```
+### PostgreSQL
+
+[Загрузить и установить драйвер](https://www.postgresql.org/ftp/odbc/versions/msi)
 ```PowerShell
 $dbServer = "192.168.3.101"
 $port = "5432"
@@ -6512,7 +6544,8 @@ foreach ($row in $dsDB[0].Tables[0].Rows) {
 ```
 ### npgsql
 
-[Source](https://github.com/npgsql/npgsql) \
+[Исходный код](https://github.com/npgsql/npgsql)
+
 [Package](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL)
 ```PowerShell
 # Подключаем сборку Npgsql
@@ -7561,8 +7594,7 @@ New-WSManInstance -ResourceURI "winrm/config/Listener" -SelectorSet $selector_se
 
 ### winget
 
-[Source](https://github.com/microsoft/winget-cli)
-[Web](https://winget.run)
+[Исходный код](https://github.com/microsoft/winget-cli)
 
 `winget list` список установленных пакетов \
 `winget search VLC` найти пакет \
@@ -8003,7 +8035,7 @@ Remove-Item "$home\Downloads\Bitbucket*" -Recurse -Force
 
 ## Pester
 
-[Source](https://github.com/pester/Pester)
+[Исходный код](https://github.com/pester/Pester)
 
 `Install-Module -Name Pester -Repository PSGallery -Force -AllowClobber` \
 `Import-Module Pester` \
@@ -8650,9 +8682,11 @@ Invoke-RestMethod -Method POST -Uri "https://llm.api.cloud.yandex.net/foundation
 ```
 ## SuperAGI
 
-[Source](https://github.com/TransformerOptimus/SuperAGI) \
-[Playground generate](https://models.superagi.com/playground/generate) \
-[API Doc (exaples)](https://documenter.getpostman.com/view/30119783/2s9YR3cFJG)
+[Исходный код](https://github.com/TransformerOptimus/SuperAGI)
+
+[Playground generate](https://models.superagi.com/playground/generate)
+
+[API документация](https://documenter.getpostman.com/view/30119783/2s9YR3cFJG)
 ```Bash
 SUPERAGI_API_KEY="31f72164129XXXXX"
 prompt="посчитай сумму 22+33, дай только ответ без лишнего текста"
@@ -8994,9 +9028,9 @@ Invoke-RestMethod -Uri 'https://kinopoiskapiunofficial.tech/api/v2.2/films/11421
 
 ## VideoCDN
 
-[API](https://github.com/notssh/videocdn-api) \
-[Source](https://github.com/API-Movies/videocdn) \
-[API JSON](https://api-movies.github.io/videocdn/index.json)
+[Исходный код](https://github.com/API-Movies/videocdn)
+
+[API](https://github.com/notssh/videocdn-api) и [API JSON](https://api-movies.github.io/videocdn/index.json)
 ```PowerShell
 $kp_id = 5106881
 $token = "YfTWH2p3Mai7ziqDoGjS3yXXXXXXXXXX"
@@ -9014,7 +9048,7 @@ curl -s "https://videocdn.tv/api/$ep?api_token=$token&field=kinopoisk_id&query=$
 
 ### Jackett
 
-[Source](https://github.com/Jackett/Jackett)
+[Исходный код](https://github.com/Jackett/Jackett)
 
 `mkdir /jackett` \
 `docker-compose.yml`
@@ -9052,8 +9086,9 @@ services:
 
 ### Torrent-API-py
 
-[Source](https://github.com/Ryuk-me/Torrent-Api-py) \
-[Documentation](https://torrent-api-py-nx0x.onrender.com/docs#/default/health_route_health_get)
+[Исходный код](https://github.com/Ryuk-me/Torrent-Api-py)
+
+[Документация](https://torrent-api-py-nx0x.onrender.com/docs#/default/health_route_health_get)
 ```
 git clone https://github.com/Ryuk-me/Torrent-Api-py
 cd Torrent-Api-py
@@ -9094,8 +9129,9 @@ $headers = @{
 
 ### Jellyfin
 
-[Source](https://github.com/jellyfin/jellyfin) \
-[API Docs](https://api.jellyfin.org)
+[Исходный код](https://github.com/jellyfin/jellyfin)
+
+[API документация](https://api.jellyfin.org)
 
 `$API_TOKEN "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"` \
 `Invoke-RestMethod -Headers @{"X-Emby-Token" = $API_TOKEN} http://localhost:8096/Users` список пользователей и их id \
