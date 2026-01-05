@@ -1,17 +1,18 @@
 # mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
 # mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
-# mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
 
 services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: always
+    user: 472:472
     ports:
       - 9089:3000
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin # grafana-cli admin reset-admin-password newpassword
+      # docker exec -it grafana grafana cli admin reset-admin-password GrafanaAdminNew
+      - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin
       # - GF_DATABASE_TYPE=postgres
       # - GF_DATABASE_HOST=grafana-db:5432
       # - GF_DATABASE_NAME=grafana
@@ -38,6 +39,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     restart: always
+    user: 65534:65534
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alert-rules.yml:/etc/prometheus/alert.yml

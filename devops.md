@@ -37,6 +37,7 @@
     - [ipvlan](#ipvlan)
   - [Inspect](#inspect)
   - [Exec](#exec)
+  - [Copy](#copy)
   - [Prune](#prune)
   - [Remove](#remove)
   - [Diff](#diff)
@@ -558,14 +559,19 @@ networks:
 `docker top uptime-kuma` отобразить работающие процессы контейнера \
 `docker exec -it --user root uptime-kuma bash apt-get install -y procps` авторизоваться под пользователем root и установить procps \
 `docker exec -it uptime-kuma ps -aux` отобразить работающие процессы внутри контейнера \
-`docker exec uptime-kuma kill -9 25055` убить процесс внутри контейнера \
-`docker exec -it uptime-kuma ping 8.8.8.8` \
-`docker exec -it uptime-kuma pwd` \
-`docker cp ./Console-Performance.sh uptime-kuma:/app` скопировать из локальной системы в контейнер \
-`docker exec -it uptime-kuma ls` \
-`docker cp uptime-kuma:/app/db/ backup/db` сокпировать из контейнера в локальную систему \
-`ls backup/db`
+`docker exec uptime-kuma kill -9 25055` убить процесс внутри контейнера
 
+### Copy
+
+Копируем базу данных `sqlite3`, обновляем пароль и разблокируем пользователя Grafana:
+```bash
+docker exec -it grafana ls /var/lib/grafana/grafana.db
+sudo apt-get install sqlite3
+docker cp grafana:/var/lib/grafana/grafana.db grafana.db
+sqlite3 grafana.db "UPDATE user SET password = '59acf18b94d7eb0694c61e60ce44c110c7a683ac6a8f09580d626f90f4a242000746579358d77dd9e570e83fa24faa88a8a6', salt = 'F3FAxVm33R' WHERE login = 'admin';"
+sqlite3 grafana.db "UPDATE user SET is_disabled = 0 WHERE login = 'admin';"
+docker cp grafana.db grafana:/var/lib/grafana/grafana.db
+```
 ### Prune
 
 `docker network prune && docker image prune && docker volume prune && docker container prune` удалить все неиспользуемые сети, висящие образа, остановленные контейнеры, все неиспользуемые тома \

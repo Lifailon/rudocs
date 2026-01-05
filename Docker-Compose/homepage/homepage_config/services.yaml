@@ -68,6 +68,12 @@
     - FlatHub:
         icon: flathub.png
         href: https://flathub.org/ru/apps/collection/popular/1
+    - Canonical Launchpad:
+        icon: https://launchpad.net/favicon.ico
+        href: https://launchpad.net
+    - Canonical SnapCraft:
+        icon: https://assets.ubuntu.com/v1/841d0bcf-favicon_32px.png
+        href: https://snapcraft.io/store
     - KDE Apps:
         icon: https://apps.kde.org/favicon-32x32.png
         href: https://apps.kde.org/ru/platforms/windows
