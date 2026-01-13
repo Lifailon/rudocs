@@ -89,15 +89,17 @@
   - [Kompose](#kompose)
   - [Kustomize](#kustomize)
   - [Helm](#helm)
+- [AWS](#aws)
+- [Azure](#azure)
+- [Vercel](#vercel)
 - [GitHub API](#github-api)
 - [GitHub Actions](#github-actions)
   - [Runner](#runner)
   - [Pipeline](#pipeline)
   - [CI](#ci)
+  - [CD](#cd)
   - [Logs](#logs-1)
   - [act](#act)
-- [Vercel](#vercel)
-- [GitLab](#gitlab)
 - [Groovy](#groovy)
 - [Jenkins](#jenkins)
   - [API](#api)
@@ -2602,6 +2604,182 @@ helm repo add openrouter-bot https://<username>.github.io/<repo_name> # доба
 helm repo list
 helm upgrade --install <repo_name> <repo_name>/<repo_name> # установить пакет
 ```
+
+## AWS
+
+Установка [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)
+
+Настройка профиля по умолчанию (настройки подключения):
+```bash
+aws configure # --profile localstack
+AWS Access Key ID: test
+AWS Secret Access Key: test
+Default region name: us-east-1
+Default output format: json
+```
+
+Переменные окружения для подключения к облаку или [localstack](https://github.com/localstack/localstack):
+
+```bash
+export AWS_ENDPOINT_URL="http://192.168.3.101:4566"
+# export AWS_ACCESS_KEY_ID="test"
+# export AWS_SECRET_ACCESS_KEY="test"
+# export AWS_DEFAULT_REGION="us-east-1"
+# Windows
+$env:AWS_ENDPOINT_URL="http://192.168.3.101:4566"
+```
+
+Создание s3 хранилища:
+
+```bash
+aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 mb s3://test-bucket
+aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 ls
+```
+
+Создание группы, потока и запись логов в CloudWatch:
+
+```bash
+# Создание группы для хранения логов (Log Group)
+aws logs create-log-group --log-group-name "docker-logs"
+# Отобразить все группы
+aws logs describe-log-groups
+# Создание потока для записи логов (Log Stream)
+aws logs create-log-stream --log-group-name "docker-logs" --log-stream-name "app-01"
+# Отобразить все потоки в группе
+aws logs describe-log-streams --log-group-name "docker-logs"
+# Отправка лога (Put Log Events)
+aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events timestamp=$(date +%s000),message="Test message from CLI"
+# Windows
+$timestamp = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
+aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events "timestamp=$timestamp,message='Test message from PowerShell'"
+# Чтение логов (Get Log Events)
+aws logs get-log-events --log-group-name "docker-logs" --log-stream-name "zerobyte-zerobyte.logs"
+# Фильтрация логов
+aws logs filter-log-events --log-group-name "docker-logs" --query "events[*].message" --output text 
+# Чтение логов из всех потоков
+aws logs tail docker-logs --since 1d
+```
+
+## Azure
+
+`Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force` установить все модули для работы с Azure \
+`Get-Module *Az.*` список всех модулей
+
+`Get-Command -Module Az.Accounts` отобразить список команд модуля Az.Accounts \
+`Connect-AzAccount` подключиться у учетной записи Azure \
+`Get-AzContext` получить текущий статус подключения к Azure \
+`Get-AzSubscription` получить список подписок Azure, доступных для текущего пользователя \
+`Set-AzContext` установить контекст Azure для конкретной подписки и/или учетной записи \
+`Disconnect-AzAccount` отключиться от учетной записи Azure
+
+`Get-Command -Module Az.Compute` \
+`Get-AzVM` получить список виртуальных машин в текущей подписке или группе ресурсов \
+`Get-AzVMSize` получить список доступных размеров виртуальных машин в определенном регионе \
+`Get-AzVMImage` получить список доступных образов виртуальных машин \
+`New-AzVM` создать новую виртуальную машину \
+`Remove-AzVM` удалить виртуальную машину \
+`Start-AzVM` запустить виртуальную машину \
+`Stop-AzVM` остановить виртуальную машину \
+`Restart-AzVM` перезагрузить виртуальную машину
+
+`Get-Command -Module Az.Network` \
+`Get-AzVirtualNetwork` получить список виртуальных сетей в текущей подписке или группе ресурсов \
+`New-AzVirtualNetwork` создать новую виртуальную сеть \
+`Remove-AzVirtualNetwork` удалить виртуальную сеть \
+`Get-AzNetworkInterface` получить список сетевых интерфейсов \
+`New-AzNetworkInterface` создать новый сетевой интерфейс \
+`Remove-AzNetworkInterface` удалить сетевой интерфейс
+
+`Get-Command -Module Az.Storage` \
+`Get-AzStorageAccount` получить список учетных записей хранилища \
+`New-AzStorageAccount` создать новую учетную запись хранилища \
+`Remove-AzStorageAccount` удалить учетную запись хранилища \
+`Get-AzStorageContainer` список контейнеров в учетной записи хранилища \
+`New-AzStorageContainer` создать новый контейнер в учетной записи хранилища \
+`Remove-AzStorageContainer` удалить контейнер
+
+`Get-Command -Module Az.ResourceManager` \
+`Get-AzResourceGroup` получить список групп ресурсов в текущей подписке \
+`New-AzResourceGroup` создать новую группу ресурсов \
+`Remove-AzResourceGroup` удалить группу ресурсов \
+`Get-AzResource` получить список ресурсов \
+`New-AzResource` создать новый ресурс \
+`Remove-AzResource` удалить ресурс
+
+`Get-Command -Module Az.KeyVault` \
+`Get-AzKeyVault` список хранилищ ключей \
+`New-AzKeyVault` создать новое хранилище ключей в Azure \
+`Remove-AzKeyVault` удалить хранилище ключей в Azure
+
+`Get-Command -Module Az.Identity` \
+`Get-AzADUser` получить информацию о пользователях Azure Active Directory \
+`New-AzADUser` создать нового пользователя \
+`Remove-AzADUser` удалить пользователя \
+`Get-AzADGroup` получить информацию о группах \
+`New-AzADGroup` создать новую группу \
+`Remove-AzADGroup` удалить группу
+
+- [Manage-VM](https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-vm)
+
+`New-AzResourceGroup -Name "Resource-Group-01" -Location "EastUS"` создать группу ресурсов (логический контейнер, в котором происходит развертывание ресурсов Azure) \
+`Get-AzVMImageOffer -Location "EastUS" -PublisherName "MicrosoftWindowsServer"` список доступных образов Windows Server для установки \
+`$cred = Get-Credential` \
+`New-AzVm -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Location 'EastUS' -Image "MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest" -Size "Standard_D2s_v3" -OpenPorts 80,3389 --Credential $cred` создать виртуальную машину \
+`Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Status | Select @{n="Status"; e={$_.Statuses[1].Code}}` статус виртуальной машины \
+`Start-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` запустить виртуальную машину \
+`Stop-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Force` остановить виртуальную машину \
+`Invoke-AzVMRunCommand -ResourceGroupName "Resource-Group-01" -VMName "vm-01" -CommandId "RunPowerShellScript" -ScriptString "Install-WindowsFeature -Name Web-Server -IncludeManagementTools"` установить роль веб-сервера IIS
+
+- [Manage-Disk](https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-data-disk)
+
+`$diskConfig = New-AzDiskConfig -Location "EastUS" -CreateOption Empty -DiskSizeGB 512 -SkuName "Standard_LRS"` создать диск на 512 Гб \
+`$dataDisk = New-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512" -Disk $diskConfig` создание объекта диска для подготовки диска данных к работе \
+`Get-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512"` список дисков \
+`$vm = Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` \
+`Add-AzVMDataDisk -VM $vm -Name "Resource-Group-01" -CreateOption Attach -ManagedDiskId $dataDisk.Id -Lun 1` подключить диск к виртуальной машине \
+`Update-AzVM -ResourceGroupName "Resource-Group-01" -VM $vm` обновить конфигурацию виртуальной машины \
+`Get-Disk | Where PartitionStyle -eq 'raw' | Initialize-Disk -PartitionStyle MBR -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel "disk-512" -Confirm:$false` инициализировать диск в ОС (необходимо подключиться к виртуальной машине) с таблицей MBR, создать раздел и назначить все пространство и форматировать в файловую систему NTFS
+
+## Vercel
+
+`npm i -g vercel` установить глобально в систему Vercel CLI \
+`vercel --version` выводит текущую версию установленного Vercel CLI \
+`vercel login` выполняет вход в аккаунт Vercel (`> Continue with GitHub`) \
+`vercel logout` выполняет выход из аккаунта Vercel \
+`vercel init` инициализирует новый проект в текущей директории (создает файл конфигурации vercel.json и другие файлы, необходимые для проекта) \
+`vercel dev` запускает локальный сервер для проверки работоспособности (http://localhost:3000) \
+`vercel deploy` загружает проект на серверы Vercel и развертывает его \
+`vercel link` привязывает текущую директорию к существующему проекту на сервере Vercel (выбрать из списка) \
+`vercel unlink` отменяет привязку текущей директории от проекта Vercel \
+`vercel env` управляет переменными окружения для проекта \
+`vercel env pull` подтягивает переменные окружения с Vercel в локальный .env файл \
+`vercel env ls` показывает список всех переменных окружения для проекта \
+`vercel env add <key> <environment>` добавляет новую переменную окружения для указанного окружения (production, preview, development) \
+`vercel env rm <key> <environment>` удаляет переменную окружения из указанного окружения \
+`vercel projects` управляет проектами Vercel \
+`vercel projects ls` показывает список всех проектов \
+`vercel projects add` добавляет новый проект \
+`vercel projects rm <project>` удаляет указанный проект \
+`vercel pull` подтягивает последние настройки окружения с Vercel \
+`vercel alias` управляет алиасами доменов для проектов \
+`vercel alias ls` показывает список всех алиасов для текущего проекта \
+`vercel alias set <alias>` устанавливает алиас для указанного проекта \
+`vercel alias rm <alias>` удаляет указанный алиас \
+`vercel domains` управляет доменами, привязанными к проекту \
+`vercel domains ls` показывает список всех доменов \
+`vercel domains add <domain>` добавляет новый домен к проекту \
+`vercel domains rm <domain>` удаляет указанный домен \
+`vercel teams` управляет командами и членами команд на Vercel \
+`vercel teams ls` показывает список всех команд \
+`vercel teams add <team>` добавляет новую команду \
+`vercel teams rm <team>` удаляет указанную команду \
+`vercel logs <deployment>` выводит логи для указанного деплоя \
+`vercel secrets` управляет секретами, используемыми в проектах \
+`vercel secrets add <name> <value>` добавляет новый секрет \
+`vercel secrets rm <name>` удаляет указанный секрет \
+`vercel secrets ls` показывает список всех секретов \
+`vercel switch <team>` переключается между командами и аккаунтами Vercel
+
 ## GitHub API
 
 `$user = "Lifailon"` \
@@ -2686,6 +2864,8 @@ jobs:
         git push
 ```
 ### CI
+
+Сборка Docker образа и отправка в Docker Hub:
 ```yaml
 name: Docker Build and Push Image
 
@@ -2713,6 +2893,39 @@ jobs:
       run: |
         docker build -t lifailon/torapi:latest .
         docker push lifailon/torapi:latest
+```
+### CD
+
+Развертвывание приложения на бессерверной платформе Vercel:
+```yaml
+name: Deploy to Vercel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Clone repository
+      uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
 ```
 ### Logs
 
@@ -2768,76 +2981,7 @@ echo "DOCKER_HUB_PASSWORD=password" >> .secrets
 `act --reuse` не удалять контейнер из успешно завершенных рабочих процессов для сохранения состояния между запусками (кэширование) \
 `act --parallel` запуск всех jobs одновременно или последовательно (--no-parallel, по умолчанию)
 
-## Vercel
-
-`npm i -g vercel` установить глобально в систему Vercel CLI \
-`vercel --version` выводит текущую версию установленного Vercel CLI \
-`vercel login` выполняет вход в аккаунт Vercel (`> Continue with GitHub`) \
-`vercel logout` выполняет выход из аккаунта Vercel \
-`vercel init` инициализирует новый проект в текущей директории (создает файл конфигурации vercel.json и другие файлы, необходимые для проекта) \
-`vercel dev` запускает локальный сервер для проверки работоспособности (http://localhost:3000) \
-`vercel deploy` загружает проект на серверы Vercel и развертывает его \
-`vercel link` привязывает текущую директорию к существующему проекту на сервере Vercel (выбрать из списка) \
-`vercel unlink` отменяет привязку текущей директории от проекта Vercel \
-`vercel env` управляет переменными окружения для проекта \
-`vercel env pull` подтягивает переменные окружения с Vercel в локальный .env файл \
-`vercel env ls` показывает список всех переменных окружения для проекта \
-`vercel env add <key> <environment>` добавляет новую переменную окружения для указанного окружения (production, preview, development) \
-`vercel env rm <key> <environment>` удаляет переменную окружения из указанного окружения \
-`vercel projects` управляет проектами Vercel \
-`vercel projects ls` показывает список всех проектов \
-`vercel projects add` добавляет новый проект \
-`vercel projects rm <project>` удаляет указанный проект \
-`vercel pull` подтягивает последние настройки окружения с Vercel \
-`vercel alias` управляет алиасами доменов для проектов \
-`vercel alias ls` показывает список всех алиасов для текущего проекта \
-`vercel alias set <alias>` устанавливает алиас для указанного проекта \
-`vercel alias rm <alias>` удаляет указанный алиас \
-`vercel domains` управляет доменами, привязанными к проекту \
-`vercel domains ls` показывает список всех доменов \
-`vercel domains add <domain>` добавляет новый домен к проекту \
-`vercel domains rm <domain>` удаляет указанный домен \
-`vercel teams` управляет командами и членами команд на Vercel \
-`vercel teams ls` показывает список всех команд \
-`vercel teams add <team>` добавляет новую команду \
-`vercel teams rm <team>` удаляет указанную команду \
-`vercel logs <deployment>` выводит логи для указанного деплоя \
-`vercel secrets` управляет секретами, используемыми в проектах \
-`vercel secrets add <name> <value>` добавляет новый секрет \
-`vercel secrets rm <name>` удаляет указанный секрет \
-`vercel secrets ls` показывает список всех секретов \
-`vercel switch <team>` переключается между командами и аккаунтами Vercel
-
-```yaml
-name: Deploy to Vercel
-
-on:
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Clone repository
-      uses: actions/checkout@v4
-
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
-```
+<!--
 ## GitLab
 ```bash
 docker run --detach \
@@ -2904,6 +3048,8 @@ test:
             Stop-Process -Name 'node' -Force -ErrorAction SilentlyContinue
         "
 ```
+-->
+
 ## Groovy
 
 Базовый синтаксис языка `Groovy`:
@@ -5197,6 +5343,9 @@ vrrp_instance web {
 `tail /var/run/keepalived.INSTANCE.web.state`
 
 ## GlusterFS
+
+[GlusterFS](https://github.com/gluster/glusterfs) — это распределенная и масштабируемая файловая система, которая объединяет хранилища с разных серверов в единое виртуальное сетевое хранилище, обеспечивая отказоустойчивость и высокую производительность без необходимости отдельного сервера для метаданных. Работает поверх обычных файловых систем (например, `ext4`) с помощью технологии FUSE (в пользовательском пространстве). 
+
 ```bash
 # Определить имена хостов для всех нод
 echo '
