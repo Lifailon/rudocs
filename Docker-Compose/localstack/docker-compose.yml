@@ -1,0 +1,28 @@
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    restart: always
+    ports:
+      - 4566:4566
+      - 4510-4559:4510-4559
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1
+      - EXTRA_CORS_ALLOWED_ORIGINS=*
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack_data:/var/lib/localstack
+
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    ports:
+      - 24224:24224
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf

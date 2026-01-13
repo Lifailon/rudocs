@@ -2837,28 +2837,37 @@ HTTP_PORT=8080
 
 ### localstack
 
-[Local Stack](https://github.com/localstack/localstack) - эмулятор облачных сервисов, работающий в одном контейнере на ноутбуке или в среде CI. Позволяет запускать свои приложения AWS или Lambda-функции полностью на локальном компьютере, не подключаясь к удаленному облачному провайдеру.
+[Local Stack](https://github.com/localstack/localstack) - эмулятор облачных сервисов, работающий в одном контейнере на ноутбуке или в среде CI. Позволяет запускать свои приложения AWS (Amazon Web Services, например, S3 хранилище, CloudWatch Log Events или Lambda-функции) полностью на локальном компьютере, не подключаясь к удаленному облачному провайдеру.
 
 ```yaml
 services:
   localstack:
     image: localstack/localstack
-    # image: localstack/localstack-pro
     container_name: localstack
-    restart: unless-stopped
+    restart: always
     ports:
-      - 4566:4566            # LocalStack Gateway
-      - 4510-4559:4510-4559  # external services port range
-      # - 443:443            # LocalStack HTTPS Gateway (Pro)
+      - 4566:4566
+      - 4510-4559:4510-4559
     environment:
-      # Activate LocalStack Pro: https://docs.localstack.cloud/getting-started/auth-token/
-      # - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?}  # required for Pro
-      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
-      - DEBUG=0
-      - PERSISTENCE=0
+      - DEBUG=1
+      - PERSISTENCE=1
+      - EXTRA_CORS_ALLOWED_ORIGINS=*
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./localstack_data:/var/lib/localstack
+
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    ports:
+      - 24224:24224
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
 ```
 
 ## DNS Stack
@@ -6912,21 +6921,48 @@ services:
     command: syslog://sloggo:1514
 ```
 
-### Fluent-bit
+### Fluent Bit
 
-[Fluent-bit](https://github.com/fluent/fluent-bit) - быстрый и легковесный агент для сбора логов, метрик и трассировок в системах Linux, BSD, OSX и Windows.
+[Fluent Bit](https://github.com/fluent/fluent-bit) - быстрый и легковесный агент для сбора логов, метрик и трассировок в системах Linux, BSD, OSX и Windows.
+
+Пример пересылки логов из контейнера [Zerobyte](https://github.com/nicotsx/zerobyte) в AWS CloudWatch через Fluent Bit:
 
 ```yaml
+services:
   fluent-bit:
     image: fluent/fluent-bit:latest
     container_name: fluent-bit
-    restart: unless-stopped
-    # ports:
-    #   - 24224:24224/tcp
-    #   - 24224:24224/udp
+    ports:
+      - 24224:24224
     volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    environment:
+      - AWS_ENDPOINT_URL=http://192.168.3.101:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+
+  zerobyte:
+    image: ghcr.io/nicotsx/zerobyte:v0.19
+    container_name: zerobyte
+    restart: always
+    ports:
+      - 4096:4096
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+    environment:
+      - TZ=Etc/UTC+3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/lib/zerobyte:/var/lib/zerobyte
+      - /home/lifailon/docker/gitea/gitea_data:/backup_src_volume
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: zerobyte
 ```
 
 ### Vector
