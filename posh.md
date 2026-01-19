@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="Logo/ps-commands.png"></a>
+    <a href="https://lifailon.github.io/powershell/"><img title="PS-Commands Logo"src="Logo/ps-commands.png"></a>
 </p>
 
 <p align="center">
@@ -8,14 +8,11 @@
 
 ---
 
-[PowerShell](https://github.com/PowerShell/PowerShell) - это объектно-ориентированный и кроссплатформенный язык программирования с открытым исходным кодом (начиная с 6-ой версии **Core**). Он способен напрямую взаимодействовать с классами и методами `C#` через платформу `.NET`, что позволяет создавать программы с графическим интерфейсом на базе [WinForms](https://github.com/Lifailon/PS-Commands/blob/rsa/WinForms) или [WPF](https://ru.wikipedia.org/wiki/Windows_Presentation_Foundation), TUI на базе [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui), веб-сервера и `REST API` с помощью класса [HttpListener](https://github.com/Lifailon/PS-Commands/blob/rsa/HttpListener/KeePassREST.psm1) или [Pode](https://github.com/Badgerati/Pode) framework, управлять браузером с помощь библиотеки [Selenium](https://github.com/Lifailon/Selenium-Modules), базами данных (поддерживается большенство СУБД через [ODBC](https://ru.wikipedia.org/wiki/ODBC) драйверы или `.NET` коннекторы) и языками разметки (нативная поддержка `XML`, `JSON` и `CSV`, а также другими с помощью модулей или парсинг `HTML` через библиотеку [HAP](https://github.com/zzzprojects/html-agility-pack)) как с любыми другими объектами за счет типовой экосистемы взаимодействия. Такой язык в первую очередь будет полезен DevOps инженерам и системным администраторам, так как является незаменимым инструментом для автоматизации Windows систем, управления облачной инфрастуры Microsoft Azure и компонентами Windows Server, такими как `Hyper-V`, `Active Directory`, `MS Exchange`, `DNS`, `DHCP`, `SMB` и другими.
-
----
-
 <h2 align="left">
     Навигация:
 </h2>
 
+- [PowerShell](#powershell)
 - [Cheat-Sheet](#cheat-sheet)
 - [Help](#help)
 - [Object](#object)
@@ -249,7 +246,6 @@
   - [TCP-Socket](#tcp-socket)
   - [WakeOnLan](#wakeonlan)
   - [HTTPListener](#httplistener)
-  - [WebClient](#webclient)
   - [HttpClient](#httpclient)
   - [Certificate](#certificate)
 - [Base64](#base64)
@@ -481,6 +477,10 @@
 - [WPF](#wpf)
 
 ---
+
+## PowerShell
+
+[PowerShell](https://github.com/PowerShell/PowerShell) - это объектно-ориентированный и кроссплатформенный язык программирования с открытым исходным кодом (начиная с 6-ой версии **Core**). Он способен напрямую взаимодействовать с классами и методами `C#` через платформу `.NET`, что позволяет создавать программы с графическим интерфейсом на базе [WinForms](https://github.com/Lifailon/rudocs/blob/main/WinForms) или [WPF](https://ru.wikipedia.org/wiki/Windows_Presentation_Foundation), TUI на базе [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui), веб-сервера и `REST API` с помощью класса [HttpListener](https://github.com/Lifailon/rudocs/blob/main/HttpListener/KeePassREST.psm1) или [Pode](https://github.com/Badgerati/Pode) framework, управлять браузером с помощь библиотеки [Selenium](https://github.com/Lifailon/Selenium-Modules), базами данных (поддерживается большенство СУБД через [ODBC](https://ru.wikipedia.org/wiki/ODBC) драйверы или `.NET` коннекторы) и языками разметки (нативная поддержка `XML`, `JSON` и `CSV`, а также другими с помощью модулей или парсинг `HTML` через библиотеку [HAP](https://github.com/zzzprojects/html-agility-pack)) как с любыми другими объектами за счет типовой экосистемы взаимодействия. Такой язык в первую очередь будет полезен DevOps инженерам и системным администраторам, так как является незаменимым инструментом для автоматизации Windows систем, управления облачной инфрастуры Microsoft Azure и компонентами Windows Server, такими как `Hyper-V`, `Active Directory`, `MS Exchange`, `DNS`, `DHCP`, `SMB` и другими.
 
 ## Cheat-Sheet
 
@@ -1072,7 +1072,7 @@ function Get-Function {
     .DESCRIPTION
     Описание
     .LINK
-    https://github.com/Lifailon/PS-Commands
+    https://github.com/Lifailon/rudocs
     #>
     param (
         [Parameter(Mandatory,ValueFromPipeline)][string]$Text,
@@ -1100,7 +1100,7 @@ function Get-Function {
     PrivateData       = @{
         PSData = @{
             Tags         = @("Function","Example")
-            ProjectUri   = "https://github.com/Lifailon/PS-Commands"
+            ProjectUri   = "https://github.com/Lifailon/rudocs"
             LicenseUri   = "https://github.com/Lifailon/Console-Translate/blob/rsa/LICENSE"
             ReleaseNotes = "Second release"
         }
@@ -2028,7 +2028,7 @@ function Start-Shutdown {
     # Start-Shutdown -Restart -Time "18:00"
     # Start-Shutdown -Cancel
     .LINK
-    https://github.com/Lifailon/PS-Commands
+    https://github.com/Lifailon/rudocs
     #>
     param(
         [string]$Time,
@@ -4563,11 +4563,6 @@ while (!([console]::KeyAvailable)) {
 }
 $httpListener.Close()
 ```
-### WebClient
-
-`[System.Net.WebClient] | Get-Member` \
-`(New-Object Net.WebClient).DownloadString("https://raw.githubusercontent.com/Lifailon/PowerShell-Commands/rsa/README.md")`
-
 ### HttpClient
 ```PowerShell
 $url = "https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.zip"

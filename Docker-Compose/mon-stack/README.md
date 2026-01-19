@@ -22,9 +22,9 @@
 
 ```bash
 mkdir -p $HOME/docker/mon-stack && cd $HOME/docker/mon-stack
-git clone https://github.com/Lifailon/PS-Commands
-mv ./PS-Commands/Docker-Compose/mon-stack/* ./
-rm -rf PS-Commands
+git clone https://github.com/Lifailon/rudocs
+mv ./rudocs/Docker-Compose/mon-stack/* ./
+rm -rf rudocs
 
 mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
 mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl

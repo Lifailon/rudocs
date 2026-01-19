@@ -8,7 +8,7 @@ spec:
     server: https://kubernetes.default.svc
   source:
     path: Kubernetes/longhorn
-    repoURL: https://github.com/Lifailon/PS-Commands
+    repoURL: https://github.com/Lifailon/rudocs
     targetRevision: rsa
   sources: []
   project: default

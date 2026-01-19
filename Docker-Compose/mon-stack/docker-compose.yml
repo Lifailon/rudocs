@@ -108,7 +108,7 @@ services:
   #   container_name: github-exporter
   #   restart: always
   #   environment:
-  #     - REPOS=Lifailon/PS-Commands,Lifailon/lazyjournal
+  #     - REPOS=Lifailon/rudocs,Lifailon/lazyjournal
   #     - USERS=Lifailon
   #     # - GITHUB_TOKEN=
   #   # ports:

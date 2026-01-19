@@ -1,6 +1,6 @@
 # LazyDocker-Web
 
-This image is a Web interface for the [lazydocker](https://github.com/jesseduffield/lazydocker?tab=readme-ov-file) (TUI to manage everything Docker) based on [ttyd](https://github.com/tsl0922/ttyd). The image is built from a very simple [Dockerfile](https://github.com/Lifailon/PS-Commands/blob/rsa/Docker-Compose/lazydocker-web/Dockerfile) without changing the source code.
+This image is a Web interface for the [lazydocker](https://github.com/jesseduffield/lazydocker?tab=readme-ov-file) (TUI to manage everything Docker) based on [ttyd](https://github.com/tsl0922/ttyd). The image is built from a very simple [Dockerfile](https://github.com/Lifailon/rudocs/blob/main/Docker-Compose/lazydocker-web/Dockerfile) without changing the source code.
 
 ## Launch
 

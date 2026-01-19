@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://github.com/Lifailon/PS-Commands/blob/rsa/linux.md"><img title="Linux Commands Logo"src="Logo/linux-commands.png"></a>
+    <a href="https://lifailon.github.io/linux/"><img title="Linux Commands Logo"src="Logo/linux-commands.png"></a>
 </p>
 
 <p align="center">
@@ -653,7 +653,7 @@ brew --version
 ### jqp
 
 `brew install noahgorstein/tap/jqp` установить jqp (https://github.com/noahgorstein/jqp) TUI интерфейс для отображения jq запросов на GoLang \
-`curl -s https://api.github.com/repos/Lifailon/PS-Commands/contents | jqp` слева отображается исходный файл, справа отфильтрованный вывод \
+`curl -s https://api.github.com/repos/Lifailon/rudocs/contents | jqp` слева отображается исходный файл, справа отфильтрованный вывод \
 `curl -s https://check-host.net/nodes/hosts | jqp` # пример для фильтрации: `.nodes | to_entries[] | select(.value.location[0] == "ru") | .key`
 
 ### xmllint

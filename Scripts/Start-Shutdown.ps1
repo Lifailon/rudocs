@@ -8,7 +8,7 @@ function Start-Shutdown {
     # Start-Shutdown -Restart -Time "18:00"
     # Start-Shutdown -Cancel
     .LINK
-    https://github.com/Lifailon/PS-Commands
+    https://github.com/Lifailon/rudocs
     #>
     param(
         [string]$Time,

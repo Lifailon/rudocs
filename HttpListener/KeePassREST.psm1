@@ -7,7 +7,7 @@ function Read-KeePass {
 		$data = Read-KeePass -basePath C:\Users\Lifailon\Downloads\Lifailon.kdbx -basePass 12345
 		$($($data | Where-Object {$_.Group -eq "Network"}).Entries | Where-Object {$_.Title -match "hikvision"})[0] | Select-Object Login,Password
     .LINK
-    https://github.com/Lifailon/PS-Commands
+    https://github.com/Lifailon/rudocs
     #>
 	param (
 		[Parameter(Mandatory)][string]$basePath,
@@ -76,7 +76,7 @@ function Start-KeePass {
 			curl -sS -X GET -u kee:pass http://localhost:3001/api/entries/github
 			curl -sS -X GET -u kee:pass http://localhost:3001/api/entries/github+api | jq -r .Password
     .LINK
-    https://github.com/Lifailon/PS-Commands
+    https://github.com/Lifailon/rudocs
     #>
 	param (
 		[Parameter(Mandatory)][string]$basePath,

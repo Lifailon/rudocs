@@ -1,8 +1,8 @@
 <p align="center">
-    <a href="https://github.com/Lifailon/PS-Commands"><img title="PS-Commands Logo"src="../Logo/compose-stacks.png"></a>
+    <a href="https://lifailon.github.io/compose/"><img title="Docker Compose Stacks"src="../Logo/compose-stacks.png"></a>
 </p>
 
-Коллекция стеков Docker Compose из более чем 300 сервисов. Каждое приложение было проверено и отлажено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose).
+Коллекция стеков Docker Compose из более чем 300 сервисов. Каждое приложение было проверено и отлажено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/rudocs/tree/main/Docker-Compose).
 
 ---
 
@@ -6314,7 +6314,7 @@ services:
     container_name: github-exporter
     restart: always
     environment:
-      - REPOS=Lifailon/PS-Commands,Lifailon/lazyjournal
+      - REPOS=Lifailon/rudocs,Lifailon/lazyjournal
       - USERS=Lifailon
       # - GITHUB_TOKEN=
     # ports:

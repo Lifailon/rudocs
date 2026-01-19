@@ -5,7 +5,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Lifailon/PS-Commands
+    repoURL: https://github.com/Lifailon/rudocs
     path: Kubernetes/diun
     targetRevision: rsa
     helm:

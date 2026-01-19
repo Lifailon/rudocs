@@ -2,7 +2,7 @@
 
 Switch between hosts to remotely manage Docker containers in your browser.
 
-This project was made possible by combining the capabilities of popular utilities. Realizing that this is mostly a hack, I don't see the point in isolating it into a separate repository, the source code for launching and building the image is available in the [repository](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose/docker-web/docker-web-manager) with notes.
+This project was made possible by combining the capabilities of popular utilities. Realizing that this is mostly a hack, I don't see the point in isolating it into a separate repository, the source code for launching and building the image is available in the [repository](https://github.com/Lifailon/rudocs/tree/main/Docker-Compose/docker-web/docker-web-manager) with notes.
 
 ## Demo
 
