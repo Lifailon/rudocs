@@ -1,0 +1,41 @@
+services:
+  pentaract:
+    image: pentaract
+    container_name: pentaract
+    restart: unless-stopped
+    build: .
+    env_file:
+      - PORT=5050
+      - TELEGRAM_API_BASE_URL=https://api.telegram.org
+      - SECRET_KEY=<TOKEN>
+      - SUPERUSER_EMAIL=pentaract@pentaract.pentaract
+      - SUPERUSER_PASS=pentaract
+      - ACCESS_TOKEN_EXPIRE_IN_SECS=1800
+      - REFRESH_TOKEN_EXPIRE_IN_DAYS=14
+      - WORKERS=4
+      - CHANNEL_CAPACITY=32
+      # Database
+      - DATABASE_HOST=pentaract-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=pentaract
+      - DATABASE_USER=pentaract
+      - DATABASE_PASSWORD=pentaract
+    ports:
+      - 5050:5050
+    depends_on:
+      - pentaract-db
+
+  pentaract-db:
+    image: postgres:15.0-alpine
+    container_name: pentaract-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=pentaract
+      - POSTGRES_PASSWORD=pentaract
+    volumes:
+      - ./pentaract_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready --username=${DATABASE_USER} --dbname=${DATABASE_NAME}
+      interval: 10s
+      timeout: 5s
+      retries: 10
