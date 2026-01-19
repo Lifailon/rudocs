@@ -282,6 +282,55 @@ services:
       - ./temp/:/app/temp
 ```
 
+### Pentaract
+
+[Pentaract](https://github.com/Dominux/Pentaract) - система облачного хранения данных, использующая Telegram в качестве хранилища, не используя файловую систему локального сервера или стороннего облачного хранилища.
+
+```yaml
+services:
+  pentaract:
+    image: pentaract
+    container_name: pentaract
+    restart: unless-stopped
+    build: .
+    env_file:
+      - PORT=5050
+      - TELEGRAM_API_BASE_URL=https://api.telegram.org
+      - SECRET_KEY=<TOKEN>
+      - SUPERUSER_EMAIL=pentaract@pentaract.pentaract
+      - SUPERUSER_PASS=pentaract
+      - ACCESS_TOKEN_EXPIRE_IN_SECS=1800
+      - REFRESH_TOKEN_EXPIRE_IN_DAYS=14
+      - WORKERS=4
+      - CHANNEL_CAPACITY=32
+      # Database
+      - DATABASE_HOST=pentaract-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=pentaract
+      - DATABASE_USER=pentaract
+      - DATABASE_PASSWORD=pentaract
+    ports:
+      - 5050:5050
+    depends_on:
+      - pentaract-db
+
+  pentaract-db:
+    image: postgres:15.0-alpine
+    container_name: pentaract-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=pentaract
+      - POSTGRES_PASSWORD=pentaract
+    volumes:
+      - ./pentaract_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready --username=${DATABASE_USER} --dbname=${DATABASE_NAME}
+      interval: 10s
+      timeout: 5s
+      retries: 10
+```
+
+
 ## LLM Stack
 
 ### Open WebUI
@@ -1129,6 +1178,16 @@ services:
       # - $HOME/docker/vaultwarden/log:/remotelogs/vaultwarden:ro
       # - $HOME/docker/nextcloud/log:/remotelogs/nextcloud:ro
 ```
+
+### Temp Mail
+
+🔗 [Temp Mail UI](https://github.com/mehmetkahya0/temp-mail) ↗
+
+🔗 [Temp Mail UI Demo](https://mehmetkahya0.github.io/temp-mail) ↗
+
+🔗 [Temp Fast Mail](https://github.com/kasteckis/TempFastMail) ↗
+
+🔗 [Temp Fast Mail Demo](https://tempfastmail.com) ↗
 
 ## SMTP Stack
 
@@ -5089,19 +5148,14 @@ services:
 ```yaml
 services:
   kubetail-dashboard:
-    image: kubetail/kubetail-dashboard:0.8.2
+    image: kubetail/kubetail-cli # https://github.com/kubetail-org/kubetail/issues/770
     container_name: kubetail-dashboard
     restart: unless-stopped
+    command: serve --host 0.0.0.0 --skip-open
     ports:
       - 7500:7500
     volumes:
-      - ~/.kube/config:/kubetail/.kube/config:ro
-    command:
-      [
-        "-a", ":7500",
-        "-p", "dashboard.environment:desktop",
-        "-p", "kubeconfig:/kubetail/.kube/config",
-      ]
+      - ~/.kube/config:/root/.kube/config:ro
 ```
 
 ### Velero UI
@@ -6983,7 +7037,7 @@ services:
 
 ### Toolong
 
-[Toolong](https://github.com/Textualize/toolong) - терминальное приложение для просмотра, отслеживания, объединения и поиска по содержимому файловых журналов, а также собранный [образ](https://hub.docker.com/r/lifailon/toolong-web) с веб-интерфейсом на базе [ttyd](https://github.com/tsl0922/ttyd).
+[Toolong](https://github.com/Textualize/toolong) - терминальное приложение (TUI) для просмотра, отслеживания, объединения и поиска по содержимому файловых журналов, а также собранный [образ](https://hub.docker.com/r/lifailon/toolong-web) с веб-интерфейсом на базе [ttyd](https://github.com/tsl0922/ttyd).
 
 ```yaml
 services:
@@ -7006,6 +7060,25 @@ services:
       - /var/log:/var/log:ro
 ```
 
+### WebTail
+
+[WebTail](https://github.com/LeKovr/webtail) - веб-интерфейс и пакет Go для непрерывного стрименга файлов (приемущественно логов) через веб-сокет в браузер (русский разработчик).
+
+```yaml
+services:
+  webtail:
+    image: ghcr.io/lekovr/webtail:latest
+    container_name: webtail
+    restart: unless-stopped
+    user: 0:0
+    ports:
+      - 8060:8080
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/log:/log:ro
+```
+
 ### PatchMon
 
 [PatchMon](https://github.com/PatchMon/PatchMon) - централизованное управление обновлениями в различных серверных средах. Агенты обмениваются данными с сервером PatchMon только по исходящим каналам, исключая входящие порты на контролируемых хостах, обеспечивая при этом всестороннюю видимость и безопасную автоматизацию.
@@ -7014,6 +7087,7 @@ services:
 services:
   patchmon:
     image: ghcr.io/patchmon/patchmon-backend:latest
+    container_name: patchmon
     restart: unless-stopped
     environment:
       LOG_LEVEL: info
