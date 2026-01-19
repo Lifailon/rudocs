@@ -10,4 +10,4 @@
 > [!TIP]
 > Вы можете ознакомиться с другими шпаргалками для языков [Go](https://github.com/Lifailon/golang-cheat-sheet-ru) и [JavaScript](https://github.com/Lifailon/node.js-cheat-sheet-ru).
 
-Репозиторий также содержит набор PowerShell [скриптов и модулей](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts), коллекцию стеков [Docker Compose](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose) из более чем 300 сервисов и манифесты [Kubernetes](https://github.com/Lifailon/PS-Commands/tree/rsa/Kubernetes), которые поддерживаются в актуальном состояние и эксплуатируется в домашней лаборатории.
+Репозиторий также содержит набор PowerShell [скриптов](https://github.com/Lifailon/PS-Commands/tree/rsa/Scripts), коллекцию стеков [Docker Compose](https://github.com/Lifailon/PS-Commands/tree/rsa/Docker-Compose) и манифестов [Kubernetes](https://github.com/Lifailon/PS-Commands/tree/rsa/Kubernetes), которые поддерживаются в актуальном состояние и эксплуатируется в домашней лаборатории.
