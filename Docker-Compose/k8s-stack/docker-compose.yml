@@ -88,19 +88,14 @@ services:
 
   # Web dashboard for view logs
   kubetail-dashboard:
-    image: kubetail/kubetail-dashboard:0.8.2
+    image: kubetail/kubetail-cli # https://github.com/kubetail-org/kubetail/issues/770
     container_name: kubetail-dashboard
     restart: unless-stopped
+    command: serve --host 0.0.0.0 --skip-open
     ports:
       - 7500:7500
     volumes:
-      - ~/.kube/config:/kubetail/.kube/config:ro
-    command:
-      [
-        "-a", ":7500",
-        "-p", "dashboard.environment:desktop",
-        "-p", "kubeconfig:/kubetail/.kube/config",
-      ]
+      - ~/.kube/config:/root/.kube/config:ro
 
   # Web interface for Velero
   velero-ui:
