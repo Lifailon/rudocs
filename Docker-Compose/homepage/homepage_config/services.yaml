@@ -438,6 +438,15 @@
         - Networking Toolbox:
             icon: https://raw.githubusercontent.com/Lissy93/networking-toolbox/refs/heads/main/static/icon.png
             href: https://networkingtoolbox.net
+        - MAC Address Lookup:
+            icon: https://maclookup.app/img/ico/favicon.ico
+            href: https://maclookup.app/search
+        - Speed Guide Ports Database:
+            icon: https://speedguide.net/favicon.ico
+            href: https://speedguide.net/ports.php
+        - Shodan InternetDB:
+            icon: https://raw.githubusercontent.com/Lissy93/networking-toolbox/refs/heads/main/static/icon.png
+            href: https://beta.shodan.io
         - Web Check:
             icon: web-check.png
             href: https://web-check.xyz
@@ -453,10 +462,7 @@
         - Technitium DNS Client:
             icon: https://dnsclient.net/favicon.ico
             href: https://dnsclient.net
-        - MAC Address Lookup:
-            icon: https://maclookup.app/img/ico/favicon.ico
-            href: https://maclookup.app/search
-        - Proxy Check:
+        - Hide My Mame Proxy Check:
             icon: https://hide-my-name.com/favicon.ico
             href: https://hide-my-name.com/proxy-checker
         - Looking Glass:
