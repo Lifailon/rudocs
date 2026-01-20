@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://lifailon.github.io/devops/"><img title="DevOps Tools"src="Logo/devops-tools.png"></a>
+    <a href="https://lifailon.github.io/devops/"><img title="DevOps Tools"src="Images/devops-tools.png"></a>
 </p>
 
 <p align="center">

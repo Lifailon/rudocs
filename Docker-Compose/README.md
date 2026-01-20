@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://lifailon.github.io/compose/"><img title="Docker Compose Stacks"src="../Logo/compose-stacks.png"></a>
+    <a href="https://lifailon.github.io/compose/"><img title="Docker Compose Stacks"src="../Images/compose-stacks.png"></a>
 </p>
 
 Коллекция стеков Docker Compose из более чем 300 сервисов. Каждое приложение было проверено и отлажено в домашней лаборатории, конфигурации к некоторым сервисам доступны в [репозитории](https://github.com/Lifailon/rudocs/tree/main/Docker-Compose).

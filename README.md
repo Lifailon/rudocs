@@ -1,4 +1,4 @@
-<p align="center"><a href="https://lifailon.github.io"><img title="ruDocs Logo"src="/Logo/rudocs-logo.png"></a></p>
+<p align="center"><a href="https://lifailon.github.io"><img title="ruDocs Logo"src="/Images/rudocs-logo.png"></a></p>
 
 <p align="center">
     <a href="https://lifailon.github.io"><img title="Web version"src="https://img.shields.io/badge/web%20version-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white"></a>

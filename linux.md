@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://lifailon.github.io/linux/"><img title="Linux Commands Logo"src="Logo/linux-commands.png"></a>
+    <a href="https://lifailon.github.io/linux/"><img title="Linux Commands Logo"src="Images/linux-commands.png"></a>
 </p>
 
 <p align="center">

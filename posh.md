@@ -1,10 +1,12 @@
 <p align="center">
-    <a href="https://lifailon.github.io/powershell/"><img title="PS-Commands Logo"src="Logo/ps-commands.png"></a>
+    <a href="https://lifailon.github.io/powershell/"><img title="PS-Commands Logo"src="Images/ps-commands.png"></a>
 </p>
 
 <p align="center">
     Большая база заметок <b>PowerShell</b> на русском языке.
 </p>
+
+[PowerShell](https://github.com/PowerShell/PowerShell) - это объектно-ориентированный и кроссплатформенный язык программирования с открытым исходным кодом (начиная с 6-ой версии **Core**). Он способен напрямую взаимодействовать с классами и методами `C#` через платформу `.NET`, что позволяет создавать программы с графическим интерфейсом на базе [WinForms](https://github.com/Lifailon/rudocs/blob/main/WinForms) или [WPF](https://ru.wikipedia.org/wiki/Windows_Presentation_Foundation), TUI на базе [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui), веб-сервера и `REST API` с помощью класса [HttpListener](https://github.com/Lifailon/rudocs/blob/main/HttpListener/KeePassREST.psm1) или [Pode](https://github.com/Badgerati/Pode) framework, управлять браузером с помощь библиотеки [Selenium](https://github.com/Lifailon/Selenium-Modules), базами данных (поддерживается большенство СУБД через [ODBC](https://ru.wikipedia.org/wiki/ODBC) драйверы или `.NET` коннекторы) и языками разметки (нативная поддержка `XML`, `JSON` и `CSV`, а также другими с помощью модулей или парсинг `HTML` через библиотеку [HAP](https://github.com/zzzprojects/html-agility-pack)) как с любыми другими объектами за счет типовой экосистемы взаимодействия. Такой язык в первую очередь будет полезен DevOps инженерам и системным администраторам, так как является незаменимым инструментом для автоматизации Windows систем, управления облачной инфрастуры Microsoft Azure и компонентами Windows Server, такими как `Hyper-V`, `Active Directory`, `MS Exchange`, `DNS`, `DHCP`, `SMB` и другими.
 
 ---
 
@@ -12,7 +14,6 @@
     Навигация:
 </h2>
 
-- [PowerShell](#powershell)
 - [Cheat-Sheet](#cheat-sheet)
 - [Help](#help)
 - [Object](#object)
@@ -478,13 +479,9 @@
 
 ---
 
-## PowerShell
-
-[PowerShell](https://github.com/PowerShell/PowerShell) - это объектно-ориентированный и кроссплатформенный язык программирования с открытым исходным кодом (начиная с 6-ой версии **Core**). Он способен напрямую взаимодействовать с классами и методами `C#` через платформу `.NET`, что позволяет создавать программы с графическим интерфейсом на базе [WinForms](https://github.com/Lifailon/rudocs/blob/main/WinForms) или [WPF](https://ru.wikipedia.org/wiki/Windows_Presentation_Foundation), TUI на базе [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui), веб-сервера и `REST API` с помощью класса [HttpListener](https://github.com/Lifailon/rudocs/blob/main/HttpListener/KeePassREST.psm1) или [Pode](https://github.com/Badgerati/Pode) framework, управлять браузером с помощь библиотеки [Selenium](https://github.com/Lifailon/Selenium-Modules), базами данных (поддерживается большенство СУБД через [ODBC](https://ru.wikipedia.org/wiki/ODBC) драйверы или `.NET` коннекторы) и языками разметки (нативная поддержка `XML`, `JSON` и `CSV`, а также другими с помощью модулей или парсинг `HTML` через библиотеку [HAP](https://github.com/zzzprojects/html-agility-pack)) как с любыми другими объектами за счет типовой экосистемы взаимодействия. Такой язык в первую очередь будет полезен DevOps инженерам и системным администраторам, так как является незаменимым инструментом для автоматизации Windows систем, управления облачной инфрастуры Microsoft Azure и компонентами Windows Server, такими как `Hyper-V`, `Active Directory`, `MS Exchange`, `DNS`, `DHCP`, `SMB` и другими.
-
 ## Cheat-Sheet
 
-![Image alt](Cheat-Sheet/PowerShell-Cheat-Sheet-RU.jpg)
+![Image alt](Images/powershell-cheat-sheet-ru.jpg)
 
 ## Help
 
