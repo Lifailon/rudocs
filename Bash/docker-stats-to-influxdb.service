@@ -1,0 +1,13 @@
+[Unit]
+Description=Select docker statistics and output to Influx Database
+After=network.target
+
+[Service]
+ExecStart=/bin/bash "/root/docker-stats-to-influxdb.sh"
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

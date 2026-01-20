@@ -107,6 +107,43 @@
     - Web Installer:
         icon: https://webinstall.dev/favicon.ico
         href: https://webinstall.dev
+    - 🧲 Trackers:
+        - AppsTorrent:
+            icon: apple.png
+            href: https://appstorrent.ru
+        - Kinozal:
+            icon: https://kinozal.tv/pic/favicon.ico
+            href: https://kinozal.tv
+        - RuTracker:
+            icon: https://rutracker.org/favicon.ico
+            href: https://rutracker.org
+        - NoNaMe Club:
+            icon: https://nnmstatic.win/favicon.ico
+            href: https://nnmclub.to
+        - RuTor:
+            icon: https://cdnbunny.org/favicon.ico
+            href: https://rutor.info
+        - Mega Peer:
+            icon: https://megapeer.vip/favicon.ico
+            href: https://megapeer.vip
+        - Catorrent:
+            icon: https://catorrent.net/templates/catorrent/images/favicon.svg
+            href: https://catorrent.net/torrent/platform/nintendo%20switch
+        - ByRutor:
+            icon: https://byrutgame.org/favicon.png
+            href: https://byrutgame.org
+        - PC Torrents:
+            icon: https://pc-torrents.games/templates/pctorrent/images/favicon.ico
+            href: https://pc-torrents.games
+        - RSLoad:
+            icon: https://rsload.net/favicon.png
+            href: https://rsload.net
+        - Diakov:
+            icon: https://diakov.net/favicon.ico
+            href: https://diakov.net
+        - 1progs:
+            icon: https://1progs.ru/favicon.ico
+            href: https://1progs.ru
 
 - Social:
     - X:
@@ -187,43 +224,61 @@
             - Nintendo Moy:
                 icon: https://nintendo.moy.su/favicon.ico
                 href: https://nintendo.moy.su
-    - 🧲 Trackers:
-        - AppsTorrent:
-            icon: apple.png
-            href: https://appstorrent.ru
-        - Kinozal:
-            icon: https://kinozal.tv/pic/favicon.ico
-            href: https://kinozal.tv
-        - RuTracker:
-            icon: https://rutracker.org/favicon.ico
-            href: https://rutracker.org
-        - NoNaMe Club:
-            icon: https://nnmstatic.win/favicon.ico
-            href: https://nnmclub.to
-        - RuTor:
-            icon: https://cdnbunny.org/favicon.ico
-            href: https://rutor.info
-        - Mega Peer:
-            icon: https://megapeer.vip/favicon.ico
-            href: https://megapeer.vip
-        - Catorrent:
-            icon: https://catorrent.net/templates/catorrent/images/favicon.svg
-            href: https://catorrent.net/torrent/platform/nintendo%20switch
-        - ByRutor:
-            icon: https://byrutgame.org/favicon.png
-            href: https://byrutgame.org
-        - PC Torrents:
-            icon: https://pc-torrents.games/templates/pctorrent/images/favicon.ico
-            href: https://pc-torrents.games
-        - RSLoad:
-            icon: https://rsload.net/favicon.png
-            href: https://rsload.net
-        - Diakov:
-            icon: https://diakov.net/favicon.ico
-            href: https://diakov.net
-        - 1progs:
-            icon: https://1progs.ru/favicon.ico
-            href: https://1progs.ru
+        - Images:
+            - OCR:
+                icon: https://www.copyfromimage.com/favicon.svg
+                href: https://www.copyfromimage.com
+            - Photopea:
+                icon: photopea.png
+                href: https://photopea.com
+            - tldraw:
+                icon: https://www.tldraw.com/favicon.svg
+                href: https://tldraw.com
+            - Squoosh:
+                icon: https://squoosh.app/c/favicon-c9cf50ef.ico
+                href: https://squoosh.app
+            - Mazanoke:
+                icon: https://mazanoke.com/assets/images/favicon-32x32.png
+                href: https://mazanoke.com
+            - Carbon:
+                icon: https://carbon.now.sh/favicon.ico
+                href: https://carbon.now.sh
+            - Supasnap:
+                icon: https://supasnap.com/images/favicons/favicon-32x32.png
+                href: https://supasnap.com/create
+            - ASCII Generator:
+                icon: https://patorjk.com/candy.png
+                href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
+            - SVG Editor:
+                icon: https://raw.githubusercontent.com/SVG-Edit/svgedit/refs/heads/master/src/editor/images/logo.svg
+                href: https://svgplayground.com
+            - SVGOMG:
+                icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
+                href: https://jakearchibald.github.io/svgomg
+            - Boxy SVG:
+                icon: https://boxy-svg.com/icons/favicon.svg
+                href: https://boxy-svg.com
+            - Favicon Generator:
+                icon: https://favicongenerator.io/favicon.svg
+                href: https://favicongenerator.io
+            - Draw.io:
+                icon: draw-io.png
+                href: https://app.diagrams.net
+            - Mermaid:
+                icon: https://mermaid.live/favicon.png
+                href: https://mermaid.live/edit
+            - Apache ECharts:
+                icon: https://echarts.apache.org/en/images/favicon.png
+                href: https://echarts.apache.org/examples/en
+            - D2 Playground:
+                icon: https://play.d2lang.com/assets/icons/d2-logo.svg
+                href: https://play.d2lang.com
+            - PlantUML:
+                icon: plantuml.png
+                href: https://www.plantuml.com/plantuml/uml
+            # - Sweet Home 3D:
+            #     icon: https://www.sweethome3d.com/images/icon.png
+            #     href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
 
 - AI:
     - ChatGPT:
@@ -459,40 +514,6 @@
         - HTTP Headers:
             icon: https://static.modheader.com/favicons/favicon-96x96.png
             href: https://modheader.com/headers
-    - Web Apps:
-        - KeePass Web:
-            icon: https://keepass.info/favicon.ico
-            href: https://app.keeweb.info
-        - Embed PDF:
-            icon: https://www.embedpdf.com/favicon.ico
-            href: https://app.embedpdf.com/
-        - Grist Excel:
-            icon: grist.png
-            href: https://docs.getgrist.com
-        - Archive Box:
-            icon: archivebox.png
-            href: https://demo.archivebox.io/public
-        - Jitsi Meet:
-            icon: jitsi-meet.png
-            href: https://meet.jit.si
-        - Recorder:
-            icon: https://recorder.getcontrast.io/logo.svg
-            href: https://recorder.getcontrast.io
-        - Video Editor:
-            icon: https://clipjs.mohy.dev/favicon.ico
-            href: https://clipjs.mohy.dev/projects
-        - Cobalt Media Downloader:
-            icon: cobalt.png
-            href: https://cobalt.tools
-        # - Emoji finder:
-        #     icon: https://emoji.muan.co/fav.png
-        #     href: https://emoji.muan.co
-        # - Shields:
-        #     icon: https://shields.io/img/favicon.ico
-        #     href: https://shields.io
-        # - Icons:
-        #     icon: https://icon-icons.com/favicon.ico
-        #     href: https://icon-icons.com/ru
 
 - 👩‍💻 Development:
     - VSCode:
@@ -531,9 +552,11 @@
     # - Scriggo Playground:
     #     icon: https://play.scriggo.com/favicon.ico
     #     href: https://play.scriggo.com
-    # - GopherJS Playground:
-    #     icon: https://avatars.githubusercontent.com/u/6654647?s=200&v=4
-    #     href: https://gopherjs.github.io/playground
+    - GopherJS Playground:
+        icon: https://avatars.githubusercontent.com/u/6654647?s=200&v=4
+        href: https://gopherjs.github.io/playground
+    - Go to TypeScript Playground:
+        href: https://goscript.spacewave.app/playground
     - Go Template Playground:
         icon: https://repeatit.io/logo.svg
         href: https://repeatit.io
@@ -590,10 +613,10 @@
         icon: https://xaml.io/favicon.ico
         href: https://xaml.io
     # - Pygments:
-    #     icon: https://xaml.io/favicon.ico
+    #     icon: https://pygments.org/_static/favicon.ico
     #     href: https://pygments.org/demo
     - Chroma Playground:
-        icon: https://xaml.io/favicon.ico
+        icon: https://pygments.org/_static/favicon.ico
         href: https://swapoff.org/chroma/playground
     - Database:
         - Outerbase Studio:
@@ -608,61 +631,40 @@
         - QuackDB:
             icon: https://www.quackdb.com/favicon-32x32.png
             href: https://www.quackdb.com
-    - Images:
-        - OCR:
-            icon: https://www.copyfromimage.com/favicon.svg
-            href: https://www.copyfromimage.com
-        - Photopea:
-            icon: photopea.png
-            href: https://photopea.com
-        - tldraw:
-            icon: https://www.tldraw.com/favicon.svg
-            href: https://tldraw.com
-        - Squoosh:
-            icon: https://squoosh.app/c/favicon-c9cf50ef.ico
-            href: https://squoosh.app
-        - Mazanoke:
-            icon: https://mazanoke.com/assets/images/favicon-32x32.png
-            href: https://mazanoke.com
-        - Carbon:
-            icon: https://carbon.now.sh/favicon.ico
-            href: https://carbon.now.sh
-        - Supasnap:
-            icon: https://supasnap.com/images/favicons/favicon-32x32.png
-            href: https://supasnap.com/create
-        - ASCII Generator:
-            icon: https://patorjk.com/candy.png
-            href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
-        - SVG Editor:
-            icon: https://raw.githubusercontent.com/SVG-Edit/svgedit/refs/heads/master/src/editor/images/logo.svg
-            href: https://svgplayground.com
-        - SVGOMG:
-            icon: https://jakearchibald.github.io/svgomg/imgs/icon.png
-            href: https://jakearchibald.github.io/svgomg
-        - Boxy SVG:
-            icon: https://boxy-svg.com/icons/favicon.svg
-            href: https://boxy-svg.com
-        - Favicon Generator:
-            icon: https://favicongenerator.io/favicon.svg
-            href: https://favicongenerator.io
-        - Draw.io:
-            icon: draw-io.png
-            href: https://app.diagrams.net
-        - Mermaid:
-            icon: https://mermaid.live/favicon.png
-            href: https://mermaid.live/edit
-        - Apache ECharts:
-            icon: https://echarts.apache.org/en/images/favicon.png
-            href: https://echarts.apache.org/examples/en
-        - D2 Playground:
-            icon: https://play.d2lang.com/assets/icons/d2-logo.svg
-            href: https://play.d2lang.com
-        - PlantUML:
-            icon: plantuml.png
-            href: https://www.plantuml.com/plantuml/uml
-        # - Sweet Home 3D:
-        #     icon: https://www.sweethome3d.com/images/icon.png
-        #     href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
+    - Web Apps:
+        - KeePass Web:
+            icon: https://keepass.info/favicon.ico
+            href: https://app.keeweb.info
+        - Embed PDF:
+            icon: https://www.embedpdf.com/favicon.ico
+            href: https://app.embedpdf.com/
+        - Grist Excel:
+            icon: grist.png
+            href: https://docs.getgrist.com
+        - Archive Box:
+            icon: archivebox.png
+            href: https://demo.archivebox.io/public
+        - Jitsi Meet:
+            icon: jitsi-meet.png
+            href: https://meet.jit.si
+        - Recorder:
+            icon: https://recorder.getcontrast.io/logo.svg
+            href: https://recorder.getcontrast.io
+        - Video Editor:
+            icon: https://clipjs.mohy.dev/favicon.ico
+            href: https://clipjs.mohy.dev/projects
+        - Cobalt Media Downloader:
+            icon: cobalt.png
+            href: https://cobalt.tools
+        # - Emoji finder:
+        #     icon: https://emoji.muan.co/fav.png
+        #     href: https://emoji.muan.co
+        # - Shields:
+        #     icon: https://shields.io/img/favicon.ico
+        #     href: https://shields.io
+        # - Icons:
+        #     icon: https://icon-icons.com/favicon.ico
+        #     href: https://icon-icons.com/ru
 
 - 🐧 Nodes:
     - node-01 (hv-us-101):

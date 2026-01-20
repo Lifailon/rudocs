@@ -1,0 +1,13 @@
+[Unit]
+Description=Directory monitoring for get metric to file count, size and modify
+After=network.target
+
+[Service]
+ExecStart=/bin/bash "/root/dir-monitor-log.sh"
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

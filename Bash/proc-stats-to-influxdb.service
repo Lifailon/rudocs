@@ -1,0 +1,13 @@
+[Unit]
+Description=Process statisctics for send to influxdb
+After=network.target
+
+[Service]
+ExecStart=/bin/bash "/root/proc-stats-to-influxdb.sh"
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
