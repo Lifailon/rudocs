@@ -52,15 +52,15 @@
   - [Dockly](#dockly)
   - [Push](#push)
   - [Buildx](#buildx)
-  - [Dockerfile](#dockerfile)
-  - [Compose](#compose)
+- [Docker.DotNet](#dockerdotnet)
+- [Dockerfile](#dockerfile)
+- [Compose](#compose)
     - [Uptime-Kuma](#uptime-kuma)
     - [Dockge](#dockge)
     - [Dozzle](#dozzle)
     - [Beszel](#beszel)
     - [Watchtower](#watchtower)
-  - [Portainer](#portainer)
-  - [Docker.DotNet](#dockerdotnet)
+    - [Portainer](#portainer)
 - [Swarm](#swarm)
 - [Kubernetes](#kubernetes)
   - [Minikube](#minikube)
@@ -88,7 +88,14 @@
   - [Krew](#krew)
   - [Kompose](#kompose)
   - [Kustomize](#kustomize)
-  - [Helm](#helm)
+- [Helm](#helm)
+  - [Charts](#charts)
+  - [Variables](#variables)
+  - [Files](#files)
+  - [Functions](#functions)
+  - [Conditionals](#conditionals)
+  - [Loops](#loops)
+  - [Define](#define)
 - [AWS](#aws)
 - [Azure](#azure)
 - [Vercel](#vercel)
@@ -833,7 +840,30 @@ docker buildx build --platform linux/amd64,linux/arm64 -t lifailon/logporter --p
 ARG TARGETOS TARGETARCH
 FROM --platform=${TARGETOS}/${TARGETARCH} node:alpine AS build
 ```
-### Dockerfile
+## Docker.DotNet
+```PowerShell
+# Импорт библиотеки Docker.DotNet (https://nuget.info/packages/Docker.DotNet/3.125.15)
+Add-Type -Path "$home\Documents\Docker.DotNet-3.125.15\lib\netstandard2.1\Docker.DotNet.dll"
+# Указываем адрес удаленного сервера Docker, на котором слушает сокет Docker API
+$config = [Docker.DotNet.DockerClientConfiguration]::new("http://192.168.3.102:2375")
+# Подключаемся клиентом
+$client = $config.CreateClient()
+# Получить список методов класса клиента
+$client | Get-Member
+# Выводим список контейнеров
+$containers = $client.Containers.ListContainersAsync([Docker.DotNet.Models.ContainersListParameters]::new()).GetAwaiter().GetResult()
+# Забираем id по имени
+$kuma_id = $($containers | Where-Object names -match "uptime-kuma-front").id
+# Получить список дочерних методов
+$client.Containers | Get-Member
+# Остановить контейнер по его id
+$StopParameters = [Docker.DotNet.Models.ContainerStopParameters]::new()
+$client.Containers.StopContainerAsync($kuma_id, $StopParameters)
+# Запустить контейнер
+$StartParameters = [Docker.DotNet.Models.ContainerStartParameters]::new()
+$client.Containers.StartContainerAsync($kuma_id, $StartParameters)
+```
+## Dockerfile
 
 `FROM` указывает базовый образ, на основе которого будет создаваться новый образ \
 `LABEL` добавляет метаданные к образу в формате ключ-значение \
@@ -913,7 +943,7 @@ docker run -d --name TorAPI -p 8443:8443 --restart=unless-stopped \
   -e PASSWORD="TorAPI" \
   torapi
 ```
-### Compose
+## Compose
 ```bash
 mkdir -p $HOME/.local/bin
 version=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
@@ -1201,7 +1231,7 @@ docker run -d --name kinozal-bot \
   --label com.centurylinklabs.watchtower.enable=false \
   kinozal-bot
 ```
-### Portainer
+#### Portainer
 ```yaml
 services:
   agent:
@@ -1243,29 +1273,6 @@ https://192.168.3.101:9443/#!/endpoints добавить удаленный хо
 
 http://192.168.3.101:9000
 
-### Docker.DotNet
-```PowerShell
-# Импорт библиотеки Docker.DotNet (https://nuget.info/packages/Docker.DotNet/3.125.15)
-Add-Type -Path "$home\Documents\Docker.DotNet-3.125.15\lib\netstandard2.1\Docker.DotNet.dll"
-# Указываем адрес удаленного сервера Docker, на котором слушает сокет Docker API
-$config = [Docker.DotNet.DockerClientConfiguration]::new("http://192.168.3.102:2375")
-# Подключаемся клиентом
-$client = $config.CreateClient()
-# Получить список методов класса клиента
-$client | Get-Member
-# Выводим список контейнеров
-$containers = $client.Containers.ListContainersAsync([Docker.DotNet.Models.ContainersListParameters]::new()).GetAwaiter().GetResult()
-# Забираем id по имени
-$kuma_id = $($containers | Where-Object names -match "uptime-kuma-front").id
-# Получить список дочерних методов
-$client.Containers | Get-Member
-# Остановить контейнер по его id
-$StopParameters = [Docker.DotNet.Models.ContainerStopParameters]::new()
-$client.Containers.StopContainerAsync($kuma_id, $StopParameters)
-# Запустить контейнер
-$StartParameters = [Docker.DotNet.Models.ContainerStartParameters]::new()
-$client.Containers.StartContainerAsync($kuma_id, $StartParameters)
-```
 ## Swarm
 
 `docker swarm init` инициализировать `manager node` и получить токен для подключения `worker node` (на сервере) \
@@ -2486,9 +2493,11 @@ configMapGenerator:
   # envs:
   #   - .env
 ```
-### Helm
+## Helm
 
-[Helm](https://github.com/helm/helm) - это шаблонизатор для управления конфигурациями и менеджер пакетов Kubernetes, использующий чарты (charts, которые являются пакетами), содержащими всю информацию для установки и управления приложениями в Kubernetes.
+### Charts
+
+[Helm](https://github.com/helm/helm) - это шаблонизатор для управления конфигурациями, а также менеджер пакетов для управления версионированием в Kubernetes, использующий чарты (`charts`, которые являются пакетами), содержащими всю информацию для установки и управления приложениями в Kubernetes.
 
 `curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash`
 
@@ -2500,7 +2509,7 @@ configMapGenerator:
     ├── deployment.yaml
     └── service.yaml
 ```
-`Chart.yaml`:
+Файл `Chart.yaml` содержит описание пакета:
 ```yaml
 apiVersion: v2
 name: torapi
@@ -2508,7 +2517,7 @@ description: Unofficial API for torrent trackers
 version: 0.1.0
 appVersion: "0.5.2"
 ```
-`values.yaml`:
+Файл `values.yaml` содержит переменные по умолчанию:
 ```yaml
 # Deployment
 replicaCount: 2
@@ -2535,6 +2544,8 @@ service:
   port: 8444
   targetPort: 8443
 ```
+Все шаблоны манифестов харнятся в директории `templates`.
+
 `templates/deployment.yaml`:
 ```yaml
 apiVersion: apps/v1
@@ -2605,6 +2616,273 @@ helm repo list
 helm upgrade --install <repo_name> <repo_name>/<repo_name> # установить пакет
 ```
 
+### Variables
+
+Все переменные, объявленные в файлах переменных (включая переданные через флаг `--values`) начинаются с `{{ .Values. }}`, поддерживая вложенность структуры `yaml`.
+
+```yaml
+name: {{ .Values.app.name }}
+```
+
+Встроенные переменные:
+
+`Chart` содержимое файла `Chart.yaml`, где доступны любые объявленные в нем переменные, например, `{{ .Chart.Name }}-{{ .Chart.Version }}` \
+`Subcharts` предоставляет родительскому элементу доступ к области видимости (`.Values`, `.Charts`, `.Releases` и т. д.) дочерних диаграмм \
+`Release.Name` название релиза \
+`Release.Namespace` пространство имен (если манифест не переопределяет это) \
+`Release.IsInstall` параметр устанавливается как true, если текущая операция — установка \
+`Release.IsUpgrade` параметр устанавливается как true, если текущая операция представляет собой обновление или откат \
+`Release.Revision:` номер ревизии для этого выпуска (при первой установке он равен 1 и увеличивается при каждом обновлении и откате) \
+`Release.Service:` сервис, который отображает текущий шаблон (в Helm это всегда Helm) \
+`Capabilities` предоставляет информацию о возможностях, которые поддерживает кластер Kubernetes \
+`Capabilities.APIVersions` представляет набор версий \
+`Capabilities.APIVersions.Has $versionу` показывает, доступна ли версия (например, `batch/v1`) или ресурс (например, `apps/v1/Deployment`) в кластере \
+`Capabilities.KubeVersion или Capabilities.KubeVersion.Version` версия для Kubernetes \
+`Capabilities.KubeVersion.Major` основная версия Kubernetes \
+`Capabilities.KubeVersion.Minor` минорная версия Kubernetes \
+`Capabilities.HelmVersion` содержит подробную информацию о версии Helm (как в helm version) \
+`Capabilities.HelmVersion.Version` текущая версия Helm в формате `semver`  \
+`Capabilities.HelmVersion.GitCommit` helm git sha1 \
+`Capabilities.HelmVersion.GitTreeState` состояние дерева Helm в Git \
+`Capabilities.HelmVersion.GoVersion` это версия используемого компилятора Go \
+`Template` содержит информацию о текущем выполняемом шаблоне \
+`Template.Name` путь к файлу с указанием пространства имен для текущего шаблона (например, `mychart/templates/mytemplate.yaml`) \
+`Template.BasePath` путь с указанием пространства имен к каталогу шаблонов текущей диаграммы (например, `mychart/templates`)
+
+### Files
+
+Функции с файлами:
+
+`Files` функция предоставляет доступ ко всем неспециальным файлам в диаграмме \
+`Files.Get` функция для получения файла по имени (`.Files.Get config.ini`) \
+`Files.GetBytes` функция для получения содержимого файла в виде массива байтов, а не строки (полезно, например, для изображений) \
+`Files.Glob` функция, которая возвращает список файлов, имена которых соответствуют заданному шаблону оболочки \
+`Files.Lines` функция, которая считывает файл построчно (полезно для перебора каждой строки в файле) \
+`Files.AsSecrets` функция, которая возвращает содержимое файлов в виде строк, закодированных в `Base64` \
+`Files.AsConfig` функция, которая возвращает тела файлов в виде YAML-карты
+
+Структура:
+```bash
+├── Chart.yaml
+├── values.yaml
+├── templates
+│   └── configmap.yaml
+└── configs
+    ├── application.yml
+    └── ip-addr-list.txt
+```
+Читаем содержимое файла `configs/application.yml` для передачи его содержимого в `ConfigMap`:
+```yaml
+data:
+  application.yml: |-
+    {{ .Files.Get "configs/application.yml" | indent 4 }}
+```
+Массовая загрузка файлов по шаблону (например, все `.yml` файлы из директории):
+```yaml
+data:
+{{- range $path, $_ :=  .Files.Glob "configs/*.yml" }}
+  {{ base $path }}: |-
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+```
+Автоматическое заполнение `ConfigMap` всеми файлами из директории:
+```yaml
+data:
+{{- (.Files.Glob "configs/**.yml").AsConfig | indent 2 }}
+```
+Читаем содержимое бинарного файла (картинки, сертификаты и т.п.):
+```yaml
+data:
+  logo.png: {{ .Files.GetBytes "assets/logo.png" | b64enc }}
+```
+Читаем содержимое в бинарном формате из содержимого переменной в `Values`:
+```yaml
+binaryData:
+  keystore.p12: |-
+    {{ .Values.app.integrations.kafka.keystore }}
+  truststore.p12: |-
+    {{ .Values.app.integrations.kafka.truststore }}
+```
+Чтение списка имен, IP-адресов или других слов из файла для цикла:
+```yaml
+# Файл ip-addr-list.txt содержит список IP по одному на каждую строку
+metadata:
+  annotations:
+    {{- range $index, $line := .Files.Lines "configs/ip-addr-list.txt" }}
+    {{- if $line }}
+    ip-allow-{{ $index }}: {{ $line | trim | quote }}
+    {{- end }}
+    {{- end }}
+```
+Пример вывода:
+```yaml
+metadata:
+  annotations:
+    ip-allow-0: "192.168.1.100"
+    ip-allow-1: "192.168.1.105"
+    ip-allow-2: "192.168.1.106"
+```
+### Functions
+
+Встроенные [функции](https://helm.sh/docs/chart_template_guide/function_list) для обработки текста:
+```yaml
+name: {{ .Values.storageClassName | quote }} # оборачивает значение в кавычки
+name: {{ .Values.storageClassName | lower }} # преобразует строку в нижний регистр
+name: {{ .Values.storageClassName | upper }} # преобразует строку в верхний регистр
+
+name: {{ .Values.storageClassName | trim }}  # удаляет пробелы по краям строки
+name: {{ .Values.storageClassName | trimAll "/" }} # удаляет все указанные символы (/) с обоих концов строки
+name: {{ .Values.storageClassName | trimPrefix "/" }} # удаляет указанный префикс (/) в начале строки
+name: {{ .Values.storageClassName | trimSuffix "/" }} # удаляет указанный суффикс (/) в конце строки
+
+name: {{ printf "%s-%d" .Values.storageClassName .Values.storageClassVersion }} # форматирует строку по шаблону (объединяет значения разных типов, например, string и int)
+name: {{ .Values.storageClassName | default "тут значение по умолчанию" }}  # устанавливает значение по умолчанию, если переменная пуста
+name: {{ .Values.storageClassName | required "значение в storageClassName не определено" }} # прерывает установку с ошибкой, если значение не задано
+```
+Замена текста с помощью функции `replace`.
+
+Содержимое в файле `Values`:
+```yaml
+dbHost: "prod-db-01.internal"
+connectionString: "postgresql://user:password@{HOST}:5432/mydb"
+```
+Заменяем заглушку `{HOST}` на значение из `dbHost` в манифесте:
+```yaml
+url: {{ .Values.connectionString | replace "{HOST}" .Values.dbHost }}
+```
+Заполнение содержимого с помощью функции `toYaml`:
+
+Содержимое в файле `Values`:
+```yaml
+env:
+  DN_NAME: test
+  DN_USERNAME: admin
+```
+Заполняем содержимое:
+```yaml
+env: {{ .Values.env | toYaml | nindent 2 }}
+```
+Вывод:
+```yaml
+env:
+  DN_NAME: test
+  DN_USERNAME: admin
+```
+### Conditionals
+
+Условия для проверки значений:
+```yaml
+# Проверка на присутствия значений в переменных
+{{ if .Values.enablePersistence }}
+  enablePersistence: true
+{{ else if .Values.enableFilesystem }}
+  enableFilesystem: true
+{{ else }}
+  enablePersistence: false
+  enableFilesystem: false
+{{ end }}
+
+# Сокращенный формат (?:) для проверки булевого значения
+# Если переменная содержит false или значение отсутствует, вернет второе значение
+{{ ternary "true" "false" .Values.integrations.database.enable }}
+
+# Проверка на равенство и неравенство
+{{ if eq .Values.environment "production" }}
+{{ if ne .Values.environment "production" }}
+# Проверка нескольких условий (и/или)
+{{ if and (eq .Values.environment "production") (eq .Values.host "minikube") }}
+{{ if or (eq .Values.environment "production") (eq .Values.host "minikube") }}
+# Отрицание
+{{ if not (eq .Values.environment "production") }}
+
+# Арфеметические условия
+# Больше
+{{ if gt (len .Values.items) 3 }}
+# Больше или равно
+{{ if gte (len .Values.items) 3 }}
+# Меньше
+{{ if lt (len .Values.items) 3 }}
+# Меньше или равно
+{{ if lte (len .Values.items) 3 }}
+
+# Проверка строковых значения
+{{ if .Values.app.name | contains "example" }}
+{{ if .Values.app.name | hasPrefix "app-" }}
+{{ if .Values.app.name | hasSuffix "-fix" }}
+{{ if .Values.app.name | regexMatch "^[a-z]+$" }}
+
+# Присутствие значения в списке
+{{ if .Values.items | has "example" }}
+  # Этот блок выполнится, если "example" есть в массиве items
+{{ end }}
+```
+### Loops
+
+Циклы для перебора значений и заполнения массивов:
+```yaml
+volumes:
+  {{ range .Values.volume.ids }}
+  - volumeName: {{ . }}
+  {{ end }}
+
+volumes:
+  {{ range $id := .Values.volume.ids }}
+  - volumeName: {{ $id }}
+  {{ end }}
+
+# Используем индекс и значение
+volumes:
+  {{ range $index, $value := .Values.configuration }}
+  - {{ $index }}: {{ $value }}
+  {{ end }}
+```
+Пример заполнения набора манифестов:
+```yaml
+{{ range $key, $task := $.Values.integrations.database }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: egressgateway-svc-{{ $task.name }}
+  labels:
+    app: egress-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: egress-gateway
+  ports:
+    - name: tcp-{{ $task.port }}
+      protocol: TCP
+      port: {{ $task.port }}
+      targetPort: {{ $task.port }}
+---
+{{ end }}
+```
+### Define
+
+Используются как как функции, позволяя не дублировать код и поддерживают глобальную область видимости. Они объявляются в любом манифесте из директории `templates` или в специальном файле шаблона (например, `_helpers.tpl`).
+
+Переменные в файле `Values`:
+```yaml
+app:
+  image: app
+  tag: "v1.2.3"
+```
+Объявляем `define`:
+```yaml
+{{- define "app.image" -}}
+{{- $image := .Values.app.image -}}
+{{- $tag := .Values.app.tag | default .Chart.AppVersion -}}
+{{- printf "%s:%s" $image $tag -}}
+{{- end -}}
+```
+Используем в любом манифесте:
+```yaml
+spec:
+  containers:
+    - name: web
+      image: {{ include "app.image" . }}
+```
 ## AWS
 
 Установка [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)
@@ -4571,7 +4849,7 @@ ansible_shell_type=powershell
   win_chocolatey:
     name: chocolatey
     state: present
-	# source: URL-адрес внутреннего репозитория
+    # source: URL-адрес внутреннего репозитория
     source: https://community.chocolatey.org/api/v2/ChocolateyInstall.ps1
 ```
 ### Jinja
@@ -5180,7 +5458,7 @@ Get-Service winlogbeat | Start-Service
 ## HAProxy
 
 Запускаем HAProxy в контейнере Docker:
-```yml
+```yaml
 services:
   httpbin-proxy:
     image: haproxy:3.2.4-alpine
