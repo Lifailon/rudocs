@@ -52,15 +52,15 @@
   - [Dockly](#dockly)
   - [Push](#push)
   - [Buildx](#buildx)
-- [Docker.DotNet](#dockerdotnet)
-- [Dockerfile](#dockerfile)
-- [Compose](#compose)
+  - [Dockerfile](#dockerfile)
+  - [Compose](#compose)
     - [Uptime-Kuma](#uptime-kuma)
     - [Dockge](#dockge)
     - [Dozzle](#dozzle)
     - [Beszel](#beszel)
     - [Watchtower](#watchtower)
     - [Portainer](#portainer)
+  - [Docker.DotNet](#dockerdotnet)
 - [Swarm](#swarm)
 - [Kubernetes](#kubernetes)
   - [Minikube](#minikube)
@@ -96,17 +96,15 @@
   - [Conditionals](#conditionals)
   - [Loops](#loops)
   - [Define](#define)
-- [AWS](#aws)
-- [Azure](#azure)
-- [Vercel](#vercel)
 - [GitHub API](#github-api)
 - [GitHub Actions](#github-actions)
-  - [Runner](#runner)
-  - [Pipeline](#pipeline)
-  - [CI](#ci)
-  - [CD](#cd)
-  - [Logs](#logs-1)
-  - [act](#act)
+  - [Docker Build and Push](#docker-build-and-push)
+  - [Dockerfile Linters Check](#dockerfile-linters-check)
+  - [Telegram Notification](#telegram-notification)
+  - [AI Issue Analysis](#ai-issue-analysis)
+  - [Go Build and Testing](#go-build-and-testing)
+  - [Actions API](#actions-api)
+  - [Actions locally](#actions-locally)
 - [Groovy](#groovy)
 - [Jenkins](#jenkins)
   - [API](#api)
@@ -124,23 +122,26 @@
   - [withVault](#withvault)
   - [Email Extension](#email-extension)
   - [Parallel](#parallel)
-- [Ansible](#ansible)
-  - [Hosts](#hosts)
-  - [Windows Modules](#windows-modules)
-  - [Jinja](#jinja)
-- [Puppet](#puppet)
-  - [Bolt](#bolt)
-- [Sake](#sake)
+- [Configuration Management](#configuration-management)
+  - [Ansible](#ansible)
+    - [Windows Modules](#windows-modules)
+    - [Jinja](#jinja)
+  - [Puppet/Bolt](#puppetbolt)
+  - [Sake](#sake)
 - [Secret Manager](#secret-manager)
   - [Bitwarden](#bitwarden)
   - [Infisical](#infisical)
   - [HashiCorp/Vault](#hashicorpvault)
   - [HashiCorp/Consul](#hashicorpconsul)
 - [Prometheus](#prometheus)
-  - [PromQL Functions](#promql-functions)
-- [Graylog](#graylog)
-- [HAProxy](#haproxy)
-- [Keepalive](#keepalive)
+- [PromQL](#promql)
+- [Cloud](#cloud)
+  - [AWS](#aws)
+  - [Azure](#azure)
+  - [Vercel](#vercel)
+- [Load Balancer](#load-balancer)
+  - [HAProxy](#haproxy)
+  - [Keepalive](#keepalive)
 - [GlusterFS](#glusterfs)
 
 ---
@@ -840,30 +841,7 @@ docker buildx build --platform linux/amd64,linux/arm64 -t lifailon/logporter --p
 ARG TARGETOS TARGETARCH
 FROM --platform=${TARGETOS}/${TARGETARCH} node:alpine AS build
 ```
-## Docker.DotNet
-```PowerShell
-# Импорт библиотеки Docker.DotNet (https://nuget.info/packages/Docker.DotNet/3.125.15)
-Add-Type -Path "$home\Documents\Docker.DotNet-3.125.15\lib\netstandard2.1\Docker.DotNet.dll"
-# Указываем адрес удаленного сервера Docker, на котором слушает сокет Docker API
-$config = [Docker.DotNet.DockerClientConfiguration]::new("http://192.168.3.102:2375")
-# Подключаемся клиентом
-$client = $config.CreateClient()
-# Получить список методов класса клиента
-$client | Get-Member
-# Выводим список контейнеров
-$containers = $client.Containers.ListContainersAsync([Docker.DotNet.Models.ContainersListParameters]::new()).GetAwaiter().GetResult()
-# Забираем id по имени
-$kuma_id = $($containers | Where-Object names -match "uptime-kuma-front").id
-# Получить список дочерних методов
-$client.Containers | Get-Member
-# Остановить контейнер по его id
-$StopParameters = [Docker.DotNet.Models.ContainerStopParameters]::new()
-$client.Containers.StopContainerAsync($kuma_id, $StopParameters)
-# Запустить контейнер
-$StartParameters = [Docker.DotNet.Models.ContainerStartParameters]::new()
-$client.Containers.StartContainerAsync($kuma_id, $StartParameters)
-```
-## Dockerfile
+### Dockerfile
 
 `FROM` указывает базовый образ, на основе которого будет создаваться новый образ \
 `LABEL` добавляет метаданные к образу в формате ключ-значение \
@@ -943,7 +921,7 @@ docker run -d --name TorAPI -p 8443:8443 --restart=unless-stopped \
   -e PASSWORD="TorAPI" \
   torapi
 ```
-## Compose
+### Compose
 ```bash
 mkdir -p $HOME/.local/bin
 version=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
@@ -1259,6 +1237,7 @@ services:
       placement:
         constraints: [node.role == manager]
 ```
+
 `docker stack deploy -c portainer-agent-stack.yml portainer` развернуть в кластере swarm (на каждом node будет установлен агент, который будет собирать данные, а на manager будет установлен сервер с web панелью)
 
 https://192.168.3.101:9443
@@ -1273,6 +1252,29 @@ https://192.168.3.101:9443/#!/endpoints добавить удаленный хо
 
 http://192.168.3.101:9000
 
+### Docker.DotNet
+```PowerShell
+# Импорт библиотеки Docker.DotNet (https://nuget.info/packages/Docker.DotNet/3.125.15)
+Add-Type -Path "$home\Documents\Docker.DotNet-3.125.15\lib\netstandard2.1\Docker.DotNet.dll"
+# Указываем адрес удаленного сервера Docker, на котором слушает сокет Docker API
+$config = [Docker.DotNet.DockerClientConfiguration]::new("http://192.168.3.102:2375")
+# Подключаемся клиентом
+$client = $config.CreateClient()
+# Получить список методов класса клиента
+$client | Get-Member
+# Выводим список контейнеров
+$containers = $client.Containers.ListContainersAsync([Docker.DotNet.Models.ContainersListParameters]::new()).GetAwaiter().GetResult()
+# Забираем id по имени
+$kuma_id = $($containers | Where-Object names -match "uptime-kuma-front").id
+# Получить список дочерних методов
+$client.Containers | Get-Member
+# Остановить контейнер по его id
+$StopParameters = [Docker.DotNet.Models.ContainerStopParameters]::new()
+$client.Containers.StopContainerAsync($kuma_id, $StopParameters)
+# Запустить контейнер
+$StartParameters = [Docker.DotNet.Models.ContainerStartParameters]::new()
+$client.Containers.StartContainerAsync($kuma_id, $StartParameters)
+```
 ## Swarm
 
 `docker swarm init` инициализировать `manager node` и получить токен для подключения `worker node` (на сервере) \
@@ -1630,7 +1632,8 @@ plugins:
 `kubectl delete service torapi-service` удалить service
 
 `kubectl logs torapi-54775d94b8-t2dhm` отобразить логи выбранного пода (сообщения, которые приложение отправляет в `stdout`) \
-`kubectl logs -l app=torapi --follow` выводить лог на всех запущенных репликах подов (фильтрация по `label`) в реальном времени (`--follow`)
+`kubectl logs -l app=torapi --follow --timestamps` выводить лог на всех запущенных репликах подов (фильтрация по `label`) в реальном времени (`--follow`) с отображением временной метки (`--timestamps`) \
+`kubectl logs -n telegram --selector="app in (openrouter-bot,ssh-bot)" --prefix --all-pods --all-containers` отобразить логи двух приложений (по лейблу с помощью селектора) во всех подах/репликах в кластере (`--all-pods`) и контейнерах внутри подах (`--all-containers`)
 
 `kubectl attach pods/torapi-54775d94b8-t2dhm`
 
@@ -2883,181 +2886,6 @@ spec:
     - name: web
       image: {{ include "app.image" . }}
 ```
-## AWS
-
-Установка [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)
-
-Настройка профиля по умолчанию (настройки подключения):
-```bash
-aws configure # --profile localstack
-AWS Access Key ID: test
-AWS Secret Access Key: test
-Default region name: us-east-1
-Default output format: json
-```
-
-Переменные окружения для подключения к облаку или [localstack](https://github.com/localstack/localstack):
-
-```bash
-export AWS_ENDPOINT_URL="http://192.168.3.101:4566"
-# export AWS_ACCESS_KEY_ID="test"
-# export AWS_SECRET_ACCESS_KEY="test"
-# export AWS_DEFAULT_REGION="us-east-1"
-# Windows
-$env:AWS_ENDPOINT_URL="http://192.168.3.101:4566"
-```
-
-Создание s3 хранилища:
-
-```bash
-aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 mb s3://test-bucket
-aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 ls
-```
-
-Создание группы, потока и запись логов в CloudWatch:
-
-```bash
-# Создание группы для хранения логов (Log Group)
-aws logs create-log-group --log-group-name "docker-logs"
-# Отобразить все группы
-aws logs describe-log-groups
-# Создание потока для записи логов (Log Stream)
-aws logs create-log-stream --log-group-name "docker-logs" --log-stream-name "app-01"
-# Отобразить все потоки в группе
-aws logs describe-log-streams --log-group-name "docker-logs"
-# Отправка лога (Put Log Events)
-aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events timestamp=$(date +%s000),message="Test message from CLI"
-# Windows
-$timestamp = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
-aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events "timestamp=$timestamp,message='Test message from PowerShell'"
-# Чтение логов (Get Log Events)
-aws logs get-log-events --log-group-name "docker-logs" --log-stream-name "zerobyte-zerobyte.logs"
-# Фильтрация логов
-aws logs filter-log-events --log-group-name "docker-logs" --query "events[*].message" --output text 
-# Чтение логов из всех потоков
-aws logs tail docker-logs --since 1d
-```
-
-## Azure
-
-`Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force` установить все модули для работы с Azure \
-`Get-Module *Az.*` список всех модулей
-
-`Get-Command -Module Az.Accounts` отобразить список команд модуля Az.Accounts \
-`Connect-AzAccount` подключиться у учетной записи Azure \
-`Get-AzContext` получить текущий статус подключения к Azure \
-`Get-AzSubscription` получить список подписок Azure, доступных для текущего пользователя \
-`Set-AzContext` установить контекст Azure для конкретной подписки и/или учетной записи \
-`Disconnect-AzAccount` отключиться от учетной записи Azure
-
-`Get-Command -Module Az.Compute` \
-`Get-AzVM` получить список виртуальных машин в текущей подписке или группе ресурсов \
-`Get-AzVMSize` получить список доступных размеров виртуальных машин в определенном регионе \
-`Get-AzVMImage` получить список доступных образов виртуальных машин \
-`New-AzVM` создать новую виртуальную машину \
-`Remove-AzVM` удалить виртуальную машину \
-`Start-AzVM` запустить виртуальную машину \
-`Stop-AzVM` остановить виртуальную машину \
-`Restart-AzVM` перезагрузить виртуальную машину
-
-`Get-Command -Module Az.Network` \
-`Get-AzVirtualNetwork` получить список виртуальных сетей в текущей подписке или группе ресурсов \
-`New-AzVirtualNetwork` создать новую виртуальную сеть \
-`Remove-AzVirtualNetwork` удалить виртуальную сеть \
-`Get-AzNetworkInterface` получить список сетевых интерфейсов \
-`New-AzNetworkInterface` создать новый сетевой интерфейс \
-`Remove-AzNetworkInterface` удалить сетевой интерфейс
-
-`Get-Command -Module Az.Storage` \
-`Get-AzStorageAccount` получить список учетных записей хранилища \
-`New-AzStorageAccount` создать новую учетную запись хранилища \
-`Remove-AzStorageAccount` удалить учетную запись хранилища \
-`Get-AzStorageContainer` список контейнеров в учетной записи хранилища \
-`New-AzStorageContainer` создать новый контейнер в учетной записи хранилища \
-`Remove-AzStorageContainer` удалить контейнер
-
-`Get-Command -Module Az.ResourceManager` \
-`Get-AzResourceGroup` получить список групп ресурсов в текущей подписке \
-`New-AzResourceGroup` создать новую группу ресурсов \
-`Remove-AzResourceGroup` удалить группу ресурсов \
-`Get-AzResource` получить список ресурсов \
-`New-AzResource` создать новый ресурс \
-`Remove-AzResource` удалить ресурс
-
-`Get-Command -Module Az.KeyVault` \
-`Get-AzKeyVault` список хранилищ ключей \
-`New-AzKeyVault` создать новое хранилище ключей в Azure \
-`Remove-AzKeyVault` удалить хранилище ключей в Azure
-
-`Get-Command -Module Az.Identity` \
-`Get-AzADUser` получить информацию о пользователях Azure Active Directory \
-`New-AzADUser` создать нового пользователя \
-`Remove-AzADUser` удалить пользователя \
-`Get-AzADGroup` получить информацию о группах \
-`New-AzADGroup` создать новую группу \
-`Remove-AzADGroup` удалить группу
-
-- [Manage-VM](https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-vm)
-
-`New-AzResourceGroup -Name "Resource-Group-01" -Location "EastUS"` создать группу ресурсов (логический контейнер, в котором происходит развертывание ресурсов Azure) \
-`Get-AzVMImageOffer -Location "EastUS" -PublisherName "MicrosoftWindowsServer"` список доступных образов Windows Server для установки \
-`$cred = Get-Credential` \
-`New-AzVm -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Location 'EastUS' -Image "MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest" -Size "Standard_D2s_v3" -OpenPorts 80,3389 --Credential $cred` создать виртуальную машину \
-`Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Status | Select @{n="Status"; e={$_.Statuses[1].Code}}` статус виртуальной машины \
-`Start-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` запустить виртуальную машину \
-`Stop-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Force` остановить виртуальную машину \
-`Invoke-AzVMRunCommand -ResourceGroupName "Resource-Group-01" -VMName "vm-01" -CommandId "RunPowerShellScript" -ScriptString "Install-WindowsFeature -Name Web-Server -IncludeManagementTools"` установить роль веб-сервера IIS
-
-- [Manage-Disk](https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-data-disk)
-
-`$diskConfig = New-AzDiskConfig -Location "EastUS" -CreateOption Empty -DiskSizeGB 512 -SkuName "Standard_LRS"` создать диск на 512 Гб \
-`$dataDisk = New-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512" -Disk $diskConfig` создание объекта диска для подготовки диска данных к работе \
-`Get-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512"` список дисков \
-`$vm = Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` \
-`Add-AzVMDataDisk -VM $vm -Name "Resource-Group-01" -CreateOption Attach -ManagedDiskId $dataDisk.Id -Lun 1` подключить диск к виртуальной машине \
-`Update-AzVM -ResourceGroupName "Resource-Group-01" -VM $vm` обновить конфигурацию виртуальной машины \
-`Get-Disk | Where PartitionStyle -eq 'raw' | Initialize-Disk -PartitionStyle MBR -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel "disk-512" -Confirm:$false` инициализировать диск в ОС (необходимо подключиться к виртуальной машине) с таблицей MBR, создать раздел и назначить все пространство и форматировать в файловую систему NTFS
-
-## Vercel
-
-`npm i -g vercel` установить глобально в систему Vercel CLI \
-`vercel --version` выводит текущую версию установленного Vercel CLI \
-`vercel login` выполняет вход в аккаунт Vercel (`> Continue with GitHub`) \
-`vercel logout` выполняет выход из аккаунта Vercel \
-`vercel init` инициализирует новый проект в текущей директории (создает файл конфигурации vercel.json и другие файлы, необходимые для проекта) \
-`vercel dev` запускает локальный сервер для проверки работоспособности (http://localhost:3000) \
-`vercel deploy` загружает проект на серверы Vercel и развертывает его \
-`vercel link` привязывает текущую директорию к существующему проекту на сервере Vercel (выбрать из списка) \
-`vercel unlink` отменяет привязку текущей директории от проекта Vercel \
-`vercel env` управляет переменными окружения для проекта \
-`vercel env pull` подтягивает переменные окружения с Vercel в локальный .env файл \
-`vercel env ls` показывает список всех переменных окружения для проекта \
-`vercel env add <key> <environment>` добавляет новую переменную окружения для указанного окружения (production, preview, development) \
-`vercel env rm <key> <environment>` удаляет переменную окружения из указанного окружения \
-`vercel projects` управляет проектами Vercel \
-`vercel projects ls` показывает список всех проектов \
-`vercel projects add` добавляет новый проект \
-`vercel projects rm <project>` удаляет указанный проект \
-`vercel pull` подтягивает последние настройки окружения с Vercel \
-`vercel alias` управляет алиасами доменов для проектов \
-`vercel alias ls` показывает список всех алиасов для текущего проекта \
-`vercel alias set <alias>` устанавливает алиас для указанного проекта \
-`vercel alias rm <alias>` удаляет указанный алиас \
-`vercel domains` управляет доменами, привязанными к проекту \
-`vercel domains ls` показывает список всех доменов \
-`vercel domains add <domain>` добавляет новый домен к проекту \
-`vercel domains rm <domain>` удаляет указанный домен \
-`vercel teams` управляет командами и членами команд на Vercel \
-`vercel teams ls` показывает список всех команд \
-`vercel teams add <team>` добавляет новую команду \
-`vercel teams rm <team>` удаляет указанную команду \
-`vercel logs <deployment>` выводит логи для указанного деплоя \
-`vercel secrets` управляет секретами, используемыми в проектах \
-`vercel secrets add <name> <value>` добавляет новый секрет \
-`vercel secrets rm <name>` удаляет указанный секрет \
-`vercel secrets ls` показывает список всех секретов \
-`vercel switch <team>` переключается между командами и аккаунтами Vercel
-
 ## GitHub API
 
 `$user = "Lifailon"` \
@@ -3087,141 +2915,399 @@ aws logs tail docker-logs --since 1d
 
 ## GitHub Actions
 
-### Runner
+### Docker Build and Push
 
-`mkdir actions-runner; cd actions-runner` \
-`Invoke-WebRequest -Uri https://github.com/actions/runner/releases/download/v2.316.1/actions-runner-win-x64-2.316.1.zip -OutFile actions-runner-win-x64-2.316.1.zip` загрузить пакет с Runner последней версии \
-`if((Get-FileHash -Path actions-runner-win-x64-2.316.1.zip -Algorithm SHA256).Hash.ToUpper() -ne 'e41debe4f0a83f66b28993eaf84dad944c8c82e2c9da81f56a850bc27fedd76b'.ToUpper()){ throw 'Computed checksum did not match' }` проверить валидность пакета с помощью hash-суммы \
-`Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/actions-runner-win-x64-2.316.1.zip", "$PWD")` разархивировать \
-`Remove-Item *.zip` удалить архив \
-`./config.cmd --url https://github.com/Lifailon/egapi --token XXXXXXXXXXXXXXXXXXXXXXXXXXXXX` авторизовать и сконфигурировать сборщика с помощью скрипта (что бы на последнем пункте создать службу для управления сборщиком, нужно запустить консоль с правами администратора) \
-`./run.cmd` запустить процесс (если не используется служба) \
-`Get-Service *actions* | Start-Service` запустить службу \
-`Get-Process *Runner.Listener*` \
-`./config.cmd remove --token XXXXXXXXXXXXXXXXXXXXXXXXXXXXX` удалить конфигурацию
-
-### Pipeline
+Сборка Docker образа из указанного коммита и публикация указанной версии на [Docker Hub](https://hub.docker.com).
 ```yaml
-name: build-game-list
+name: Docker build and push from specified commit
 
 on:
-  # Разрешить ручной запуск workflow через интерфейс GitHub
   workflow_dispatch:
-  
-  # Запускать workflow по расписанию каждый час в 00 минут
-  schedule:
-  - cron: '00 * * * *'
-
-jobs:
-  Job_01:
-    # Указываем, что job будет выполняться на последней версии Ubuntu
-    runs-on: ubuntu-latest
-    
-    steps:
-    # Шаги, которые будут выполнены в рамках этого job
-    - name: Checkout repository
-      # Клонирования репозиторий
-      uses: actions/checkout@v2
-    
-    - name: Get content and write to file
-      # Выполняем скрипт PowerShell, расположенный в ./scripts/Get-GameList.ps1
-      run: pwsh -File ./scripts/Get-GameList.ps1
-      # Указываем, что команда должна выполняться в оболочке bash
-      shell: bash 
-
-    - name: Commit and push changes
-      run: |
-        # Задаем имя пользователя и email для коммитов
-        git config --global user.name 'GitHub Actions'
-        git config --global user.email 'actions@github.com'
-        # Добавляем все изменения в индекс
-        git add .
-        # Делаем коммит с комментарием
-        git commit -m "update game list"
-        # Отправляем коммит в удаленный репозиторий
-        git push
-```
-### CI
-
-Сборка Docker образа и отправка в Docker Hub:
-```yaml
-name: Docker Build and Push Image
-
-on:
-  # Запусать при git push в ветку main
-  push:
-    branches:
-      - main
+    inputs:
+      # Принимает два строковых параметра
+      Commit:
+        description: "Commit for git checkout"
+        required: true
+        default: ""
+      Version:
+        description: "Version for docker tag"
+        required: true
+        default: ""
 
 jobs:
   build:
+    name: Docker build on ubuntu-latest
+
     runs-on: ubuntu-latest
 
+    env:
+      REPO_NAME: 'lazyjournal'
+
     steps:
-    - name: Клонируем репозиторий
-      uses: actions/checkout@v2
+      # Клонируем репозиторий (ветку main и историю всех комиттов)
+      - name: Checkout repository (main branch and all commits)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
 
-    - name: Авторизация в Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      # Переключаем состояние истории репозитория на указанный коммит
+      - name: Checkout the specified commit
+        run: git checkout ${{ github.event.inputs.Commit }}
 
-    - name: Сборка образа и отправка в Docker Hub
-      run: |
-        docker build -t lifailon/torapi:latest .
-        docker push lifailon/torapi:latest
+      # Авторизуемся
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          # Предварительно создаем секреты в https://github.com/<userName>/<repoName>/settings/secrets/actions
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Устанавливаем плагин buildx для мультиархитектурной сборки (amd64 и arm64)
+      - name: Install Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          install: true
+
+      # Собираем и публикуем одной командой (используем тег из параметра)
+      - name: Build and push Docker images for Linux on amd64 and arm64
+        run: |
+          version=${{ github.event.inputs.Version }}
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -t ${{ secrets.DOCKER_USERNAME }}/${{ env.REPO_NAME }}:$version \
+            --push .
 ```
-### CD
+### Dockerfile Linters Check
 
-Развертвывание приложения на бессерверной платформе Vercel:
+Проверка Dockerfile на [базовые линтеры](https://docs.docker.com/reference/build-checks) и с помощью инструмента [Hadolint](https://github.com/hadolint/hadolint).
+
+🔗 [Hadolint Playground](https://hadolint.github.io/hadolint) ↗
+
+
 ```yaml
-name: Deploy to Vercel
+name: Dockerfile linters check
 
 on:
   workflow_dispatch:
+    # Принимает два булевых параметра
+    inputs:
+      Lint:
+        description: 'Dockerfile basic linters check'
+        default: false
+        type: boolean
+      Hadolint:
+        description: 'Dockerfile hadolint check'
+        default: false
+        type: boolean
 
 jobs:
-  deploy:
+  build:
+    name: Docker build on ubuntu-latest
+
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Clone repository
-      uses: actions/checkout@v4
+      # Клонируем репозиторий (ветку main и последний коммит)
+      - name: Checkout repository (main branch and all commits)
+        id: dockerPull
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: main
 
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Dockerfile basic linters check
+        # Проверка условия перед выполнения шага
+        if: ${{ github.event.inputs.Lint == 'true' }}
+        # Определяем индивидуальный идентификатор для извлечения данных из шага
+        id: lint
+        run: docker build --check --build-arg "BUILDKIT_DOCKERFILE_CHECK=experimental=all" .
 
-    - name: Install dependencies
-      run: npm install
-
-    - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
+      - name: Dockerfile hadolint check
+        if: ${{ github.event.inputs.Hadolint == 'true' }}
+        id: hadolint
+        run: docker run --rm -i hadolint/hadolint:latest < Dockerfil
 ```
-### Logs
+### Telegram Notification
 
-`$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).total_count` получить количество запусков всех рабочих процессов \
-`$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows` подробная информации о запускаемых рабочих процессах \
-`$actions_last_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows).workflows[-1].id` получить идентификатор последнего события \
-`$(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs` подробная информация о последней сборке \
-`$run_id = $(Invoke-RestMethod https://api.github.com/repos/Lifailon/TorAPI/actions/workflows/$actions_last_id/runs).workflow_runs.id` получить идентификатор запуска рабочего процесса \
-`$(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs.steps` подробная информация для всех шагов выполнения (время работы и статус выполнения) \
-`$jobs_id = $(Invoke-RestMethod "https://api.github.com/repos/Lifailon/TorAPI/actions/runs/$run_id/jobs").jobs[0].id` получить идентификатор последнего задания указанного рабочего процесса
+Отправка уведомлений в Telegram с помощью [Telegram Actions](https://github.com/appleboy/telegram-action).
+
+```yaml
+- name: Send report to Telegram
+  if: ${{ github.event.inputs.Lint == 'true' || github.event.inputs.Hadolint == 'true' }}
+  uses: appleboy/telegram-action@master
+  with:
+    token: ${{ secrets.TELEGRAM_API_TOKEN }}
+    to: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+    debug: true
+    format: markdown
+    message: |
+      🔔 **Action**: Docker linters check
+
+      📁 **Repository**: ${{ github.repository }}
+      👤 **User**: ${{ github.actor }}
+      
+      ${{ steps.lint.outcome == 'failure' && '❌' || '✅' }} **Dockerfile basic linters check**: ${{ steps.lint.outcome }}
+      ${{ steps.hadolint.outcome == 'failure' && '❌' || '✅' }} **Dockerfile hadolint check**: ${{ steps.hadolint.outcome }}
+```
+### AI Issue Analysis
+
+Анализ Issues с использованием [AI Inference](https://github.com/actions/ai-inference) и автоматическим ответом в комментариях.
+```yaml
+name: AI Issue Analysis
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+  issue_comment:
+    types: [created]
+
+run-name: "Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
+
+jobs:
+  issue_analysis:
+    permissions:
+      issues: write
+      models: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository (main branch and 1 last commits)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: main
+
+      # Отправляем оповещение в Telegram с темой и содержимым проблемы
+      # Срабатываем на открытие, закрытие и комментарии в задаче
+      - name: Send message to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          token: ${{ secrets.TELEGRAM_API_TOKEN }}
+          to: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          debug: true
+          format: markdown
+          message: |
+            🔔 **Action**: ${{ github.event_name }} ${{ github.event.action }} [#${{ github.event.issue.number }}](${{ github.event.comment.html_url || github.event.issue.html_url }})
+
+            📁 **Repository**: ${{ github.repository }}
+            👤 **From user**: ${{ github.actor }}
+
+            📌 **Title**: ${{ github.event.issue.title }}
+            💬 **Description**:
+            ${{ github.event.comment.body || github.event.issue.body }}
+
+      # Генерируем отчет (только при открытие новой проблемы)
+      - name: Generate report using AI
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        id: ai_query
+        uses: actions/ai-inference@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          endpoint: https://models.github.ai/inference
+          model: gpt-4.1
+          max-tokens: 1024
+          system-prompt: |
+            Ты консультант разработчика.
+            Твоя задача анализировать проблемы (issues) на GitHub и предлагать решения.
+            Твои ответы должны быть краткими и на английском языке.
+          prompt: |
+            Title: ${{ github.event.issue.title }}
+            Description: ${{ github.event.issue.body }}
+
+      # Постим комментарий от AI в ответ на Issue
+      - name: Post comment from AI
+        if: github.event_name == 'issues' && github.event.action == 'opened' && steps.ai_query.outputs.response != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          AI_RESPONSE: ${{ steps.ai_query.outputs.response }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body "### AI Issue Analysis
+          
+          $AI_RESPONSE"
+```
+### Go Build and Testing
+
+Процесс тестирования и сборки Go приложений с выгрузкой артифактов.
+```yaml
+name: CI (Build and Testing)
+
+on:
+  workflow_dispatch:
+    inputs:
+      # Параметр выпадающего списка для выбора
+      # Список доступных дистрибутивов на публичных сборщиках: https://github.com/actions/runner-images
+      Distro:
+        description: 'Select runner image'
+        required: true
+        default: 'ubuntu-24.04'
+        type: choice
+        options:
+          - 'ubuntu-22.04'
+          - 'ubuntu-24.04'
+          - 'macos-26'
+          - 'macos-15'
+          - 'windows-2025'
+          - 'windows-2022'
+      # Обновление зависимостей
+      Update:
+        description: 'Update dependencies'
+        default: false
+        type: boolean
+      # Статическая проверка кода
+      Linters:
+        description: 'Go linters check'
+        default: false
+        type: boolean
+      # Запуск unit тестов
+      Test:
+        description: 'Go unit testing'
+        default: false
+        type: boolean
+      # Сборка
+      Binary:
+        description: 'Build binary and deb packages'
+        default: false
+        type: boolean
+
+# Определяем индивидуальное название для каждой сборки
+run-name: "Build #${{ github.run_number }} on ${{ github.event.inputs.Distro }}"
+
+jobs:
+  test:
+    name: Testing on ${{ github.event.inputs.Distro }}
+
+    runs-on: ${{ github.event.inputs.Distro }}
+
+    # Объявляем переменные окружения, которые будут использоваться в процессе сборки
+    env:
+      APP_NAME: 'app'
+      APP_VERSION: 'latest'
+      COVERAGE: 'n/a'
+
+    steps:
+      - name: Checkout repository (main branch and 1 last commits)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: main
+
+      # Установка Go указанной версии
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.25
+
+      # Форматирование, статический анализ, установка зависимостей и проверка компиляции
+      - name: Install dependencies
+        run: |
+          go fmt ./...
+          go vet ./...
+          go get ./...
+          go mod tidy
+          go mod verify
+          go build -v ./...
+
+      # Извлекаем версию приложения и сохраняем ее в переменные окружения для использования в других шагах
+      - name: Get app version in gh env for build
+        run: |
+          version=$(go run main.go -v)
+          echo "APP_VERSION=$version" >> $GITHUB_ENV
+
+      # Обновление зависимостей в go.mod
+      - name: Update dependencies
+        if: ${{ github.event.inputs.Update == 'true' }}
+        run: go get -u ./...
+
+      # Устанавливаем пакет golangci-lint и запуск анализа кода
+      - name: Golangci linters check
+        if: ${{ github.event.inputs.Linters == 'true' }}
+        # Исключаем падение всего шага при ошибке (last exit code != 0)
+        continue-on-error: true
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run -v ./main.go
+
+      # Запуск unit тестов и записываем результат в лог файл
+      - name: Unit testing
+        if: ${{ github.event.inputs.Test == 'true' }}
+        # Ограничиваем время выполнения
+        timeout-minutes: 10
+        continue-on-error: true
+        run: sudo env "PATH=$PATH" go test -v -cover | tee test.log
+
+      # Извлекаем результат покрытия кода и публикуем на страницу сборки в формате Markdown
+      - name: Unit testing
+        if: ${{ github.event.inputs.Test == 'true' }}
+        continue-on-error: true
+        run: |
+          COVERAGE=$(cat test.log | tail -n 2 | head -n 1 | sed "s/coverage: //" | sed -E "s/of.+//g")
+          echo "## Test results" >> $GITHUB_STEP_SUMMARY
+          echo -e "Version: $APP_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo -e "Coverage: $COVERAGE" >> $GITHUB_STEP_SUMMARY
+
+      # Собираем приложение для разных ОС и архитектур
+      - name: Build binaries
+        if: ${{ github.event.inputs.Binary == 'true' }}
+        run: |
+          mkdir -p bin
+          architectures=("amd64" "arm64")
+          oss=("linux" "darwin" "openbsd" "freebsd" "windows")
+          for arch in "${architectures[@]}"; do
+              for os in "${oss[@]}"; do
+                  binName="bin/$APP_NAME-$APP_VERSION-$os-$arch"
+                  if [[ "$os" == "windows" ]]; then
+                      binName="$binName.exe"
+                  fi
+                  CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "$binName"
+              done 
+          done
+          ls -lh bin
+          # Формируем названия архива для выгрузки артефактов
+          echo "ARTIFACT_NAME=$APP_NAME-$APP_VERSION" >> $GITHUB_ENV
+
+      # Выгружаем все файлы из директории bin в артефакты GitHub
+      - name: Upload binaries
+        if: ${{ github.event.inputs.Binary == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: bin/
+        env:
+          ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
+```
+### Actions API
+
 ```PowerShell
-$url = "https://api.github.com/repos/Lifailon/TorAPI/actions/jobs/$jobs_id/logs"
+$userName = "Lifailon"
+$repoName = "lazyjournal"
+
+# Получить количество всех рабочих процессов
+$(Invoke-RestMethod https://api.github.com/repos/$userName/$repoName/actions/workflows).total_count
+# Подробная информации о запускаемых рабочих процессах
+$(Invoke-RestMethod https://api.github.com/repos/$userName/$repoName/actions/workflows).workflows
+# Получить идентификатор первого workflow
+$workflowId = $(Invoke-RestMethod https://api.github.com/repos/$userName/$repoName/actions/workflows).workflows[0].id
+# Подробная информация о последней сборке
+$(Invoke-RestMethod https://api.github.com/repos/$userName/$repoName/actions/workflows/$workflowId/runs).workflow_runs
+# Получить идентификатор последнего запуска указанного workflow
+$lastRunId = $(Invoke-RestMethod https://api.github.com/repos/$userName/$repoName/actions/workflows/$workflowId/runs).workflow_runs.id[0]
+# Подробная информация для всех шагов выполнения (время работы и статус выполнения из conclusion)
+$(Invoke-RestMethod "https://api.github.com/repos/$userName/$repoName/actions/runs/$lastRunId/jobs").jobs.steps
+
+# Получить идентификатор последнего jobs в конкретной сборке
+$lastJobsId = $(Invoke-RestMethod "https://api.github.com/repos/$userName/$repoName/actions/runs/$lastRunId/jobs").jobs[-1].id
+# Отобразить логи выполнения указанного задания
+$url = "https://api.github.com/repos/$userName/$repoName/actions/jobs/$lastJobsId/logs"
 $headers = @{
     Authorization = "token ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 }
-Invoke-RestMethod -Uri $url -Headers $headers # получить логи задания
+Invoke-RestMethod -Uri $url -Headers $headers
 ```
-### act
+### Actions locally
 
 [act](https://github.com/nektos/act) - пользволяет запускать действия GitHub Actions локально (используется в [Gitea](https://github.com/go-gitea/gitea)).
 ```bash
@@ -3258,75 +3344,6 @@ echo "DOCKER_HUB_PASSWORD=password" >> .secrets
 `act push` симуляция push-ивента (имитация коммита и запуск workflow, который реагирует на push) \
 `act --reuse` не удалять контейнер из успешно завершенных рабочих процессов для сохранения состояния между запусками (кэширование) \
 `act --parallel` запуск всех jobs одновременно или последовательно (--no-parallel, по умолчанию)
-
-<!--
-## GitLab
-```bash
-docker run --detach \
-    --hostname 192.168.3.101 \
-    --publish 443:443 --publish 80:80 --publish 2222:22 \
-    --name gitlab \
-    --restart always \
-    --volume /srv/gitlab/config:/etc/gitlab \
-    --volume /srv/gitlab/logs:/var/log/gitlab \
-    --volume /srv/gitlab/data:/var/opt/gitlab \
-    gitlab/gitlab-ee:latest
-```
-`docker logs -f gitlab` логи контейнера \
-`docker exec -it gitlab cat /etc/gitlab/initial_root_password` получить пароль для root \
-`docker exec -it gitlab cat /etc/gitlab/gitlab.rb` конфигурация сервера
-
-Получить токен регистрации Runner: http://192.168.3.101/root/torapi/-/settings/ci_cd#js-runners-settings
-
-`curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64` загрузить исполняемый файл Runner
-`chmod +x /usr/local/bin/gitlab-runner`
-```bash
-docker run -d --name gitlab-runner --restart always \
-    -v /srv/gitlab-runner/config:/etc/gitlab-runner \
-    gitlab/gitlab-runner:latest
-```
-`docker exec -it gitlab-runner bash` \
-`gitlab-runner list` список сборщиков \
-`gitlab-runner verify` проверка \
-`gitlab-runner restart` применить настройки \
-`gitlab-runner status` статус \
-`gitlab-runner unregister --all-runners` удалить все регистрации \
-`gitlab-runner install` установить службу \
-`gitlab-runner run` запустить с выводом в консоль
-
-`gitlab-runner register`
-```
-Enter the GitLab instance URL (for example, https://gitlab.com/): http://192.168.3.101/
-Enter the registration token: GR1348941enqAxqQgm8AZJD_g7vme
-Enter an executor: shell
-```
-`cat /etc/gitlab-runner/config.toml` конфигурация
-
-Включить импорт проектов из GitHub: http://192.168.3.101/admin/application_settings/general#js-import-export-settings
-```yaml
-variables:
-  PORT: 2024
-  TITLE: "The+Rookie"
-
-stages:
-  - test
-
-test:
-  stage: test
-  script:
-    - |
-        pwsh -Command "
-            Write-Host PORT - $env:PORT
-            Write-Host TITLE - $env:TITLE
-            npm install
-            Start-Process -NoNewWindow -FilePath 'npm' -ArgumentList 'start -- --port $env:PORT' -RedirectStandardOutput 'torapi.log'
-            Start-Sleep -Seconds 5
-            Invoke-RestMethod -Uri http://localhost:$env:PORT/api/search/title/all?query=$env:TITLE | Format-List
-            Get-Content torapi.log
-            Stop-Process -Name 'node' -Force -ErrorAction SilentlyContinue
-        "
-```
--->
 
 ## Groovy
 
@@ -3954,7 +3971,7 @@ pipeline {
                     sandbox: true,
                     script: '''
                         return [
-                            'Lifailon/lazyjournal',
+                            'Lifailon/$APP_NAME',
                             'jesseduffield/lazydocker'
                         ]
                     '''
@@ -4376,7 +4393,9 @@ pipeline {
     }
 }
 ```
-## Ansible
+## Configuration Management
+
+### Ansible
 
 `apt -y update && apt -y upgrade` \
 `apt -y install ansible` v2.10.8 \
@@ -4395,19 +4414,16 @@ pipeline {
 `kinit -C support4@domail.local` \
 `klist`
 
-`ansible --version` \
-`config file = None` \
-`nano /etc/ansible/ansible.cfg` файл конфигурации
+`ansible --version`
+
+Конфигурация настроек Ansible в файле `/etc/ansible/ansible.cfg`
 ```yaml
 [defaults]
 inventory = /etc/ansible/hosts
-# uncomment this to disable SSH key host checking
 # Отключить проверку ключа ssh (для подключения используя пароль)
 host_key_checking = False
 ```
-### Hosts
-
-`nano /etc/ansible/hosts`
+Настройка списка групп хостов в файле `/etc/ansible/hosts`
 ```yaml
 [us]
 pi-hole-01 ansible_host=192.168.3.101
@@ -4451,7 +4467,7 @@ ansible_shell_type=powershell
 ```
 `ansible-inventory --list` проверить конфигурацию (читает в формате JSON) или YAML (-y) с просмотром все применяемых переменных
 
-### Windows Modules
+#### Windows Modules
 
 `ansible us -m ping` \
 `ansible win_ssh -m ping` \
@@ -4849,10 +4865,10 @@ ansible_shell_type=powershell
   win_chocolatey:
     name: chocolatey
     state: present
-    # source: URL-адрес внутреннего репозитория
+	# source: URL-адрес внутреннего репозитория
     source: https://community.chocolatey.org/api/v2/ChocolateyInstall.ps1
 ```
-### Jinja
+#### Jinja
 
 Локальное использование:
 
@@ -4921,9 +4937,7 @@ dev3 ansible_host=192.168.3.103
 `ansible-playbook -i inventory.ini playbook.yml --check --diff` отобразит изменения без их реального применения \
 `ansible-playbook -i inventory.ini playbook.yml -K` позволяет передать пароль для root
 
-## Puppet
-
-### Bolt
+### Puppet/Bolt
 
 [Bolt](https://github.com/puppetlabs/bolt) - это инструмент оркестровки, который выполняет заданную команду или группу команд на локальной рабочей станции, а также напрямую подключается к удаленным целям с помощью SSH или WinRM, что не требует установки агентов.
 
@@ -4952,7 +4966,7 @@ groups:
 ```
 `bolt command run uptime --inventory inventory.yaml --targets bsd` выполнить команду uptime на группе хостов bsd, заданной в файле inventory
 
-`echo name: lazyjournal > bolt-project.yaml` создать файл проекта
+`echo name: $APP_NAME > bolt-project.yaml` создать файл проекта
 
 `mkdir plans && nano test.yaml` создать директорию и файл с планом работ
 ```yaml
@@ -4962,22 +4976,22 @@ parameters:
 
 steps:
   - name: clone
-    command: rm -rf lazyjournal && git clone https://github.com/Lifailon/lazyjournal
+    command: rm -rf $APP_NAME && git clone https://github.com/Lifailon/$APP_NAME
     targets: $targets
 
   - name: test
-    command: cd lazyjournal && go test -v -cover --run TestMainInterface
+    command: cd $APP_NAME && go test -v -cover --run TestMainInterface
     targets: $targets
 
   - name: remove
-    command: rm -rf lazyjournal
+    command: rm -rf $APP_NAME
     targets: $targets
 ```
 `bolt plan show` вывести список всех планов
 
-`bolt plan run lazyjournal::test --inventory inventory.yaml --targets bsd -v` запустить план
+`bolt plan run $APP_NAME::test --inventory inventory.yaml --targets bsd -v` запустить план
 
-## Sake
+### Sake
 
 [Sake](https://github.com/alajmo/sake) - это командный раннер для локальных и удаленных хостов. Вы определяете серверы и задачи в файле `sake.yaml`, а затем запускаете задачи на серверах.
 ```bash
@@ -5268,7 +5282,7 @@ docker exec -it consul consul acl token create -policy-name "default" -token "38
 
 ## Prometheus
 
-Пример создания экспортера для получения метрик температуры всех дисков из [CrystalDiskInfo](https://crystalmark.info/en/software/crystaldiskinfo) и отправки в [Prometheus](https://github.com/prometheus/prometheus) через [PushGateway](https://github.com/prometheus/pushgateway).
+Создание экспортера на примере получения метрик температуры всех дисков из [CrystalDiskInfo](https://crystalmark.info/en/software/crystaldiskinfo) с помощью PowerShell и отправки в [Prometheus](https://github.com/prometheus/prometheus) через [PushGateway](https://github.com/prometheus/pushgateway).
 
 Формат метрик:
 ```
@@ -5368,7 +5382,9 @@ hostName: `label_values(exported_instance)` \
 diskName: `label_values(disk)` \
 Метрика температуры: `disk_temperature{exported_instance="$hostName", disk=~"$diskName"}`
 
-### PromQL Functions
+## PromQL
+
+Функции `PromQL`:
 
 | Функция                       | Тип данных        | Описание                                                              | Пример                                                            |
 | -                             | -                 | -                                                                     | -                                                                 |
@@ -5392,72 +5408,221 @@ diskName: `label_values(disk)` \
 | `label_replace()`             | `counter`/`gauge` | Изменяет или добавляет labels в метрике                               | `label_replace(metric, "new_label", "$1", "old_label", "(.*)")`   |
 | `sort() / sort_desc()`        | `counter`/`gauge` | Сортирует метрики по возрастанию/убыванию                             | `sort(node_filesystem_free_bytes)`                                |
 
-## Graylog
+## Cloud
 
-[Graylog Docker Image](https://hub.docker.com/r/itzg/graylog)
+### AWS
 
-- Устанавливаем MongoDB:
+Установка [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)
+
+Настройка профиля по умолчанию (настройки подключения):
 ```bash
-docker run --name mongo -d mongo:3
+aws configure # --profile localstack
+AWS Access Key ID: test
+AWS Secret Access Key: test
+Default region name: us-east-1
+Default output format: json
 ```
-- Используем прокси для установки Elassticsearch:
+
+Переменные окружения для подключения к облаку или [localstack](https://github.com/localstack/localstack):
+
 ```bash
-docker run --name elasticsearch \
-    -e "http.host=0.0.0.0" -e "xpack.security.enabled=false" \
-    -d dockerhub.timeweb.cloud/library/elasticsearch:5.5.1
+export AWS_ENDPOINT_URL="http://192.168.3.101:4566"
+# export AWS_ACCESS_KEY_ID="test"
+# export AWS_SECRET_ACCESS_KEY="test"
+# export AWS_DEFAULT_REGION="us-east-1"
+# Windows
+$env:AWS_ENDPOINT_URL="http://192.168.3.101:4566"
 ```
-- Указываем статический IP адрес для подключения к API
+
+Создание s3 хранилища:
+
 ```bash
-docker run --name Graylog \
-    --link mongo \
-    --link elasticsearch \
-    -p 9000:9000 -p 12201:12201 -p 514:514 -p 5044:5044 \
-    -e GRAYLOG_WEB_ENDPOINT_URI="http://192.168.3.101:9000/api" \
-    -d graylog/graylog:2.3.2-1
+aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 mb s3://test-bucket
+aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 ls
 ```
-- Настройка Syslog на клиенте Linux:
 
-`nano /etc/rsyslog.d/graylog.conf`
+Создание группы, потока и запись логов в CloudWatch:
+
 ```bash
-*.* @@192.168.3.101:514;RSYSLOG_SyslogProtocol23Format
+# Создание группы для хранения логов (Log Group)
+aws logs create-log-group --log-group-name "docker-logs"
+# Отобразить все группы
+aws logs describe-log-groups
+# Создание потока для записи логов (Log Stream)
+aws logs create-log-stream --log-group-name "docker-logs" --log-stream-name "app-01"
+# Отобразить все потоки в группе
+aws logs describe-log-streams --log-group-name "docker-logs"
+# Отправка лога (Put Log Events)
+aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events timestamp=$(date +%s000),message="Test message from CLI"
+# Windows
+$timestamp = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
+aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events "timestamp=$timestamp,message='Test message from PowerShell'"
+# Чтение логов (Get Log Events)
+aws logs get-log-events --log-group-name "docker-logs" --log-stream-name "zerobyte-zerobyte.logs"
+# Фильтрация логов
+aws logs filter-log-events --log-group-name "docker-logs" --query "events[*].message" --output text 
+# Чтение логов из всех потоков
+aws logs tail docker-logs --since 1d
 ```
-`systemctl restart rsyslog`
 
-- Создать входящий поток (`inputs`) для Syslog на порту 514 по протоколу TCP:
+### Azure
 
-http://192.168.3.101:9000/system/inputs
+`Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force` установить все модули для работы с Azure \
+`Get-Module *Az.*` список всех модулей
 
-- Пример фильтра для логов:
+`Get-Command -Module Az.Accounts` отобразить список команд модуля Az.Accounts \
+`Connect-AzAccount` подключиться у учетной записи Azure \
+`Get-AzContext` получить текущий статус подключения к Azure \
+`Get-AzSubscription` получить список подписок Azure, доступных для текущего пользователя \
+`Set-AzContext` установить контекст Azure для конкретной подписки и/или учетной записи \
+`Disconnect-AzAccount` отключиться от учетной записи Azure
 
-`facility:"system daemon" AND application_name:bash AND message:\[ AND message:\]`
+`Get-Command -Module Az.Compute` \
+`Get-AzVM` получить список виртуальных машин в текущей подписке или группе ресурсов \
+`Get-AzVMSize` получить список доступных размеров виртуальных машин в определенном регионе \
+`Get-AzVMImage` получить список доступных образов виртуальных машин \
+`New-AzVM` создать новую виртуальную машину \
+`Remove-AzVM` удалить виртуальную машину \
+`Start-AzVM` запустить виртуальную машину \
+`Stop-AzVM` остановить виртуальную машину \
+`Restart-AzVM` перезагрузить виртуальную машину
 
-- Настройка Winlogbeat на клиенте Windows
+`Get-Command -Module Az.Network` \
+`Get-AzVirtualNetwork` получить список виртуальных сетей в текущей подписке или группе ресурсов \
+`New-AzVirtualNetwork` создать новую виртуальную сеть \
+`Remove-AzVirtualNetwork` удалить виртуальную сеть \
+`Get-AzNetworkInterface` получить список сетевых интерфейсов \
+`New-AzNetworkInterface` создать новый сетевой интерфейс \
+`Remove-AzNetworkInterface` удалить сетевой интерфейс
 
-Установка агента:
-```PowerShell
-irm https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-8.15.0-windows-x86_64.zip -OutFile $home\Documents\winlogbeat-8.15.0.zip
-Expand-Archive $home\Documents\winlogbeat-8.15.0.zip
-cd $home\Documents\winlogbeat-8.15.0-windows-x86_64
+`Get-Command -Module Az.Storage` \
+`Get-AzStorageAccount` получить список учетных записей хранилища \
+`New-AzStorageAccount` создать новую учетную запись хранилища \
+`Remove-AzStorageAccount` удалить учетную запись хранилища \
+`Get-AzStorageContainer` список контейнеров в учетной записи хранилища \
+`New-AzStorageContainer` создать новый контейнер в учетной записи хранилища \
+`Remove-AzStorageContainer` удалить контейнер
+
+`Get-Command -Module Az.ResourceManager` \
+`Get-AzResourceGroup` получить список групп ресурсов в текущей подписке \
+`New-AzResourceGroup` создать новую группу ресурсов \
+`Remove-AzResourceGroup` удалить группу ресурсов \
+`Get-AzResource` получить список ресурсов \
+`New-AzResource` создать новый ресурс \
+`Remove-AzResource` удалить ресурс
+
+`Get-Command -Module Az.KeyVault` \
+`Get-AzKeyVault` список хранилищ ключей \
+`New-AzKeyVault` создать новое хранилище ключей в Azure \
+`Remove-AzKeyVault` удалить хранилище ключей в Azure
+
+`Get-Command -Module Az.Identity` \
+`Get-AzADUser` получить информацию о пользователях Azure Active Directory \
+`New-AzADUser` создать нового пользователя \
+`Remove-AzADUser` удалить пользователя \
+`Get-AzADGroup` получить информацию о группах \
+`New-AzADGroup` создать новую группу \
+`Remove-AzADGroup` удалить группу
+
+- [Manage-VM](https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-vm)
+
+`New-AzResourceGroup -Name "Resource-Group-01" -Location "EastUS"` создать группу ресурсов (логический контейнер, в котором происходит развертывание ресурсов Azure) \
+`Get-AzVMImageOffer -Location "EastUS" -PublisherName "MicrosoftWindowsServer"` список доступных образов Windows Server для установки \
+`$cred = Get-Credential` \
+`New-AzVm -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Location 'EastUS' -Image "MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest" -Size "Standard_D2s_v3" -OpenPorts 80,3389 --Credential $cred` создать виртуальную машину \
+`Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Status | Select @{n="Status"; e={$_.Statuses[1].Code}}` статус виртуальной машины \
+`Start-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` запустить виртуальную машину \
+`Stop-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01" -Force` остановить виртуальную машину \
+`Invoke-AzVMRunCommand -ResourceGroupName "Resource-Group-01" -VMName "vm-01" -CommandId "RunPowerShellScript" -ScriptString "Install-WindowsFeature -Name Web-Server -IncludeManagementTools"` установить роль веб-сервера IIS
+
+- [Manage-Disk](https://learn.microsoft.com/ru-ru/azure/virtual-machines/windows/tutorial-manage-data-disk)
+
+`$diskConfig = New-AzDiskConfig -Location "EastUS" -CreateOption Empty -DiskSizeGB 512 -SkuName "Standard_LRS"` создать диск на 512 Гб \
+`$dataDisk = New-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512" -Disk $diskConfig` создание объекта диска для подготовки диска данных к работе \
+`Get-AzDisk -ResourceGroupName "Resource-Group-01" -DiskName "disk-512"` список дисков \
+`$vm = Get-AzVM -ResourceGroupName "Resource-Group-01" -Name "vm-01"` \
+`Add-AzVMDataDisk -VM $vm -Name "Resource-Group-01" -CreateOption Attach -ManagedDiskId $dataDisk.Id -Lun 1` подключить диск к виртуальной машине \
+`Update-AzVM -ResourceGroupName "Resource-Group-01" -VM $vm` обновить конфигурацию виртуальной машины \
+`Get-Disk | Where PartitionStyle -eq 'raw' | Initialize-Disk -PartitionStyle MBR -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize | Format-Volume -FileSystem NTFS -NewFileSystemLabel "disk-512" -Confirm:$false` инициализировать диск в ОС (необходимо подключиться к виртуальной машине) с таблицей MBR, создать раздел и назначить все пространство и форматировать в файловую систему NTFS
+
+### Vercel
+
+[Vercel](https://github.com/vercel/vercel) - это бессерверная платформа для публикации веб-приложений и `REST API`.
+
+`npm i -g vercel` установить глобально в систему Vercel CLI \
+`vercel --version` выводит текущую версию установленного Vercel CLI \
+`vercel login` выполняет вход в аккаунт Vercel (`> Continue with GitHub`) \
+`vercel logout` выполняет выход из аккаунта Vercel \
+`vercel init` инициализирует новый проект в текущей директории (создает файл конфигурации vercel.json и другие файлы, необходимые для проекта) \
+`vercel dev` запускает локальный сервер для проверки работоспособности (http://localhost:3000) \
+`vercel deploy` загружает проект на серверы Vercel и развертывает его \
+`vercel link` привязывает текущую директорию к существующему проекту на сервере Vercel (выбрать из списка) \
+`vercel unlink` отменяет привязку текущей директории от проекта Vercel \
+`vercel env` управляет переменными окружения для проекта \
+`vercel env pull` подтягивает переменные окружения с Vercel в локальный .env файл \
+`vercel env ls` показывает список всех переменных окружения для проекта \
+`vercel env add <key> <environment>` добавляет новую переменную окружения для указанного окружения (production, preview, development) \
+`vercel env rm <key> <environment>` удаляет переменную окружения из указанного окружения \
+`vercel projects` управляет проектами Vercel \
+`vercel projects ls` показывает список всех проектов \
+`vercel projects add` добавляет новый проект \
+`vercel projects rm <project>` удаляет указанный проект \
+`vercel pull` подтягивает последние настройки окружения с Vercel \
+`vercel alias` управляет алиасами доменов для проектов \
+`vercel alias ls` показывает список всех алиасов для текущего проекта \
+`vercel alias set <alias>` устанавливает алиас для указанного проекта \
+`vercel alias rm <alias>` удаляет указанный алиас \
+`vercel domains` управляет доменами, привязанными к проекту \
+`vercel domains ls` показывает список всех доменов \
+`vercel domains add <domain>` добавляет новый домен к проекту \
+`vercel domains rm <domain>` удаляет указанный домен \
+`vercel teams` управляет командами и членами команд на Vercel \
+`vercel teams ls` показывает список всех команд \
+`vercel teams add <team>` добавляет новую команду \
+`vercel teams rm <team>` удаляет указанную команду \
+`vercel logs <deployment>` выводит логи для указанного деплоя \
+`vercel secrets` управляет секретами, используемыми в проектах \
+`vercel secrets add <name> <value>` добавляет новый секрет \
+`vercel secrets rm <name>` удаляет указанный секрет \
+`vercel secrets ls` показывает список всех секретов \
+`vercel switch <team>` переключается между командами и аккаунтами Vercel
+
+Развертвывание `JavaScript` приложения через GitHub Actions:
+```yaml
+name: CD (Deploy to Vercel)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
 ```
-Добавить отправку в Logstash:
+## Load Balancer
 
-`code winlogbeat.yml`
-```bash
-output.logstash:
-  hosts: ["192.168.3.101:5044"]
-```
-И закомментировать отправку данных в Elasticsearch (output.elasticsearch)
+### HAProxy
 
-`.\winlogbeat.exe -c winlogbeat.yml` запустить агент с правами администратора в консоли
-```bash
-.\install-service-winlogbeat.ps1 # установить службу
-Get-Service winlogbeat | Start-Service
-```
-- Настроить Inputs для приема Beats на порту 5044
-
-## HAProxy
-
-Запускаем HAProxy в контейнере Docker:
+Запускаем [HAProxy](https://github.com/haproxy/haproxy) в контейнере Docker:
 ```yaml
 services:
   httpbin-proxy:
@@ -5560,7 +5725,7 @@ backend backend_httpbin
 `check port 443` указать явную проверку порта для конкретного сервера \
 `check backup` параметр означает, что сервер будет использоваться только в случае, если все основные серверы становятся недоступными и не будет участвовать в балансировке, пока основные серверы функционируют
 
-## Keepalive
+### Keepalive
 
 **VRRP (Virtual Router Redundancy Protocol)** - сетевой протокол, предназначенный для увеличения доступности маршрутизаторов, выполняющих роль шлюза \
 **VRRP-пакеты** - это специальные сообщения, которые узлы (маршрутизаторы/сервера) в VRRP-группе рассылают для сообщения своего состояния \
