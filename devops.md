@@ -103,6 +103,8 @@
   - [Telegram Notification](#telegram-notification)
   - [AI Issue Analysis](#ai-issue-analysis)
   - [Go Build and Testing](#go-build-and-testing)
+  - [Ubuntu PPA Repository](#ubuntu-ppa-repository)
+  - [Ubuntu Build and Pfush](#ubuntu-build-and-pfush)
   - [Actions API](#actions-api)
   - [Actions locally](#actions-locally)
 - [Groovy](#groovy)
@@ -3101,7 +3103,7 @@ jobs:
 
       # Генерируем отчет (только при открытие новой проблемы)
       - name: Generate report using AI
-        if: github.event_name == 'issues' && github.event.action == 'opened'
+        if: ${{ github.event_name == 'issues' && github.event.action == 'opened' }}
         id: ai_query
         uses: actions/ai-inference@v2
         with:
@@ -3119,7 +3121,7 @@ jobs:
 
       # Постим комментарий от AI в ответ на Issue
       - name: Post comment from AI
-        if: github.event_name == 'issues' && github.event.action == 'opened' && steps.ai_query.outputs.response != ''
+        if: ${{ github.event_name == 'issues' && github.event.action == 'opened' && steps.ai_query.outputs.response != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -3278,6 +3280,231 @@ jobs:
           path: bin/
         env:
           ARTIFACT_NAME: ${{ env.ARTIFACT_NAME }}
+```
+### Ubuntu PPA Repository
+
+Создание и подготовка PPA (Personal Package Archives) репозитория для публикации `deb` пакетов.
+
+Генерируем ключ:
+
+`gpg --gen-key`
+
+Получить путь к `pubring.kbx`, а также спислк всех ключей с их отпечаток и сроком действия:
+
+`gpg --list-secret-keys --keyid-format=long`
+
+Получить приватный ключ по email или отпечатку:
+
+`gpg --armor --export-secret-keys lifailon@main.com` \
+
+Отправляем ключ на сервер ключей Ubuntu:
+
+`gpg --keyserver keyserver.ubuntu.com --send-keys <ОТПЕЧАТОК>`
+
+Поиск ключа на сервере ключей: https://keyserver.ubuntu.com
+
+Импортируем ключ: https://launchpad.net/~lifailon/+editpgpkeys \
+Выбираем: `Import an OpenPGP key` \
+Вставляем отпечаток в `Fingerprint` и нажимаем `Import Key` \
+Дожидаемся сообщение на почту, указанную в ключе
+
+Расшифровать содержимое содержимое `pgp` сообщения в формате:
+```bash
+echo '-----BEGIN PGP MESSAGE-----
+-----END PGP MESSAGE-----' > pgp.txt
+```
+`gpg --decrypt pgp.txt` \
+Переходим по полученной ссылке после расшифровки и подтверждаем добавление ключа.
+
+Загружаем Ubuntu Codes of Conduct последней версии: https://launchpad.net/codeofconduct/2.0
+
+Подписываем кодекс поведения:
+
+`gpg -u A60D863D --clearsign UbuntuCodeofConduct-2.0.txt` \
+`cat UbuntuCodeofConduct-2.0.txt.asc` \
+Переходим по ссылке: https://launchpad.net/codeofconduct \
+Нажимаем `Sign it!` и вставляем содержимое `UbuntuCodeofConduct-2.0.txt.asc`
+
+После этих действий создаем PPA репозиторий.
+
+Идем в настройки репозитория: \
+https://launchpad.net/~<userName>/+archive/ubuntu/<ppaName>/+edit \
+Добавляем `amd64` и `arm64` в `Processors` для мультиархитектурной сборки
+
+### Ubuntu Build and Pfush
+
+Использование данного подхода может сэкономить много времени на подготовке к сборке и публикации Go приложения в PPA.
+
+```yaml
+name: Build deb package and push to PPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      # Дистрибутив на котором будет производиться сборка
+      # Это влияет на название версии дистрибутива Ubuntu в файле changelog по умолчанию
+      Runner:
+        description: 'Select runner image'
+        required: true
+        default: 'ubuntu-22.04'
+        type: choice
+        options:
+          - 'ubuntu-24.04' # noble
+          - 'ubuntu-22.04' # jammy
+      # Название дистрибутива Ubuntu для обновления в файле changelog
+      Distro:
+        description: 'Ubuntu distro name in changelog'
+        required: true
+        default: 'jammy'
+        type: choice
+        options:
+          - 'resolute' # 26.04
+          - 'questing' # 25.10
+          - 'noble'    # 24.04
+          - 'jammy'    # 22.04
+          - 'focal'    # 20.04
+          - 'bionic'   # 18.04
+          - 'xenial'   # 16.04
+          - 'trusty'   # 14.04
+      # Обновить версию в changelog (для пересборок)
+      Version:
+        description: 'Version for build'
+        required: false
+        default: '' # 0.8.4 -> 0.8.4.1 -> 0.8.4.2
+      # Публикация в репозитория PPA
+      Push:
+        description: 'Push to PPA'
+        default: false
+        type: boolean
+      # Запустить только установку
+      Install:
+        description: 'Check install only'
+        default: false
+        type: boolean
+
+jobs:
+  test:
+    name: Build deb package and push to PPA
+
+    runs-on: ${{ github.event.inputs.Runner }}
+
+    steps:
+      - name: Checkout repository (main branch and 1 last commits)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: main
+
+      # Устанавливаем зависимости для сборки
+      - name: Install package tools
+        if: ${{ github.event.inputs.Install != 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y devscripts debhelper dh-make-golang dput
+
+      # Импортируем GPG ключ из секретов в систему
+      - name: Import GPG key
+        if: ${{ github.event.inputs.Install != 'true' }}
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
+
+      - name: Build deb package and publish to Launchpad PPA
+        if: ${{ github.event.inputs.Install != 'true' }}
+        run: |
+          # Объявляем переменные для сборки
+          export DEBFULLNAME="lifailon"
+          # Email из gpg ключа
+          export DEBEMAIL="${{ secrets.PPA_EMAIL }}"
+          
+          # Генерируем Debia шаблоны (структуру файлов и каталогов) для Go приложения
+          echo -e "\n\033[33m>>> Debian template generation\033[0m\n"
+          dh-make-golang make github.com/Lifailon/lazyjournal
+          cd lazyjournal
+
+          # Загружаем все зависимости (используемые пакеты) и обновляем архив
+          # Для сборки без интернета на серверах Ubuntu
+          echo -e "\n\033[33m>>> Download dependencies for offline build\033[0m\n"
+          go mod vendor
+          VERSION=$(ls ../*.orig.tar.gz | sed -E 's/.*_([0-9.]+)\.orig\.tar\.gz/\1/')
+          rm ../*.orig.tar.gz
+          tar --exclude-vcs -C .. -czf ../lazyjournal_$VERSION.orig.tar.gz lazyjournal
+          sed -i '1a export GOFLAGS=-mod=vendor' debian/rules
+
+          # Обновляем версию Go на актуальную во избежание ошибок при сборке
+          echo -e "\n\033[33m>>> Update go version\033[0m\n"
+          sed -i 's/golang-any/golang-1.23-go/' debian/control
+          # Экспортируем путь к Go в основной Makefile для сборки
+          sed -i '1a export PATH := /usr/lib/go-1.23/bin:$(PATH)' debian/rules
+
+          # Обновляем секцию TODO в файл debian control для избежания ошибок
+          echo -e "\n\033[33m>>> Update debian control\033[0m\n"
+          sed -i 's/Section: TODO/Section: utils/' debian/control
+          # Используем мультиархитектурную сборку
+          sed -i -E 's/Architecture:.+/Architecture: any/' debian/control
+
+          # Пропускаем встроенные тесты и dwz проверки
+          echo -e "\n\033[33m>>> Skip go test and dwz in build\033[0m\n"
+          # export DEB_BUILD_OPTIONS=nocheck
+          printf "\noverride_dh_auto_test:\n\t:\n" >> debian/rules
+          printf "\noverride_dh_dwz:\n\t:\n" >> debian/rules
+          echo -e "\n\033[33m>>> Rules\033[0m\n"
+          cat debian/rules
+
+          # Обновляем название дистрибутива
+          echo -e "\n\033[33m>>> Update distro name in changelog\033[0m\n"
+          sed -i "1s/)[[:space:]]\+[^;]\+;/) ${{ github.event.inputs.Distro }};/" debian/changelog
+          sed -i 's/(Closes: TODO)//' debian/changelog
+          
+          # Обновляем версию (если значение определено в параметре)
+          if [ -n "${{ github.event.inputs.Version }}" ]; then
+            echo -e "\n\033[33m>>> Update version in changelog\033[0m\n"
+            VERSION=$(cat debian/changelog | head -n 1 | sed -E "s/.+\(//" | sed -E "s/\).+//" | sed -E "s/-[0-9]+//")
+            sed -i -E "s/$VERSION-/${{ github.event.inputs.Version }}-/" debian/changelog
+            mv ../lazyjournal_$VERSION.orig.tar.gz ../lazyjournal_${{ github.event.inputs.Version }}.orig.tar.gz
+            echo -e "\n\033[33m>>> Changelog\033[0m\n"
+            cat debian/changelog
+          fi
+
+          # Проверяем сборку (эта команда выполняется на серверах Ubuntu перед публикацией)
+          echo -e "\n\033[33m>>> Check build\033[0m\n"
+          dpkg-buildpackage -us -uc -b
+
+          # Собираем файл changes
+          echo -e "\n\033[33m>>> Build changes\033[0m\n"
+          rm -f ../*.upload ../*.changes
+          debuild -S -sa -k"$DEBEMAIL"
+          cd ..
+          ls *.changes
+
+      # Публикуем пакет в репозиторий PPA
+      - name: Push to PPA
+        if: ${{ github.event.inputs.Install != 'true' && github.event.inputs.Push == 'true' }}
+        run: |
+          dput ppa:lifailon/lazyjournal ../*.changes
+
+      # Шаг проверки установки пакета
+      - name: Check install package
+        if: ${{ github.event.inputs.Install == 'true' }}
+        run: |
+          sudo add-apt-repository -y ppa:lifailon/lazyjournal
+          sudo apt update
+          apt-cache policy lazyjournal
+          sudo apt install -y lazyjournal
+          lazyjournal -v
+          sudo apt remove -y lazyjournal
+```
+API запрос для получения версии и создание динамического бейджа в [Shields](https://shields.io/badges/dynamic-json-badge) c помощью json запрос.
+```bash
+apiUrl="https://api.launchpad.net/1.0/~lifailon/+archive/ubuntu/lazyjournal?ws.op=getPublishedSources&distro_series=https://api.launchpad.net/1.0/ubuntu/jammy&status=Published"
+apiQuery="entries[0].source_package_version"
+curl -sS "$apiUrl" | jq ".$apiQuery"
+
+# Кодируем URL
+ppaUrl=$(jq -rn --arg url "$apiUrl" '$url | @uri')
+
+# Формируем динамический json запрос в Shields для получения бейджа с версией
+echo "https://img.shields.io/badge/dynamic/json?url=$ppaUrl&query=$apiQuery&label=Ubuntu+PPA&logo=ubuntu&color=orange"
 ```
 ### Actions API
 
