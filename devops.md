@@ -2849,7 +2849,6 @@ volumes:
 Пример заполнения набора манифестов:
 ```yaml
 {{ range $key, $task := $.Values.integrations.database }}
----
 kind: Service
 apiVersion: v1
 metadata:
@@ -2865,7 +2864,6 @@ spec:
       protocol: TCP
       port: {{ $task.port }}
       targetPort: {{ $task.port }}
----
 {{ end }}
 ```
 ### Define
@@ -3313,12 +3311,10 @@ jobs:
 Вставляем отпечаток в `Fingerprint` и нажимаем `Import Key` \
 Дожидаемся сообщение на почту, указанную в ключе
 
-Расшифровать содержимое содержимое `pgp` сообщения в формате:
-```bash
-echo '-----BEGIN PGP MESSAGE-----
------END PGP MESSAGE-----' > pgp.txt
-```
-`gpg --decrypt pgp.txt` \
+Расшифровать содержимое `pgp` сообщения в формате `BEGIN PGP MESSAGE`:
+
+`gpg --decrypt pgp.txt`
+
 Переходим по полученной ссылке после расшифровки и подтверждаем добавление ключа.
 
 Загружаем Ubuntu Codes of Conduct последней версии: https://launchpad.net/codeofconduct/2.0
