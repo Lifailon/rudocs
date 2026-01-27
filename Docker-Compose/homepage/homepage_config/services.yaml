@@ -67,7 +67,7 @@
         href: https://pkgs.alpinelinux.org/packages
     - FlatHub:
         icon: flathub.png
-        href: https://flathub.org/ru/apps/collection/popular/1
+        href: https://flathub.org/ru
     - Canonical Launchpad:
         icon: https://launchpad.net/favicon.ico
         href: https://launchpad.net
@@ -384,6 +384,30 @@
         - Portainer Templates:
             icon: portainer.png
             href: https://portainer-templates.as93.net
+        - Dockerfile Configuration:
+            icon: https://www.dockerfile.app/logo.png
+            href: https://www.dockerfile.app
+        # - Dockerfile Editor:
+        #     icon: https://www.dockerfile.app/logo.png
+        #     href: https://www.dockerfile.app/editor
+        # - Docker Compose Editor:
+        #     icon: https://www.dockerfile.app/logo.png
+        #     href: https://www.dockerfile.app/composer
+        - Dockerfile Hadolint:
+            icon: https://hadolint.github.io/hadolint/img/cat_container.png
+            href: https://hadolint.github.io/hadolint
+        - Dockerfile Dockadvisor:
+            icon: https://deckrun.com/icon2.png
+            href: https://deckrun.com/dockadvisor
+        - Shell Check:
+            icon: https://www.shellcheck.net/favicon.ico
+            href: https://www.shellcheck.net
+        - Kompose UI:
+            icon: https://kompose.io/assets/favicons/favicon.ico
+            href: https://composetokube.com
+        - Helm Playground:
+            icon: https://helm-playground.com/favicon.png
+            href: https://helm-playground.com
         - Artifact Hub:
             icon: artifacthub.png
             href: https://artifacthub.io/packages/helm/openrouter-bot/openrouter-bot
@@ -393,12 +417,6 @@
         - Kubernetes Spec Explorer:
             icon: https://kubespec.dev/favicon.ico
             href: https://kubespec.dev
-        - Helm Playground:
-            icon: https://helm-playground.com/favicon.png
-            href: https://helm-playground.com
-        - Kompose UI:
-            icon: https://kompose.io/assets/favicons/favicon.ico
-            href: https://composetokube.com
         - K8YAML:
             icon: kubernetes.png
             href: https://k8syaml.com
@@ -407,9 +425,10 @@
             href: https://8gwifi.org/kube.jsp
 
 - 📚 Docs:
-    - PowerShell Commands:
+    - ruDocs:
         icon: https://lifailon.github.io/favicon.png
         href: https://lifailon.github.io
+        siteMonitor: https://lifailon.github.io
     - Devhints:
         icon: https://devhints.io/assets/favicon.png
         href: https://devhints.io

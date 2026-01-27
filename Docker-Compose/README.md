@@ -484,9 +484,9 @@ WHITE_WEBDAV_ENDPOINTS=
 
 [Scalar](https://github.com/scalar/scalar) - интерактивный справочник для документации OpenAPI (like Swagger UI) и REST API клиент в одном веб-приложение.
 
-🔗 [API Reference Demo](https://docs.scalar.com/editor#/reference) ↗
+🔗 [API Reference Playground](https://docs.scalar.com/editor#/reference) ↗
 
-🔗 [API Client Demo](https://client.scalar.com/workspace/default/request/default) ↗
+🔗 [API Client Playground](https://client.scalar.com/workspace/default/request/default) ↗
 
 ```yaml
 services:
@@ -509,7 +509,7 @@ services:
 
 [Restfox](https://github.com/flawiddsouza/Restfox) - легковесный и быстрый офлайн API-клиент (WebUI/Desktop) с поддержкой импорт коллекций из OpenAPI и экспорт в Postman и Insomnia.
 
-🔗 [Restfox API Client Demo](https://restfox.dev) ↗
+🔗 [Restfox API Client Playground](https://restfox.dev) ↗
 
 🔗 [Restfox Desktop Client](https://github.com/flawiddsouza/Restfox/releases) ↗
 
@@ -542,9 +542,9 @@ services:
       - ./yaade_data:/app/data
 ```
 
-🔗 [Hoppscotch API Client Demo](https://hoppscotch.io/) ↗
+🔗 [Hoppscotch API Client Playground](https://hoppscotch.io/) ↗
 
-🔗 [HTTPie API Client Demo](https://httpie.io/app) ↗
+🔗 [HTTPie API Client Playground](https://httpie.io/app) ↗
 
 🔗 [Postman Collections to OpenAPI Docs](https://kevinswiber.github.io/postman2openapi) ↗
 
@@ -552,9 +552,9 @@ services:
 
 [go-httpbin](https://github.com/mccutchen/go-httpbin) - API сервер клиент для тестирования HTTP запросов и ответов (fork [httpbin](https://github.com/postmanlabs/httpbin) от Postman Labs).
 
-🔗 [HTTPBin Demo](https://httpbin.org) ↗
+🔗 [HTTPBin Playground](https://httpbin.org) ↗
 
-🔗 [HTTPBin Go Demo](https://httpbingo.org) ↗
+🔗 [HTTPBin Go Playground](https://httpbingo.org) ↗
 
 ```yaml
 services:
@@ -570,7 +570,7 @@ services:
 
 [Swagger UI](https://github.com/swagger-api/swagger-ui) - браузер для спецификации OpenAPI (поддерживает загрузку любой переданной спецификации через url).
 
-🔗 [Swagger UI Demo](https://petstore.swagger.io) ↗
+🔗 [Swagger UI Playground](https://petstore.swagger.io) ↗
 
 🔗 [Swagger Viewer VSCode Extension](https://github.com/arjun-g/vs-swagger-viewer) ↗
 
@@ -597,7 +597,7 @@ services:
 
 [Swagger Editor](https://github.com/swagger-api/swagger-editor) - онлайн редактор документации OpenAPI с поддержкой генерации клентов и заглушек API для разных языков с помощью [codegen](https://github.com/swagger-api/swagger-codegen).
 
-🔗 [Swagger Editor Demo](https://editor.swagger.io) ↗
+🔗 [Swagger Editor Playground](https://editor.swagger.io) ↗
 
 ```yaml
 services:
@@ -635,7 +635,7 @@ services:
 
 [Step CI](https://github.com/stepci/stepci) - инструмент командной строки для тестирования GraphQL, gRPC, SOAP и REST API в DevOps Pipelines (например, локально в консоли или в GitHub Actions)
 
-🔗 [Step CI Demo](https://stepci.com) ↗
+🔗 [Step CI Playground](https://stepci.com) ↗
 
 ```yaml
 services:
@@ -653,7 +653,7 @@ services:
 
 [Networking Toolbox](https://github.com/lissy93/networking-toolbox) - более 100 сетевых инструментов и утилит, предназначенных для работы в автономном режиме (от создателя web-check, [dashy](https://github.com/Lissy93/dashy) и [AdGuardian-Term](https://github.com/Lissy93/AdGuardian-Term)).
 
-🔗 [Networking Toolbox Demo](https://networkingtoolbox.net) ↗
+🔗 [Networking Toolbox Playground](https://networkingtoolbox.net) ↗
 
 ```yaml
 services:
@@ -679,7 +679,7 @@ services:
 
 [Web Check](https://github.com/Lissy93/web-check) - универсальный инструмент OSINT для анализа любого веб-сайта.
 
-🔗 [Web Check Demo](https://web-check.xyz) ↗
+🔗 [Web Check Playground](https://web-check.xyz) ↗
 
 ```yaml
 services:
@@ -695,7 +695,7 @@ services:
 
 [IP Check / MyIP](https://github.com/jason5ng32/MyIP) - набор инструментов для проверки IP-адресов. Включаем в себя проверки DNS, соединения WebRTC, speedtest, ICMP, MTR, доступность веб-сайтов и другие возможности.
 
-🔗 [IP Check Demo](https://ipcheck.ing/#/) ↗
+🔗 [IP Check Playground](https://ipcheck.ing/#/) ↗
 
 ```yaml
 services:
@@ -715,7 +715,7 @@ services:
 
 `docker run -t --rm zonemaster/cli zonemaster.net`
 
-🔗 [ZoneMaster Test Domains Demo](https://zonemaster.net/en/run-test) ↗
+🔗 [ZoneMaster Test Domains Playground](https://zonemaster.net/en/run-test) ↗
 
 [Check Host](https://check-host.net/?lang=ru) - бесплатный онлайн инструмент и API для ICMP, HTTP/HTTPS, TCP, UDP и DNS проверок доступности узлов из разных стран.
 
@@ -740,7 +740,7 @@ services:
 
 [SmokePing](https://github.com/oetiker/SmokePing) - система регистрации, построения графиков и оповещения о задержках, которая состоит из демона для организации измерения задержек и CGI-интерфейса для отображения графиков.
 
-🔗 [SmokePing Demo](https://smokeping.oetiker.ch/?target=Customers.OP) ↗
+🔗 [SmokePing Playground](https://smokeping.oetiker.ch/?target=Customers.OP) ↗
 
 ```yaml
 services:
@@ -984,7 +984,7 @@ services:
 
 [LibreSpeedTest](https://github.com/librespeed/speedtest) - сервер измерения скорости сети в Интернете на базе HTML5 для размещения на собственном сервере, с поддержкой мобильных устройств.
 
-🔗 [LibreSpeedTest Demo](https://librespeed.org) ↗
+🔗 [LibreSpeedTest Playground](https://librespeed.org) ↗
 
 ```yaml
 services:
@@ -1015,7 +1015,7 @@ services:
 
 [OpenSpeedTest](https://github.com/openspeedtest/Speed-Test) - бесплатный веб-инструмент для оценки производительности сети на базе HTML5, написанный на чистом JavaScript и использующий только встроенные веб-API.
 
-🔗 [OpenSpeedTest Demo](https://openspeedtest.com) ↗
+🔗 [OpenSpeedTest Playground](https://openspeedtest.com) ↗
 
 ```yaml
 services:
@@ -1183,11 +1183,11 @@ services:
 
 🔗 [Temp Mail UI](https://github.com/mehmetkahya0/temp-mail) ↗
 
-🔗 [Temp Mail UI Demo](https://mehmetkahya0.github.io/temp-mail) ↗
+🔗 [Temp Mail UI Playground](https://mehmetkahya0.github.io/temp-mail) ↗
 
 🔗 [Temp Fast Mail](https://github.com/kasteckis/TempFastMail) ↗
 
-🔗 [Temp Fast Mail Demo](https://tempfastmail.com) ↗
+🔗 [Temp Fast Mail Playground](https://tempfastmail.com) ↗
 
 ## SMTP Stack
 
@@ -1298,7 +1298,7 @@ services:
 
 [Happy Deliver](https://github.com/happyDomain/happydeliver) - инструмент для тестирования доставки электронных писем, с анализом писем и оценкой `SPF`, `DKIM`, `DMARC`, `BIMI`, `ARC`, SpamAssassin, записи `DNS`, статус черного списка, качество контента и многое другое. Поддерживает полнофункциональный REST API для создания тестов и получения отчетов, встроенный сервер `LMTP` для бесшовной интеграции `MTA` и присвоения оценок (от `A` до `F`).
 
-🔗 [Happy Deliver Demo](https://happydeliver.org) ↗
+🔗 [Happy Deliver Playground](https://happydeliver.org) ↗
 
 ```yaml
 services:
@@ -1324,7 +1324,7 @@ services:
 
 IT Tools - большая коллекция утилит для разработчиков (криптография, конверторы, веб инструменты и многое другое).
 
-🔗 [IT Tools Demo](https://it-tools.tech) ↗
+🔗 [IT Tools Playground](https://it-tools.tech) ↗
 
 ```yaml
 services:
@@ -1340,7 +1340,7 @@ services:
 
 [CyberChef](https://github.com/gchq/CyberChef) - веб-приложение для выполнения всевозможных кибер-операций в веб-браузере, которые включают в себя простое кодирование (например, `XOR` и `Base64`), более сложное шифрование (например, `AES`, `DES` и `Blowfish`), создание двоичных и шестнадцатеричных дампов, сжатие и распаковка данных, вычисление хешей и контрольных сумм, парсинг `IPv6` и `X.509`, изменение кодировок символов и многое другое.
 
-🔗 [CyberChef Demo](https://gchq.github.io/CyberChef) ↗
+🔗 [CyberChef Playground](https://gchq.github.io/CyberChef) ↗
 
 ```yaml
 services:
@@ -1356,7 +1356,7 @@ services:
 
 [Transforms](https://github.com/ritz078/transform) - универсальный веб-конвертер.
 
-🔗 [Transforms Demo](https://transform.tools) ↗
+🔗 [Transforms Playground](https://transform.tools) ↗
 
 ```yaml
 services:
@@ -1375,7 +1375,7 @@ services:
 
 [Mazanoke](https://github.com/civilblur/mazanoke) - веб-приложение для сжатия (в процентах или мб), изменения разрешения (в пикселях) и конвертации изображений.
 
-🔗 [Mazanoke Demo](https://mazanoke.com) ↗
+🔗 [Mazanoke Playground](https://mazanoke.com) ↗
 
 ```yaml
 services:
@@ -1391,7 +1391,7 @@ services:
 
 [JSON Crack](https://github.com/AykutSarac/jsoncrack.com) - веб-приложение для визуализации JSON, YAML, XML и CSV в интерактивные графики.
 
-🔗 [JSON Crack Demo](https://jsoncrack.com/editor) ↗
+🔗 [JSON Crack Playground](https://jsoncrack.com/editor) ↗
 
 🔗 [JSON Crack VSCode Extension](https://github.com/AykutSarac/jsoncrack-vscode)  ↗
 
@@ -1414,7 +1414,7 @@ services:
 
 [Markmap](https://github.com/markmap/markmap) - как JSON Crack для Markdown.
 
-🔗 [Markmap Demo](https://markmap.js.org/repl) ↗
+🔗 [Markmap Playground](https://markmap.js.org/repl) ↗
 
 🔗 [Markmap VSCode Extension](https://github.com/markmap/markmap-vscode)  ↗
 
@@ -1511,7 +1511,7 @@ services:
 
 [Code Server](https://github.com/coder/code-server) - VSCode сервер в браузере.
 
-🔗 [VSCode Demo](https://vscode.dev) ↗
+🔗 [VSCode Playground](https://vscode.dev) ↗
 
 ```yaml
 services:
@@ -1535,7 +1535,7 @@ services:
 
 [Judge0 IDE](https://github.com/judge0/ide) - онлайн-редактор кода, позволяющий писать и выполнять код (использует [Judge0](https://github.com/judge0/judge0) под капотом, для выполнения исходного кода) на широком спектре языков. Подходит для тех, кто хочет быстро внести правки и запустить код или изучаения нового языка, не открывая полнофункциональную IDE на своем компьютере.
 
-🔗 [Judge0 IDE Demo](https://ide.judge0.com) ↗
+🔗 [Judge0 IDE Playground](https://ide.judge0.com) ↗
 
 ```yaml
 service:
@@ -1581,7 +1581,9 @@ service:
 
 [Better Go Playground](https://github.com/x1unix/go-playground) - улучшенная [Go Playground](https://go.dev/play) на базе [Monaco Editor](https://github.com/microsoft/monaco-editor) и React.
 
-🔗 [Go Playground Demo](https://goplay.tools) ↗
+🔗 [Go Better Playground](https://goplay.tools) ↗
+
+🔗 [Go Oficial Playground](https://go.dev/play) ↗
 
 ```yaml
 services:
@@ -1599,11 +1601,11 @@ services:
 
 [Repeatit](https://github.com/rytsh/repeatit) (Go Template Playground) - игровая площадка для проверки шаблонов GoLang. Поддерживает рендиринг текста и html шаблонов, функции spting и heml, а также ввод параметров шаблона в форматах yaml, json и toml.
 
-🔗 [Go Template Playground Demo](https://repeatit.io) ↗
+🔗 [Go Template Playground](https://repeatit.io) ↗
 
-🔗 [Helm Playground Demo](https://helm-playground.com) ↗
+🔗 [Helm Playground](https://helm-playground.com) ↗
 
-🔗 [Jinja2 Playground Demo](https://www.dainiak.com/jinja2-playground) ↗
+🔗 [Jinja2 Playground](https://www.dainiak.com/jinja2-playground) ↗
 
 ```yaml
 services:
@@ -1622,7 +1624,7 @@ services:
 
 [D2 Playground](https://github.com/terrastruct/d2-playground) - игровая площадка для современного языка сценариев диаграмм, преобразующий текст в диаграммы.
 
-🔗 [D2 Playground Demo](https://play.d2lang.com) ↗
+🔗 [D2 Playground](https://play.d2lang.com) ↗
 
 🔗 [D2 VSCode Extension](https://github.com/terrastruct/d2-vscode) ↗
 
@@ -1643,7 +1645,7 @@ services:
 
 [Draw.io](https://github.com/jgraph/drawio) (like MS Visio) - веб-версия бесплатного приложения для создания различных диаграмм, блок-схем и т.п.
 
-🔗 [Draw.io Demo](https://app.diagrams.net) ↗
+🔗 [Draw.io Playground](https://app.diagrams.net) ↗
 
 🔗 [Draw.io VSCode Extension](https://github.com/hediet/vscode-drawio) ↗
 
@@ -1836,7 +1838,7 @@ services:
 
 ### pgHero
 
-[pgHero](https://github.com/ankane/pghero) - Панель управления для производительности PostgreSQL.
+[pgHero](https://github.com/ankane/pghero) - панель управления для производительности PostgreSQL.
 
 🔗 [pgHero Performance Dashboard Demo](https://pghero.dokkuapp.com/system) ↗
 
@@ -2987,7 +2989,7 @@ services:
 [DNS Client](https://github.com/TechnitiumSoftware/net.dnsclient) - веб-клиент, уже встроенный в DNS сервер, который позволяет отправлять запросы к любому DNS-серверу. Поддерживает проверку DNSSEC с использованием алгоритмов RSA, ECDSA и EdDSA для всех транспортных протоколов DNS, а также поддерживает протоколы DNS-over-HTTPS, DNS-over-TLS и DNS-over-QUIC.
 
 
-🔗 [DNS Client Demo](https://dnsclient.net) ↗
+🔗 [DNS Client Playground](https://dnsclient.net) ↗
 
 ```yaml
 services:
@@ -4993,11 +4995,70 @@ services:
       - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
 ```
 
+### Hadolint
+
+[Hadolint](https://hadolint.github.io/hadolint/) - интеллектуальный линтер для анализа `Dockerfile` на на основе [best practices](https://docs.docker.com/build/building/best-practices). Он преобразует файл в абстрактное синтаксическое дерево `AST` и применяет правила на основе этого дерева, а также использует инструмент [Shellcheck](https://github.com/koalaman/shellcheck) для проверки кода Bash внутри `RUN` инструкций.
+
+🔗 [Hadolint Playground](https://composetokube.com) ↗
+
+🔗 [Shell Check Playground](https://www.shellcheck.net) ↗
+
+`docker run --rm -i hadolint/hadolint:latest < Dockerfil`
+
+Запуск веб-версии для оффлайн использования:
+
+```bash
+mkdir hadolint
+git clone https://github.com/hadolint/hadolint hadolint-web
+cd hadolint-web
+git fetch origin
+git checkout gh-pages
+cd ..
+```
+
+Запускаем сервис в `docker-compose.yml`:
+
+```yaml
+services:
+  hadolint-web:
+    image: nginx:alpine
+    container_name: hadolint-web
+    restart: always
+    volumes:
+      - ./hadolint-web:/usr/share/nginx/html:ro
+    ports:
+      - 8040:80
+```
+
+### Dockadvisor
+
+[Dockadvisor](https://github.com/deckrun/dockadvisor) - веб-интерфейс статического анализа `Dockerfile` на линтеры, для выявленияя распространенных проблемы.
+
+🔗 [Dockadvisor Playground](https://github.com/zxh326/kite) ↗
+
+```yaml
+services:
+  dockadvisor:
+    image: deckrun/dockadvisor:latest
+    container_name: dockadvisor
+    restart: always
+    ports:
+      - 3030:80
+```
+
+### ShellCheck
+
+[ShellCheck](https://github.com/koalaman/shellcheck) - инструмент статического анализа скриптов командной оболочки `sh` и `Bash`.
+
+https://www.shellcheck.net
+
 ## Kubernetes Stack
 
 ### Kompose UI
 
 [Kompose UI](https://github.com/HaddadJoe/komposeui) - веб-интерфейс для [kompose](https://github.com/kubernetes/kompose) (конвертирует docker-compose файлы в манифесты Kubernetes).
+
+🔗 [Kompose UI Playground](https://composetokube.com) ↗
 
 ```yaml
 services:
@@ -5143,7 +5204,7 @@ services:
 
 [Kubetail Dashboard](https://github.com/kubetail-org/kubetail) - веб-интерфейс и инструмент командной строки для отображения логов из разных подов в одном потоке (поддерживает фильтрацию по содержимому сообщений при установки в кластер).
 
-🔗 [Kubetail Dashboard installed in Kubernetes Demo](https://www.kubetail.com/demo) ↗
+🔗 [Kubetail Dashboard Demo](https://www.kubetail.com/demo) ↗
 
 ```yaml
 services:
@@ -5994,7 +6055,7 @@ services:
 
 [KeeWeb](https://github.com/keeweb/keeweb) - веб-интефрейс и интерфейс рабочего стола для баз данных `kdbx`.
 
-🔗 [KeeWeb Demo](https://app.keeweb.info) ↗
+🔗 [KeeWeb Playground](https://app.keeweb.info) ↗
 
 🔗 [KeeWeb Chrome Extension](https://chromewebstore.google.com/detail/keeweb-connect/pikpfmjfkekaeinceagbebpfkmkdlcjk) ↗
 
@@ -6125,9 +6186,7 @@ services:
 
 [Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
 
-🔗 [Gatus Health Dashboard Demo](https://gatus.io/demo) ↗
-
-🔗 [Gatus Demo](https://gatus.io/demo) ↗
+🔗 [Gatus Web Playground](https://gatus.io/demo) ↗ - используется для составления запросов через веб-интерфейс без генерации конфигурации (код закрыт)
 
 В демо-версии присутствует интерфейс (конструктор) для настройки и проверки правил мониторинга (без экспорта в формате конфигурации).
 
@@ -6344,6 +6403,52 @@ services:
     #   - 9333:9333
 ```
 
+### VictoriaMetrics/vmagent
+
+[VictoriaMetrics](https://github.com/VictoriaMetrics/VictoriaMetrics) - быстрое и масштабируемое решение для мониторинга и управления данными временных рядов (форк Prometheus).
+
+`vmagent` - облегченная альтернатива Prometheus, использующая только роль сборщика метрик (`scrape`) для пересылки на сервер.
+
+```yaml
+services:
+  # VictoriaMetrics server
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:latest
+    container_name: victoriametrics
+    restart: always
+    ports:
+      - 8428:8428
+      - 8089:8089
+      - 8089:8089/udp
+      - 2003:2003
+      - 2003:2003/udp
+      - 4242:4242
+    volumes:
+      - ./vmagent_data:/storage
+    command:
+      - "--storageDataPath=/storage"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+
+  # Metrics collector
+  vmagent:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent
+    restart: always
+    ports:
+      - 8429:8429
+    volumes:
+      - ./vmagent_data:/vmagentdata
+      - ./prometheus-vm-single.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    depends_on:
+      - victoriametrics
+```
+
 ### Loki
 
 [Loki](https://github.com/grafana/loki) - централизованный сервер и агент `promtail` для агрегации и хранения логов удаленных систем от Grafana (как Prometheus, но для логов) из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
@@ -6382,7 +6487,7 @@ services:
 
 [Jaeger](https://github.com/jaegertracing/jaeger) - распределенная система трассировки для анализа времени обработки запросов и ответов к веб-приложениям (например, используется в Traefik), созданная компанией Uber Technologies и переданная в дар Cloud Native Computing Foundation.
 
-🔗 [Demo](https://demo.jaegertracing.io/jaeger) ↗
+🔗 [Jaeger Demo](https://demo.jaegertracing.io/jaeger) ↗
 
 ```yaml
 services:
@@ -6399,7 +6504,7 @@ services:
 
 [Parca](https://github.com/parca-dev/parca) - система непрерывного профилирования для анализа использования процессора и памяти приложениями, вплоть до номера строки. Использует единый профилировщик eBPF, который автоматически обнаруживает цели из Docker, Kubernetes или systemd, поддерживая C, C++, Rust, Go и другие языки.
 
-🔗 [Demo](https://demo.parca.dev) ↗
+🔗 [Parca Demo](https://demo.parca.dev) ↗
 
 ```yaml
 services:
@@ -6979,7 +7084,7 @@ services:
 
 [Fluent Bit](https://github.com/fluent/fluent-bit) - быстрый и легковесный агент для сбора логов, метрик и трассировок в системах Linux, BSD, OSX и Windows.
 
-Пример пересылки логов из контейнера [Zerobyte](https://github.com/nicotsx/zerobyte) в AWS CloudWatch через Fluent Bit:
+Пример пересылки логов из контейнера [Zerobyte](https://github.com/nicotsx/zerobyte) в сервис AWS CloudWatch (может быть запущен в [localstack](https://github.com/localstack/localstack)) через Fluent Bit:
 
 ```yaml
 services:
@@ -7430,7 +7535,7 @@ services:
 
 [It's MyTabs](https://github.com/louislam/its-mytabs) - веб-интерфейс для просмотра и проигрывания табулатуры гитары, похожий на [Songsterr](https://www.songsterr.com), от создателя [Uptime-Kuma](https://github.com/louislam/uptime-kuma) и [Dockge](https://github.com/louislam/dockge).
 
-🔗 [Demo](https://its-mytabs.kuma.pet/tab/1?audio=youtube-VuKSlOT__9s&track=2) ↗
+🔗 [It's MyTabs Playground](https://its-mytabs.kuma.pet/tab/1?audio=youtube-VuKSlOT__9s&track=2) ↗
 
 ```yaml
 services:
@@ -7448,9 +7553,9 @@ services:
 
 [Grist](https://github.com/gristlabs/grist-core) (like MS Excel) - современный реляционный редактор электронных таблиц в вебе и приложением рабочего стола, как достойная замена Microsoft Excel.
 
-🔗 [Grist Demo](https://docs.getgrist.com) ↗
+🔗 [Grist Playground](https://docs.getgrist.com) ↗
 
-🔗 [Grist Static Demo](https://gristlabs.github.io/grist-static) ↗
+🔗 [Grist Static Playground](https://gristlabs.github.io/grist-static) ↗
 
 🔗 [Grist Desktop](https://github.com/gristlabs/grist-desktop/releases/tag/v0.3.6) ↗
 
@@ -8153,7 +8258,7 @@ services:
 
 [Planka](https://github.com/plankanban/planka) - инструмент управления проектами в стиле Kanban для команды.
 
-🔗 [Demo](https://plankanban.github.io/planka/#/) ↗
+🔗 [Planka Demo](https://plankanban.github.io/planka/#/) ↗
 
 ```yaml
 services:
@@ -8461,6 +8566,8 @@ services:
 
 🔗 [FreshRSS Demo](https://demo.freshrss.org) ↗
 
+🔗 [RSS Feed Reader Playground](https://georapbox.github.io/rss-feed-reader) ↗ с открытым кодом на [GitHub](https://github.com/georapbox/rss-feed-reader).
+
 ```yaml
 services:
   freshrss:
@@ -8481,7 +8588,7 @@ services:
 
 [RSS Bridge](https://github.com/RSS-Bridge/rss-bridge) - генерирует RSS-каналы в форматах `Atom`/`XML` и `JSON` с поддержкой `HTML` разметки для веб-сайтов, у которых их нет. Поддерживает более 400 мостов, например, из Telegram каналов, фильтрацию по заголовкам или содержимому RSS каланов (например, предварительно сгенерированных).
 
-🔗 [RSS Bridge Demo](https://rss-bridge.org/bridge01) ↗
+🔗 [RSS Bridge Playground](https://rss-bridge.org/bridge01) ↗
 
 🔗 [Public Hosts](https://rss-bridge.github.io/rss-bridge/General/Public_Hosts.html) ↗
 
@@ -8499,9 +8606,9 @@ services:
 
 ### RSS Proxy
 
-[RSS Proxy](https://github.com/damoeb/rss-proxy) - позволяет создавать ATOM или JSON-ленты из любого статического сайта или ленты (Web to Feed), анализирует HTML страницы и преобразует в RSS ленту с поддержкой фильтрации.
+[RSS Proxy](https://github.com/damoeb/rss-proxy) - позволяет создавать `ATOM` или `JSON` ленты из любого статического сайта или ленты (Web to Feed), анализирует HTML страницы и преобразует в RSS ленту с поддержкой фильтрации.
 
-[RSS Proxy Demo](https://rssproxy.migor.org)
+[RSS Proxy Playground](https://rssproxy.migor.org)
 
 ```yaml
 services:
@@ -9052,7 +9159,7 @@ services:
 
 [Emulator.js](https://github.com/EmulatorJS/EmulatorJS) - веб-интерфейс для [RetroArch](https://github.com/libretro/RetroArch).
 
-🔗 [Emulator.js Demo](https://demo.emulatorjs.org) ↗
+🔗 [Emulator.js Playground](https://demo.emulatorjs.org) ↗
 
 ```yaml
 services:
@@ -9078,7 +9185,7 @@ services:
 
 [Junie](https://github.com/Namaneo/Junie) - интерфейс Libretro, работающий в браузере.
 
-🔗 [Junie Demo](https://namaneo.github.io/Junie) ↗
+🔗 [Junie Playground](https://namaneo.github.io/Junie) ↗
 
 ```yaml
 services:

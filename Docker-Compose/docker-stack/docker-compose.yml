@@ -408,9 +408,33 @@ services:
     container_name: nexus
     restart: always
     ports:
-      - "8881:8081"
-      - "8882:8082" # Settings => Repositories => Create repository => docker-hosted => HTTP
+      - 8881:8081
+      - 8882:8082 # Settings => Repositories => Create repository => docker-hosted => HTTP
     volumes:
       - ./nexus_data:/nexus-data
     environment:
       - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
+
+################################################### Dockerfile ###################################################
+
+  dockadvisor:
+    image: deckrun/dockadvisor:latest
+    container_name: dockadvisor
+    restart: always
+    ports:
+      - 3030:80
+
+  # hadolint:
+  #   image: hadolint/hadolint:latest
+  #   command: hadolint < Dockerfile
+  #   volumes:
+  #     - ./Dockerfile:/Dockerfile
+
+  # hadolint-web:
+  #   image: nginx:alpine
+  #   container_name: hadolint-web
+  #   restart: always
+  #   volumes:
+  #     - ./hadolint-web:/usr/share/nginx/html:ro
+  #   ports:
+  #     - 8040:80
