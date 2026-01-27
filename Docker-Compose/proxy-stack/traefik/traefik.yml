@@ -1,4 +1,5 @@
 entryPoints:
+  # HTTPS redirect
   web:
     address: ":80"
     http:
@@ -25,25 +26,31 @@ api:
   dashboard: true
   insecure: true
 
-# Healthcheck
+# Healthcheck endpoint
 ping:
   terminatingStatusCode: 204
 
-# Jaeger
+# Jaeger tracing
 # tracing:
 #   serviceName: traefik
 #   otlp:
 #     grpc:
-#       endpoint: 192.168.3.101:4317
+#       endpoint: jaeger:4317
 #       insecure: true
 
-# Prometheus
+# Prometheus Exporter endpoint
 metrics:
   prometheus:
     entryPoint: metrics
     addRoutersLabels: true
     addServicesLabels: true
 
+# Log format
+log:
+  format: "common"  # common or json
+  level: "INFO"     # DEBUG, INFO, WARN, ERROR, FATAL and PANIC
+
+# Access log filters
 accessLog:
   format: "common"
   filters:
@@ -54,10 +61,7 @@ accessLog:
       - "400-499"
       - "500-599"
 
-log:
-  format: "common"  # common or json
-  level: "INFO"     # DEBUG, INFO, WARN, ERROR, FATAL and PANIC
-
+# Sources
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"

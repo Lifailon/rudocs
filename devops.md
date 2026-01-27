@@ -146,6 +146,7 @@
   - [Azure](#azure)
   - [Vercel](#vercel)
 - [Load Balancer](#load-balancer)
+  - [Traefik](#traefik)
   - [HAProxy](#haproxy)
   - [Keepalive](#keepalive)
 - [GlusterFS](#glusterfs)
@@ -5975,6 +5976,211 @@ jobs:
 ```
 ## Load Balancer
 
+### Traefik
+
+Запускаем контейнере [Traefik](https://github.com/traefik/traefik) в стеке с [Jaeger](https://github.com/jaegertracing/jaeger) для анализа трассировки трафика и [DNS](https://github.com/TechnitiumSoftware/DnsServer) сервером:
+```yaml
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: always
+    # Используем режим хоста для доступа к сети всех контейнеров 
+    network_mode: host
+    # ports:
+    #   - 8080:8080   # Web UI
+    #   - 80:80       # HTTP Proxy
+    #   - 443:443     # HTTPS Proxy
+    #   - 4318:4318   # Prometheus Metrics
+    dns:
+      - 127.0.0.1
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - ./rules:/rules
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: wget -qO- http://127.0.0.1:8080/ping
+      start_period: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    labels:
+      # Включаем маршрутизацию и определяем имя хоста
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.docker.local`)
+      # Указываем порт назначения в контейнере (если используется несколько портов)
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+      # Создаем базовую авторизацию
+      - traefik.http.middlewares.basic-auth-traefik.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW # htpasswd -nbB admin admin
+      # Включаем базовую авторизацию в маршрутизацию текущего сервиса
+      - traefik.http.routers.traefik.middlewares=basic-auth-traefik
+      # Настраиваем подключение к Authentik
+      # - traefik.http.middlewares.authentik.forwardauth.address=http://192.168.3.101:9000/outpost.goauthentik.io/auth/traefik
+      # - traefik.http.middlewares.authentik.forwardauth.trustForwardHeader=true
+      # - traefik.http.middlewares.authentik.forwardauth.authResponseHeaders=X-authentik-username,X-authentik-groups,X-authentik-entitlements,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
+      # Включаем авторизацию через Authentik из провайдера Docker
+      # - traefik.http.routers.traefik.middlewares=authentik@docker
+      # Включаем авторизацию через Authentik из провайдера file
+      # - traefik.http.routers.traefik.middlewares=authentik@file
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: jaeger
+    restart: always
+    ports:
+      - 16686:16686 # Веб-интерфейс
+      - 4317:4317   # Сборщик трассировок
+
+  tech-dns-srv:
+    image: technitium/dns-server:latest
+    container_name: tech-dns-srv
+    restart: always
+    volumes:
+      - ./dns_data:/etc/dns
+    environment:
+      - DNS_SERVER_DOMAIN=dns.docker.local
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    network_mode: host
+    labels:
+      - traefik.enable=true
+      # Определяем FQDN
+      - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
+      # Переадресация на порт
+      - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
+```
+Конфигурация настроек в файле `traefik.yml`:
+```yaml
+entryPoints:
+  # Настраиваем переадресацию на websecure для принудительного использования HTTPS
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+    transport:
+      keepAliveMaxRequests: 0
+      # Определяем время ожидания для неактивного соединения (для поддержания активной сессии)
+      respondingTimeouts:
+        idleTimeout: "30m"
+  # Адрес веб-интерфейса
+  traefik:
+    address: ":8080"
+  # Переопределяем порт для получения метрик
+  metrics:
+    address: ":4318"
+
+# Включаем веб-интерфейс
+api:
+  dashboard: true
+  insecure: true
+
+# Конечная точка для healthcheck
+ping:
+  terminatingStatusCode: 204
+
+# Настройка переадресации трассировок в Jaeger
+tracing:
+  serviceName: traefik
+  otlp:
+    grpc:
+      endpoint: jaeger:4317
+      insecure: true
+
+# Включаем prometheus exporter
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addRoutersLabels: true
+    addServicesLabels: true
+
+# Настраиваем формата логов
+log:
+  format: "common"  # common or json
+  level: "INFO"     # DEBUG, INFO, WARN, ERROR, FATAL and PANIC
+
+# Настройка фильтрации логов доступа
+accessLog:
+  format: "common"
+  filters:
+    minDuration: "1ms"
+    statusCodes:
+      - "200-299"
+      - "300-399"
+      - "400-499"
+      - "500-599"
+
+# Провайдеры для автоматического опредиления сервисов
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: true
+    # Формат по умолчанию при опредиление сервисов compose: <service_name>-<project_name>
+    # defaultRule: "Host(`{{ .Name }}.docker.local`)"
+    # Шаблон в формате (используем функцию index): index <map> <key>
+    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .Name }}.docker.local`)"
+  file:
+    directory: /rules
+    watch: true
+```
+Настройка дополнительных конфигураций из провайдера `file` в директории `rules` на примере интеграции с [Authentik](https://github.com/goauthentik/authentik) для авторизации с использование технологии `SSO`.
+
+Настройка промежуточной переадресации (между Traefik и веб-приложением) в файле `authentik-middlewares.yml`:
+```yaml
+http:
+  middlewares:
+    authentik:
+      forwardAuth:
+        address: http://192.168.3.101:9000/outpost.goauthentik.io/auth/traefik
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-authentik-username
+          - X-authentik-groups
+          - X-authentik-entitlements
+          - X-authentik-email
+          - X-authentik-name
+          - X-authentik-uid
+          - X-authentik-jwt
+          - X-authentik-meta-jwks
+          - X-authentik-meta-outpost
+          - X-authentik-meta-provider
+          - X-authentik-meta-app
+          - X-authentik-meta-version
+```
+Настройка маршрутизации в файле `authentik-routers.yml`:
+```yaml
+http:
+  routers:
+    homepage-src:
+      rule: "Host(`home.docker.local`)"
+      service: homepage-dst
+      entryPoints:
+        - websecure
+      middlewares:
+        - authentik
+    dns-src:
+      rule: "Host(`dns.docker.local`)"
+      service: dns-dst
+      entryPoints:
+        - websecure
+
+  services:
+    homepage-dst:
+      loadBalancer:
+        servers:
+          - url: http://172.26.0.2:3000
+    dns-dst:
+      loadBalancer:
+        servers:
+          - url: http://192.168.3.101:5380
+```
 ### HAProxy
 
 Запускаем [HAProxy](https://github.com/haproxy/haproxy) в контейнере Docker:
