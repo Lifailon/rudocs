@@ -105,6 +105,7 @@
   - [Go Build and Testing](#go-build-and-testing)
   - [Ubuntu PPA Repository](#ubuntu-ppa-repository)
   - [Ubuntu Build and Pfush](#ubuntu-build-and-pfush)
+  - [Repository Dispatch](#repository-dispatch)
   - [Actions API](#actions-api)
   - [Actions locally](#actions-locally)
 - [Groovy](#groovy)
@@ -3506,8 +3507,49 @@ ppaUrl=$(jq -rn --arg url "$apiUrl" '$url | @uri')
 # Формируем динамический json запрос в Shields для получения бейджа с версией
 echo "https://img.shields.io/badge/dynamic/json?url=$ppaUrl&query=$apiQuery&label=Ubuntu+PPA&logo=ubuntu&color=orange"
 ```
-### Actions API
+### Repository Dispatch
 
+Repository Dispatch используется для отправки запроса из скрипта или другой системы для запуска Workflow.
+
+Отправляем запрос на сервер:
+```bash
+userName=Lifailon
+repoName=lazyjournal
+token=ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+curl -X POST "https://api.github.com/repos/$userName/$repoName/dispatches" \
+    -H "Authorization: token $token" \
+    -H "Accept: application/vnd.github.v3+json" \
+    -d '{
+      "event_type": "script_run", 
+      "client_payload": {
+        "app_version": "0.8.5",
+        "run_tests": true
+      }
+    }'
+```
+Создаем действие для реакции на событие:
+```yaml
+name: Webhook Payload
+
+on:
+  repository_dispatch:
+    # Workflow запустится только если event_type совпадает с одним из списка
+    types: [script_run, test]
+
+jobs:
+  payload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version
+        run: |
+          echo "App version: ${{ github.event.client_payload.app_version }}"
+          echo "Run tests: ${{ github.event.client_payload.run_tests }}"
+
+```
+### Actions API
 ```PowerShell
 $userName = "Lifailon"
 $repoName = "lazyjournal"
@@ -3862,6 +3904,7 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 | [Pipeline Stage View](https://plugins.jenkins.io/pipeline-stage-view)                   | Визуализация шагов (stages) в интерфейсе проекта с временем их выполнения.                                              |
 | [Rebuilder](https://plugins.jenkins.io/rebuild)                                         | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке.                   |
 | [Schedule Build](https://plugins.jenkins.io/schedule-build)                             | Позволяет запланировать сборку на указанный момент времени.                                                             |
+| [Webhook Trigger](https://plugins.jenkins.io/generic-webhook-trigger)                   | Принимает POST запросы на конечной точке `/generic-webhook-trigger/invoke` для извлечения значений и запуска Pipeline.  |
 | [Job Configuration History](https://plugins.jenkins.io/jobConfigHistory)                | Сохраняет копию файла сборки в формате `xml` (который хранится на сервере) и позволяет производить сверку.              |
 | [Export Job Parameters](https://plugins.jenkins.io/export-job-parameters)               | Добавляет кнопку `Export Job Parameters` для конвертации все параметров в декларативный синтаксис Pipeline.             |
 | [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                              | Плагин для подключения к удаленным машинам через протокол ssh по ключу или паролю.                                      |
