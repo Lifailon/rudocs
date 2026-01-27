@@ -139,7 +139,10 @@
 - [Prometheus](#prometheus)
 - [PromQL](#promql)
 - [Cloud](#cloud)
-  - [AWS](#aws)
+  - [AWS/LocalStack](#awslocalstack)
+    - [S3](#s3-1)
+    - [Fluent Bit](#fluent-bit)
+    - [CloudWatch](#cloudwatch)
   - [Azure](#azure)
   - [Vercel](#vercel)
 - [Load Balancer](#load-balancer)
@@ -5680,11 +5683,18 @@ diskName: `label_values(disk)` \
 
 ## Cloud
 
-### AWS
+### AWS/LocalStack
 
-Установка [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)
+Установка [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions):
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+rm awscliv2.zip
+```
 
-Настройка профиля по умолчанию (настройки подключения):
+Настройка профиля по умолчанию:
+
 ```bash
 aws configure # --profile localstack
 AWS Access Key ID: test
@@ -5693,7 +5703,7 @@ Default region name: us-east-1
 Default output format: json
 ```
 
-Переменные окружения для подключения к облаку или [localstack](https://github.com/localstack/localstack):
+Переменные окружения для подключения к облаку или localstack:
 
 ```bash
 export AWS_ENDPOINT_URL="http://192.168.3.101:4566"
@@ -5704,12 +5714,87 @@ export AWS_ENDPOINT_URL="http://192.168.3.101:4566"
 $env:AWS_ENDPOINT_URL="http://192.168.3.101:4566"
 ```
 
+#### S3
+
 Создание s3 хранилища:
 
 ```bash
 aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 mb s3://test-bucket
 aws --endpoint-url=http://192.168.3.101:4566 --profile localstack s3 ls
 ```
+
+#### Fluent Bit
+
+Запускаем [localstack](https://github.com/localstack/localstack) вместе с [fluent-bit](https://github.com/fluent/fluent-bit) для пересылки логов:
+
+```yaml
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    restart: always
+    ports:
+      - 4566:4566
+      - 4510-4559:4510-4559
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1
+      - EXTRA_CORS_ALLOWED_ORIGINS=*
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack_data:/var/lib/localstack
+
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    ports:
+      - 24224:24224
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+```
+
+Создаем конфигурацию `fluent-bit.conf` для приема логов из контейнеров Docker и их переадресации в AWS CloudWatch:
+
+```conf
+[SERVICE]
+    Log_Level    info
+
+[INPUT]
+    Name  forward
+    Listen 0.0.0.0
+    Port  24224
+
+[OUTPUT]
+    Name                localstack_cloudwatch_logs
+    Match               *
+    region              us-east-1
+    # Автоматическое создание группы, если она отсутствует
+    auto_create_group   On
+    # Название группы
+    log_group_name      docker-logs
+    # Название потока, например, container-zerobyte
+    log_stream_prefix   container-
+    # Адрес сервера localstack
+    endpoint            localstack
+    port                4566
+```
+
+Подключаем драйвер `fluentd` для отправки логов из любого контейнера Docker:
+
+```yaml
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: zerobyte
+```
+
+#### CloudWatch
 
 Создание группы, потока и запись логов в CloudWatch:
 
@@ -5719,19 +5804,19 @@ aws logs create-log-group --log-group-name "docker-logs"
 # Отобразить все группы
 aws logs describe-log-groups
 # Создание потока для записи логов (Log Stream)
-aws logs create-log-stream --log-group-name "docker-logs" --log-stream-name "app-01"
+aws logs create-log-stream --log-group-name "docker-logs" --log-stream-name "script-test"
 # Отобразить все потоки в группе
 aws logs describe-log-streams --log-group-name "docker-logs"
 # Отправка лога (Put Log Events)
-aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events timestamp=$(date +%s000),message="Test message from CLI"
+aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "script-test" --log-events timestamp=$(date +%s000),message="Test message from Bash"
 # Windows
 $timestamp = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
-aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "app-01" --log-events "timestamp=$timestamp,message='Test message from PowerShell'"
+aws logs put-log-events --log-group-name "docker-logs" --log-stream-name "script-test" --log-events "timestamp=$timestamp,message='Test message from PowerShell'"
 # Чтение логов (Get Log Events)
-aws logs get-log-events --log-group-name "docker-logs" --log-stream-name "zerobyte-zerobyte.logs"
+aws logs get-log-events --log-group-name "docker-logs" --log-stream-name "script-test"
 # Фильтрация логов
 aws logs filter-log-events --log-group-name "docker-logs" --query "events[*].message" --output text 
-# Чтение логов из всех потоков
+# Чтение логов из всех потоков за последние сутки
 aws logs tail docker-logs --since 1d
 ```
 
