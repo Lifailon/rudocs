@@ -1,0 +1,15 @@
+services:
+  xyops:
+    image: ghcr.io/pixlcore/xyops:latest
+    container_name: xyops
+    restart: unless-stopped
+    init: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./xyops_data:/opt/xyops/data
+    environment:
+      - TZ=Etc/UTC+3
+      - XYOPS_xysat_local=true
+    ports:
+      - 5522:5522
+      - 5523:5523

@@ -1,0 +1,12 @@
+services:
+  crontab-ui:
+    image: alseambusher/crontab-ui:latest
+    container_name: crontab-ui
+    restart: unless-stopped
+    user: root
+    privileged: true
+    environment:
+      - BASIC_AUTH_USER=admin
+      - BASIC_AUTH_PWD=CronTabAdmin
+    ports:
+      - 40044:8000
