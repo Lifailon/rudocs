@@ -1,0 +1,80 @@
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    command: --interval 600 --http-api-metrics --http-api-update
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=hv-us-101
+      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+      - WATCHTOWER_HTTP_API_TOKEN=demotoken
+    ports:
+      - 8088:8080
+
+  dockge:
+    image: louislam/dockge:1
+    container_name: dockge
+    restart: always
+    volumes:
+      - ./dockge_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/lifailon/docker:/home/lifailon/docker
+    environment:
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      - DOCKGE_ENABLE_CONSOLE=true
+    ports:
+      - 5001:5001
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dozzle_data:/data
+    environment:
+      - DOZZLE_NO_ANALYTICS=true
+      - DOZZLE_ENABLE_ACTIONS=true
+      - DOZZLE_ENABLE_SHELL=true
+      - DOZZLE_AUTH_PROVIDER=simple
+      - DOZZLE_REMOTE_HOST=tcp://192.168.3.105:2375|rpi-105,tcp://192.168.3.106:2375|rpi-106
+    ports:
+      - 9999:8080
+
+  dozzle-syslog:
+    image: alpine
+    container_name: dozzle-syslog
+    restart: always
+    volumes:
+      - /var/log/syslog:/var/log/custom.log
+    command:
+      - tail
+      - -f
+      - /var/log/custom.log
+
+  beszel-server:
+    image: henrygd/beszel:latest
+    container_name: beszel-server
+    restart: always
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./beszel_server_data:/beszel_data
+    ports:
+      - 8090:8090
+
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: beszel-agent
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./beszel_agent_data:/var/lib/beszel-agent
+    environment:
+      - KEY=ssh-ed25519
+        AAAAC3NzaC1lZDI1NTE5AAAAICY621efzKYU5D1qYOWsiL2d2QGx/O2IcMV2S4xPYyln
+      - HUB_URL=http://beszel-server:8090
+      - LISTEN=45876

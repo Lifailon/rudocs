@@ -84,6 +84,25 @@ services:
     depends_on:
       - qbittorrent
 
+  qui:
+    image: ghcr.io/autobrr/qui:latest
+    container_name: qui
+    restart: unless-stopped
+    ports:
+      - 7476:7476
+      # - 9074:9074
+    volumes:
+      - ./qui_conf:/config
+    environment:
+      # Server
+      - QUI__HOST=0.0.0.0
+      - QUI__PORT=7476
+      # Metrics
+      # - QUI__METRICS_ENABLED=true
+      # - QUI__METRICS_HOST=127.0.0.1
+      # - QUI__METRICS_PORT=9074
+      # - QUI__METRICS_BASIC_AUTH_USERS=user:hash
+
   # transmission:
   #   image: lscr.io/linuxserver/transmission:latest
   #   container_name: transmission
