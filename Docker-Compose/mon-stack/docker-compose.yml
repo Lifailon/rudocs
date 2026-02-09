@@ -1,7 +1,25 @@
-# mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
-# mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
-
 services:
+  volume-permissions-update:
+    image: alpine
+    container_name: volume-permissions-update
+    restart: no
+    volumes:
+      - ./grafana_data:/grafana_data
+      - ./prometheus_data:/prometheus_data
+      - ./prometheus.yml:/prometheus.yml
+      - ./alert-rules.yml:/alert-rules.yml
+      - ./alertmanager.yml:/alertmanager.yml
+      - ./telegram.tmpl:/telegram.tmpl
+      - ./loki_data:/loki_data
+    command: >
+      sh -c "
+        chown -R 472:472 /grafana_data &&
+        chown -R 65534:65534 /prometheus_data /prometheus.yml /alert-rules.yml /alertmanager.yml /telegram.tmpl &&
+        chown -R 1000:1000 loki_data &&
+        echo 'Volume permissions updated' &&
+        exit 0
+      "
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -21,6 +39,9 @@ services:
       # - GF_DATABASE_SSL_MODE=disable
     volumes:
       - ./grafana_data:/var/lib/grafana
+    depends_on:
+      volume-permissions-update:
+        condition: service_completed_successfully
 
   # grafana-db:
   #   image: postgres:latest
@@ -48,6 +69,9 @@ services:
       - 9090:9090
     # dns:
     #   - 192.168.3.101
+    depends_on:
+      volume-permissions-update:
+        condition: service_completed_successfully
 
   # pushgateway:
   #   image: prom/pushgateway:latest
