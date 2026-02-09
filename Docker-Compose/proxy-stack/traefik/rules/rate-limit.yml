@@ -1,0 +1,7 @@
+http:
+  middlewares:
+    test-ratelimit:
+      rateLimit:
+        average: 100
+        period: 1s
+        burst: 200
