@@ -1,4 +1,27 @@
 services:
+  tech-dns-srv:
+    image: technitium/dns-server:latest
+    container_name: tech-dns-srv
+    restart: always
+    volumes:
+      - ./dns_data:/etc/dns
+    environment:
+      - DNS_SERVER_DOMAIN=dns.docker.local
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    network_mode: host
+    # ports:
+    #   - 5380:5380/tcp
+    #   - 53:53/udp
+    #   - 53:53/tcp
+    #   - 53443:53443/tcp
+    # sysctls:
+    #   - net.ipv4.ip_local_port_range=1024 65000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
+      - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
+
   traefik:
     image: traefik:v3
     container_name: traefik
@@ -48,26 +71,34 @@ services:
     ports:
       - 16686:16686 # UI
       - 4317:4317   # Collector
-
-  tech-dns-srv:
-    image: technitium/dns-server:latest
-    container_name: tech-dns-srv
-    restart: always
-    volumes:
-      - ./dns_data:/etc/dns
-    environment:
-      - DNS_SERVER_DOMAIN=dns.docker.local
-      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
-      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-    network_mode: host
-    # ports:
-    #   - 5380:5380/tcp
-    #   - 53:53/udp
-    #   - 53:53/tcp
-    #   - 53443:53443/tcp
-    # sysctls:
-    #   - net.ipv4.ip_local_port_range=1024 65000
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
-      - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
+      - traefik.http.services.jaeger.loadbalancer.server.port=16686
+      # Разрешить Traefik перенаправлять запросы на выключенный контейнер
+      - traefik.docker.allownonrunning=true
+      # Включаем Sablier для контейнера
+      - sablier.enable=true
+      - sablier.group=main
+      # Подключаем настройки Sablier из файла
+      - traefik.http.routers.jaeger.middlewares=sablier@file
+      # - traefik.http.routers.jaeger.middlewares=jaeger-sablier
+      # - traefik.http.middlewares.jaeger-sablier.plugin.sablier.sablierUrl=http://127.0.0.1:10000
+      # - traefik.http.middlewares.jaeger-sablier.plugin.sablier.group=main
+      # - traefik.http.middlewares.jaeger-sablier.plugin.sablier.sessionDuration=60m
+      # - traefik.http.middlewares.jaeger-sablier.plugin.sablier.ignoreUserAgent=curl
+      # - traefik.http.middlewares.jaeger-sablier.plugin.sablier.dynamic.showDetails=true
+      # - traefik.http.middlewares.jaeger-sablier.plugin.sablier.dynamic.theme=ghost # hacker-terminal or matrix
+      # - traefik.http.middlewares.jaeger-sablier.plugin.sablier.dynamic.refreshTimer=5s
+
+  sablier:
+    image: sablierapp/sablier:latest
+    container_name: sablier
+    restart: always
+    ports:
+      - 10000:10000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - start
+      - --provider.name=docker
+      - --sessions.default-duration=5m
+      - --server.port=10000

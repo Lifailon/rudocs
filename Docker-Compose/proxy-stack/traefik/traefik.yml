@@ -73,3 +73,10 @@ providers:
   file:
     directory: /rules
     watch: true
+
+# Sablier plugin
+experimental:
+  plugins:
+    sablier:
+      moduleName: "github.com/sablierapp/sablier-traefik-plugin"
+      version: "v1.1.0"

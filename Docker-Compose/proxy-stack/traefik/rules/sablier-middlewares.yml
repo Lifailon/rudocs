@@ -1,0 +1,13 @@
+http:
+  middlewares:
+    sablier:
+      plugin:
+        sablier:
+          sablierUrl: http://127.0.0.1:10000
+          group: main
+          sessionDuration: 60m
+          ignoreUserAgent: curl
+          dynamic:
+            showDetails: true
+            theme: ghost
+            refreshFrequency: 5s
