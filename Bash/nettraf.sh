@@ -1,4 +1,5 @@
 #!/bin/bash
+
 function Get-Traf {
     interface=$1
     interfaces=($(ip a | grep -E "^[0-9]+:" | cut -d " " -f 2 | sed "s/:$//"))
@@ -29,10 +30,12 @@ function Get-Traf {
         echo "Interface $interface not found, use the parameter -l"
     fi
 }
+
 help="-h, --help \t\t Get help\n"
 help+="-l, --list \t\t List all interfaces,\n"
 help+="-i, --interface \t Interface name for get network statistics\n"
 help+="-j, --json \t\t Get statistics in json format"
+
 case $1 in
 "-h" | "--help")
     echo -e $help

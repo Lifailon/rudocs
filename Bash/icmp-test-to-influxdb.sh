@@ -1,4 +1,5 @@
 #!/bin/bash
+
 while true; do
     ip="192.168.3.104"
     db="dbash"

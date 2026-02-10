@@ -1,5 +1,4 @@
 #!/bin/bash
-# Source: https://github.com/Lifailon/docker-stats-to-influxdb
 
 ################# Variables #################
 ip="192.168.3.104" # IP address influx server

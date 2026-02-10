@@ -1,6 +1,10 @@
+#!/bin/bash
+
 cat /proc/meminfo | grep Dirty
+# Принудительно заставляет систему записать все данные (Dirty) из памяти на физический диск 
 sync
 cat /proc/meminfo | grep Dirty
+
 cat /proc/meminfo | grep -iE "^cache|^buff"
 # Очистить только кеш файловых данных (PageCache)
 echo 1 | sudo tee /proc/sys/vm/drop_caches

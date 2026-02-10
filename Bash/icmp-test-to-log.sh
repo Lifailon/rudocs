@@ -1,4 +1,5 @@
 #!/bin/bash
+
 while true; do
     addr="google.com"
     path="/var/log/metrics/icmp-test.log"
