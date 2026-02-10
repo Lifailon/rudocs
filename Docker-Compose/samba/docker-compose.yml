@@ -1,4 +1,5 @@
 services:
+  # CIFS/SMB Server
   samba:
     image: dperson/samba
     container_name: samba
@@ -17,3 +18,20 @@ services:
       -u "$${SAMBA_USER};$${SAMBA_PASS}"
       -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
       -p
+
+  # Backup (sync mode) to remote SMB server (Windows Share)
+  rclone:
+    image: pfidr/rclone
+    container_name: rclone
+    restart: unless-stopped
+    volumes:
+      - ./rclone.conf:/config/rclone.conf:ro
+      - /home/lifailon/docker:/backup:ro
+    environment:
+      - MODE=sync
+      - SYNC_SRC=/backup/homepage
+      - SYNC_DEST=backup_to_smb:/backup
+      - SYNC_OPTS=-vv --create-empty-src-dirs
+      - FORCE_SYNC=1
+      - CRON=0 9,19 * * *
+      - TZ=Etc/GMT-3
