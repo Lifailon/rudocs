@@ -81,9 +81,12 @@
   - [mcfly](#mcfly)
 - [compgen](#compgen)
 - [cron](#cron)
-- [systemctl](#systemctl)
-  - [systemctl-tui](#systemctl-tui)
+- [systemd](#systemd)
+  - [systemctl](#systemctl)
   - [unit](#unit)
+  - [timer](#timer)
+  - [path](#path)
+  - [mount](#mount)
 - [journalctl](#journalctl)
 - [dmesg](#dmesg)
 - [hardware](#hardware)
@@ -1441,7 +1444,9 @@ fi
 `cp /etc/hosts.bak /etc/hosts` восстановить файл \
 `cat /var/log/icmp-test.log | grep unavailable` отфильтровать лог по unavailable
 
-## systemctl
+## systemd
+
+### systemctl
 
 `systemctl reload ssh` обновить конфигурацию сервиса из файла юнита (если у юнита есть эта функция) \
 `systemctl status ssh` отображает состояние системы, юнитов (в том числе Failed) и запущенные процессы пользователей \
@@ -1472,11 +1477,6 @@ fi
 `ls /usr/lib/systemd/system` юниты поставляемые вместе с системой и устанавливаемыми приложениями \
 `ls /run/systemd/system` юниты созданные динамически в runtime \
 `ls /etc/systemd/system` юниты системного администратора
-
-### systemctl-tui
-
-`cargo install systemctl-tui --locked` быстрый и простой TUI-интерфейс для взаимодействия с службами и журналами systemd на Rust (https://github.com/rgwood/systemctl-tui), от создателя NuShell \
-`systemctl-tui`
 
 ### unit
 ```bash
@@ -1517,6 +1517,98 @@ WantedBy=multi-user.target
 `systemctl status icmp-test-log` \
 `tail -f /var/log/icmp-test.log`
 
+### timer
+
+`/etc/systemd/system/apt-upgrade-daily.service`
+```conf
+[Unit]
+Description=Update and upgrade packages
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/apt-get update
+ExecStart=/usr/bin/apt-get upgrade -y
+```
+`/etc/systemd/system/apt-upgrade-daily.timer`
+```conf
+[Unit]
+Description=Update and upgrade packages daily
+
+[Timer]
+# Каждые 30 минут
+# OnCalendar=*-*-* *:0/30:00
+# Сб и вс в 9 утра
+# OnCalendar=Sat,Sun *-*-* 09:00:00
+# Каждый день в 9:00 и 18:00
+OnCalendar=*-*-* 09,18:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+`sudo systemctl daemon-reload` \
+`sudo systemctl enable --now apt-upgrade-daily.timer` \
+`systemctl list-timers --all` \
+`sudo systemctl start apt-upgrade-daily.service` \
+`journalctl -u apt-upgrade-daily.service -f`
+
+### path
+
+Как только происходят изменения в указанном файле, `systemd` увидит событие PathChanged и автоматически будет искать сервис с таким же именем (`backup-to-smb.service`) для его выполнения, после чего уснет до следующего изменения.
+
+`/etc/systemd/system/my-backup.path`
+```conf
+[Unit]
+Description=Следить за изменением конфигурации и запускаем бэкап
+
+[Path]
+PathChanged=/home/lifailon/docker/homepage/homepage_config/services.yaml
+
+[Install]
+WantedBy=multi-user.target
+```
+`sudo systemctl daemon-reload` \
+`sudo systemctl enable --now backup-to-smb.path`
+
+### mount
+
+У юнитов монтирования есть жесткое правило именования, которое должно в точности повторять путь до папки монтирования, заменяя `/` на `-`.
+
+`/etc/systemd/system/mnt-backup.mount`
+```conf
+[Unit]
+Description=Mount remote SMB share
+After=network-online.target
+Wants=network-online.target
+
+[Mount]
+What=//192.168.3.100/Backup
+Where=/mnt/backup
+Type=cifs
+Options=credentials=/etc/samba/creds,iocharset=utf8,rw,file_mode=0777,dir_mode=0777
+
+[Install]
+WantedBy=multi-user.target
+```
+Если в момент загрузки системы SMB-сервер недоступен, монтирование не произойдет и необходимо будет вызывать его вручную `sudo systemctl start mnt-backup.mount`. Директория также будет отмантирована, если соединение будет разорвано.
+
+Используя `automount`, монтирование производится в момент обращения к папке.
+
+`/etc/systemd/system/mnt-backup.automount`
+```conf
+[Unit]
+Description=Mount remote SMB share
+
+[Automount]
+Where=/mnt/backup
+# Размонтировать через 5 минут бездействия (опционально)
+TimeoutIdleSec=300
+
+[Install]
+WantedBy=multi-user.target
+```
+`sudo systemctl enable --now mnt-backup.automount`
 ## journalctl
 
 `journalctl --system` отобразить системный журнал \
