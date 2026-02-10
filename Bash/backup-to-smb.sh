@@ -9,6 +9,7 @@ SMB_USER=Lifailon
 SMB_PASS=
 TELEGRAM_CHAT_ID=
 TELEGRAM_API_KEY=
+ROTATE_DAY=3
 
 function tg-send() {
     msg="$1"
@@ -18,6 +19,20 @@ function tg-send() {
          -d "text=$msg" \
          -d "parse_mode=markdown"
 }
+
+ROTATE_TIMESTAMP=$(date -d "$ROTATE_DAY days ago" +%s)
+smbclient "$SMB_PATH" -U "$SMB_USER%$SMB_PASS" -c "ls" | grep "tar.gz" | while read -r line; do
+    FILE_NAME=$(echo "$line" | awk '{print $1}')
+    DATE_PART=$(echo "$FILE_NAME" | grep -oE '[0-9]{2}\.[0-9]{2}\.[0-9]{4}')
+    if [ -n "$DATE_PART" ]; then
+        FORMATTED_DATE=$(echo "$DATE_PART" | awk -F. '{print $3"-"$2"-"$1}')
+        FILE_TIMESTAMP=$(date -d "$FORMATTED_DATE" +%s)
+        if [ "$FILE_TIMESTAMP" -lt "$ROTATE_TIMESTAMP" ]; then
+            smbclient "$SMB_PATH" -U "$SMB_USER%$SMB_PASS" -c "del \"$FILE_NAME\""
+            echo "INFO: $FILE_NAME deleted"
+        fi
+    fi
+done
 
 BACKUP_NAME=$(echo "$(basename "$BACKUP_DIR")-$(date +%d.%m.%Y-%H-%M).tar.gz")
 tar -cz -C "$(dirname "$BACKUP_DIR")" "$(basename $BACKUP_DIR)" | dd of=/tmp/$BACKUP_NAME status=progress
