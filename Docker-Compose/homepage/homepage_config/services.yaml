@@ -68,10 +68,10 @@
     - FlatHub:
         icon: flathub.png
         href: https://flathub.org/ru
-    - Canonical Launchpad:
+    - Canonical Ubuntu PPA:
         icon: https://launchpad.net/favicon.ico
-        href: https://launchpad.net
-    - Canonical SnapCraft:
+        href: https://launchpad.net/~lifailon/+archive/ubuntu/lazyjournal
+    - Canonical Ubuntu SnapCraft:
         icon: https://assets.ubuntu.com/v1/841d0bcf-favicon_32px.png
         href: https://snapcraft.io/store
     - KDE Apps:
@@ -240,6 +240,9 @@
             - Mazanoke:
                 icon: https://mazanoke.com/assets/images/favicon-32x32.png
                 href: https://mazanoke.com
+            - 8mb.local:
+                icon: https://video.elhacker.net/favicon.svg
+                href: https://video.elhacker.net
             - Carbon:
                 icon: https://carbon.now.sh/favicon.ico
                 href: https://carbon.now.sh
@@ -577,6 +580,9 @@
     # - Scriggo Playground:
     #     icon: https://play.scriggo.com/favicon.ico
     #     href: https://play.scriggo.com
+    - Go Linters:
+        icon: https://golangci-lint.run/images/logo-circle.svg
+        href: https://golangci-lint.run/docs/linters
     - GopherJS Playground:
         icon: https://avatars.githubusercontent.com/u/6654647?s=200&v=4
         href: https://gopherjs.github.io/playground
@@ -708,6 +714,9 @@
     - node-03 (rpi-106):
         ping: 192.168.3.106
     - Web Apps:
+        - Sunshine:
+            icon: sunshine.png
+            href: https://192.168.3.100:47990
         - Plex:
             icon: plex.png
             href: http://192.168.3.100:32400

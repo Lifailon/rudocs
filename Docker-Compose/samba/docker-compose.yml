@@ -1,29 +1,23 @@
 services:
-  # CIFS/SMB Server
+  # CIFS/SMB Server (smbd 4.22.6)
   samba:
-    image: dperson/samba
+    image: dockurr/samba
     container_name: samba
     restart: always
-    volumes:
-      - /home/lifailon:/share
     ports:
-      - 139:139
       - 445:445
     environment:
-      - USERID=1000
-      - GROUPID=1000
-      - SAMBA_USER=admin
-      - SAMBA_PASS=admin
-    command: |
-      -u "$${SAMBA_USER};$${SAMBA_PASS}"
-      -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
-      -p
+      - NAME=docker
+      - USER=admin
+      - PASS=admin
+    volumes:
+      - /home/lifailon:/storage
 
   # Backup (sync mode) to remote SMB server (Windows Share)
   rclone:
     image: pfidr/rclone
     container_name: rclone
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./rclone.conf:/config/rclone.conf:ro
       - /home/lifailon/docker:/backup:ro
