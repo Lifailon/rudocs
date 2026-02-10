@@ -1,11 +1,10 @@
 services:
-  # SMB/CIFS Server
   samba:
     image: dperson/samba
     container_name: samba
     restart: always
     volumes:
-      - /home/lifailon/docker:/share
+      - /home/lifailon:/share
     ports:
       - 139:139
       - 445:445

@@ -2,7 +2,7 @@ services:
   cronicle:
     image: soulteary/cronicle:0.9.80
     container_name: cronicle
-    restart: unless-stopped
+    restart: always
     ports:
       - 3012:3012
     volumes:
@@ -11,12 +11,6 @@ services:
       - ./cronicle_data/data:/opt/cronicle/data
       - ./cronicle_data/logs:/opt/cronicle/logs
       - ./cronicle_data/plugins:/opt/cronicle/plugins
-    extra_hosts:
-      - "cronicle.lab.io:0.0.0.0"
+      - /home/lifailon/docker:/backup
     environment:
       - TZ=Etc/UTC+3
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:3012/api/app/ping || exit 1"]
-      interval: 5s
-      timeout: 1s
-      retries: 3

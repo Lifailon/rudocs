@@ -1,0 +1,10 @@
+services:
+  netronome:
+    image: ghcr.io/autobrr/netronome:latest
+    container_name: netronome
+    restart: unless-stopped
+    user: root
+    ports:
+      - 7575:7575
+    volumes:
+      - ./netronome_data:/data

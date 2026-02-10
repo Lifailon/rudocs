@@ -4,12 +4,24 @@ services:
     container_name: xyops
     restart: unless-stopped
     init: true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./xyops_data:/opt/xyops/data
-    environment:
-      - TZ=Etc/UTC+3
-      - XYOPS_xysat_local=true
     ports:
       - 5522:5522
       - 5523:5523
+    environment:
+      - TZ=Etc/UTC+3
+      - XYOPS_xysat_local=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./xyops_data:/opt/xyops/data
+      - /home/lifailon/docker:/backup
+
+  # Agent
+  # xyops-worker:
+  #   image: ghcr.io/pixlcore/xysat:latest
+  #   container_name: xyops-worker
+  #   restart: unless-stopped
+  #   init: true
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - XYOPS_setup=http://dc1466de402c:5522/api/app/satellite/config?t=ad0ad632c7ef064215f5a70990c1e45b3bb004a3d420aed9eb85660ac1734b48
