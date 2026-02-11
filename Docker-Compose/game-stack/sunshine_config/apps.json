@@ -1,0 +1,32 @@
+{
+    "apps": [
+        {
+            "name": "Virtual Display",
+            "image-path": "desktop.png",
+            "auto-detach": true,
+            "elevated": false,
+            "exclude-global-prep-cmd": false,
+            "wait-all": true,
+            "exit-timeout": 5
+        },
+        {
+            "name": "Main Display",
+            "image-path": "steam.png",
+            "auto-detach": true,
+            "elevated": false,
+            "exclude-global-prep-cmd": false,
+            "wait-all": true,
+            "exit-timeout": 5,
+            "prep-cmd": [
+                {
+                    "do": "qres x=1920 y=1080",
+                    "undo": "qres x=3840 y=2560"
+                },
+                {
+                    "do": "displayswitch /internal",
+                    "undo": "displayswitch /extend"
+                }
+            ]
+        }
+    ]
+}

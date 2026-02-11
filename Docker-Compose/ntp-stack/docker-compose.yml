@@ -1,0 +1,9 @@
+services:
+  ntp:
+    image: dockurr/chrony
+    container_name: ntp-server
+    restart: unless-stopped
+    environment:
+      NTP_SERVERS: pool.ntp.org
+    ports:
+      - 123:123/udp

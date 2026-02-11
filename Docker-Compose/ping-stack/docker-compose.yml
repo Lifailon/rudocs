@@ -8,21 +8,14 @@ services:
       - 3005:3005 # Backend (API)
 
   statping:
-    image: statping/statping:latest
+    image: dockurr/statping
     container_name: statping
     restart: unless-stopped
-    volumes:
-      - ./unless-stopped_data:/app
+    stop_grace_period: 1m
     ports:
       - 8001:8080
-    # environment:
-    #   VIRTUAL_HOST: localhost
-    #   VIRTUAL_PORT: 8080
-    #   DB_CONN: statping-postgres
-    #   DB_HOST: statping-postgres
-    #   DB_DATABASE: statping
-    #   DB_USER: statping
-    #   DB_PASS: statping
+    volumes:
+      - ./statping_data:/app
 
   smokeping:
     image: lscr.io/linuxserver/smokeping:latest
