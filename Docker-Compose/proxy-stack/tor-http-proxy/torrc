@@ -1,0 +1,9 @@
+DataDirectory /var/lib/tor
+SocksPort 0.0.0.0:9150
+
+UseBridges 1
+ClientTransportPlugin obfs4 exec /usr/bin/lyrebird
+
+# Bridge obfs4 
+# Bridge obfs4 
+# Bridge obfs4 

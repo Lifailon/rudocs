@@ -1,0 +1,42 @@
+services:
+  tor-socks-proxy:
+    image: alpine:latest
+    container_name: tor
+    restart: always
+    ports:
+      - 9150:9150/tcp
+    volumes:
+      - ./torrc:/etc/tor/torrc:ro
+    command: >
+      sh -c "apk add --no-cache tor obfs4proxy curl &&
+        chmod 700 /var/lib/tor &&
+        chown -R root:root /var/lib/tor &&
+        tor --version &&
+        /usr/bin/tor -f /etc/tor/torrc"
+    healthcheck:
+      test: ["CMD", "curl", "-sSLIf", "--connect-timeout", "10", "--socks5-hostname", "localhost:9150", "https://bridges.torproject.org"]
+      start_period: 300s
+      interval: 60s
+      timeout: 5s
+      retries: 3
+
+  tor-http-proxy:
+    image: alpine:latest
+    container_name: privoxy
+    restart: always
+    ports:
+      - 8118:8118
+    command: >
+      sh -c "apk add --no-cache privoxy curl &&
+        echo 'listen-address 0.0.0.0:8118' > /etc/privoxy/config &&
+        echo 'forward-socks5t / tor-socks-proxy:9150 .' >> /etc/privoxy/config &&
+        echo 'debug 1' >> /etc/privoxy/config &&
+        echo 'debug 2' >> /etc/privoxy/config &&
+        echo 'debug 8' >> /etc/privoxy/config &&
+        privoxy --no-daemon /etc/privoxy/config"
+    healthcheck:
+      test: ["CMD", "curl", "-sSLIf", "--connect-timeout", "10", "--proxy", "http://localhost:8118", "https://bridges.torproject.org"]
+      start_period: 10s
+      interval: 60s
+      timeout: 5s
+      retries: 3
