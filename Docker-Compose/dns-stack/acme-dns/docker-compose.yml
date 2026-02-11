@@ -9,5 +9,5 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./conf:/etc/acme-dns:ro
-      - ./data:/var/lib/acme-dns
+      - ./acme_conf:/etc/acme-dns:ro
+      - ./acme_data:/var/lib/acme-dns
