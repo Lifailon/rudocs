@@ -1,0 +1,17 @@
+[sshd]
+enabled  = true
+port     = 2121
+logpath  = /var/log/auth.log
+maxretry = 3
+findtime = 10m
+bantime  = 6h
+
+[3x]
+enabled      = true
+port         = 20533
+filter       = 3x
+backend      = systemd
+journalmatch = SYSLOG_IDENTIFIER=3x
+maxretry     = 3
+findtime     = 10m
+bantime      = 1h

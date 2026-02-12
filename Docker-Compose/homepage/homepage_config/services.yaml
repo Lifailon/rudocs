@@ -252,6 +252,9 @@
             - ASCII Generator:
                 icon: https://patorjk.com/candy.png
                 href: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false
+            - ASCII Flow:
+                icon: https://asciiflow.com/public/favicon.png
+                href: https://asciiflow.com
             - SVG Editor:
                 icon: https://raw.githubusercontent.com/SVG-Edit/svgedit/refs/heads/master/src/editor/images/logo.svg
                 href: https://svgplayground.com
