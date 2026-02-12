@@ -1,0 +1,36 @@
+services:
+  wg:
+    image: ngoduykhanh/wireguard-ui:latest
+    container_name: wg
+    restart: always
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    ports:
+      - 51821:51821/tcp
+      - 51820:51820/udp
+    environment:
+      - BIND_ADDRESS=0.0.0.0:51821
+      - WGUI_USERNAME=admin
+      - WGUI_PASSWORD=WgAdmin
+      - WGUI_SERVER_LISTEN_PORT=51820
+      - WGUI_SERVER_INTERFACE_ADDRESSES=10.252.1.1/24
+      - WGUI_DEFAULT_CLIENT_ALLOWED_IPS=10.252.1.0/24
+      - WGUI_DNS=1.1.1.1
+      - WGUI_MTU=1450
+      - WGUI_CONFIG_FILE_PATH=/etc/wireguard/wg0.conf
+      - WGUI_LOG_LEVEL=DEBUG
+      - WGUI_MANAGE_START=true
+      - WGUI_MANAGE_RESTART=true
+      - WGUI_DEFAULT_CLIENT_USE_SERVER_DNS=false
+      - WGUI_SERVER_POST_UP_SCRIPT=iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT;
+      # iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE;
+      # iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT;
+      # iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT;
+    volumes:
+      - ./wg_db:/app/db
+      - ./wg_etc:/etc/wireguard

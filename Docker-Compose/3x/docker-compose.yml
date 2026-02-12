@@ -3,17 +3,23 @@ services:
     image: ghcr.io/mhsanaei/3x-ui:latest
     container_name: 3x
     restart: always
-    # ports:
-    #   - 443:443   # VPN Xray VLESS
-    #   - 2053:2053 # 3x Web UI
-    network_mode: host
-    tty: true
+    # network_mode: host
+    ports:
+      - 20533:2053  # UI
+      - 443:443     # Vless
+      - 51318:51318 # WG
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
     environment:
       - XRAY_VMESS_AEAD_FORCED=false
       - XUI_ENABLE_FAIL2BAN=true
     volumes:
-      - ./db/:/etc/x-ui/
-      - ./cert/:/root/cert/
+      - ./3x_data/:/etc/x-ui/
+      - ./3x_cert/:/root/cert/
     logging:
       driver: journald
       options:
