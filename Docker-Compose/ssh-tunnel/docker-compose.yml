@@ -1,0 +1,21 @@
+services:
+  it-tools-tunnel:
+    image: jnovack/autossh
+    container_name: it-tools-tunnel
+    restart: always
+    environment:
+      # Input port on VDS
+      - SSH_BIND_IP=0.0.0.0
+      - SSH_TUNNEL_PORT=6990
+      # SSH forward tunnel on VDS 
+      - SSH_REMOTE_USER=
+      - SSH_REMOTE_HOST=
+      - SSH_REMOTE_PORT=
+      # Destination port to local subnet
+      - SSH_TARGET_HOST=192.168.3.101
+      - SSH_TARGET_PORT=6990
+      # Reverse mode
+      - SSH_MODE=-R
+      - SSH_OPTIONS=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GatewayPorts=true
+    volumes:
+      - /home/lifailon/.ssh/id_rsa:/id_rsa:ro
