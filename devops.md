@@ -127,6 +127,8 @@
   - [withVault](#withvault)
   - [Email Extension](#email-extension)
   - [Parallel](#parallel)
+  - [SimpleTemplateEngine](#simpletemplateengine)
+  - [YamlSlurper](#yamlslurper)
 - [Configuration Management](#configuration-management)
   - [Ansible](#ansible)
     - [Windows Modules](#windows-modules)
@@ -4832,6 +4834,162 @@ pipeline {
             }
         }
     }
+}
+```
+### SimpleTemplateEngine
+
+[SimpleTemplateEngine](https://github.com/groovy/groovy-core/blob/master/subprojects/groovy-templates/src/main/groovy/groovy/text/SimpleTemplateEngine.java) - простой движок шаблонов, который встроен в язык Groovy. Он принимает текст, в котором заменяет значения на содержимое переданных переменных.
+
+Шаблон для подстановки значений:
+```yaml
+apiVersion: v1
+kind: Config
+current-context: ${contextName}
+preferences: {}
+
+clusters:
+- name: ${contextName}-ctx
+  cluster:
+    server: ${clusterUrl}
+
+users:
+- name: ${contextName}-usr
+  user:
+    token: ${token}
+
+contexts:
+- name: ${contextName}
+  context:
+    cluster: ${contextName}-ctx
+    namespace: ${namespace}
+    user: ${contextName}-usr
+```
+Запускаем рендеринг (шаблонизируем конфигурацию):
+```groovy
+import groovy.text.SimpleTemplateEngine
+
+def renderTemplate(String fileName, Map varMap) {
+    def templateFile = readFile(fileName)
+    def outputFile = fileName.replace('.tmpl', '').replace('.tmp', '')
+    echo "\n\u001B[34mRender template: ${fileName} => ${outputFile}\u001B[0m\n"
+    def engine = new SimpleTemplateEngine()
+    def result = engine.createTemplate(templateFile).make(varMap).toString()
+    writeFile file: outputFile, text: result
+    return "\u001B[34m${result}\u001B[0m"
+}
+
+pipeline {
+    agent {
+        label "masterLin"
+    }
+    options {
+        ansiColor("xterm")
+        timestamps()
+        timeout(time: 5, unit: "MINUTES")
+    }
+    stages {
+        stage("Render kubeconfig") {
+            steps {
+                script {
+                    def varMap = [
+                        contextName: 'ctx-test',
+                        clusterUrl: 'https://api.test.local:6443',
+                        namespace: 'ns-test',
+                        token: 'KEY'
+                    ]
+                    def result = renderTemplate('templates/kubeconfig.tmp', varMap)
+                    echo result
+                }
+            }
+        }
+    }
+}
+```
+Пример условий и циклов:
+```yaml
+apiVersion: v1
+kind: Config
+current-context: <%= clusters[0].name %>
+preferences: {}
+
+clusters:
+<% clusters.each { c -> %>
+- name: ${c.name}-cluster
+  cluster:
+    server: ${c.url}
+<% } %>
+
+users:
+<% clusters.each { c -> %>
+<% if (c.token) { %>
+- name: ${c.name}-usr
+  user:
+    token: ${c.token}
+<% } %>
+<% } %>
+
+contexts:
+<% clusters.each { c -> %>
+- name: ${c.name}-ctx
+  context:
+    cluster: ${c.name}-cluster
+    namespace: ${c.namespace ?: 'default'}
+    user: ${c.token ? c.name + '-usr' : ''}
+<% } %>
+```
+Переменные для заполнения:
+```groovy
+def varMap = [
+    clusters: [
+        [
+            name: 'ctx-01',
+            url: 'https://api.test-01.local:6443',
+            namespace: 'ns-test',
+            token: 'token'
+        ],
+        [
+            name: 'ctx-02',
+            url: 'https://api.test-02.local:6443',
+            namespace: 'ns-test',
+            token: 'token'
+        ],
+        [
+            name: 'ctx-03',
+            url: 'https://api.test-03.local:6443'
+            // namespace и token отсутствуют, в шаблоне сработает default и проверка на null
+        ]
+    ]
+]
+```
+### YamlSlurper
+
+[YamlSlurper](https://docs.groovy-lang.org/latest/html/api/groovy/yaml/YamlSlurper.html) - преобразует `YAML` файлы в объекты Groovy (списки и мапы), например, для чтения конфигураций с специфичными параметрами для разных окружений и заполнения шаблонов в процессе рендеринга.
+```groovy
+// @Grab('org.apache.groovy:groovy-yaml:3.0.9')
+import groovy.yaml.YamlSlurper
+
+def yamlConfig = '''
+clusters:
+  dev:
+    contextName: "ctx-test"
+    clusterUrl: "https://api.test.local:6443"
+    namespace: "ns-test"
+    token: "TEST_KEY"
+  prod:  
+    contextName: "ctx-prod"
+    clusterUrl: "https://api.prod.local:6443"
+    namespace: "ns-prod"
+    token: "PROD_KEY"
+'''
+
+def config = new YamlSlurper().parseText(yamlConfig)
+
+config.clusters.each { clusterName, varMap ->
+    echo "=== Cluster: ${clusterName} ==="
+    varMap.each { key, value ->
+        echo "${key}: ${value}"
+    }
+    // renderTemplate('templates/kubeconfig.tmp', varMap)
 }
 ```
 ## Configuration Management
