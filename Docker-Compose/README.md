@@ -6,6 +6,74 @@
 
 ---
 
+## OS
+
+### Windows
+
+[Windows](https://github.com/dockur/windows) внутри контейнера Docker.
+
+```yaml
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows
+    restart: always
+    stop_grace_period: 2m
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8066:8006
+      - 3389:3389/tcp
+      - 3389:3389/udp
+    environment:
+      - VERSION=11
+      - USERNAME=admin
+      - PASSWORD=admin
+      - REGION=en-US
+      - KEYBOARD=en-US
+      - CPU_CORES=2
+      - RAM_SIZE=4G
+      - DISK_SIZE=64G
+    volumes:
+      - ./windows_data:/storage
+```
+
+### macOS
+
+[macOS](https://github.com/dockur/macos) внутри контейнера Docker.
+
+```yaml
+services:
+  macos:
+    image: dockurr/macos
+    container_name: macos
+    restart: always
+    stop_grace_period: 2m
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+      - /dev/vhost-net
+    device_cgroup_rules:
+      - 'c *:* rwm'
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8067:8006
+      - 5900:5900/tcp
+      - 5900:5900/udp
+    environment:
+      - VERSION=15
+      - CPU_CORES=1
+      - RAM_SIZE=4G
+      - DISK_SIZE=64G
+      - DHCP=Y
+    volumes:
+      - ./macos_data:/storage
+```
+
 ## Bot Stack
 
 ### SSH Bot
@@ -1111,6 +1179,23 @@ services:
 # curl -s https://www.speedtest.net/api/js/servers?engine=js | jq '.[] | select(.country == "Russia")'
 ```
 
+### Netronome
+
+[Netronome](https://github.com/autobrr/netronome) - инструмент для тестирования и мониторинга скорости сети, от создателя autobrr и [qu](https://github.com/autobrr/qui), разработанный с использованием Go и React. Поддерживает сервера [iperf3](https://github.com/esnet/iperf) и [Librespeed](https://github.com/librespeed/speedtest), а также базовый мониторинг метрик через агентов. 
+
+```yaml
+services:
+  netronome:
+    image: ghcr.io/autobrr/netronome:latest
+    container_name: netronome
+    restart: unless-stopped
+    user: root
+    ports:
+      - 7575:7575
+    volumes:
+      - ./netronome_data:/data
+```
+
 ### SpeedTest Exporter
 
 [SpeedTest Exporter](https://github.com/MiguelNdeCarvalho/speedtest-exporter) - экспортер Prometheus, написанный на Python с использованием официального интерфейса командной строки Ookla Speedtest.
@@ -1149,34 +1234,6 @@ services:
       - PORT=5201
     ports:
       - 5201:5201
-```
-
-### fail2ban
-
-[fail2ban](https://github.com/fail2ban/fail2ban) - демон для блокировки хостов, вызывающих множественные ошибки аутентификации по ssh и веб-приложения, используя анализ логов.
-
-```yaml
-services:
-  fail2ban:
-    image: lscr.io/linuxserver/fail2ban:latest
-    container_name: fail2ban
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    network_mode: host
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-      - VERBOSITY=-vv
-    volumes:
-      - ./config:/config
-      - /var/log:/var/log:ro
-      # - $HOME/docker/filebrowser/log:/remotelogs/filebrowser:ro
-      # - $HOME/docker/homeassistant/log:/remotelogs/homeassistant:ro
-      # - $HOME/docker/vaultwarden/log:/remotelogs/vaultwarden:ro
-      # - $HOME/docker/nextcloud/log:/remotelogs/nextcloud:ro
 ```
 
 ### Temp Mail
@@ -1376,6 +1433,44 @@ services:
 [Mazanoke](https://github.com/civilblur/mazanoke) - веб-приложение для сжатия (в процентах или мб), изменения разрешения (в пикселях) и конвертации изображений.
 
 🔗 [Mazanoke Playground](https://mazanoke.com) ↗
+
+```yaml
+services:
+  mazanoke:
+    image: ghcr.io/civilblur/mazanoke:latest
+    container_name: mazanoke
+    restart: unless-stopped
+    ports:
+      - 3474:80
+```
+
+### 8mb.local
+
+[8mb.local](https://github.com/JMS1717/8mb.local) - веб-интерфейс для сжатия видео. Позволяет загружать видеофайлы, выбирать целевой размер в МБ и получать сжатые версии с использованием современных кодеков. Поддерживается аппаратное ускорение с помощью NVIDIA/Intel/AMD и CPU.
+
+```yaml
+services:
+  8mb-local:
+    image: jms1717/8mblocal:latest
+    container_name: 8mb-local
+    restart: unless-stopped
+    ports:
+      - 8001:8001
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      - ./.env:/app/.env  # custom settings (optional)
+    gpus: all
+    # NVIDIA runtime / GPU environment (keep REDIS_URL above)
+    environment:
+      - REDIS_URL=redis://127.0.0.1:6379/0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      # Optional: enable VAAPI driver name for Intel/AMD when /dev/dri is mounted
+      - LIBVA_DRIVER_NAME=iHD
+```
+
+🔗 [8mb.local Playground](https://video.elhacker.net) ↗
 
 ```yaml
 services:
@@ -2331,7 +2426,7 @@ services:
 
 ### Restic
 
-[Restic](https://github.com/restic/restic) — это быстрая, эффективная и безопасная программа для резервного копирования, которая поддерживает хранение резервных копий на S3, SFTP, [REST Server](https://github.com/restic/rest-server), Rclone как backend и других хранилищах.
+[Restic](https://github.com/restic/restic) — это быстрая, эффективная и безопасная система резервного копирования, которая поддерживает хранение резервных копий на S3, SFTP, [REST Server](https://github.com/restic/rest-server) и других хранилищах.
 
 ### REST Server
 
@@ -2490,7 +2585,7 @@ services:
 
 ### Samba
 
-[Samba](https://github.com/dperson/samba/) - SMB/CIFS сервер для запуска в контейнере Docker, без конфигурации и с поддержкой корзины по умолчанию (директория `.deleted` в корне шары).
+[Samba](https://github.com/dperson/samba) - SMB/CIFS сервер для запуска в контейнере Docker, без конфигурации и с поддержкой корзины по умолчанию (директория `.deleted` в корне шары).
 
 ```yaml
 services:
@@ -2499,9 +2594,8 @@ services:
     container_name: samba
     restart: always
     volumes:
-      - /home/lifailon/docker:/share
+      - /home/lifailon:/share
     ports:
-      - 139:139
       - 445:445
     environment:
       - USERID=1000
@@ -2512,6 +2606,62 @@ services:
       -u "$${SAMBA_USER};$${SAMBA_PASS}"
       -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
       -p
+```
+
+[Samba](https://github.com/dockur/samba) - еще одна реализация запуска сервера Samba в контейнере Docker, от создателя [Windows](https://github.com/dockur/windows) и [macOS](https://github.com/dockur/macos) в Docker.
+
+```yaml
+services:
+  samba:
+    image: dockurr/samba
+    container_name: samba
+    restart: always
+    ports:
+      - 445:445
+    environment:
+      - NAME=docker
+      - USER=admin
+      - PASS=admin
+    volumes:
+      - /home/lifailon:/storage
+```
+
+### Rclone
+
+[Rclone](https://github.com/rclone/rclone) - инструмент командной строки для синхронизации файлов и каталогов между различными поставщиками облачного хранилища.
+
+```yaml
+services:
+  rclone:
+    image: pfidr/rclone
+    container_name: rclone
+    restart: always
+    volumes:
+      - ./rclone.conf:/config/rclone.conf:ro
+      - /home/lifailon/docker:/backup:ro
+    environment:
+      - MODE=sync
+      - SYNC_SRC=/backup/homepage
+      - SYNC_DEST=backup_to_smb:/backup
+      - SYNC_OPTS=-vv --create-empty-src-dirs
+      - FORCE_SYNC=1
+      - CRON=0 9,19 * * *
+      - TZ=Etc/GMT-3
+```
+
+Шифруем пароль:
+
+`docker exec -it rclone rclone obscure PASSWORD`
+
+Пример конфигурации для подключения к SMB серверу:
+
+```conf
+[backup_to_smb]
+type = smb
+host = 192.168.3.100
+user = Lifailon
+pass = PASSWORD
+domain = WORKGROUP
 ```
 
 ### SFTPGo
@@ -2724,6 +2874,72 @@ services:
       - S3FS_ARGS=use_path_request_style,allow_other
     volumes:
       - ./velero_data:/opt/s3fs/bucket:rshared 
+```
+
+### RustFS
+
+[RustFS](https://github.com/rustfs/rustfs) - высокопроизводительная распределенная система объектного хранения, созданная на языке Rust (в 2-3 раза быстрее, чем MinIO, для объектов размером 4 КБ).
+
+```yaml
+services:
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    restart: unless-stopped
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - ./rustfs_data:/data
+```
+
+### BlitzBrowser
+
+[BlitzBrowser](https://github.com/blitzbrowser/blitzbrowser) - развертывание и управление браузерами с графическим интерфейсом в Docker для подключения к браузерам через Puppeteer, Playwright и любые другие CDP-фреймворки, с поддержкой хранения данных пользователей в S3.
+
+```yaml
+services:
+  blitzbrowser:
+    image: ghcr.io/blitzbrowser/blitzbrowser:latest
+    container_name: blitzbrowser
+    restart: unless-stopped
+    shm_size: 2gb
+    ports:
+      - 9999:9999
+    environment:
+      S3_ENDPOINT: http://s3:9000
+      S3_ACCESS_KEY_ID: rustfs
+      S3_SECRET_ACCESS_KEY: rustfs
+      S3_USER_DATA_BUCKET: user-data
+
+  s3:
+    image: rustfs/rustfs
+    container_name: rustfs
+    restart: unless-stopped
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: :9000
+      RUSTFS_ACCESS_KEY: rustfs
+      RUSTFS_SECRET_KEY: rustfs
+      RUSTFS_CONSOLE_ENABLE: true
+    volumes:
+      - ./s3_data:/data
+
+  volume-permission-helper:
+    image: alpine
+    container_name: volume-permission-helper
+    restart: no
+    volumes:
+      - ./s3_data:/data
+    command: >
+      sh -c "
+        chown -R 10001:10001 /data &&
+        echo 'Volume Permissions fixed' &&
+        exit 0
+      "
 ```
 
 ## Cloud Stack
@@ -3289,7 +3505,59 @@ services:
 
 ### ACME DNS
 
-[ACME DNS](https://github.com/joohoi/acme-dns) - DNS-сервер с RESTful HTTP API, предоставляющий простой способ автоматизации запросов DNS ACME.
+[ACME DNS](https://github.com/joohoi/acme-dns) - DNS-сервер с поддержкой RESTful HTTP API, предоставляющий простой способ автоматизации запросов DNS ACME.
+
+```yaml
+services:
+  acme-dns:
+    image: joohoi/acme-dns:latest
+    container_name: acme-dns
+    restart: unless-stopped
+    ports:
+      - 53:53
+      - 53:53/udp
+      - 80:80
+      - 443:443
+    volumes:
+      - ./acme_conf:/etc/acme-dns:ro
+      - ./acme_data:/var/lib/acme-dns
+```
+
+### Dnsmasq
+
+[Dnsmasq](https://github.com/dockur/dnsmasq) - образ для запуска DNS сервера [Dnsmasq](https://thekelleys.org.uk/dnsmasq) в контейнере Docker.
+
+```yaml
+services:
+  dnsmasq:
+    image: dockurr/dnsmasq
+    container_name: dnsmasq
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 53:53/udp
+      - 53:53/tcp
+    environment:
+      DNS1: 1.0.0.1
+      DNS2: 1.1.1.1
+```
+
+### Chronyd
+
+[Chronyd](https://github.com/dockur/chrony) - образ для запуска NTP сервера [Chronyd](https://chrony-project.org) в контейнере Docker.
+
+```yaml
+services:
+  ntp:
+    image: dockurr/chrony
+    container_name: ntp-server
+    restart: unless-stopped
+    environment:
+      NTP_SERVERS: pool.ntp.org
+    ports:
+      - 123:123/udp
+```
 
 ## Proxy Stack
 
@@ -3299,6 +3567,29 @@ services:
 
 ```yaml
 services:
+  tech-dns-srv:
+    image: technitium/dns-server:latest
+    container_name: tech-dns-srv
+    restart: always
+    volumes:
+      - ./dns_data:/etc/dns
+    environment:
+      - DNS_SERVER_DOMAIN=dns.docker.local
+      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
+      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    network_mode: host
+    # ports:
+    #   - 5380:5380/tcp
+    #   - 53:53/udp
+    #   - 53:53/tcp
+    #   - 53443:53443/tcp
+    # sysctls:
+    #   - net.ipv4.ip_local_port_range=1024 65000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
+      - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
+
   traefik:
     image: traefik:v3
     container_name: traefik
@@ -3348,29 +3639,81 @@ services:
     ports:
       - 16686:16686 # UI
       - 4317:4317   # Collector
-
-  tech-dns-srv:
-    image: technitium/dns-server:latest
-    container_name: tech-dns-srv
-    restart: always
-    volumes:
-      - ./dns_data:/etc/dns
-    environment:
-      - DNS_SERVER_DOMAIN=dns.docker.local
-      - DNS_SERVER_FORWARDERS=1.1.1.1,8.8.8.8
-      - DNS_SERVER_BLOCK_LIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-    network_mode: host
-    # ports:
-    #   - 5380:5380/tcp
-    #   - 53:53/udp
-    #   - 53:53/tcp
-    #   - 53443:53443/tcp
-    # sysctls:
-    #   - net.ipv4.ip_local_port_range=1024 65000
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.tech-dns-srv.rule=Host(`dns.docker.local`)
-      - traefik.http.services.tech-dns-srv.loadbalancer.server.port=5380
+      - sablier.enable=true
+```
+
+### Sablier
+
+[Sablier](https://github.com/sablierapp/sablier) - используется для автоматической остановки контейнеров при отсутствие активности по истечению заданного времени и запуску при обращение к сервисам через браузер.
+
+```yaml
+services:
+  sablier:
+    image: sablierapp/sablier:latest
+    container_name: sablier
+    restart: always
+    ports:
+      - 10000:10000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - start
+      - --provider.name=docker
+      - --sessions.default-duration=5m
+      - --server.port=10000
+```
+
+### Traefik Log Dashboard
+
+[Traefik Log Dashboard](https://github.com/hhftechnology/traefik-log-dashboard) - платформа анализа логов для обратного прокси-сервера Traefik.
+
+```yaml
+services:
+  traefik-agent:
+    image: hhftechnology/traefik-log-dashboard-agent:latest
+    container_name: traefik-log-dashboard-agent
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    volumes:
+      - ./data/logs:/logs:ro
+      - ./data/positions:/data
+    environment:
+      # Генерируем токен: openssl rand -hex 32
+      - TRAEFIK_LOG_DASHBOARD_AUTH_TOKEN=your_secure_token_here
+      - TRAEFIK_LOG_DASHBOARD_ACCESS_PATH=/logs/access.log
+      - TRAEFIK_LOG_DASHBOARD_ERROR_PATH=/logs/traefik.log
+      - TRAEFIK_LOG_DASHBOARD_SYSTEM_MONITORING=true
+      - TRAEFIK_LOG_DASHBOARD_LOG_FORMAT=json
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/logs/status"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  traefik-dashboard:
+    image: hhftechnology/traefik-log-dashboard:latest
+    container_name: traefik-log-dashboard
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    volumes:
+      - ./data/dashboard:/app/data
+      - ./data/positions:/data
+    environment:
+      # Agent Configuration - REPLACE WITH YOUR TOKEN
+      - AGENT_API_URL=http://traefik-agent:5000
+      - AGENT_API_TOKEN=d41d8cd98f00b204e9800998ecf8427e
+      - AGENT_NAME=Default Agent
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_SHOW_DEMO_PAGE=true
+      - NEXT_PUBLIC_MAX_LOGS_DISPLAY=500
+    depends_on:
+      traefik-agent:
+        condition: service_healthy
 ```
 
 ### Nginx Proxy & Docker Gen
@@ -3795,6 +4138,289 @@ services:
     volumes:
       - ./blacklist.txt:/tmp/nodpi/blacklist.txt
     command: --host 127.0.0.1 --port 8881 --blacklist /tmp/nodpi/blacklist.txt --quiet
+```
+
+### Tor HTTP Proxy
+
+[Tor Proxy](https://github.com/dockur/tor) - прокси-сервера на базе браузера Tor в контейнере Docker.
+
+[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge) - настольный клиент Windows и macOS для перенаправления любого `TCP` и `UDP` трафика через `HTTP` или `SOCKS5` прокси-сервер с фильтрацией по приложениям или url и анализом подключений в интерфейсе.
+
+```yaml
+services:
+  tor-proxy:
+    image: dockurr/tor
+    container_name: tor-proxy
+    restart: always
+    ports:
+      - 9050:9050
+      - 9051:9051
+    volumes:
+      - ./tor_conf:/etc/tor
+      - ./tor_data:/var/lib/tor
+```
+
+### Privoxy
+
+[Tor](https://torproject.org) - браузер с встроенным `SOCKS5` сервером.
+
+[obfs4](https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird) - это транспортный плагин Tor для обхода DPI при подключение к сети Tor.
+
+[Privoxy](https://www.privoxy.org) - прокси-сервер, который способен проксировать запросы из `SOCKS5` в `HTTP` и обратно (не поддерживает авторизацию). 
+
+```yaml
+services:
+  tor-socks-proxy:
+    image: alpine:latest
+    container_name: tor
+    restart: always
+    ports:
+      - 9150:9150/tcp
+    volumes:
+      - ./torrc:/etc/tor/torrc:ro
+    command: >
+      sh -c "apk add --no-cache tor obfs4proxy curl &&
+        chmod 700 /var/lib/tor &&
+        chown -R root:root /var/lib/tor &&
+        tor --version &&
+        /usr/bin/tor -f /etc/tor/torrc"
+    healthcheck:
+      test: ["CMD", "curl", "-sSLIf", "--connect-timeout", "10", "--socks5-hostname", "localhost:9150", "https://bridges.torproject.org"]
+      start_period: 300s
+      interval: 60s
+      timeout: 5s
+      retries: 3
+
+  tor-http-proxy:
+    image: alpine:latest
+    container_name: privoxy
+    restart: always
+    ports:
+      - 8118:8118
+    command: >
+      sh -c "apk add --no-cache privoxy curl &&
+        echo 'listen-address 0.0.0.0:8118' > /etc/privoxy/config &&
+        echo 'forward-socks5t / tor-socks-proxy:9150 .' >> /etc/privoxy/config &&
+        echo 'debug 1' >> /etc/privoxy/config &&
+        echo 'debug 2' >> /etc/privoxy/config &&
+        echo 'debug 8' >> /etc/privoxy/config &&
+        privoxy --no-daemon /etc/privoxy/config"
+    healthcheck:
+      test: ["CMD", "curl", "-sSLIf", "--connect-timeout", "10", "--proxy", "http://localhost:8118", "https://bridges.torproject.org"]
+      start_period: 10s
+      interval: 60s
+      timeout: 5s
+      retries: 3
+```
+
+## VPN
+
+### WG UI
+
+[WG UI](https://github.com/ngoduykhanh/wireguard-ui) - веб-интерфейс для управления настройкой сервера WireGuard [WireGuard](https://github.com/wireguard) и клиентов (peers).
+
+[Amnezia Client](https://github.com/amnezia-vpn/amnezia-client) - клиент WireGuard для Windows, macOS, Linux и Android устройств.
+
+```yaml
+services:
+  wg:
+    image: ngoduykhanh/wireguard-ui:latest
+    container_name: wg
+    restart: always
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    ports:
+      - 51821:51821/tcp
+      - 51820:51820/udp
+    environment:
+      - BIND_ADDRESS=0.0.0.0:51821
+      - WGUI_USERNAME=admin
+      - WGUI_PASSWORD=WgAdmin
+      - WGUI_SERVER_LISTEN_PORT=51820
+      - WGUI_SERVER_INTERFACE_ADDRESSES=10.252.1.1/24
+      - WGUI_DEFAULT_CLIENT_ALLOWED_IPS=10.252.1.0/24
+      - WGUI_DNS=1.1.1.1
+      - WGUI_MTU=1450
+      - WGUI_CONFIG_FILE_PATH=/etc/wireguard/wg0.conf
+      - WGUI_LOG_LEVEL=DEBUG
+      - WGUI_MANAGE_START=true
+      - WGUI_MANAGE_RESTART=true
+      - WGUI_DEFAULT_CLIENT_USE_SERVER_DNS=false
+      - WGUI_SERVER_POST_UP_SCRIPT=iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT;
+      # iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE;
+      # iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT;
+      # iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT;
+    volumes:
+      - ./wg_db:/app/db
+      - ./wg_etc:/etc/wireguard
+```
+
+### WG Easy
+
+[WG Easy](https://github.com/wg-easy/wg-easy) - веб-интерфейс для запуска сервер WireGuard и настройкой клиентов.
+
+```yaml
+services:
+  wg:
+    image: ghcr.io/wg-easy/wg-easy:latest
+    container_name: wg
+    restart: always
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    ports:
+      - 51821:51821/tcp
+      - 51820:51820/udp
+    environment:
+      # docker run --rm ghcr.io/wg-easy/wg-easy wgpw 'WgAdmin' | sed "s/\\$/\\$\\$/g"
+      # - PASSWORD_HASH='$$2a$$12$$C1RWLpi.1v/JZltvKpwmIenskUG7jYMo4n1HMbha0DtZE6G6mb52y'
+      - INSECURE=true
+      - PORT=51821
+      - HOST=0.0.0.0
+      - WG_PORT=51820
+      - WG_DEFAULT_ADDRESS=10.8.0.x
+      - WG_ALLOWED_IPS=10.8.0.0/24
+    volumes:
+      - ./wg_etc:/etc/wireguard
+```
+
+### WG Portal
+
+[WG Portal](https://github.com/h44z/wg-portal) - веб-интерфейс для настройки WireGuard с поддержкой авторизации через OAuth или LDAP в качестве источника данных для аутентификации и профилей пользователей.
+
+```yaml
+---
+services:
+  wg-portal:
+    image: wgportal/wg-portal:v2
+    container_name: wg-portal
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./wg_etc:/etc/wireguard
+      - ./wg_data:/app/data
+      - ./wg_conf:/app/config
+```
+
+### NetBird
+
+[NetBird](https://github.com/netbirdio/netbird) - создает оверлейную сеть на основе WireGuard, которая автоматически соединяет компьютеры через зашифрованный туннель, избавляя от необходимости открывать порты, устанавливать сложные правила брандмауэра, VPN-шлюзы и так далее.
+
+```yaml
+services:
+  netbird-client:
+    image: netbirdio/netbird:latest
+    container_name: netbird-client
+    cap_add:
+        - NET_ADMIN
+        - SYS_ADMIN
+        - SYS_RESOURCE
+    devices:
+        - /dev/net/tun
+    network_mode: host
+    environment:
+        - NB_SETUP_KEY=<SETUP KEY>
+    volumes:
+        - ./netbird_data:/var/lib/netbird
+```
+
+### 3X UI
+
+[3X UI](https://github.com/MHSanaei/3x-ui) - панель для управления сервером [Xray-core](https://github.com/XTLS/Xray-core).
+
+[v2rayN](https://github.com/2dust/v2rayN) - клиент Xray для Windows, macOS и Linux.
+
+[NekoBox](https://github.com/MatsuriDayo/NekoBoxForAndroid) - клиент Xray для Android.
+
+```yaml
+services:
+  3x:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3x
+    restart: always
+    # network_mode: host
+    ports:
+      - 20533:2053  # UI
+      - 443:443     # Vless
+      - 51318:51318 # WG
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+    environment:
+      - XRAY_VMESS_AEAD_FORCED=false
+      - XUI_ENABLE_FAIL2BAN=true
+    volumes:
+      - ./3x_data/:/etc/x-ui/
+      - ./3x_cert/:/root/cert/
+    logging:
+      driver: journald
+      options:
+        tag: 3x
+```
+
+### Fail2ban
+
+[Fail2ban](https://github.com/fail2ban/fail2ban) - инструмент для блокировки хостов (обновляя правила `iptables`), вызывающих множественные ошибки аутентификации по ssh и в веб-приложениях, используя анализ журналов (например, из лог-файлов или journald).
+
+```yaml
+services:
+  fail2ban:
+    image: lscr.io/linuxserver/fail2ban:latest
+    container_name: fail2ban
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - VERBOSITY=-vv
+    volumes:
+      - ./config:/config
+      - /var/log:/var/log:ro
+```
+
+### AutoSSH
+
+[AutoSSH](https://github.com/jnovack/autossh) - автоматически запускаем и поддерживает в активном состояние обратные туннели через SSH.
+
+```yaml
+services:
+  it-tools-tunnel:
+    image: jnovack/autossh
+    container_name: it-tools-tunnel
+    restart: always
+    environment:
+      # Input port on VDS
+      - SSH_BIND_IP=0.0.0.0
+      - SSH_TUNNEL_PORT=6990
+      # SSH forward tunnel on VDS 
+      - SSH_REMOTE_USER=
+      - SSH_REMOTE_HOST=
+      - SSH_REMOTE_PORT=
+      # Destination port to local subnet
+      - SSH_TARGET_HOST=192.168.3.101
+      - SSH_TARGET_PORT=6990
+      # Reverse mode
+      - SSH_MODE=-R
+      - SSH_OPTIONS=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GatewayPorts=true
+    volumes:
+      - /home/lifailon/.ssh/id_rsa:/id_rsa:ro
 ```
 
 ## VRRP
@@ -4320,6 +4946,66 @@ services:
 
 ## Docker Stack
 
+### Docker Web Manager
+
+[Docker Web Manager](https://hub.docker.com/r/lifailon/docker-web-manager) - менеджер управления контекстами Docker (context manager) на базе [fzf](https://github.com/junegunn/fzf) и веб-интерфейс для [LazyDocker](https://github.com/jesseduffield/lazydocker) и [ctop](https://github.com/bcicen/ctop) на базе [ttyd](https://github.com/tsl0922/ttyd) с поддержкой авторизации.
+
+```yaml
+services:
+  docker-web-manager:
+    image: lifailon/docker-web-manager:latest
+    container_name: docker-web-manager
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+    environment:
+      - WEB_USERNAME=admin
+      - WEB_PASSWORD=admin
+      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
+      - SSH_USER=lifailon
+      - SSH_PORT=2121
+      - DOCKER_CLIENT=lazydocker
+    ports:
+      - 3333:3333
+```
+
+### isaiah
+
+[isaiah](https://github.com/will-moss/isaiah) - самостоятельный клон [LazyDocker](https://github.com/jesseduffield/lazydocker) для веб-браузера (JavaScript fontend).
+
+```yaml
+services:
+  isaiah:
+    image: mosswill/isaiah:latest
+    container_name: isaiah
+    restart: unless-stopped
+    ports:
+      - "4444:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./isaiah_hosts_list:/docker_hosts
+      # local unix:///var/run/docker.sock
+      # agent tcp://192.168.3.106:4382
+    environment:
+      SERVER_PORT: "80"
+      AUTHENTICATION_SECRET: "secret"
+      MULTI_HOST_ENABLED: "TRUE"
+
+  isaiah-agent:
+    image: mosswill/isaiah:latest
+    container_name: isaiah-agent
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      SERVER_ROLE: "Agent"
+      AUTHENTICATION_SECRET: "secret"
+      MASTER_HOST: "192.168.3.105:4444"
+      MASTER_SECRET: "secret"
+      AGENT_NAME: "rpi-106"
+```
+
 ### Dockge
 
 [Dockge](https://github.com/louislam/dockge) - веб-интерфейс для управления стеками Docker Compose от создателя [Uptime-Kuma](https://github.com/louislam/uptime-kuma).
@@ -4528,66 +5214,6 @@ services:
       - ./dockman_config:/config
     ports:
       - 8866:8866
-```
-
-### Docker Web Manager
-
-[Docker Web Manager](https://hub.docker.com/r/lifailon/docker-web-manager) - менеджер управления контекстами Docker (context manager) на базе [fzf](https://github.com/junegunn/fzf) и веб-интерфейс для [lazydocker](https://github.com/jesseduffield/lazydocker) и [ctop](https://github.com/bcicen/ctop) на базе [ttyd](https://github.com/tsl0922/ttyd) с поддержкой авторизации.
-
-```yaml
-services:
-  docker-web-manager:
-    image: lifailon/docker-web-manager:latest
-    container_name: docker-web-manager
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
-    environment:
-      - WEB_USERNAME=admin
-      - WEB_PASSWORD=admin
-      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
-      - SSH_USER=lifailon
-      - SSH_PORT=2121
-      - DOCKER_CLIENT=lazydocker
-    ports:
-      - 3333:3333
-```
-
-### isaiah
-
-[isaiah](https://github.com/will-moss/isaiah) - самостоятельный клон LazyDocker для веб-браузера.
-
-```yaml
-services:
-  isaiah:
-    image: mosswill/isaiah:latest
-    container_name: isaiah
-    restart: unless-stopped
-    ports:
-      - "4444:80"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      # - ./isaiah_hosts_list:/docker_hosts
-      # local unix:///var/run/docker.sock
-      # agent tcp://192.168.3.106:4382
-    environment:
-      SERVER_PORT: "80"
-      AUTHENTICATION_SECRET: "secret"
-      MULTI_HOST_ENABLED: "TRUE"
-
-  isaiah-agent:
-    image: mosswill/isaiah:latest
-    container_name: isaiah-agent
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      SERVER_ROLE: "Agent"
-      AUTHENTICATION_SECRET: "secret"
-      MASTER_HOST: "192.168.3.105:4444"
-      MASTER_SECRET: "secret"
-      AGENT_NAME: "rpi-106"
 ```
 
 ### Arcan
@@ -5922,6 +6548,111 @@ services:
       - ./n8n_files:/files
 ```
 
+### Cronicle
+
+[Cronicle](https://github.com/jhuckaby/Cronicle) - улучшенная замена Cron, написанная на Node.js для выполнения запланированных, повторяющиехся и задач по запросу с отображением статистики и просмотром логов в реальном времени.
+
+```yaml
+services:
+  cronicle:
+    image: soulteary/cronicle:0.9.80
+    container_name: cronicle
+    restart: always
+    ports:
+      - 3012:3012
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./cronicle_data/data:/opt/cronicle/data
+      - ./cronicle_data/logs:/opt/cronicle/logs
+      - ./cronicle_data/plugins:/opt/cronicle/plugins
+      - /home/lifailon/docker:/backup
+    environment:
+      - TZ=Etc/UTC+3
+```
+
+### xyOps
+
+[xyOps](https://github.com/pixlcore/xyops) - это форк [Cronicle](https://github.com/jhuckaby/Cronicle), которая объеденяет в себе систему создания и планирования заданий с передачей параметров (переменных), рабочих процессов (workflow, выполнения нескольких упорядоченных заданий), мониторинга серверов, оповещений и реагирования на инциденты.
+
+```yaml
+services:
+  xyops:
+    image: ghcr.io/pixlcore/xyops:latest
+    container_name: xyops
+    restart: unless-stopped
+    init: true
+    ports:
+      - 5522:5522
+      - 5523:5523
+    environment:
+      - TZ=Etc/UTC+3
+      - XYOPS_xysat_local=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./xyops_data:/opt/xyops/data
+      - /home/lifailon/docker:/backup
+
+  # Agent
+  # xyops-worker:
+  #   image: ghcr.io/pixlcore/xysat:latest
+  #   container_name: xyops-worker
+  #   restart: unless-stopped
+  #   init: true
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - XYOPS_setup=http://dc1466de402c:5522/api/app/satellite/config?t=ad0ad632c7ef064215f5a70990c1e45b3bb004a3d420aed9eb85660ac1734b48
+```
+
+### Cron Master
+
+[Cron Master](https://github.com/fccview/cronmaster) - веб-интерфейс для управления заданиями Cron (настройка и мониторинг). Позволяет настроить расписание, поддерживает сниппеты и отображает историю выполнения заданий.
+
+```yaml
+services:
+  cron-master:
+    image: ghcr.io/fccview/cronmaster:latest
+    container_name: cron-master
+    restart: always
+    user: root
+    privileged: true
+    init: true
+    pid: host
+    ports:
+      - 40123:3000
+    environment:
+      - AUTH_PASSWORD=CronMaster
+      - HOST_CRONTAB_USER=root
+      - NODE_ENV=production
+      - DOCKER=true
+      - NEXT_PUBLIC_CLOCK_UPDATE_INTERVAL=30000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./cron_data/scripts:/app/scripts
+      - ./cron_data/data:/app/data
+      - ./cron_data/snippets:/app/snippets
+```
+
+### Crontab UI
+
+[Crontab UI](https://github.com/alseambusher/crontab-ui) - веб-интерфейс для настройки и управления заданиями Cron с поддержкой импорта текущих заданий из crontab.
+
+```yaml
+services:
+  crontab-ui:
+    image: alseambusher/crontab-ui:latest
+    container_name: crontab-ui
+    restart: unless-stopped
+    user: root
+    privileged: true
+    environment:
+      - BASIC_AUTH_USER=admin
+      - BASIC_AUTH_PWD=CronTabAdmin
+    ports:
+      - 40044:8000
+```
+
 ## Vault Stack
 
 ### HashiCorp Vault
@@ -6210,7 +6941,7 @@ services:
 
 ### StatPing
 
-[StatPing](https://github.com/statping/statping) - страница статуса для проверки доступности веб-сайтов с настройкой в веб-интерфейсе, автоматическим построением графиков и оповещениями в Telegram.
+[StatPing](https://github.com/statping/statping) - страница статуса для проверки доступности веб-сайтов с настройкой в веб-интерфейсе, автоматическим построением графиков и оповещениями в Telegram. Поддерживает хранение данных в MySQL, PostgreSQL или SQLite.
 
 🔗 [StatPing Android](https://play.google.com/store/apps/details?id=com.statping) ↗
 
@@ -6221,7 +6952,7 @@ services:
     container_name: statping
     restart: unless-stopped
     volumes:
-      - ./unless-stopped_data:/app
+      - ./statping_data:/app
     ports:
       - 8001:8080
     # environment:
@@ -6232,6 +6963,21 @@ services:
     #   DB_DATABASE: statping
     #   DB_USER: statping
     #   DB_PASS: statping
+```
+
+[Форк statping](https://github.com/dockur/statping) от ветки [statping-ng](https://github.com/statping-ng/statping-ng).
+
+```yaml
+services:
+  statping:
+    image: dockurr/statping
+    container_name: statping
+    restart: unless-stopped
+    stop_grace_period: 1m
+    ports:
+      - 8001:8080
+    volumes:
+      - ./statping_data:/app
 ```
 
 ### Grafana
@@ -6297,10 +7043,28 @@ services:
 [LogPorter](https://github.com/Lifailon/logporter) - простая и легковесная альтернатива cAdvisor для получения всех основных метрик из контейнеров Docker.
 
 ```yaml
-# mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
-# mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
-
 services:
+  volume-permissions-update:
+    image: alpine
+    container_name: volume-permissions-update
+    restart: no
+    volumes:
+      - ./grafana_data:/grafana_data
+      - ./prometheus_data:/prometheus_data
+      - ./prometheus.yml:/prometheus.yml
+      - ./alert-rules.yml:/alert-rules.yml
+      - ./alertmanager.yml:/alertmanager.yml
+      - ./telegram.tmpl:/telegram.tmpl
+      - ./loki_data:/loki_data
+    command: >
+      sh -c "
+        chown -R 472:472 /grafana_data &&
+        chown -R 65534:65534 /prometheus_data /prometheus.yml /alert-rules.yml /alertmanager.yml /telegram.tmpl &&
+        chown -R 1000:1000 loki_data &&
+        echo 'Volume permissions updated' &&
+        exit 0
+      "
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -6313,6 +7077,9 @@ services:
       - 9090:9090
     # dns:
     #   - 192.168.3.101
+    depends_on:
+      volume-permissions-update:
+        condition: service_completed_successfully
 
   # pushgateway:
   #   image: prom/pushgateway:latest
@@ -7307,6 +8074,38 @@ services:
     volumes:
       - ./qdirstat_conf:/config:rw
       - ./qdirstat_data:/storage:ro
+```
+
+### GPU Hot
+
+[GPU Hot](https://github.com/psalias2006/gpu-hot) - панель мониторинга графических процессоров Nvidia в режиме реального времени.
+
+```yaml
+services:
+  gpu-hot:
+    image: ghcr.io/psalias2006/gpu-hot:latest
+    container_name: gpu-hot
+    restart: unless-stopped
+    init: true
+    pid: host
+    ports:
+      - 1312:1312
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1312/api/gpu-data"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 ```
 
 ## Homelab Stack
@@ -8682,6 +9481,32 @@ services:
       - qbittorrent
 ```
 
+### qUI
+
+[qUI](https://github.com/autobrr/qui) - современный веб-интерфейс для qBittorrent, который поддерживает управление несколькими экземплярами.
+
+```yaml
+services:
+  qui:
+    image: ghcr.io/autobrr/qui:latest
+    container_name: qui
+    restart: unless-stopped
+    ports:
+      - 7476:7476
+      # - 9074:9074
+    volumes:
+      - ./qui_conf:/config
+    environment:
+      # Server
+      - QUI__HOST=0.0.0.0
+      - QUI__PORT=7476
+      # Metrics
+      # - QUI__METRICS_ENABLED=true
+      # - QUI__METRICS_HOST=127.0.0.1
+      # - QUI__METRICS_PORT=9074
+      # - QUI__METRICS_BASIC_AUTH_USERS=user:hash
+```
+
 ### Transmission
 
 [Transmission](https://github.com/transmission/transmission) - кросплатформенный торрент-клиент с поддержкой веб-интерфейса, API и каталога автоматического обнаружения torrent-файлов для загрузки (возможно интегрировать с Jackett). Поддерживает нативное GUI для macOS, Linux на базе GTK и Windows на базе QT.
@@ -9021,7 +9846,7 @@ services:
 
 ### Posterizarr
 
-[Posterizarr](https://github.com/fscorrupt/posterizarr) - автоматизированный конструктор постеров для Plex и Jellyfin/Emby. Это PowerShell скрипт с полноценным веб-интерфейсом, который автоматизирует генерацию изображений для вашей медиатеки. Он загружает обложки с Fanart.tv, TMDB, TVDB, Plex и IMDb, уделяя особое внимание изображениям без текста и применяя ваши собственные пользовательские наложения и текст.
+[Posterizarr](https://github.com/fscorrupt/posterizarr) - автоматизированный конструктор постеров для Plex и Jellyfin/Emby. Представляет из себя PowerShell скрипт с полноценным веб-интерфейсом, который автоматизирует генерацию изображений для медиатеки. Он загружает обложки с Fanart.tv, TMDB, TVDB, Plex и IMDb, уделяя особое внимание изображениям без текста и применяя собственные пользовательские наложения и текст.
 
 ```yaml
 services:
@@ -9042,6 +9867,59 @@ services:
       - ./posterizarr/assets:/assets
       - ./posterizarr/assetsbackup:/assetsbackup
       - ./posterizarr/manualassets:/manualassets
+```
+
+### Flexget
+
+[Flexget](https://github.com/Flexget/Flexget) - автоматизирует процесс загрузки медиафайлов с фильтрацией из RSS-каналов.
+
+```yaml
+services:
+  flexget:
+    image: flexget/flexget
+    container_name: flexget
+    restart: unless-stopped
+    command:
+      - daemon
+      - start
+      - --autoreload-config
+    ports:
+      - 5050:5050
+    environment:
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+```
+
+### Autobrr
+
+[Autobrr](https://github.com/autobrr/autobrr) - система автоматизации загрузки торрентов и Usenet, вдохновленная [trackarr](https://github.com/florianjs/trackarr), autodl-irssi и [flexget](https://github.com/Flexget/Flexget), от создателя [qUI](https://github.com/autobrr/qui).
+
+```yaml
+---
+services:
+  autobrr:
+    image: ghcr.io/autobrr/autobrr:develop
+    container_name: autobrr
+    restart: unless-stopped
+    volumes:
+      - ./config:/config
+    ports:
+      - 7474:7474
+
+  autobrr-postgres:
+    image: postgres:12.10
+    container_name: autobrr-postgres
+    restart: unless-stopped
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=autobrr
+      - POSTGRES_PASSWORD=autobrr
+      - POSTGRES_DB=autobrr
 ```
 
 ## Game Stack
@@ -9069,9 +9947,58 @@ services:
     ipc: host
 ```
 
+### VDD
+
+[VDD](https://github.com/VirtualDrivers/Virtual-Display-Driver) (Virtual Display Driver) - драйвер для создания виртуального монитора в Windows, который функционирует точно так же, как физический. Он используется в связке с приложениями для потоковой передачи видео, например, [Sunshine](ttps://github.com/LizardByte/Sunshine).
+
+После установки драйвера в интерфейсе Sunshine идем в Troubleshooting и ищем по содержимому логов идентификатор виртуального монитора. 
+
+```json
+[
+  {
+    "device_id": "{d54a4360-26df-5f1a-b161-298c03c03b66}",
+    "display_name": "\\\\.\\DISPLAY8",
+    "edid": {
+      "manufacturer_id": "MTT",
+      "product_code": "1337",
+      "serial_number": 518463207
+    },
+    "friendly_name": "VDD by MTT",
+    "info": {
+      "hdr_state": null,
+      "origin_point": {
+        "x": 3840,
+        "y": 1468
+      },
+      "primary": false,
+      "refresh_rate": {
+        "type": "rational",
+        "value": {
+          "denominator": 1,
+          "numerator": 60
+        }
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "resolution_scale": {
+        "type": "rational",
+        "value": {
+          "denominator": 100,
+          "numerator": 150
+        }
+      }
+    }
+  }
+]
+```
+
+Переходим в `Configuration` => `Audio/Video` и в после `config.output_name_windows` всталяем содержимое из `device_id`: `{d54a4360-26df-5f1a-b161-298c03c03b66}` для захвата изображения с виртуального дисплея при подключение.
+
 ### Wolf
 
-Wolf - потоковый сервер для [Moonlight](https://github.com/moonlight-stream/moonlight-qt), который позволяет нескольким удаленным пользователям совместно использовать один сервер для игр. Особенности включают поддержку многопользовательского режима, создание виртуальных столов с возможностью настройки разрешения и FPS, а также одновременное использование различных графических процессоров для задач, таких как кодирование и игры. Сервер обеспечивает низкую задержку в стриминге видео и аудио, совместим с игровыми контроллерами и ориентирован на Linux и Docker, что обеспечивает безопасность в низкопривилегированных контейнерах.
+[Wolf](https://github.com/games-on-whales/wolf) - потоковый сервер для [Moonlight](https://github.com/moonlight-stream/moonlight-qt), который позволяет нескольким удаленным пользователям совместно использовать один сервер для игр. Особенности включают поддержку многопользовательского режима, создание виртуальных столов с возможностью настройки разрешения и FPS, а также одновременное использование различных графических процессоров для задач, таких как кодирование и игры. Сервер обеспечивает низкую задержку в стриминге видео и аудио, совместим с игровыми контроллерами и ориентирован на Linux и Docker, что обеспечивает безопасность в низкопривилегированных контейнерах.
 
 ```yaml
 services:
