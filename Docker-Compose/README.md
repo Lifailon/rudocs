@@ -4946,6 +4946,111 @@ services:
 
 ## Docker Stack
 
+### TUI
+
+- [ctop](https://github.com/bcicen/ctop) - интерфейс в стиле TOP для отображения метрик для всех контейнеров Docker.
+
+`sudo curl -sSL https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-darwin-amd64 -o /usr/local/bin/ctop && sudo chmod +x /usr/local/bin/ctop`
+
+`docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock:ro quay.io/vektorlab/ctop:latest`
+
+- [dtop](https://github.com/amir20/dtop) - терминальный интерфейс для мониторинга контейнеров Docker в стиле [ctop](https://github.com/bcicen/ctop) от создателя [Dozzle](https://github.com/amir20/dozzle) написанный на Rust, позволяющая отслеживать состояние нескольких хостов в режиме реального времени.
+
+`curl -sSLf --proto '=https' --tlsv1.2 https://github.com/amir20/dtop/releases/latest/download/dtop-installer.sh | sh`
+
+`docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/amir20/dtop:latest`
+
+- [dockly](https://github.com/lirantal/dockly) - терминальный интерфейс для управления контейнерами Docker, сервисами Compose и образами, написанный на JavaScript и библиотеки [Blessed](https://github.com/chjj/blessed).
+
+`npm install -g dockly`
+
+`docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock lirantal/dockly:latest`
+
+- [oxker](https://github.com/mrjackwills/oxker) - простой TUI для просмотра и управления контейнерами Docker, написанный на Rust и библиотеки [RataTUI](https://github.com/ratatui/ratatui) и [Bollard](https://github.com/fussybeaver/bollard) (библиотека для Docker API на Rust).
+
+`curl https://raw.githubusercontent.com/mrjackwills/oxker/main/install.sh | bash`
+
+`docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock:ro mrjackwills/oxker:latest`
+
+- [dry](https://github.com/moncho/dry) - терминальный интерфейс для управления Docker и [Swarm](https://github.com/docker-archive/classicswarm), написанный на Go и библиотеки [TermUI](https://github.com/gizak/termui).
+
+`docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock -e DOCKER_HOST=$DOCKER_HOST moncho/dry:latest`
+
+- [sen](https://github.com/TomasTomecek/sen) - терминальный пользовательский интерфейс для контейнеров Docker и [Podman](https://github.com/containers/podman), написанный на Python.
+
+`docker run --rm -it -v /var/run/docker.sock:/run/docker.sock -e TERM tomastomecek/sen:latest`
+
+- [gmd](https://github.com/ajayd-san/gomanagedocker) (goManageDocker) - TUI для управления объектами Docker или Podman, написанный на Go и библиотеки [BubbleTea](https://github.com/charmbracelet/bubbletea).
+
+`docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock kakshipth/gomanagedocker:latest`
+
+`systemctl --user start podman.socket && docker run --rm -it -v /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock kakshipth/gomanagedocker:latest p`
+
+- [ducker](https://github.com/robertpsoane/ducker) - управления контейнерами Docker через TUI.
+
+`cargo install --locked ducker`
+
+- [dockrtui](https://github.com/LuuNa-JD/dockrtui) - быстрая и современная терминальная панель для Docker, написанная на Rust и [RataTUI](https://github.com/ratatui/ratatui).
+
+`cargo install dockrtui`
+
+### LazyDocker
+
+- [LazyDocker](https://github.com/jesseduffield/lazydocker) - терминальный интерфейс для управления контейнерами Docker и Podman, а также сервисами Compose, написанный на Go и библиотеки [GoCUI](https://github.com/jroimartin/gocui).
+
+```yaml
+services:
+  lazydocker:
+    image: lazyteam/lazydocker:latest
+    container_name: lazydocker
+    tty: true
+    stdin_open: true
+    volumes:
+      - ~/.config/lazydocker/config.yml:/.config/jesseduffield/lazydocker/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+```
+
+`docker compose up -d && docker attach lazydocker`
+
+`curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash`
+
+Конфигурация для управления Docker Compose:
+
+```yaml
+customCommands:
+  services:
+  - name: Compose edit
+    command: sh -c "micro ${COMPOSE_FILE:-docker-compose.yml}"
+    attach: true
+  - name: Up stack
+    command: "{{ .DockerCompose }} up -d"
+    attach: false
+  - name: Down stack
+    command: "{{ .DockerCompose }} down"
+    attach: false
+  - name: Recreate stack
+    command: "{{ .DockerCompose }} up -d --force-recreate"
+    attach: false
+  - name: Restart container
+    command: "{{ .DockerCompose }} restart {{ .Service.Name }}"
+    attach: false
+  - name: Stop container
+    command: "{{ .DockerCompose }} stop {{ .Service.Name }}"
+    attach: false
+  - name: Logs fuzzy
+    command: sh -c "docker logs {{ .Service.Name }} --follow --timestamps 2>&1 | tspin | fzf --no-sort --ansi --reverse --bind 'result:last'"
+    attach: true
+  - name: Logs exact
+    command: sh -c "docker logs {{ .Service.Name }} --follow --timestamps 2>&1 | tspin | fzf --no-sort --ansi --reverse --bind 'result:last' --exact"
+    attach: true
+  - name: Sh
+    command: "{{ .DockerCompose }} exec {{ .Service.Name }} sh"
+    attach: true
+  - name: Bash
+    command: "{{ .DockerCompose }} exec {{ .Service.Name }} bash"
+    attach: true
+```
+
 ### Docker Web Manager
 
 [Docker Web Manager](https://hub.docker.com/r/lifailon/docker-web-manager) - менеджер управления контекстами Docker (context manager) на базе [fzf](https://github.com/junegunn/fzf) и веб-интерфейс для [LazyDocker](https://github.com/jesseduffield/lazydocker) и [ctop](https://github.com/bcicen/ctop) на базе [ttyd](https://github.com/tsl0922/ttyd) с поддержкой авторизации.
