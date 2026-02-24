@@ -1969,6 +1969,29 @@ services:
       - postgresql
 ```
 
+### Portabase
+
+[Portabase](https://github.com/Portabase/portabase) - инструмент для резервного копирования и восстановления баз данных, поддерживающий PostgreSQL, MySQL/MariaDB и MongoDB. Система состоит из агентов и веб-интерфейс для мониторинга, планирования и восстановления.
+
+```yaml
+services:
+  portabase:
+    image: tusproject/tusd:v2.8.0
+    container_name: portabase
+    restart: unless-stopped
+    ports:
+      - 1080:8080
+    extra_hosts:
+      - localhost:host-gateway
+    command: >
+      -upload-dir /data/uploads/tmp
+      -hooks-http http://localhost:8887/api/tus/hooks
+      -max-size 21474836480
+      -base-path /tus/files/
+    volumes:
+      - ./private/uploads/tmp:/data/uploads/tmp
+```
+
 ### PG Backup
 
 [Docker PG Backup](https://github.com/kartoza/docker-pg-backup) - контейнер для резервного копирования любой совместимой с PostgreSQL базы данных (например, [PostGIS](https://postgis.net/)) по расписанию cron.
@@ -2709,30 +2732,6 @@ services:
       retries: 3
 ```
 
-### h5ai
-
-[h5ai](https://github.com/lrsjng/h5ai) - современный интерфейс веб-сервера для файлового индексера. Визуально напоминается FTP сервер для удобного отображения и загрузки (например, его использует [Libretro/RetroArch](https://buildbot.libretro.com) для публикации релизов).
-
-```yaml
-services:
-  h5ai:
-    image: awesometic/h5ai
-    container_name: h5ai
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/GMT+3
-      - HTPASSWD=false
-      - HTPASSWD_USER=admin
-      - HTPASSWD_PW=admin
-    volumes:
-      - $HOME/docker:/h5ai    # public data
-      - ./h5ai_conf:/config
-    ports:
-      - 8889:80
-```
-
 ### FileBrowser
 
 [FileBrowser](https://github.com/filebrowser/filebrowser) - веб-интерфейс для управления файлами в указанном каталоге. Поддерживает управление пользователями, загрузку, удаление, просмотр и редактирование файлов.
@@ -2751,6 +2750,30 @@ services:
       - ./filebrowser_conf:/config    # settings.json
     ports:
       - 8300:80
+```
+
+### Cloud Commander
+
+[Cloud Commander](https://github.com/coderaiser/cloudcmd) - веб-интерфейс для файлового менеджера, с консолью, терминалом и файловым редактором (поддерживает [dword](https://github.com/cloudcmd/dword) на базе [CodeMirror](https://github.com/codemirror), [edward](https://github.com/cloudcmd/edward) на базе [Act](https://github.com/ajaxorg/ace) и [deepword](https://github.com/cloudcmd/deepword) на базе [Monaco Editor](https://github.com/microsoft/monaco-editor)).
+
+```yaml
+services:
+  cloudcmd:
+    image: coderaiser/cloudcmd
+    container_name: cloudcmd
+    restart: always
+    ports:
+      - 8123:8000
+    volumes:
+      - /home:/mnt
+    environment:
+      - CLOUDCMD_AUTH=false
+      - CLOUDCMD_USERNAME=admin
+      - CLOUDCMD_PASSWORD=admin
+      - CLOUDCMD_THEME=light
+      - CLOUDCMD_EDITOR=deepword
+      - CLOUDCMD_CONSOLE=true
+      - CLOUDCMD_TERMINAL=true
 ```
 
 ### Tiny File Manager
@@ -2806,6 +2829,30 @@ services:
       - 8000:8000
     stdin_open: true
     tty: true
+```
+
+### h5ai
+
+[h5ai](https://github.com/lrsjng/h5ai) - современный интерфейс веб-сервера для файлового индексера. Визуально напоминается FTP сервер для удобного отображения и загрузки (например, его использует [Libretro/RetroArch](https://buildbot.libretro.com) для публикации релизов).
+
+```yaml
+services:
+  h5ai:
+    image: awesometic/h5ai
+    container_name: h5ai
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/GMT+3
+      - HTPASSWD=false
+      - HTPASSWD_USER=admin
+      - HTPASSWD_PW=admin
+    volumes:
+      - $HOME/docker:/h5ai    # public data
+      - ./h5ai_conf:/config
+    ports:
+      - 8889:80
 ```
 
 ## S3 Stack
@@ -4251,10 +4298,14 @@ services:
       - WGUI_MANAGE_START=true
       - WGUI_MANAGE_RESTART=true
       - WGUI_DEFAULT_CLIENT_USE_SERVER_DNS=false
+      # Разрешает доступ между клиентами внутри подсети
       - WGUI_SERVER_POST_UP_SCRIPT=iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT;
-      # iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE;
+      # Запрещать по умолчанию все, что не разрешено
+      # iptables -P FORWARD DROP;
+      # Разрешает выход в интернет через внешний интерфейс
       # iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT;
-      # iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT;
+      # Разрешает ответы на уже установленные соединения из интернета
+      # iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT;
     volumes:
       - ./wg_db:/app/db
       - ./wg_etc:/etc/wireguard
@@ -4370,6 +4421,24 @@ services:
       driver: journald
       options:
         tag: 3x
+```
+
+### v2rayA
+
+[v2rayA](https://github.com/v2rayA/v2rayA) - клиент для ядер V2Ray/Xray с веб-интерфейсом для настройки подключений, который используется в роли VPN-клиента для перенаправления трафика через компьютер на роутере, который не поддерживает протокол Vless.
+
+```yaml
+services:
+  v2raya:
+    image: ghcr.io/v2raya/v2raya:latest
+    container_name: v2raya
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /etc/resolv.conf:/etc/resolv.conf
+      - ./service:/service:ro
 ```
 
 ### Fail2ban
