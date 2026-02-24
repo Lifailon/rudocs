@@ -4349,7 +4349,6 @@ services:
 [WG Portal](https://github.com/h44z/wg-portal) - веб-интерфейс для настройки WireGuard с поддержкой авторизации через OAuth или LDAP в качестве источника данных для аутентификации и профилей пользователей.
 
 ```yaml
----
 services:
   wg-portal:
     image: wgportal/wg-portal:v2
@@ -10071,7 +10070,6 @@ services:
 [Autobrr](https://github.com/autobrr/autobrr) - система автоматизации загрузки торрентов и Usenet, вдохновленная [trackarr](https://github.com/florianjs/trackarr), autodl-irssi и [flexget](https://github.com/Flexget/Flexget), от создателя [qUI](https://github.com/autobrr/qui).
 
 ```yaml
----
 services:
   autobrr:
     image: ghcr.io/autobrr/autobrr:develop
