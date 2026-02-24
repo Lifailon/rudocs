@@ -1,0 +1,11 @@
+services:
+  v2raya:
+    image: ghcr.io/v2raya/v2raya:latest
+    container_name: v2raya
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /etc/resolv.conf:/etc/resolv.conf
+      - ./service:/service:ro

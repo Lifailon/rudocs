@@ -27,10 +27,14 @@ services:
       - WGUI_MANAGE_START=true
       - WGUI_MANAGE_RESTART=true
       - WGUI_DEFAULT_CLIENT_USE_SERVER_DNS=false
+      # Разрешает доступ между клиентами внутри подсети
       - WGUI_SERVER_POST_UP_SCRIPT=iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT;
-      # iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE;
+      # Запрещать по умолчанию все, что не разрешено
+      # iptables -P FORWARD DROP;
+      # Разрешает выход в интернет через внешний интерфейс
       # iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT;
-      # iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT;
+      # Разрешает ответы на уже установленные соединения из интернета
+      # iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT;
     volumes:
       - ./wg_db:/app/db
       - ./wg_etc:/etc/wireguard
