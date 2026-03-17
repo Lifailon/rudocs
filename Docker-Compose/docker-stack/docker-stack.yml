@@ -21,9 +21,9 @@ services:
     volumes:
       - ./dockge_data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/lifailon/docker:/home/lifailon/docker
+      - $HOME/docker:/docker
     environment:
-      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      - DOCKGE_STACKS_DIR=/docker
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
       - 5001:5001

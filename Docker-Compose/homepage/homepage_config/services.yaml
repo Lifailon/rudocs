@@ -108,7 +108,7 @@
         icon: https://webinstall.dev/favicon.ico
         href: https://webinstall.dev
     - 🧲 Trackers:
-        - AppsTorrent:
+        - Apps Torrent:
             icon: apple.png
             href: https://appstorrent.ru
         - Kinozal:
@@ -234,19 +234,19 @@
             - tldraw:
                 icon: https://www.tldraw.com/favicon.svg
                 href: https://tldraw.com
+            - Open Pencil:
+                icon: https://app.openpencil.dev/favicon.ico
+                href: https://app.openpencil.dev
             - Squoosh:
                 icon: https://squoosh.app/c/favicon-c9cf50ef.ico
                 href: https://squoosh.app
             - Mazanoke:
                 icon: https://mazanoke.com/assets/images/favicon-32x32.png
                 href: https://mazanoke.com
-            - 8mb.local:
-                icon: https://video.elhacker.net/favicon.svg
-                href: https://video.elhacker.net
             - Carbon:
                 icon: https://carbon.now.sh/favicon.ico
                 href: https://carbon.now.sh
-            - Supasnap:
+            - Supasnap Screnshot:
                 icon: https://supasnap.com/images/favicons/favicon-32x32.png
                 href: https://supasnap.com/create
             - ASCII Generator:
@@ -329,7 +329,7 @@
             icon: deepl.png
             href: https://deepl.com/ru/translator
         - Reverso:
-            icon: https://www.reverso.net/assets/images/favicon.ico
+            icon: https://www.reverso.net/favicon.ico
             href: https://reverso.net
     - 💌 Mail 📮:
         - Gmail:
@@ -566,7 +566,7 @@
         icon: https://markmap.js.org/favicon.png
         href: https://markmap.js.org/repl
     - JSON Crack:
-        icon: https://github.com/AykutSarac/jsoncrack.com/raw/main/public/assets/192.png
+        icon: https://jsoncrack.com/favicon.ico
         href: https://jsoncrack.com/editor
     - JWT Debugger:
         icon: https://www.jwt.io/img/icon.svg

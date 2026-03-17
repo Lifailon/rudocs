@@ -2216,6 +2216,8 @@ services:
 
 [Apache Kafka](https://github.com/apache/kafka) - распределенная потоковая платформа с открытым исходным кодом, которая позволяет приложениям публиковать, подписываться, хранить и обрабатывать потоки данных. Для работы требует JVM и [Zookeeper](https://zookeeper.apache.org) для координации распределенных систем, обеспечения их согласованности и отказоустойчивости.
 
+[KafkaLet](https://github.com/sneiko/kafkalet) - быстрый и легкий настольный клиент Kafka, не требущий сервера для своей работы, который напрямую подключается к брокерам.
+
 ```yaml
 services:
   zookeeper:
@@ -2987,6 +2989,60 @@ services:
         echo 'Volume Permissions fixed' &&
         exit 0
       "
+```
+
+### S4 Core
+
+[S4 Core](https://github.com/s4core/s4core) - сервер объектного хранилища, полностью совместимый с S3 API (aws cli, boto3 и т. д.), с поддержкой решения проблемы исчерпания `inode` (хранение логов только с добавлением данных).
+
+```yaml
+services:
+  # S4 Storage Server
+  s4-server:
+    image: s4core/s4core:latest
+    container_name: s4-server
+    restart: unless-stopped
+    # ports:
+    #   - 9000:9000
+    environment:
+      - S4_BIND=0.0.0.0:9000
+      - S4_DATA_DIR=/data
+      - S4_ROOT_USERNAME=admin
+      - S4_ROOT_PASSWORD=s4@admin
+      - S4_ACCESS_KEY_ID=my-access-key-one
+      - S4_SECRET_ACCESS_KEY=my-secret-key-one
+      # - S4_JWT_SECRET=
+      # - S4_MAX_UPLOAD_SIZE=5GB
+      # - S4_LIFECYCLE_ENABLED=true
+      # - S4_LIFECYCLE_INTERVAL_HOURS=24
+      # - S4_METRICS_ENABLED=true
+      # - RUST_LOG="s4_api=info,s4_server=info"
+    volumes:
+      - ./s4_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --server-response --spider http://0.0.0.0:9000/ 2>&1 | grep -q -E 'HTTP/1.1 (200|403)' || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # S4 Web UI
+  s4-ui:
+    image: s4core/s4console:latest
+    container_name: s4-ui
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - S4_BACKEND_URL=http://s4-server:9000
+      - NODE_ENV=production
+    depends_on:
+      s4core:
+        condition: service_healthy
 ```
 
 ## Cloud Stack
@@ -5353,12 +5409,32 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
-      # - /home/lifailon/docker:/etc/docker  # Docker Compose root directroy
-      - /home/lifailon/docker:/opt/1panel/docker/compose  # Docker Compose root directroy
+      # Docker Compose root directroy
+      # - $HOME:/etc/docker
+      - $HOME:/opt/1panel/docker/compose
       - /opt:/opt
       # - /root:/root
     labels:
       createdBy: Apps
+```
+
+### Dockhand
+
+[Dockhand](https://github.com/Finsys/dockhand) - интерфейс для управления контейнерами Docker и оркестровку стеков Compose.
+
+```yaml
+services:
+  dockhand:
+    image: fnsys/dockhand:latest
+    container_name: dockhand
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./dockhand_data:/app/data
+      # Docker Compose root directroy
+      - /home/lifailon/docker:/docker
 ```
 
 ### DockMan
@@ -8361,6 +8437,30 @@ services:
       - homepage.href=http://glances.docker.local
 ```
 
+### Cosmos Server
+
+Cosmos Server - система самостоятельного размещения домашнего сервера, в качестве защищенного шлюза для приложений. Поддерживает установку приложений в контейнерах из магазина и мониторинг сервисов.
+
+🔗 [Cosmos Demo](https://cosmos-cloud.io/cosmos-ui) ↗
+
+```yaml
+services:
+  cosmos-server:
+    image: azukaar/cosmos-server:latest
+    container_name: cosmos-server
+    restart: always
+    privileged: true
+    ports:
+      - 8808:80
+      - 4433:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+      - /:/mnt/host
+      - /var/lib/cosmos:/config
+```
+
+
 ### Glance
 
 [Glance](https://github.com/glanceapp/glance) - панель управления, которая объединяет все RSS каналы в одном месте, с встроенной поддержкой Hacker News posts, subreddit, YouTube channel, Twitch channels, релизы GitHub, статусы контейнеров Docker и другие возможности [конфигурации](https://github.com/glanceapp/glance/blob/main/docs/configuration.md#configuring-glance).
@@ -9154,6 +9254,22 @@ services:
       - NET_ADMIN
 ```
 
+### ShareHousePlan
+
+[ShareHousePlan](https://github.com/Raynoxis/ShareHousePlan) - планировщик домов и квартир в браузере, с поддержкой 3D-просмотрщика (совместимого с SweetHome3D).
+
+```yaml
+services:
+  share-house-plan:
+    image: raynoxis/sharehouseplan:latest
+    container_name: share-house-plan
+    restart: always
+    volumes:
+      - ./sharehouseplan_data:/app/datas
+    ports:
+      - 8680:8080
+```
+
 ## Kanban
 
 ### Focalboard
@@ -9926,9 +10042,9 @@ services:
       - 5055:5055
 ```
 
-### USM
+### UMS
 
-[USM](https://github.com/UniversalMediaServer/UniversalMediaServer) (Universal Media Server) - медиасервер, поддерживающий протоколы DLNA, UPnP и HTTP/S. Он способен передавать видео, аудио и изображения между большинством современных устройств. Изначально он был основан на PS3 Media Server от shagrath для обеспечения большей стабильности и совместимости файлов.
+[UMS](https://github.com/UniversalMediaServer/UniversalMediaServer) (Universal Media Server) - медиасервер, поддерживающий протоколы DLNA, UPnP и HTTP/S. Он способен передавать видео, аудио и изображения между большинством современных устройств. Изначально он был основан на PS3 Media Server от shagrath для обеспечения большей стабильности и совместимости файлов.
 
 ```yaml
 services:
@@ -9949,6 +10065,24 @@ services:
       - 1900:1900/udp
       - 2869:2869
       - 8000-8010:8000-8010
+```
+
+### Navidrome Music Server
+
+[NMS](https://github.com/navidrome/navidrome/) (Navidrome Music Server) - музыкальный веб-сервер для хранения и аудио стриминга.
+
+```yaml
+services:
+  nms:
+    image: deluan/navidrome:latest
+    container_name: nms
+    restart: unless-stopped
+    user: 1000:1000
+    ports:
+      - 4533:4533
+    volumes:
+      - ./navidrome_data:/data
+      - ./navidrome_music:/music:ro
 ```
 
 ### Sonarr

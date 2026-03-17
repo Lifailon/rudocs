@@ -94,35 +94,48 @@ services:
       - ./dockge_data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
       # Docker stacks directory on host:container
-      - /home/lifailon/docker:/home/lifailon/docker
+      - $HOME/docker:/home/lifailon/docker
     # Enable routing for traffic
     # labels:
     #   - traefik.enable=true
     environment:
       # Enable routing for docker-gen
       # - VIRTUAL_HOST=dockge.local
-      - DOCKGE_STACKS_DIR=/home/lifailon/docker
+      - DOCKGE_STACKS_DIR=/docker
       # Доступ к консоли dockge
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
       - 5001:5001
 
   # Web interface to manage Docker containers, compose, files, databases, websites and LLMs
-  1panel:
-    image: moelin/1panel:latest
-    container_name: 1panel
-    restart: always
-    ports:
-      - 10086:10086 # http://1panel.docker.local/entrance 1panel:1panel_password
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/volumes:/var/lib/docker/volumes
-      # - /home/lifailon/docker:/etc/docker  # Docker Compose root directroy
-      - /home/lifailon/docker:/opt/1panel/docker/compose  # Docker Compose root directroy
-      - /opt:/opt
-      # - /root:/root
-    labels:
-      createdBy: Apps
+  # 1panel:
+  #   image: moelin/1panel:latest
+  #   container_name: 1panel
+  #   restart: always
+  #   ports:
+  #     - 10086:10086 # http://1panel.docker.local/entrance 1panel:1panel_password
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /var/lib/docker/volumes:/var/lib/docker/volumes
+  #     # Docker Compose root directroy
+  #     # - $HOME/docker:/etc/docker/
+  #     - $HOME/docker:/opt/1panel/docker/compose
+  #     - /opt:/opt
+  #     # - /root:/root
+  #   labels:
+  #     createdBy: Apps
+
+  # dockhand:
+  #   image: fnsys/dockhand:latest
+  #   container_name: dockhand
+  #   restart: always
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./dockhand_data:/app/data
+  #     # Docker Compose root directroy
+  #     - /home/lifailon/docker:/docker
 
   # Web interface for Docker (like Dockge)
   # dockman:
