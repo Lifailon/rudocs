@@ -1,0 +1,47 @@
+services:
+  # S4 Storage Server
+  s4-server:
+    image: s4core/s4core:latest
+    container_name: s4-server
+    restart: unless-stopped
+    # ports:
+    #   - 9000:9000
+    environment:
+      - S4_BIND=0.0.0.0:9000
+      - S4_DATA_DIR=/data
+      - S4_ROOT_USERNAME=admin
+      - S4_ROOT_PASSWORD=s4@admin
+      - S4_ACCESS_KEY_ID=my-access-key-one
+      - S4_SECRET_ACCESS_KEY=my-secret-key-one
+      # - S4_JWT_SECRET=
+      # - S4_MAX_UPLOAD_SIZE=5GB
+      # - S4_LIFECYCLE_ENABLED=true
+      # - S4_LIFECYCLE_INTERVAL_HOURS=24
+      # - S4_METRICS_ENABLED=true
+      # - RUST_LOG="s4_api=info,s4_server=info"
+    volumes:
+      - ./s4_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --server-response --spider http://0.0.0.0:9000/ 2>&1 | grep -q -E 'HTTP/1.1 (200|403)' || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # S4 Web UI
+  s4-ui:
+    image: s4core/s4console:latest
+    container_name: s4-ui
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - S4_BACKEND_URL=http://s4-server:9000
+      - NODE_ENV=production
+    depends_on:
+      s4core:
+        condition: service_healthy

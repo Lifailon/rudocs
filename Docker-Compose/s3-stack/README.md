@@ -1,4 +1,6 @@
-Набор команд для установки Velero:
+### Velero
+
+Набор команд для установки [Velero](https://github.com/vmware-tanzu/velero) в кластер Kubernetes с хранением данных в S3 хранилище [MiniO](https://github.com/minio/minio):
 
 ```bash
 curl -sSL https://github.com/vmware-tanzu/velero/releases/download/v1.17.0/velero-v1.17.0-linux-amd64.tar.gz -o velero-linux-amd64.tar.gz
