@@ -299,6 +299,19 @@ services:
   #     - 2869:2869
   #     - 8000-8010:8000-8010
 
+################################################### Music Server ###################################################
+
+  nms:
+    image: deluan/navidrome:latest
+    container_name: nms
+    restart: unless-stopped
+    user: 1000:1000
+    ports:
+      - 4533:4533
+    volumes:
+      - ./navidrome_data:/data
+      - ./navidrome_music:/music:ro
+
 ################################################### PVR ###################################################
 
   # sonarr:

@@ -1,0 +1,14 @@
+services:
+  cosmos-server:
+    image: azukaar/cosmos-server:latest
+    container_name: cosmos-server
+    restart: always
+    privileged: true
+    ports:
+      - 8808:80
+      - 4433:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+      - /:/mnt/host
+      - /var/lib/cosmos:/config

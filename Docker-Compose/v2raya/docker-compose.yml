@@ -1,4 +1,5 @@
 services:
+  # Proxy/Gateway for v2ray
   v2raya:
     image: ghcr.io/v2raya/v2raya:latest
     container_name: v2raya
