@@ -2,7 +2,8 @@ services:
   fail2ban:
     image: lscr.io/linuxserver/fail2ban:latest
     container_name: fail2ban
-    restart: unless-stopped
+    restart: always
+    network_mode: host
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -14,3 +15,17 @@ services:
     volumes:
       - ./config:/config
       - /var/log:/var/log:ro
+
+  fail2ban-ui:
+    image: swissmakers/fail2ban-ui:latest
+    container_name: fail2ban-ui
+    restart: always
+    network_mode: host
+    environment:
+      - PORT=18080
+      - BIND_ADDRESS=0.0.0.0
+      - AUTODARK=true
+    volumes:
+      - /var/log:/var/log:ro
+      - /etc/fail2ban:/etc/fail2ban:Z
+      - /var/run/fail2ban:/var/run/fail2ban

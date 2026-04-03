@@ -1,17 +1,27 @@
 [sshd]
-enabled  = true
-port     = 2121
-logpath  = /var/log/auth.log
-maxretry = 3
-findtime = 10m
-bantime  = 6h
+enabled         = true
+port            = 2121
+logpath         = /var/log/auth.log
+maxretry        = 3
+findtime        = 10m
+bantime         = 6h
 
-[3x]
-enabled      = true
-port         = 20533
-filter       = 3x
-backend      = systemd
-journalmatch = SYSLOG_IDENTIFIER=3x
-maxretry     = 3
-findtime     = 10m
-bantime      = 1h
+[3x-ui]
+enabled         = true
+port            = 20533
+filter          = 3x-ui
+backend         = systemd
+journalmatch    = SYSLOG_IDENTIFIER=3x
+maxretry        = 3
+findtime        = 10m
+bantime         = 1h
+
+[3x-proxy]
+enabled         = true
+port            = 12537
+filter          = 3x-proxy
+logpath         = /root/docker/3x/3x_logs/access.log
+maxretry        = 3
+findtime        = 10m
+bantime         = 1h
+action          = iptables-allports[name=3x-proxy, chain=DOCKER-USER]
