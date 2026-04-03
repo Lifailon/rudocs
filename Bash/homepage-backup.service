@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup homepage config
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cp -r /home/lifailon/docker/homepage/homepage_config /tmp/homepage_backup
+
+[Install]
+WantedBy=multi-user.target

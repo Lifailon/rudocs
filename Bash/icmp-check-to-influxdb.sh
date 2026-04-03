@@ -1,11 +1,12 @@
 #!/bin/bash
 
+ip="192.168.3.104"
+db="dbash"
+table="icmp_metrics_table"
+server="google.com"
+host=$(hostname)
+
 while true; do
-    ip="192.168.3.104"
-    db="dbash"
-    table="icmp_metrics_table"
-    server="google.com"
-    host=$(hostname)
     date=$(echo $EPOCHREALTIME | sed -E "s/\..+//")"000000000"
     ping=$(ping $server -c 2)
     loss=$(printf "%s\n" "${ping[@]}" | grep -Eo "[0-9]+%" | sed "s/%//")
@@ -16,6 +17,7 @@ while true; do
         status="false"
         rtt="0"
     fi
+    #                                                            Table  Tag (string/int)          Field (double/int)      TIMESTAMP
     curl -i -XPOST "http://$ip:8086/write?db=$db" --data-binary "$table,host=$host,server=$server status=$status,rtt=$rtt $date"
     sleep 5
 done

@@ -1,0 +1,9 @@
+[Unit]
+Description=Monitor homepage config and backup files
+
+[Path]
+PathChanged=/home/lifailon/docker/homepage/homepage_config/services.yaml
+Unit=homepage-backup.service
+
+[Install]
+WantedBy=multi-user.target

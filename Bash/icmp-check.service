@@ -1,0 +1,21 @@
+[Unit]
+Description=ICMP/ping checker
+After=network.target
+
+[Service]
+ExecStart=/root/scripts/icmp-check.sh google.com 5
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+# Type=simple
+# Проверяем статус
+Type=notify
+# Время ожидания проверки
+TimeoutStartSec=10
+# Запись в файл
+# StandardOutput=append:/var/log/icmp.log
+# StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
+Alias=icmpd.service

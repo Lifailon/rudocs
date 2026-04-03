@@ -1,8 +1,10 @@
 #!/bin/bash
 
+# Установка зависимостей
 # apk add samba-client coreutils
 apt update && apt install -y smbclient
 
+# Настройки скрипта
 BACKUP_DIR="/backup/homepage"
 SMB_PATH=//192.168.3.100/Backup
 SMB_USER=Lifailon
@@ -11,6 +13,7 @@ TELEGRAM_CHAT_ID=
 TELEGRAM_API_KEY=
 ROTATE_DAY=3
 
+# Функция для отправки оповещения в Telegram
 function tg-send() {
     msg="$1"
     msg=$(echo -e "$1\n\n*Source*: \`$BACKUP_DIR\`\n*Destination*: \`$SMB_PATH\`\n*Archive*: \`$BACKUP_NAME\`\n*Size*: $BACKUP_SIZE")
@@ -20,6 +23,7 @@ function tg-send() {
          -d "parse_mode=markdown"
 }
 
+# Ротация файлов по времени
 ROTATE_TIMESTAMP=$(date -d "$ROTATE_DAY days ago" +%s)
 smbclient "$SMB_PATH" -U "$SMB_USER%$SMB_PASS" -c "ls" | grep "tar.gz" | while read -r line; do
     FILE_NAME=$(echo "$line" | awk '{print $1}')
@@ -34,6 +38,7 @@ smbclient "$SMB_PATH" -U "$SMB_USER%$SMB_PASS" -c "ls" | grep "tar.gz" | while r
     fi
 done
 
+# Формируем имя, упаковываем в архив и отправляем на сервер Samba
 BACKUP_NAME=$(echo "$(basename "$BACKUP_DIR")-$(date +%d.%m.%Y-%H-%M).tar.gz")
 tar -cz -C "$(dirname "$BACKUP_DIR")" "$(basename $BACKUP_DIR)" | dd of=/tmp/$BACKUP_NAME status=progress
 BACKUP_SIZE=$(du -h /tmp/$BACKUP_NAME | awk '{print $1}')

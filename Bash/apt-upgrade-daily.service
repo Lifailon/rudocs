@@ -1,0 +1,30 @@
+[Unit]
+Description=Update and upgrade system packages
+# Запустить только после того, как отработает указанный сервис (будет получен IP-адрес)
+After=network-online.target
+# Попытаться запустить сервис, если он остановлен
+Wants=network-online.target
+# Жесткая зависимость (если сервис упал, этот сервис тоже будет остановлен)
+Requires=network-online.target
+
+[Service]
+# Ожидание выполнения ExecStart до его завершения, преред тем как вернуть статус
+Type=oneshot
+# Сначала запустить обновление списка и потом обновлять пакеты
+ExecStartPre=/usr/bin/apt-get update
+# Игнорировать ошибки с помощью "-"
+ExecStart=-/usr/bin/apt-get upgrade -y
+# Выполнение после успешного завершения
+ExecStartPost=/bin/sh -c 'echo "System packages updated successfully" | systemd-cat -t apt-upgrade-daily -p info'
+# Сколько ждать выполнения задания до принудительной остановки
+TimeoutStopSec=10min
+
+User=root
+Group=root
+WorkingDirectory=/tmp
+Restart=no
+MemoryMax=1G
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=Mount remote SMB share
+
+[Automount]
+Where=/mnt/backup
+# Размонтировать через 5 минут бездействия (опционально)
+TimeoutIdleSec=300
+
+[Install]
+WantedBy=multi-user.target

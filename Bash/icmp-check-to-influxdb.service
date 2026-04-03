@@ -1,5 +1,5 @@
 [Unit]
-Description=icmp test output to influxdb
+Description=ICMP check output to influxdb
 After=network.target
 
 [Service]

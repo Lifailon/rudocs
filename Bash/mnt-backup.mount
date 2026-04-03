@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount remote SMB share
+After=network-online.target
+Wants=network-online.target
+
+[Mount]
+What=//192.168.3.100/Backup
+Where=/mnt/backup
+Type=cifs
+Options=credentials=/etc/samba/creds,iocharset=utf8,rw,file_mode=0777,dir_mode=0777
+
+[Install]
+WantedBy=multi-user.target

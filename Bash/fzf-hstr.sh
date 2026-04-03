@@ -1,10 +1,12 @@
 # Ignore pefix space in command for save in history
 export HISTCONTROL=ignorespace
+
 # History search
 if [[ "$-" == *i* ]]; then
     bind '"\e[A": history-search-backward'
     bind '"\e[B": history-search-forward'
 fi
+
 # History search over fzf
 if command -v fzf > /dev/null; then
     function hstr() {

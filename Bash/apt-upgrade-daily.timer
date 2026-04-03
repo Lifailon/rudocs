@@ -1,0 +1,26 @@
+[Unit]
+Description=Update and upgrade system packages by daily timer
+
+[Timer]
+# Раз в месяц (1-го числа в 00:00)
+#OnCalendar=monthly
+# Раз в неделю (в понедельник)
+#OnCalendar=weekly
+# Запустить через 15 минут после включения системы
+#OnBootSec=15min
+# Каждый час после предыдущего запуска (создает цикл)
+#OnUnitActiveSec=1h
+# Каждые 30 минут
+#OnCalendar=*-*-* *:0/30:00
+# Сб и вс в 6 утра
+#OnCalendar=Sat,Sun *-*-* 06:00:00
+# По будням
+#OnCalendar=Mon..Fri 06:00:00
+# Каждый день в 6:00 и 18:00
+#OnCalendar=*-*-* 06,18:00:00
+OnCalendar=*-*-* 06:00:00
+# Запускает таймер, если система была выключена и в это время был пропущен запуск
+Persistent=true
+
+[Install]
+WantedBy=timers.target
