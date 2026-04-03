@@ -1,0 +1,28 @@
+services:
+  telemt:
+    image: ghcr.io/telemt/telemt:latest
+    container_name: telemt
+    restart: always
+    ports:
+      - 4343:4343             # Proxy
+      - 127.0.0.1:19090:9090  # Metrics
+      - 127.0.0.1:19091:9091  # API
+    working_dir: /run/telemt
+    volumes:
+      - ./config.toml:/run/telemt/config.toml:ro
+    tmpfs:
+      - /run/telemt:rw,mode=1777,size=1m
+    environment:
+      - RUST_LOG=debug
+    cap_drop:
+      - ALL
+    # allow binding to port 443
+    # cap_add:
+    #   - NET_BIND_SERVICE
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
