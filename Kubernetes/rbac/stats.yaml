@@ -1,0 +1,69 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: devops-stats-sa
+  namespace: monitoring
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRole
+kind: Role
+metadata:
+  name: devops-stats-role
+  namespace: monitoring
+rules:
+  # get pods (stats)
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+  # top pods (metrics)
+  - apiGroups:
+      - metrics.k8s.io
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+  # events
+  - apiGroups:
+      - ""
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - get
+      - list
+      - watch
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devops-stats-rb
+  namespace: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: devops-stats-role
+subjects:
+- kind: ServiceAccount
+  name: devops-stats-sa
+  namespace: monitoring
+
+---
+
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+  name: devops-stats-token
+  namespace: monitoring
+  annotations:
+    kubernetes.io/service-account.name: devops-stats-sa
