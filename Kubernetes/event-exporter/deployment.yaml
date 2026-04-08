@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-exporter
+  template:
+    metadata:
+      labels:
+        app: event-exporter
+      # annotations:
+      #   prometheus.io/scrape: 'true'
+      #   prometheus.io/port: '2112'
+      #   prometheus.io/path: '/metrics'
+    spec:
+      serviceAccountName: event-exporter-sa
+      containers:
+        - name: event-exporter
+          image: ghcr.io/resmoio/kubernetes-event-exporter:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - -conf=/data/config.yaml
+          volumeMounts:
+            - mountPath: /data
+              name: config
+      volumes:
+        - name: config
+          configMap:
+            name: event-exporter-config

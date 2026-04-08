@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: event-exporter-sa
+  namespace: monitoring
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: event-exporter-role
+rules:
+- apiGroups: ["*"]
+  # Даем доступ ко всем типам ресурсов (поды, ноды, сервисы и т.д.)
+  resources: ["*"]
+  # Доступ только на чтение и наблюдение в реальном времени
+  verbs: ["get", "watch", "list"]
+
+# Используется для договоренности лидерства при использование нескольких реплик
+# - apiGroups: ["coordination.k8s.io"] 
+#   resources: ["leases"]
+#   verbs: ["*"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: event-exporter
+# Какие права
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: event-exporter-role
+# Для кого
+subjects:
+  - kind: ServiceAccount
+    namespace: monitoring
+    name: event-exporter-sa
