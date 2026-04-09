@@ -1,32 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: telegram-operator
+  name: event-operator
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: telegram-operator
+      app: event-operator
   template:
     metadata:
       labels:
-        app: telegram-operator
+        app: event-operator
     spec:
-      # SA с правами выполнения kubectl create job и kubectl get events
-      serviceAccountName: telegram-operator-sa
+      # SA с правами выполнения kubectl get events
+      serviceAccountName: event-exporter-sa
       containers:
       - name: operator
-        image: lifailon/telegram-operator:v1
-        # Прокидываем переменные окружения в контейнер из секрета
+        image: lifailon/event-operator:v1
+        # Прокидываем переменные окружения из секрета в контейнер
         env:
         - name: TELEGRAM_API_KEY
           valueFrom:
             secretKeyRef:
-              name: tg-creds
+              name: telegram-secrets
               key: TELEGRAM-API-KEY
         - name: TELEGRAM_CHAT_ID_DEFAULT
           valueFrom:
             secretKeyRef:
-              name: tg-creds
+              name: telegram-secrets
               key: TELEGRAM-CHAT-ID
