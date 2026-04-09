@@ -6,11 +6,19 @@ metadata:
   name: traefik-kustomization
 
 resources:
-- cluster-role-binding.yaml
-- cluster-role.yaml
-- service-account.yaml
-- deployment.yaml
-- ingress-class.yaml
-- ingress-route.yaml
-- service.yaml
-- auth.yaml
+# SA и роль traefik-ingress-controller
+- traefik-rbac-ingress.yaml
+# Установка Traefik в роле Ingress Controller (без CRD)
+- traefik-deployment.yaml
+# Установка Traefik с помощью CRD для поддержки IngressRoute и Middleware
+# - traefik-crd.yaml
+# Дополнительные права для CRD
+# - traefik-rbac-crd.yaml
+# Сервис для доступа к Traefik Dashboard и Ingress Controller за пределами кластера
+- traefik-service.yaml
+# Настройка промежуточной аудентификации между пользователем и Traefik Dashboard
+# - traefik-middleware-auth.yaml
+# Настройка входящего трафика через Ingress для доступа к Traefik Dashboard с поддержкой авторизации
+# - traefik-ingress-route.yaml
+# Связывает Ingress Controller c Traefik
+- traefik-ingress-class.yaml

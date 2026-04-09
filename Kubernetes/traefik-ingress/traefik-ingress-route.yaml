@@ -7,16 +7,16 @@ spec:
   entryPoints:
     - web
   routes:
-  # Traefik Dashboard
+  # Route for Traefik Dashboard
   - match: Host(`traefik.k8s.local`)
     kind: Rule
     services:
       - name: api@internal
         kind: TraefikService
-    # Auth for Dashboard
+    # Middleware auth for Traefik Dashboard
     middlewares:
       - name: traefik-auth
-  # Traefik Prometheus Metrics
+  # Route for Traefik Prometheus Metrics
   - match: Host(`traefik.k8s.local`) && PathPrefix(`/metrics`)
     kind: Rule
     services:
