@@ -1,0 +1,11 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-sc
+# Совпадает с ENV в Deployment
+provisioner: k8s-sigs.io/nfs-subdir-external-provisioner
+# При удаление PVC (kubectl delete pvc), объект PV и данные на NFS сервере будут сохранены
+reclaimPolicy: Retain
+# Создать архивную папку на сервере при удаление PVC (если reclaimPolicy: Delete)
+parameters:
+  archiveOnDelete: "true" 
