@@ -1,0 +1,9 @@
+# <group>/<version>
+apiVersion: api.tg.com/v1
+kind: TelegramNotify
+metadata:
+  name: alert
+  namespace: default
+spec:
+  chatId: "-7777777777"
+  message: "Test message from Kubernetes"

@@ -1,0 +1,38 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  # Имя должно соответствовать полям спецификации ниже (<plural>.<group>)
+  name: notify.api.tg.com
+spec:
+  # Уникальный домен для REST API: /apis/<group>/<version> (чтобы не было конфликтов с системными ресурсами)
+  group: api.tg.com
+  versions:
+    - name: v1
+      # Включить версию
+      served: true
+      # Сохранять версию в базе данных
+      storage: true 
+      schema:
+        openAPIV3Schema:
+          type: object
+          # Описание структуры (параметры, которые передает пользователь в YAML)
+          properties:
+            spec:
+              type: object
+              properties:
+                chatId:
+                  # type: integer
+                  # format: int64
+                  type: string
+                  pattern: '^-?[0-9]+$'
+                message:
+                  type: string
+  # Ресурс живет внутри пространства имен (если Cluster, он будет общим как Node или Namespace)
+  scope: Namespaced 
+  names:
+    kind: TelegramNotify    # То, что будет указано в параметре kind нового YAML
+    plural: notify          # Для команд: kubectl get notify
+    singular: tgnotify      # Для ответов: "tgnotify.api.tg.com created"
+    # Псевдоним: kubectl get tg
+    shortNames:
+    - tg
