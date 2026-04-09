@@ -22,6 +22,17 @@ spec:
         - name: event-exporter
           image: ghcr.io/resmoio/kubernetes-event-exporter:latest
           imagePullPolicy: IfNotPresent
+          env:
+            - name: TELEGRAM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-secret
+                  key: TELEGRAM-API-KEY
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-secret
+                  key: TELEGRAM-CHAT-ID
           args:
             - -conf=/data/config.yaml
           volumeMounts:
