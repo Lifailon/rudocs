@@ -1,0 +1,42 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: httpbingo-egress-dr
+  namespace: default
+spec:
+  host: "httpbingo.org"
+  trafficPolicy:
+    # Настройка TLS для подключений к вышестоящему сервису по указанному порту
+    portLevelSettings:
+      - port:
+          number: 443
+        # Заставляет использовать протокол TLS на шлюзе
+        tls:
+          mode: SIMPLE
+    # Определяет режим работы, если у внешнего сервиса несколько IP-адресов
+    # Которые получены с помощью resolution DNS через ServiceEntry
+    loadBalancer:
+      simple: ROUND_ROBIN
+      # Отправляет на адрес, у которого меньше активных TCP-соединений или HTTP-запросов
+      # simple: LEAST_CONN
+      # simple: LEAST_REQUEST
+      # Закрепляет клиента за определенным IP на основе IP клиента, заголовке или cookie
+      # consistentHash:
+      #   useSourceIp: true
+      #   httpHeaderName: "X-User-ID"
+      #   httpCookie:
+      #     name: "user-session"
+      #     ttl: "3600s"
+    connectionPool:
+      tcp:
+        # Максимальное количество одновременных TCP-соединений
+        maxConnections: 100
+        # Время ожидания для установки соединения
+        connectTimeout: 3s
+      http:
+        # Максимальное количество активных запросов к целевому адресу
+        http2MaxRequests: 1000
+        # Максимальное количество запросов на одно соединение
+        maxRequestsPerConnection: 10
+        # Максимальное количество попыток повторного подключения
+        maxRetries: 3

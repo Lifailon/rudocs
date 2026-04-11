@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: httpbingo-egress-se
+  namespace: default
+spec:
+  hosts:
+    - "httpbingo.org"       # Должно совпадать с hosts в VirtualService
+  location: MESH_EXTERNAL   # Указываем, что ресурс находится вне кластера
+  resolution: DNS           # Istio сам определит IP-адреса у хоста через DNS
+  ports:
+    # Чтобы под мог достучаться до Gateway через Sidecar
+    - number: 80
+      name: http
+      protocol: HTTP
+    # Чтобы шлюз мог выпустить трафик в Интернет через Gateway
+    - number: 443
+      name: https
+      protocol: HTTPS

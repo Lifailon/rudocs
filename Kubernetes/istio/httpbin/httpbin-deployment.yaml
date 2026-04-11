@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin
+  template:
+    metadata:
+      labels:
+        app: httpbin
+    spec:
+      containers:
+      - name: httpbin
+        image: mccutchen/go-httpbin:2.18
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /status/200
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /status/200
+            port: 8080

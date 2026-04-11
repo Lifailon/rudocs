@@ -1,0 +1,49 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: httpbingo-egress-vs
+  namespace: default
+spec:
+  # Правила маршрутизации для указанных шлюзов
+  gateways:
+    - mesh
+    - httpbingo-egress-gw
+  hosts:
+    - "httpbingo.org"
+  http:
+    # Правило для пересылки запроса от пода через Sidecar Envoy Proxy до сервиса Egress Gateway
+    - match:
+      - gateways:
+          - mesh
+        # Фильтровать правило по указанному порту (запросы на httpbingo.org:80)
+        # port: 80
+      rewrite:
+        authority: "httpbingo.org"
+      # Sidecar отправляет запрос на сервис istio-egressgateway:8080
+      route:
+        - destination:
+            host: istio-egressgateway.istio-system.svc.cluster.local
+            port:
+              number: 8080
+    # Запретить отправку подом на 443 порт
+    # - match:
+    #     - gateways: 
+    #         -mesh
+    #       port: 443
+    #   fault:
+    #     abort:
+    #       httpStatus: 403
+    #       percentage:
+    #         value: 100
+    # Правило для пересылки запроса из Egress Gateway Service в Интернет
+    - match:
+      - gateways:
+          - httpbingo-egress-gw
+        port: 8080
+      rewrite:
+        authority: "httpbingo.org"
+      route:
+        - destination:
+            host: "httpbingo.org"
+            port:
+              number: 443

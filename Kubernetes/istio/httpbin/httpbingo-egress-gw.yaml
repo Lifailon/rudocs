@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: httpbingo-egress-gw    # Должно совпадать с именем в VirtualService
+  namespace: default
+spec:
+  selector:
+    istio: egressgateway
+  servers:
+    - hosts:
+        - "httpbingo.org"
+      port:
+        number: 8080           # Порт сервиса для шлюза
+        name: http
+        protocol: HTTP

@@ -1,0 +1,34 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: httpbin-ingress-gw
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    # Принимать запросы только с указанными Host-заголовками
+    - hosts:
+        - "httpbin.k8s.local"
+      port:
+        number: 80
+        name: http
+        protocol: HTTP
+    - hosts:
+        - "httpbin.k8s.local"
+      port:
+        name: https-443
+        number: 443
+        protocol: HTTPS
+      tls:
+        # Шлюз не трогает трафик, пересылая зашифрованный поток внутрь кластера.
+        # Используется, если приложение само хранит сертификаты и умеет в TLS
+        # mode: PASSTHROUGH
+        # Шлюз отдает клиенту свой сертификат и клиент доверяет шлюзу (односторонний TLS)
+        # mode: SIMPLE
+        # Требует, чтобы клиент тоже предъявил сертификат, подписанный нашим CA
+        mode: MUTUAL
+        credentialName: httpbin-certs
+        # caCertificates: /certs/ca.crt
+        # serverCertificate: /certs/httpbin.crt
+        # privateKey: /certs/httpbin.key
