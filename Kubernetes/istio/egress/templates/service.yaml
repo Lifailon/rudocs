@@ -1,0 +1,19 @@
+{{- $gateway := .Values.gateways.istio-egressgateway -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $gateway.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- toYaml $gateway.labels | nindent 4 }}
+spec:
+  type: {{ $gateway.type | default "ClusterIP" }}
+  selector:
+    {{- toYaml $gateway.labels | nindent 4 }}
+  ports:
+    {{- range $gateway.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort | default .port }}
+      protocol: {{ .protocol | default "TCP" }}
+    {{- end }}

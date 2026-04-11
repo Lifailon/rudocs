@@ -1,0 +1,40 @@
+{{- $gateway := .Values.gateways.istio-egressgateway -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $gateway.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- toYaml $gateway.labels | nindent 4 }}
+  {{- with $gateway.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $gateway.name }}-sds
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- toYaml $gateway.labels | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $gateway.name }}-sds
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- toYaml $gateway.labels | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $gateway.name }}-sds
+subjects:
+- kind: ServiceAccount
+  name: {{ $gateway.name }}
+  namespace: {{ .Release.Namespace }}

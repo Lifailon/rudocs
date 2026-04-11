@@ -1,0 +1,26 @@
+{{- $gateway := .Values.gateways.istio-ingressgateway -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $gateway.name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- range $key, $val := $gateway.serviceAnnotations }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end }}
+  labels:
+    {{- toYaml $gateway.labels | nindent 4 }}
+spec:
+  type: {{ $gateway.type | default "LoadBalancer" }}
+  selector:
+    {{- toYaml $gateway.labels | nindent 4 }}
+  {{- if $gateway.loadBalancerIP }}
+  loadBalancerIP: {{ $gateway.loadBalancerIP }}
+  {{- end }}
+  ports:
+    {{- range $gateway.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort | default .port }}
+      protocol: {{ .protocol | default "TCP" }}
+    {{- end }}

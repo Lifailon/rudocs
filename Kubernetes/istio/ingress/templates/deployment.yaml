@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.gateways.istio-ingressgateway.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- toYaml .Values.gateways.istio-ingressgateway.labels | nindent 4 }}
+spec:
+{{- if not .Values.gateways.istio-ingressgateway.autoscaleEnabled }}
+  replicas: {{ .Values.gateways.istio-ingressgateway.replicaCount | default 1 }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- toYaml .Values.gateways.istio-ingressgateway.labels | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- toYaml .Values.gateways.istio-ingressgateway.labels | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.gateways.istio-ingressgateway.name }}
+      containers:
+        - name: istio-proxy
+          image: "{{ .Values.global.hub }}/{{ .Values.global.proxy.image }}:{{ .Values.global.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            {{- range .Values.gateways.istio-ingressgateway.ports }}
+            - containerPort: {{ .targetPort | default .port }}
+              name: {{ .name }}
+              protocol: {{ .protocol | default "TCP" }}
+            {{- end }}
+          args:
+          - proxy
+          - router
+          - --domain
+          - $(POD_NAMESPACE).svc.{{ .Values.global.proxy.clusterDomain | default "cluster.local" }}
+          - --proxyLogLevel={{ .Values.global.proxy.logLevel | default "warning" }}
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: INSTANCE_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          resources:
+            # {{- toYaml .Values.gateways.istio-ingressgateway.resources | nindent 12 }}
+            {{- include "istio-ingress.resources" .Values.gateways.istio-ingressgateway.resources | nindent 12 }}
+            # requests:
+            #   cpu: {{ .Values.gateways.istio-ingressgateway.resources.requests.cpu | quote }}
+            #   memory: {{ .Values.gateways.istio-ingressgateway.resources.requests.memory | quote }}
+            # limits:
+            #   cpu: {{ .Values.gateways.istio-ingressgateway.resources.limits.cpu | quote }}
+            #   memory: {{ .Values.gateways.istio-ingressgateway.resources.limits.memory | quote }}

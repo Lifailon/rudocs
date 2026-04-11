@@ -1,0 +1,41 @@
+gateways:
+  istio-ingressgateway:
+    name: istio-ingressgateway
+    # Селекторы, по которым Gateway поймет, на какие поды слать трафик
+    labels:
+      app: istio-ingressgateway
+      istio: ingressgateway
+
+    # Список открытых портов (вход в кластер)
+    ports:
+    - port: 15021        # Health Check
+      targetPort: 15021
+      name: status-port
+    - port: 80
+      targetPort: 8080
+      name: http2
+    - port: 443
+      targetPort: 8443
+      name: https
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 2000m
+        memory: 1024Mi
+    # Тип сервиса
+    type: LoadBalancer
+
+# Глобальные настройки для всех компонентов чарта
+global:
+  hub: registry.istio.io # Репозиторий образов
+  tag: 1.27.9
+  istioNamespace: istio-system
+  # Настройки Envoy-прокси
+  proxy:
+    image: proxyv2
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi

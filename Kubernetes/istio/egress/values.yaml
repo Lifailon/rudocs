@@ -1,0 +1,35 @@
+gateways:
+  istio-egressgateway:
+    name: istio-egressgateway
+    # Метки для связи с объектами Service и Gateway
+    labels:
+      app: istio-egressgateway
+      istio: egressgateway
+    # Порты, через которые внутренние поды будут выходить наружу
+    ports:
+    - port: 80
+      targetPort: 8080
+      name: http2
+    - port: 443
+      targetPort: 8443
+      name: https
+    # Для Egress используется нутренний адрес кластера
+    type: ClusterIP 
+    # Минимально рекомендуемые ресурсы
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 2000m
+        memory: 1024Mi
+
+# Глобальные настройки
+global:
+  hub: registry.istio.io
+  tag: 1.27.9
+  istioNamespace: istio-system
+  # Настройки Envoy-прокси
+  proxy:
+    image: proxyv2
+    logLevel: warning

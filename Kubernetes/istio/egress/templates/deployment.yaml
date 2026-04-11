@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.gateways.istio-egressgateway.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- toYaml .Values.gateways.istio-egressgateway.labels | nindent 4 }}
+spec:
+{{- if not .Values.gateways.istio-egressgateway.autoscaleEnabled }}
+  replicas: {{ .Values.gateways.istio-egressgateway.replicaCount | default 1 }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- toYaml .Values.gateways.istio-egressgateway.labels | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- toYaml .Values.gateways.istio-egressgateway.labels | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.gateways.istio-egressgateway.name }}
+      containers:
+        - name: istio-proxy
+          image: "{{ .Values.global.hub }}/{{ .Values.global.proxy.image }}:{{ .Values.global.tag }}"
+          ports:
+            {{- range .Values.gateways.istio-egressgateway.ports }}
+            - containerPort: {{ .targetPort | default .port }}
+              name: {{ .name }}
+            {{- end }}
+          args:
+          - proxy
+          - router
+          - --domain
+          - $(POD_NAMESPACE).svc.{{ .Values.global.proxy.clusterDomain | default "cluster.local" }}
+          - --proxyLogLevel={{ .Values.global.proxy.logLevel | default "warning" }}
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: INSTANCE_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: PILOT_ADDRESS
+            value: istiod.{{ .Values.global.istioNamespace }}.svc:15012
+          resources:
+            {{- include "istio-egress.resources" .Values.gateways.istio-egressgateway.resources | nindent 12 }}
