@@ -1,10 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
 namespace: rest-api
+commonLabels:
+  app: torapi
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: "0"
 
 resources:
-- namespace.yaml
 - deployment.yaml
 - service.yaml
-- hpa.yaml
+# - hpa.yaml
 - ingress.yaml

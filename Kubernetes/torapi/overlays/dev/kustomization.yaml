@@ -1,8 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# Наследуем все манифесты из base
 resources:
 - ../../base
 
+# Добавляем патч для изменения ресурсов контейнера
 patches:
-- path: patch-hpa.yaml
+- path: patch-resources.yaml
