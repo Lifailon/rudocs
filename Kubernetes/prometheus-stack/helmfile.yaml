@@ -1,0 +1,17 @@
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+environments:
+  dev:
+    values:
+      - path: "env/dev/values.yaml"
+        
+releases:
+  - name: prometheus-stack
+    chart: prometheus-community/kube-prometheus-stack
+    namespace: monitoring
+    createNamespace: true
+    values:
+      - {{ .Values.path }}
+    missingFileHandler: Warn 
