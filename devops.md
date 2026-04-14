@@ -139,6 +139,7 @@
   - [Циклы](#циклы)
   - [Define](#define)
   - [Helper](#helper)
+- [Helmfile](#helmfile)
 - [GitHub API](#github-api)
 - [GitHub Actions](#github-actions)
   - [Docker Build and Push](#docker-build-and-push)
@@ -4916,6 +4917,64 @@ resources:
   # Использовать шаблон, котоырй гарантирует пропуск пустых значений
   {{- include "istio-ingress.resources" .Values.gateways.istio-ingressgateway.resources | nindent 12 }}
 ```
+
+## Helmfile
+
+[Helmfile](https://github.com/helmfile/helmfile) - это декларативный инструмент для одновременного управления несколькими Helm-чартами с помощью одного `helmfile.yaml`, котоырй позволяет параметризовать чарты для разных сред (`dev`, `test`, `prod`), определять порядок развертывания и автоматизировать процесс установки/обновления приложений (как `docker-compose` для `Helm`).
+
+```bash
+curl -sSL https://github.com/helmfile/helmfile/releases/download/v1.4.4/helmfile_1.4.4_linux_amd64.tar.gz | tar -xz && sudo mv helmfile /usr/local/bin/
+```
+
+Пример для установки стека [Prometheus](https://github.com/prometheus-community/helm-charts):
+
+```yaml
+# Helm репозитории, откуда будет скачивать чарты
+# Заменяет команды: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts и helm repo update
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+# Стендозависимые параметры
+environments:
+  dev:
+    values:
+      - namespace: "dev"
+        path: "env/dev/values.yaml"
+  test:
+    values:
+      - namespace: "test"
+        path: "env/test/values.yaml"
+
+# Список чартов для установки
+releases:
+  - name: prometheus-stack
+    # <название репозитория>/<название чарта>
+    chart: prometheus-community/kube-prometheus-stack
+    # Локальный путь к чарту
+    # chart: charts/prometheus-stack
+    namespace: {{ .Values.namespace | default "monitoring" }}
+    createNamespace: true
+    # Локальный путь к стендозависимым переменным
+    values:
+      - {{ .Values.path }}
+    # Игнорировать ошибку, если файл с переменными не найден
+    missingFileHandler: Warn 
+    # Переопределить переменную
+    # set:
+    #   - name: global.rbac.create
+    #     value: false
+    # Приоритезация (название релиза, от которого зависит запуск чарта)
+    # needs:
+    # - redis
+```
+
+`helmfile init` проверяет и устанавливает/обновляет зависимости, необходимые для работы Helmfile (`helm` и плагины) \
+`helmfile deps` добавление и обновление указанных репозиториев \
+`helmfile diff` отобразить разницу для всех `charts` c состоянием кластера используя плагин [helm diff](https://github.com/databus23/helm-diff) \
+`helmfile apply` применить конфигурацию (синхронизировать состояние кластера с файлом) \
+`helmfile -e dev apply` применить конфигурацию для окружения `dev` \
+`helmfile -l name=kube-prometheus-stack sync --include-needs` запустить только указанный чарт с учетом зависимых чартов
 
 ## GitHub API
 
