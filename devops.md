@@ -275,107 +275,187 @@ sudo usermod -aG docker lifailon
 newgrp docker
 ```
 
-Компоненты ядра Linux для имитации изоляции системы контейнеризации:
-
-- `Namespaces` для опредиления, что процесс может видеть. Внутренний процесс получает `PID 1`, свой IP-адрес и порты, изолированную файловую систему и права доступа.
-- `Cgroups` (Control Groups) - ограничители, которые определяют, сколько ресурсов процесс может потреблять (лимиты на CPU, RAM, скорость диска). Без них один контейнер мог бы потреблять всю память сервера.
-
 Компоненты Docker:
 
 - `Docker Daemon` (`docker.service`/`dockerd`) - процесс, который работает в фоне и управляет образами, сетями и томами через `socket`. Если сервис остановлен, управление контейнерами невозможно. Сам `dockerd` не запускает контейнеры напрямую, а делегирует процесс `containerd`. 
-- `containerd` - процесс, который отвечает за запуск контейнеров - скачивает образы из реестра, управляет хранилищем (все данные хранятся в `/var/lib/docker/`) и следит за состоянием работающих контейнеров, это позволяет перезагружать или обновлять Docker Daemon, не останавливая при этом запущенные контейнеры. Если `dockerd` упадет из-за ошибки или нехватки памяти, контейнеры не выключатся.
+- `containerd` - процесс, который отвечает за запуск контейнеров - скачивает образы из реестра, управляет хранилищем (все данные хранятся в `/var/lib/docker/`) и следит за состоянием работающих контейнеров, это позволяет перезагружать или обновлять `Docker Daemon`, не останавливая при этом запущенные контейнеры. Если `dockerd` упадет из-за ошибки или нехватки памяти, контейнеры не выключатся за счет работы дочерних процессов `shim-runc`.
 - `runc`  - это процесс, который подготавливает изоляцию. 
-- Для запуска нового контейнера, сначала запускается промежуточный процесс `containerd-shim-runc-v2`, он живет все время, пока работает контейнер и является родителем для процесса внутри контейнера (он забирает код возврата, если приложение упадет и держит каналы `stdin`/`stdout` открытыми для доступа к логам). Процесс `containerd-shim` создает (создает новый процесс с помощью `fork()` и `exec()`) дочерний процесс `runc` (Low-level Runtime), который напрямую взаимодействует с ядром Linux через системные вызовы (разрывает связь с родительскими пространствами имен с помощью `unshare()`, записывает ограничения в файл `/sys/fs/cgroup/`, меняет корневую файловую систему на путь из `/var/lib/docker/overlay2/<IMAGE_ID>/merged` с помощью `pivot_root()` и `umount` для старого кореня хоста). После настройки изоляции, `runc` заменяет себя процессом приложения (командой `ENTRYPOINT` или `CMD` в `Dockerfile`).
 - `docker-cli` - утилита командной строки, через которую передаются команды управления через REST API локально на Unix-сокет (`/var/run/docker.sock`) или удаленно по TCP.
+
+Для запуска нового контейнера, сначала запускается промежуточный процесс `containerd-shim-runc-v2`, он живет все время, пока работает контейнер и является родителем для процесса внутри контейнера (он забирает код возврата, если приложение упадет и держит каналы `stdin`/`stdout` открытыми для доступа к логам). Процесс `containerd-shim` создает дочерний процесс `runc` (создает новый процесс с помощью `fork()` и `exec()`), который напрямую взаимодействует с ядром Linux через системные вызовы (разрывает связь с родительскими пространствами имен с помощью `unshare()`, записывает ограничения в файл `/sys/fs/cgroup/`, меняет корневую файловую систему на путь из `/var/lib/docker/overlay2/<IMAGE_ID>/merged` с помощью `pivot_root()` и `umount` для старого кореня хоста). После настройки изоляции, `runc` заменяет себя процессом приложения в контейнере (командой `ENTRYPOINT` или `CMD` в `Dockerfile`).
 
 `ps axf | grep -A 3 containerd-shim` - отобразить дерево процессов контейнеров
 
-### Dockerfile
+### Namespaces/Cgroups
 
-- `FROM` - базовый образ, на основе которого будет создаваться новый (текущий) образ (например, `FROM alpine:latest` или `FROM node:alpine AS build` для указания метки при использование нескольких образов).
-- `LABEL` - добавляет метаданные к образу в формате ключ-значение (например, `LABEL traefik.enable=true` или `LABEL stand=test`, может использоваться для поиска и фильтрации, например, `docker ps --filter "stand=test"`).
-- `ARG` - определяет переменные, которые будут доступны только на этапе сборки образа и недоступны в контейнере (например, объявление с помощью `ARG TARGETARCH` и изменение `docker build --build-arg TARGETARCH=arm64`).
-- `ENV` - устанавливает переменные окружения, которые будут доступны внутри контейнера со значениями по умолчанию (например, `ENV PORT=80`, можно переопределить через `-e PORT=8080`, который имеет повышенный приоритет).
-- `WORKDIR` - устанавливает рабочий каталог внутри контейнера для последующих команд (например, `WORKDIR /app`).
-- `SHELL` - задает командную оболочку, которая будет использоваться для выполнения команд `RUN`, `CMD` и `ENTRYPOINT` (например, `SHELL ["/bin/bash", "-c"]`, по умолчанию `SHELL ["/bin/sh", "-c"]`).
-- `RUN` - выполняет команды в контейнере во время сборки образа (например, `RUN apk add --progress --no-cache util-linux bash curl` или `RUN useradd -m node`).
-- `USER` - устанавливает пользователя, от имени которого будут выполняться следующие команды (например, `USER node`, по умолчанию `USER root`).
-- `COPY` - копирует файлы (например, `COPY . .` для копирования всего содержимого из текущей директории в контейнер или `COPY --from=build` для указания  метки при копирование файлов из другого образа).
-- `ADD` - загружает файлы из `URL` (например, `ADD alpine-minirootfs-3.23.3-aarch64.tar.gz /img/`) с распаковкой архивов в формате `tar.gz` (актуально для базовых образов).
-- `CMD` - определяет параметры команды, которые будут выполняться при запуске контейнера (может быть переопределена при запуске контейнера).
-- `ENTRYPOINT` - определяет основную команду, которая будет выполняться при запуске контейнера (можно переопределить, например, `docker run --entrypoint "tail -f /var/log/syslog" ping`).
-- `VOLUME` - создает точку монтирования для хранения данных в хостовой системе, вместо слоев контейнера (например, `VOLUME /var/log/app`).
-- `EXPOSE` - документирует порты без их проброса (например, `EXPOSE 8080`).
-- `HEALTHCHECK` - определяет команду для проверки состояния работающего контейнера (например, `HEALTHCHECK CMD curl -f http://localhost:8080 || exit 1`).
-- `STOPSIGNAL` - определяет сигнал, который будет отправлен контейнеру для его остановки (например, `STOPSIGNAL SIGQUIT`).
-- `ONBUILD` - задает команды, которые будут автоматически выполнены при сборке дочерних образов.
+Технологии ядра Linux для настройки изоляции:
 
-Пример сборки контейнера для выполнения команды ping:
+- `Namespaces` (пространства имен) - изоляции видимости системных ресурсов.
+- `Cgroups` (Control Groups) - ограничения потребления ресурсов процессом (лимиты на CPU, RAM, скорость диска). Без них один контейнер мог бы потреблять всю память хоста.
 
-```Dockerfile
-FROM alpine:latest
+Пространства имен:
 
-ADD https://github.com/Lifailon/lazyjournal/archive/refs/heads/main.zip /app/
-RUN ls -lh /app/
+- `PID Namespace` - изолирует дерево процессов. Процесс в контейнере может иметь `PID 1`, не конфликтуя с `PID 1` (`init`) основной системы.
+- `Network Namespace` - создает собственные сетевые интерфейсы (IP-адреса и таблицы маршрутизации).
+- `Mount Namespace` - изолирует точки монтирования файловой системы.
+- `UTS Namespace` - позволяет задавать отдельное имя хоста (`hostname`) и домен.
+- `IPC Namespace` - ограничивает межпроцессное взаимодействие (shared memory, очереди сообщений).
+- `User Namespace` - сопоставляет идентификаторы пользователей (`UID`/`GID`) внутри контейнера с другими ID на хосте (например, `root` в контейнере может быть обычным пользователем на хосте).
 
-ENTRYPOINT ["ping"]
+`unshare` (разъединитель) - запускает процесс в новых изолированных пространствах имен (namespaces), отделяя его от родительских ресурсов.
 
-CMD ["localhost"]
+`netns` (`Network Namespace`) - создает и настраивает сетевое пространство имен, которое позволяет иметь в одной операционной системе несколько полностью независимых сетевых стеков. В отличии от `unshare --net` дает возможность настроить сеть до ее изоляции (связать с хостом через `veth`).
+
+Скрипт для создания изолированной и ограниченной по ресурсам операционной системы Alpine Linux:
+
+```bash
+# Идентификатор изоляции
+UUID=$(cat /proc/sys/kernel/random/uuid | tr -dc 'a-f0-9' | fold -w 12 | head -n 1)
+
+# Подготавливаем хранилище btrfs
+VOLUMES="/tmp/volumes"
+mkdir -p $VOLUMES
+IMG="/tmp/volumes/$UUID.img"
+truncate -s 512M $IMG
+mkfs.btrfs $IMG
+VOLUME="/tmp/volumes/$UUID"
+mkdir -p $VOLUME
+sudo mount -o loop $IMG $VOLUME
+sudo chown $USER:$USER $VOLUME
+
+# Загружаем базовый образ Alpine в btrfs volume
+ALPINE="$VOLUME/base_image_alpine"
+btrfs subvolume create $ALPINE
+curl -L https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/$(uname -m)/alpine-minirootfs-3.23.3-$(uname -m).tar.gz | tar -xz -C $ALPINE
+ls $ALPINE
+
+# Подготавливаем файловую систему
+ROOTFS="$VOLUME/container_rootfs"
+btrfs subvolume snapshot "$ALPINE" "$ROOTFS"
+
+# Настраиваем DNS
+echo 'nameserver 8.8.8.8' > "$ROOTFS"/etc/resolv.conf
+
+# Функция для очистки
+cleanup() {
+    # Возвращаем текущий процесс в общую группу
+    echo $$ | sudo tee /sys/fs/cgroup/cgroup.procs > /dev/null
+    # Удаляем cgroup (после выхода из нее)
+    sudo rmdir /sys/fs/cgroup/memory/$UUID
+    # Удаляем сетевое пространство из /run/netns/ns$UUID
+    sudo ip netns delete "ns$UUID"
+    # Размонтируем ресурсы
+    sudo umount "$VOLUME"
+}
+
+# Перехватывает выход из скрипта (EXIT) или прерывание (Ctrl+C)
+trap cleanup EXIT
+
+# Создаем виртуальный интерфейс на хосте в режиме моста (L2 коммутатор) для всех контейнеров
+sudo ip link add br0 type bridge
+sudo ip addr add 172.172.0.1/24 dev br0
+sudo ip link set br0 up
+# Настраиваем NAT для маршрутизации пакетов в Интернет чере хост
+sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null
+sudo iptables -t nat -A POSTROUTING -s 172.172.0.0/24 ! -o br0 -j MASQUERADE
+# Создаем интерфейс в режиме veth (виртуальный сетевой кабель для двусторонней связи)
+sudo ip link add vh$UUID type veth peer name vc$UUID
+# Подключаем один конец к бриджу (позволяет общаться между контейнерами в подсети и выходить в Интернет через хост)
+sudo ip link set vh$UUID master br0
+sudo ip link set vh$UUID up
+# Создаем сетевое пространство (Network Namespace)
+sudo ip netns add ns$UUID
+# Подключаем второй конец к изолированному стеку (для связи с хостом в режиме Point-to-Point и bridge)
+sudo ip link set vc$UUID netns ns$UUID
+# Настройка сети внутри внутри изолированного стека
+# Поднимаем интерфейс loopback, чтобы программы могли обращаться к localhost
+sudo ip netns exec ns$UUID ip link set lo up
+# Назначаем адрес и поднимает интерфейс
+sudo ip netns exec ns$UUID ip addr add 172.172.0.2/24 dev vc$UUID
+sudo ip netns exec ns$UUID ip link set vc$UUID up
+# Настраиваем маршрут по умолчанию (любой пакет не предназначенный для подсети 172.172.0.0/24 отправится на хост)
+sudo ip netns exec ns$UUID ip route add default via 172.172.0.1
+
+# sudo apt install cgroup-tools
+# sudo cgcreate -g memory:/$UUID
+# sudo cgset -r memory.limit_in_bytes=$((512 * 1024 * 1024)) $UUID
+# Включаем лимиты перед netns
+# sudo cgexec -g memory:$UUID
+
+# Включаем управление памятью с помощью групп
+echo "+memory" | sudo tee /sys/fs/cgroup/memory/cgroup.subtree_control
+# Создаем новую контрольную группу
+sudo mkdir -p /sys/fs/cgroup/memory/$UUID
+# Устанавливаем лимит на память в 512 МБайт
+echo $((512 * 1024 * 1024)) | sudo tee /sys/fs/cgroup/memory/$UUID/memory.max
+# Записываем PID текущей оболочки в cgroup
+echo $$ | sudo tee /sys/fs/cgroup/memory/$UUID/cgroup.procs
+
+# 1. Заходим в настроенную изолированную сеть (или nsenter --net=/var/run/netns/ns$UUID)
+# 2. Создаем изоляцию для процессов, файловой системы, UTS и IPC
+# 3. Мменяет корневой каталог с помощью chroot
+# 4. Очищаем и заново определяем переменные окружения
+# 5. Монтируем новую файловую систему процессов и заменяем текущий процесс на новый
+sudo ip netns exec ns$UUID \
+  unshare --pid --fork --mount --uts --ipc \
+    chroot $ROOTFS \
+      /usr/bin/env -i HOME=/root TERM="xterm-256color" PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+        /bin/sh -c "
+          mount -t proc proc /proc;
+          exec /bin/sh
+        "
 ```
 
-`docker build -t ping .`
+### Namespace Enter
 
-При запуске команды: `docker run ping`, контейнер выполнит команду: `ping localhost`.
+`nsenter` (`Namespace Enter`) - это инструмент командной строки, который позволяет запускать процессы в контексте пространств имен других процессов.
 
-При запуске команды `docker run ping google.com`, аргумент `google.com` целиком переопределяет команду в `CMD` и контейнер выполнит команду: `ping google.com`.
+```bash
+# Целевой контейнер
+containerName=dozzle
 
-Пример загрузки и распаковки архива:
+# Получить PID 1 контейнера внутри хостовой системе
+PID=$(pgrep $containerName)
+# PID=$(docker inspect -f {{.State.Pid}} $containerName)
+# PID=$(docker top $containerName -o pid | sed 1d)
 
-```Dockerfile
-FROM alpine:latest
+# Отобразить содержимое файловой системы контейнера
+sudo ls -la /proc/$PID/root/
+sudo cat /proc/$PID/root/data/users.yml
+# Отобразить переменные окружения
+sudo cat /proc/$PID/environ | tr '\0' '\n'
+# Файловые дескрипторы, занятые процессом (обычно 1w и 2w используются через FIFO/pipe)
+sudo lsof -p $PID
+# Доступ к стандартным дескрипторам вывода процесса (stdout и stderr)
+sudo tail -n +1 -f /proc/$PID/fd/1 /proc/$PID/fd/2
+# Системные вызовы для всех дочерних процессов с фильтрацией на запись
+sudo strace -f -p $PID -e write -s 1024 2>&1 | grep "write(1,\|write(2,"
 
-RUN apk add --progress --no-cache curl unzip && \
-    curl -sSL https://github.com/Lifailon/lazyjournal/archive/refs/heads/main.zip -o /tmp/main.zip && \
-    unzip /tmp/main.zip -d /app/ && \
-    rm /tmp/main.zip && \
-    apk del curl unzip
+# Получить прямой доступ к файловой системе контейнера
+# При использование образа scratch не будут доступны системные команды из каталога /bin
+sudo nsenter -t $($PID) -m
 
-WORKDIR /app/lazyjournal-main
-RUN ls -lh
-```
+# Подключиться к пространству имен процесса контейнера (доступ к сетевому стеку и процессам)
+sudo nsenter -t $PID -n -p
+ss -tunlp
+ip a
+tcpdump -i eth0
+# Примонтировать виртуальную файловую систему процессов (procfs) контейнера
+mount -t proc proc /proc
+ps aux
 
-### Buildx
-
-`sudo apt install docker-buildx -y` установить систему для мультиплатформенной сборки \
-`docker buildx create --use --name multiarch-builder --driver docker-container` создать и запустить сборщик в контейнере \
-`docker buildx ls` \
-`docker buildx rm multiarch-builder`
-
-`go list -u -m all && go get -u ./...` обновить пакеты приложения на Go
-
-Добавить аргументы в `Dockerfile` и передать их в переменные для сборки:
-
-```Dockerfile
-ARG TARGETOS TARGETARCH
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build
-```
-
-`docker buildx build --platform linux/amd64,linux/arm64 .` собрать
-
-`docker buildx build --platform linux/amd64,linux/arm64 -t lifailon/logporter --push .` собрать и опубликовать
-
-`npm outdated && npm update --save` обновить пакеты `node.jd` приложения
-
-Передаем аргументы в параметры платформы для образа:
-
-```Dockerfile
-ARG TARGETOS TARGETARCH
-FROM --platform=${TARGETOS}/${TARGETARCH} node:alpine AS build
+# Альтернатива nsenter -t $PID -n -p
+docker run --rm -it \
+  --privileged \
+  --net=container:$containerName \
+  --pid=container:$containerName \
+  -v /proc:/host/proc:ro \
+  alpine sh
 ```
 
 ### OCI
 
-`OCI` (Open Container Initiative) - это стандарт для упаковки, сбоки, загрузки в реестр и запуска контейнеров (например, через `podman` или `containerd`).
+`OCI` (Open Container Initiative) - это стандарт для упаковки, сбоки, загрузки в реестр и запуска контейнеров (например, через `docker`, `podman` или `containerd`).
 
 Образы контейнеров состоят из слоев. Каждая из команд `FROM`, `RUN`, `COPY` и `ADD` в `Dockerfile` создает новый неизменяемый слой (`Read-Only`). Если в одном слое скачать архив, а в следующем его удалить, этот размер все равно останется в памяти нижнего слоя и будут занимать место в финальном образе. При запуске контейнера (экземпляра образа), Docker добавляет сверху один записываемый слой, который стирается после удаления контейнера. Если используется 10 образов на базе `alpine`, базовый образ хранится на диске в одном экземпляре.
 
@@ -386,18 +466,30 @@ FROM --platform=${TARGETOS}/${TARGETARCH} node:alpine AS build
 - Переиспользование - разные образы могут делить между собой общие слои, что ускоряет их скачивание и экономит дисковое пространство.
 - Скорость - при загрузки образа из registry по сети, каждый слой загружается параллельно как отдельные архив в формате `.tar.gz`.
 
-```Bash
-# Сохранить внесенные изменения в новый временный слой запущенного контейнера и сохранить в новый образ
-docker commit container image:v2
-# Вывести слои (используемая команда и размер). Команды FROM отображается как загрузка архива, например ADD alpine-minirootfs-3.23.3-aarch64.tar.gz
+Сохранить внесенные изменения в новый временный слой запущенного контейнера и сохранить в новый образ:
+
+```bash
+# docker commit <container_name> <image_name>:<new_tag>
+docker commit docker-socket-proxy lifailon/docker-socket-proxy:v2
+```
+
+Вывести историю слоев (используемая команда и размер слоя):
+
+```bash
 docker history lifailon/docker-socket-proxy:arm64
-# Список директорий со слоями образа в системе
+```
+
+Команды `FROM` отображается как загрузка архива, например `ADD alpine-minirootfs-3.23.3-aarch64.tar.gz`.
+
+Список директорий со слоями образа в системе:
+
+```bash
 docker inspect lifailon/docker-socket-proxy:arm64 --format='{{.GraphDriver.Data.LowerDir}}' | sed "s/:/\n/g"
 ```
 
 [Dive](https://github.com/wagoodman/dive) - интерактивный терминальный инструмент для анализа содержимого слоев с целью поиска способов уменьшения размера финального образа Docker.
 
-```Bash
+```bash
 LATEST_VERSION=$(curl -s https://api.github.com/repos/wagoodman/dive/releases/latest | jq -r .tag_name)
 curl -SLf "https://github.com/wagoodman/dive/releases/download/${LATEST_VERSION}/dive_${LATEST_VERSION#v}_linux_$(dpkg --print-architecture).tar.gz" -o /tmp/dive.tar.gz
 mkdir -p $HOME/.local/bin
@@ -407,9 +499,9 @@ rm -rf /tmp/dive.tar.gz
 dive lifailon/docker-socket-proxy:arm64
 ```
 
-Обновление файла и пересборка образа:
+Изменение файла и переупаковка образа:
 
-```Bash
+```bash
 # Переменные: название образа и файла для внесения изменений
 imageName=lifailon/docker-socket-proxy:arm64
 fileName=haproxy.cfg
@@ -506,6 +598,121 @@ rm -rf image image.tar
 docker load -i image_new.tar
 ```
 
+### Dockerfile
+
+- `FROM` - базовый образ, на основе которого будет создаваться новый (текущий) образ (например, `FROM alpine:latest` или `FROM node:alpine AS build` для указания метки при использование нескольких образов).
+- `LABEL` - добавляет метаданные к образу в формате ключ-значение (например, `LABEL traefik.enable=true` или `LABEL stand=test`, может использоваться другими сервисами для своей работы или фильтрации, например, `docker ps --filter "stand=test"`).
+- `ARG` - определяет переменные, которые будут доступны только на этапе сборки образа и недоступны в контейнере (например, объявление с помощью `ARG TARGETARCH` и изменение `docker build --build-arg TARGETARCH=arm64`).
+- `ENV` - устанавливает переменные окружения, которые будут доступны внутри контейнера со значениями по умолчанию (например, `ENV PORT=80`, можно переопределить через `-e PORT=8080`, который имеет повышенный приоритет).
+- `WORKDIR` - устанавливает рабочий каталог внутри контейнера для последующих команд (например, `WORKDIR /app`).
+- `SHELL` - задает командную оболочку, которая будет использоваться для выполнения команд `RUN`, `CMD` и `ENTRYPOINT` (например, `SHELL ["/bin/bash", "-c"]`, по умолчанию `SHELL ["/bin/sh", "-c"]`).
+- `RUN` - выполняет команды в контейнере во время сборки образа (например, `RUN apk add --progress --no-cache util-linux bash curl` или `RUN useradd -m node`).
+- `USER` - устанавливает пользователя, от имени которого будут выполняться следующие команды (например, `USER node`, по умолчанию `USER root`).
+- `COPY` - копирует файлы (например, `COPY . .` для копирования всего содержимого из текущей директории в контейнер или `COPY --from=build` для указания  метки при копирование файлов из другого образа).
+- `ADD` - загружает файлы из `URL` (например, `ADD alpine-minirootfs-3.23.3-aarch64.tar.gz /img/`) с распаковкой архивов в формате `tar.gz` (актуально для базовых образов).
+- `CMD` - определяет параметры команды, которые будут выполняться при запуске контейнера (может быть переопределена при запуске контейнера).
+- `ENTRYPOINT` - определяет основную команду, которая будет выполняться при запуске контейнера (можно переопределить с помощью флага `--entrypoint`).
+- `VOLUME` - создает точку монтирования для хранения данных в хостовой системе, вместо слоев контейнера (например, `VOLUME /var/log/app`).
+- `EXPOSE` - документирует порты без их проброса (например, `EXPOSE 8080`).
+- `HEALTHCHECK` - определяет команду для проверки состояния работающего контейнера (например, `HEALTHCHECK CMD curl -f http://localhost:8080 || exit 1`).
+- `STOPSIGNAL` - определяет сигнал, который будет отправлен контейнеру для его остановки (например, `STOPSIGNAL SIGQUIT`).
+- `ONBUILD` - задает команды, которые будут автоматически выполнены при сборке дочерних образов.
+
+Пример сборки контейнера для выполнения команды ping:
+
+```Dockerfile
+FROM alpine:latest
+
+ENTRYPOINT ["ping"]
+
+CMD ["localhost"]
+```
+
+`docker build -t ping-image .`
+
+При запуске команды: `docker run ping-image`, запустится контейнер, который запустит команду: `ping localhost`.
+
+При запуске команды: `docker run ping-image google.com`, аргумент `google.com` целиком переопределяет команду в `CMD` и контейнер запустит команду: `ping google.com`.
+
+Можно изменить основную команду: `docker run -v /var/log/syslog:/syslog --entrypoint tail ping-image -f /syslog`
+
+Пример загрузки и распаковки архива:
+
+```Dockerfile
+FROM alpine:latest
+
+RUN apk add --progress --no-cache curl unzip && \
+    curl -sSL https://github.com/Lifailon/lazyjournal/archive/refs/heads/main.zip -o /tmp/main.zip && \
+    unzip /tmp/main.zip -d /app/ && \
+    rm /tmp/main.zip && \
+    apk del curl unzip
+
+WORKDIR /app/lazyjournal-main
+RUN ls -lh
+```
+
+### Scratch
+
+`Scratch` - это пустой образ, который не содержит операционной системы, системных библиотек (как `glibc` в `Ubuntu` или `musl` в `Alpine`) оболочек (`sh` или `bash`) и файлов, что исключает возможные уязвимости в безопасности и требует использовать для запуска статические бинарные файлы (например, написанные на `Go`, `Rust`, `C++`).
+
+Сборка `Go` приложения c нуля с помощью `scratch`:
+
+```Dockerfile
+FROM golang:1.21-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN CGO_ENABLED=0 go build -o app-0.0.1 main.go
+
+FROM scratch
+# Копируем файл из другого образа
+# COPY --from=busybox:musl /bin/busybox /busybox
+# Копируем приложение из промежуточного слоя
+COPY --from=builder /app/app-0.0.1 /app
+# Копируем корневые сертификаты для доступа по HTTPS из приложения
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+ENTRYPOINT ["/app"]
+```
+
+Загружаем [busybox](https://github.com/mirror/busybox) и копируем в `scratch` контейнер:
+
+```bash
+docker create --name busybox busybox:musl
+docker cp busybox:/bin/busybox ./busybox
+docker cp ./busybox dozzle:/busybox
+docker rm busybox && rm ./busybox
+docker exec -it dozzle /busybox sh -c '/busybox mkdir -p /bin && /busybox --install -s /bin && export PATH=$PATH:/bin && sh'
+```
+
+### Buildx
+
+`sudo apt install docker-buildx -y` установить систему для мультиплатформенной сборки \
+`docker buildx create --use --name multiarch-builder --driver docker-container` создать и запустить сборщик в контейнере \
+`docker buildx ls` \
+`docker buildx rm multiarch-builder`
+
+`go list -u -m all && go get -u ./...` обновить пакеты приложения на Go
+
+Добавить аргументы в `Dockerfile` и передать их в переменные для сборки:
+
+```Dockerfile
+ARG TARGETOS TARGETARCH
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build
+```
+
+`docker buildx build --platform linux/amd64,linux/arm64 .` собрать
+
+`docker buildx build --platform linux/amd64,linux/arm64 -t lifailon/logporter --push .` собрать и опубликовать
+
+`npm outdated && npm update --save` обновить пакеты `node.jd` приложения
+
+Передаем аргументы в параметры платформы для образа:
+
+```Dockerfile
+ARG TARGETOS TARGETARCH
+FROM --platform=${TARGETOS}/${TARGETARCH} node:alpine AS build
+```
+
 ### Docker Registry
 
 #### Docker Hub
@@ -546,7 +753,7 @@ sudo systemctl restart docker
 
 Зеркала необходимы, если прямой доступ к основному хранилищу Docker Hub ограничен или невозможен. Docker будет перебирать их по очереди при загрузке образа, пока не найдет доступный.
 
-```Bash
+```bash
 cat <<EOF > /etc/docker/daemon.json
 {
   "registry-mirrors": [
