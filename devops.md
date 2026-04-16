@@ -14,9 +14,12 @@
 
 - [Git](#git)
 - [Docker](#docker)
-  - [Dockerfile](#dockerfile)
-  - [Buildx](#buildx)
+  - [Namespaces/Cgroups](#namespacescgroups)
+  - [Namespace Enter](#namespace-enter)
   - [OCI](#oci)
+  - [Dockerfile](#dockerfile)
+  - [Scratch](#scratch)
+  - [Buildx](#buildx)
   - [Docker Registry](#docker-registry)
     - [Docker Hub](#docker-hub)
     - [Push/Pull](#pushpull)
@@ -80,11 +83,13 @@
   - [Probes](#probes)
   - [Container Hooks](#container-hooks)
   - [Strategy Update](#strategy-update)
-  - [Pod Priority Class](#pod-priority-class)
-  - [Pod Disruption Budget](#pod-disruption-budget)
-  - [Node Affinity](#node-affinity)
-  - [Pod Anti Affinity](#pod-anti-affinity)
   - [Tolerations](#tolerations)
+  - [Affinity](#affinity)
+    - [Node Affinity](#node-affinity)
+    - [Pod Anti Affinity](#pod-anti-affinity)
+  - [Pod Topology Spread](#pod-topology-spread)
+  - [Pod Disruption Budget](#pod-disruption-budget)
+  - [Pod Priority Class](#pod-priority-class)
   - [StatefulSet](#statefulset)
   - [Headless Service](#headless-service)
   - [DaemonSet](#daemonset)
@@ -183,8 +188,8 @@
 - [Secret Manager](#secret-manager)
   - [Bitwarden](#bitwarden)
   - [Infisical](#infisical)
-  - [HashiCorp/Vault](#hashicorpvault)
-  - [HashiCorp/Consul](#hashicorpconsul)
+  - [HashiCorp Vault](#hashicorp-vault)
+  - [HashiCorp Consul](#hashicorp-consul)
 - [Prometheus](#prometheus)
 - [PromQL](#promql)
 - [Cloud](#cloud)
@@ -2125,7 +2130,7 @@ done
 
 В каждом кластере Kubernetes есть внутренний сервис [CoreDNS](https://github.com/coredns/coredns) в пространстве имен `kube-system`. У него есть фиксированный `ClusterIP` (например, 10.96.0.10), который постоянен на протяжении всей жизни кластера.
 
-На этапе создания пода, `Scheduler` назначает под на конкретную ноду, на котором агент `Kubelet` смотрит в свои настройки по флагу `--cluster-dns`, где прописан IP-адрес DNS-сервиса (10.96.0.10). В момент создания контейнера, `Kubelet` генерирует файл `/etc/resolv.conf` внутри файловой системы контейнера с содержимым:
+На этапе создания пода, `kube-scheduler` назначает под на конкретную ноду, на котором агент `Kubelet` смотрит в свои настройки по флагу `--cluster-dns`, где прописан IP-адрес DNS-сервиса (10.96.0.10). В момент создания контейнера, `Kubelet` генерирует файл `/etc/resolv.conf` внутри файловой системы контейнера с содержимым:
 
 ```ini
 nameserver 10.96.0.10
@@ -2287,70 +2292,40 @@ spec:
       weight: 10 # 10% трафика на новую версию (канарейку)
 ```
 
-### Pod Priority Class
+### Tolerations
 
-[Pod PriorityClass](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption) - это глобальный объект (не привязанный к `namespace`), который сообщает планировщику Kubernetes, какие поды важнее для запуска. Если в кластере закончатся ресурсы, будут удалены менее важные поды (с самым низким приоритетом), чтобы запустить более приоритетные.
+[Taints и Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration) - правила отвержения подов самой нодой.
+
+Отобразить заданные `taint` на всех нодах:
+
+`kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints[*].effect`
+
+Доступные эффекты для `taint`:
+
+- `NoSchedule` - планировщик (`kube-scheduler`) не будет рассматривать ноду для запуска новых подов, если у них нет подходящего `Toleration`.
+- `PreferNoSchedule` - мягкое условие `NoSchedule`, если во всем кластере другие ноды не подходят по ресурсам, поды будут запущены на этой ноде.
+- `NoExecute` - жесткое правило `NoSchedule`, которое при установки метки `taint` заставляет сразу удалить поды без `Toleration` и попытается перезапустить их на других нодах.
+
+Создание метки `taint` на поде в формате `<Key>:<Value>:<Effect>`:
+
+`kubectl taint nodes node-02 nodeType=backup:NoSchedule`
+
+На ноде с указанной меткой без правила `Toleration` никогда не будут запускаться новые поды.
+
+Добавление `Toleration` в манифест пода:
 
 ```yaml
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: high-priority-apps
-# Чем выше число, тем выше приоритет
-value: 1000000
-# Если true, этот приоритет будет у всех подов без указанного класса
-globalDefault: false
-# Разрешает вытеснять поды с меньшим приоритетом
-preemptionPolicy: PreemptLowerPriority
-```
-
-Чтобы под получил приоритет, нужно добавить параметр `spec.template.spec.priorityClassName` в `Deployment`:
-
-```yaml
-# Спецификация Deployment
 spec:
-  # Шаблон пода, которым управляет Deployment
-  template:
-    # Спецификация пода
-    spec:
-      priorityClassName: high-priority-apps
+  tolerations:
+    - key: "key"
+      operator: "Equal"
+      value: "backup"
+      effect: "NoSchedule"
+    # Разрешить запуск на master нодах
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
 ```
-
-`kubectl apply -f ./priority.yaml`
-
-`kubectl get priorityclass` или `kubectl get pc` вывести список всех доступных классов приоритета в кластере
-
-`kubectl describe priorityclass high-priority-apps` посмотреть описание и числовое значение выбранного класса
-
-`kubectl get pods -A -o custom-columns=NAME:.metadata.name,PRIORITY:.spec.priorityClassName` отобразить назначенные классы приоритета для всех подов в кластере
-
-### Pod Disruption Budget
-
-[Pod Disruption Budget](https://kubernetes.io/docs/tasks/run-application/configure-pdb) (`PDB`) - гарантирует, что если будут выводиться ноды на обслуживание, поды на ноде не будут удалены, пока количество подов, указанных в `minAvailable` не будет запущены на всех доступных нодах.
-
-Если в кластере 2 ноды и всего 2 реплики по 1 на каждой ноде, процесс `drain` зависнет, поэтому нужно сначала вывести ноду в состояние `kubectl cordon`, увеличить количество реплик до трех `kubectl scale deployment torapi --replicas=3` на оставшихся доступных нодах и уже после этого запустить `kubectl drain`.
-
-```yaml
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: rest-api-pdb
-  namespace: rest-api
-spec:
-  # Минимум доступных подов (число или процент)
-  minAvailable: 2
-  # Привяка к подам (должно совпадать с label в Deployment)
-  selector:
-    matchLabels:
-      app: torapi
-      # pdbGroup: high-priority
-```
-
-`kubectl apply -f ./pdb.yaml --namespace=rest-api`
-
-`kubectl get pdb --namespace=rest-api` список всех `PDB` и их текущий статус
-
-`kubectl describe pdb rest-api-pdb --namespace=rest-api` - отобразить, какие поды попадают под селектор
 
 ### Affinity
 
@@ -2424,40 +2399,93 @@ spec:
         weight: 100
 ```
 
-### Tolerations
+### Pod Topology Spread
 
-[Taints и Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration) - правила отвержения подов самой нодой.
+[Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints) - это механизм, который позволяет гибко и равномерно распределять поды по разным нодам в кластере или любым другим логическим группам (например, не размещать на одном хосте или зонам доступности).
 
-Отобразить заданные `taint` на всех нодах:
-
-`kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints[*].effect`
-
-Доступные эффекты для `taint`:
-
-- `NoSchedule` - планировщик (`Scheduler`) не будет рассматривать ноду для запуска новых подов, если у них нет подходящего `Toleration`.
-- `PreferNoSchedule` - мягкое условие `NoSchedule`, если во всем кластере другие ноды не подходят по ресурсам, поды будут запущены на этой ноде.
-- `NoExecute` - жесткое правило `NoSchedule`, которое при установки метки `taint` заставляет сразу удалить поды без `Toleration` и попытается перезапустить их на других нодах.
-
-Создание метки `taint` на поде в формате `<Key>:<Value>:<Effect>`:
-
-`kubectl taint nodes node-02 nodeType=backup:NoSchedule`
-
-На ноде с указанной меткой без правила `Toleration` никогда не будут запускаться новые поды.
-
-Добавление `Toleration` в манифест пода:
+В отличие от `podAntiAffinity`, который работает по принципу либо разрешить, либо запретить, `topologySpreadConstraints` фокусируется на балансе. Планировщик (`kube-scheduler`) при размещении нового пода считает количество уже запущенных подов в каждой логической группе по лейблу и выбирает ту, где размещение пода не нарушит значение `maxSkew`.
 
 ```yaml
 spec:
-  tolerations:
-    - key: "key"
-      operator: "Equal"
-      value: "backup"
-      effect: "NoSchedule"
-    # Разрешить запуск на master нодах
-    - key: "node-role.kubernetes.io/control-plane"
-      operator: "Exists"
-      effect: "NoSchedule"
+  topologySpreadConstraints:
+    # Максимально допустимая разница в количестве подов между любыми двумя логическими группами
+    - maxSkew: 1
+      # Метка на ноде, по которому определяются границы
+      topologyKey: kubernetes.io/hostname
+      # Что делать, если идеальное распределение невозможно
+      # Soft (все равно запланировать под, стараясь соблюсти баланс)
+      whenUnsatisfiable: ScheduleAnyway
+      # Hard (оставить под в статусе Pending, пока не появится подходящая пода)
+      # whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app: torapi
 ```
+
+### Pod Disruption Budget
+
+[Pod Disruption Budget](https://kubernetes.io/docs/tasks/run-application/configure-pdb) (`PDB`) - гарантирует, что если будут выводиться ноды на обслуживание (с помощью команды `kubectl drain`), поды на ноде не будут удалены, пока количество подов, указанных в `minAvailable` не будет запущены на всех доступных нодах.
+
+Если в кластере 2 ноды и всего 2 реплики по 1 на каждой ноде, процесс `drain` зависнет, поэтому нужно сначала вывести ноду в состояние `kubectl cordon`, увеличить количество реплик до трех `kubectl scale deployment torapi --replicas=3` на оставшихся доступных нодах и уже после этого запустить `kubectl drain`.
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rest-api-pdb
+  namespace: rest-api
+spec:
+  # Минимум доступных подов (число или процент)
+  minAvailable: 2
+  # Привяка к подам (должно совпадать с label в Deployment)
+  selector:
+    matchLabels:
+      app: torapi
+      # pdbGroup: high-priority
+```
+
+`kubectl apply -f ./pdb.yaml --namespace=rest-api`
+
+`kubectl get pdb --namespace=rest-api` список всех `PDB` и их текущий статус
+
+`kubectl describe pdb rest-api-pdb --namespace=rest-api` - отобразить, какие поды попадают под селектор
+
+### Pod Priority Class
+
+[Pod PriorityClass](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption) - это глобальный объект (не привязанный к `namespace`), который сообщает планировщику Kubernetes, какие поды важнее для запуска. Если в кластере закончатся ресурсы, будут удалены менее важные поды (с самым низким приоритетом), чтобы запустить более приоритетные.
+
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority-apps
+# Чем выше число, тем выше приоритет
+value: 1000000
+# Если true, этот приоритет будет у всех подов без указанного класса
+globalDefault: false
+# Разрешает вытеснять поды с меньшим приоритетом
+preemptionPolicy: PreemptLowerPriority
+```
+
+Чтобы под получил приоритет, нужно добавить параметр `spec.template.spec.priorityClassName` в `Deployment`:
+
+```yaml
+# Спецификация Deployment
+spec:
+  # Шаблон пода, которым управляет Deployment
+  template:
+    # Спецификация пода
+    spec:
+      priorityClassName: high-priority-apps
+```
+
+`kubectl apply -f ./priority.yaml`
+
+`kubectl get priorityclass` или `kubectl get pc` вывести список всех доступных классов приоритета в кластере
+
+`kubectl describe priorityclass high-priority-apps` посмотреть описание и числовое значение выбранного класса
+
+`kubectl get pods -A -o custom-columns=NAME:.metadata.name,PRIORITY:.spec.priorityClassName` отобразить назначенные классы приоритета для всех подов в кластере
 
 ### StatefulSet
 
@@ -7445,6 +7473,7 @@ config.clusters.each { clusterName, varMap ->
 `ansible --version`
 
 Конфигурация настроек Ansible в файле `/etc/ansible/ansible.cfg`
+
 ```yaml
 [defaults]
 inventory = /etc/ansible/hosts
@@ -7493,6 +7522,7 @@ ansible_connection=ssh
 #ansible_shell_type=cmd
 ansible_shell_type=powershell
 ```
+
 `ansible-inventory --list` проверить конфигурацию (читает в формате JSON) или YAML (-y) с просмотром все применяемых переменных
 
 #### Windows Modules
