@@ -1,5 +1,5 @@
 apiVersion: v2
 name: duin
-description: Notifications when an image is updated on a Docker registry
+description: Telegram notifications for Docker registry image updates
 version: 0.1.0
-appVersion: 4.30.0
+appVersion: 4.31.0

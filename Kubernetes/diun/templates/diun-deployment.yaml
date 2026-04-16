@@ -18,7 +18,7 @@ spec:
       serviceAccountName: diun
       containers:
         - name: diun
-          image: crazymax/diun:latest
+          image: crazymax/diun:4.31
           imagePullPolicy: Always
           args: ["serve"]
           livenessProbe:
