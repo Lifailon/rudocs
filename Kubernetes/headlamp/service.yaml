@@ -2,7 +2,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: headlamp-service
-  namespace: kubernetes-dashboard
+  namespace: kube-system
   annotations:
     metallb.universe.tf/address-pool: "default-pool"
     metallb.universe.tf/loadBalancerIPs: "192.168.3.201"

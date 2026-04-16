@@ -8,9 +8,7 @@ metadata:
 resources:
 - crd.yaml
 - webhook.yaml
-- service-account.yaml
-- roles.yaml
-- role-binding.yaml
+- rbac.yaml
 - configmap.yaml
 - deployment.yaml
 - daemon-set.yaml

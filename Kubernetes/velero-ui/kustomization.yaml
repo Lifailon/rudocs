@@ -5,11 +5,7 @@ metadata:
   name: velero-ui-kustomization
 
 resources:
-- service-account.yml
-- roles.yml
-- role-binding.yml
-- cluster-role.yaml
-- cluster-role-binding.yml
+- rbac.yml
 - configmap.yml
 - deployment.yml
 - service.yaml

@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods/log
+      - pods/status
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: velero-ui
+  namespace: velero
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods/log
+      - pods/status
+      - pods
+      - secrets
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups: ["velero.io"]
+    resources: ["*"]
+    verbs:
+      - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velero-ui
+  namespace: velero-ui
+subjects:
+  - kind: ServiceAccount
+    namespace: velero-ui
+    name: velero-ui
+roleRef:
+  kind: Role
+  name: velero-ui
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: velero-ui
+  namespace: velero
+subjects:
+  - kind: ServiceAccount
+    namespace: velero-ui
+    name: velero-ui
+roleRef:
+  kind: Role
+  name: velero-ui
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velero-ui
+rules:
+  - verbs:
+      - get
+    nonResourceURLs:
+      - '/readyz'
+      - '/healthz'
+      - '/livez'
+      - '/version'
+  - apiGroups: [ "" ]
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+  - apiGroups: ["velero.io"]
+    resources: ["*"]
+    verbs:
+      - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velero-ui
+subjects:
+  - kind: ServiceAccount
+    namespace: velero-ui
+    name: velero-ui
+roleRef:
+  kind: ClusterRole
+  name: velero-ui
+  apiGroup: rbac.authorization.k8s.io
