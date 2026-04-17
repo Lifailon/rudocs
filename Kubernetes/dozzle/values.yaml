@@ -1,14 +1,14 @@
 app:
   name: dozzle
+  namespace: monitoring
   image: amir20/dozzle
   version: v10.4
 
 rbac:
+  sa: dozzle-pod-viewer-sa
   create: true
-  sa: pod-viewer-sa
 
 service:
-  name: dozzle-service
   port: 80
   targetPort: 8080
   nodeShare: true

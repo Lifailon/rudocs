@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.app.name }}
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
@@ -30,4 +31,4 @@ spec:
       volumes:
         - name: auth-config
           secret:
-            secretName: dozzle-auth-config-secret
+            secretName: {{ .Values.app.name }}-secrets

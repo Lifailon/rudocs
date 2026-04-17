@@ -2,8 +2,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dozzle-ingress
-  namespace: monitoring
+  name: {{ .Values.app.name }}-ingress
+  namespace: {{ .Values.app.namespace }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
@@ -14,7 +14,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{ .Values.service.name }}
+            name: {{ .Values.app.name }}-service
             port:
               number: {{ .Values.service.port | default 80 }}
 {{- end }}
