@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.app.name }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.app.namespace }}
 spec:
   selector:
     matchLabels:
@@ -20,9 +20,9 @@ spec:
             - containerPort: {{ .Values.service.targetPort | default 8080 }}
           env:
             - name: DOZZLE_MODE
-              value: "k8s"
+              value: k8s
             - name: DOZZLE_AUTH_PROVIDER
-              value: "simple"
+              value: {{ .Values.app.authProvider }}
           volumeMounts:
             - name: auth-config
               mountPath: /data/users.yml

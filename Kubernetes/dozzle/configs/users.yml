@@ -1,4 +1,9 @@
+# htpasswd -nbB admin DozzleAdmin
+# htpasswd -nbB guest guest
 users:
   admin:
     name: "admin"
-    password: "a800c3ee4dac5102ed13ba673589077cf0a87a7ddaff59882bb3c08f275a516e"
+    password: "$2y$05$ZpnjEolfXVcG53VrUtoELeu1zS9jDcSrtnk4J3iucEbYY3fOfTKOu"
+  guest:
+    name: "guest"
+    password: "$2y$05$jSKf6v.ZhtKQEyuEgws0iuPhtviWjkDfEYK8yZ68wDeqvHzWpFuoG"

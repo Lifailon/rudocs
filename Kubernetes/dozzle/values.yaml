@@ -3,6 +3,7 @@ app:
   namespace: monitoring
   image: amir20/dozzle
   version: v10.4
+  authProvider: simple
 
 rbac:
   sa: dozzle-pod-viewer-sa
