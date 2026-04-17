@@ -8,3 +8,4 @@ resources:
 - deployment.yaml
 - local-path-config.yaml
 - local-path-sc.yaml
+# - local-pvc.yaml
