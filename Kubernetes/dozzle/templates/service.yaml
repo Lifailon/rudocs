@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+  annotations:
+    {{- if .Values.service.annotations }}
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+    # {{- range $key, $value := .Values.service.annotations }}
+    # {{ $key }}: {{ $value | quote }}
+    # {{- end }}
+    {{- end }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: {{ .Values.app.name }}
+  ports:
+    - port: {{ .Values.service.port | default 80 }}
+      targetPort: {{ .Values.service.targetPort | default 8080 }}
+      {{- if .Values.service.nodeShare }}
+      nodePort: {{ .Values.service.nodePort | default 30080 }}
+      {{- end }}

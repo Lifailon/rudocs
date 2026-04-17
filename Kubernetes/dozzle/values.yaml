@@ -1,0 +1,23 @@
+app:
+  name: dozzle
+  image: amir20/dozzle
+  version: v10.4
+
+rbac:
+  create: true
+  sa: pod-viewer-sa
+
+service:
+  name: dozzle-service
+  port: 80
+  targetPort: 8080
+  nodeShare: true
+  nodePort: 30080
+  annotations:
+    metallb.universe.tf/address-pool: "default-pool"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.202"
+
+ingress:
+  enabled: true
+  className: traefik
+  host: dozzle.k8s.local

@@ -1,26 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dozzle
+  name: {{ .Values.app.name }}
 spec:
   selector:
     matchLabels:
-      app: dozzle
+      app: {{ .Values.app.name }}
   template:
     metadata:
       labels:
-        app: dozzle
+        app: {{ .Values.app.name }}
     spec:
-      serviceAccountName: pod-viewer
+      serviceAccountName: {{ .Values.rbac.sa }}
       containers:
-        - name: dozzle
-          image: amir20/dozzle:latest
+        - name: {{ .Values.app.name }}
+          image: {{ .Values.app.image }}:{{ .Values.app.version }}
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.service.targetPort | default 8080 }}
           env:
             - name: DOZZLE_MODE
               value: "k8s"
-            # Auth
             - name: DOZZLE_AUTH_PROVIDER
               value: "simple"
           volumeMounts:
@@ -31,4 +30,4 @@ spec:
       volumes:
         - name: auth-config
           secret:
-            secretName: dozzle-auth-secret
+            secretName: dozzle-auth-config-secret

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: dozzle
+description: Realtime log viewer for Docker containers and K8s pods
+version: 0.1.0
+appVersion: 10.4.0
