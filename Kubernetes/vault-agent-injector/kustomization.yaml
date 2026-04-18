@@ -4,7 +4,16 @@ kind: Kustomization
 namespace: vault
 
 resources:
-- rbac.yaml
-- deployment.yaml
-- service.yaml
-- webhook.yaml
+- agent-injector-rbac.yaml
+- agent-injector-deployment.yaml
+- agent-injector-service.yaml
+- agent-injector-webhook.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: vault-injector
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/5/value
+        value: "http://192.168.3.101:8200"
