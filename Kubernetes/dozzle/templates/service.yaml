@@ -17,6 +17,6 @@ spec:
   ports:
     - port: {{ .Values.service.port | default 80 }}
       targetPort: {{ .Values.service.targetPort | default 8080 }}
-      {{- if .Values.service.nodeShare }}
-      nodePort: {{ .Values.service.nodePort | default 30080 }}
+      {{- if .Values.service.nodeShare.enabled }}
+      nodePort: {{ .Values.service.nodeShare.nodePort | default 30080 }}
       {{- end }}

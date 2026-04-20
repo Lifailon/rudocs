@@ -9,8 +9,7 @@ spec:
   source:
     path: Kubernetes/ksm
     repoURL: https://github.com/Lifailon/rudocs
-    targetRevision: rsa
+    targetRevision: main
   sources: []
   project: default
-  syncPolicy:
-    automated: null
+  syncPolicy: {}

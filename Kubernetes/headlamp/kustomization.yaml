@@ -9,3 +9,20 @@ resources:
 - deployment.yaml
 - service.yaml
 - ingress.yaml
+
+patches:
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: headlamp
+        namespace: kube-system
+        annotations:
+          metallb.universe.tf/address-pool: "default-pool"
+          metallb.universe.tf/loadBalancerIPs: "192.168.3.201"
+      spec:
+        type: LoadBalancer
+        ports:
+          - port: 80
+            targetPort: 4466
+            nodePort: 30001

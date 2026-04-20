@@ -13,7 +13,12 @@ resources:
 - deployment.yaml
 - daemon-set.yaml
 - service.yaml
-- metrics-ingress.yaml
-- metrics-middleware.yaml
+
+# Создать новый пул адресов
 - ip-address-pool.yaml
+# Разрешить анонсирование IP-адресов из default-pool в локальной сети через протокол ARP
 - l2-advertisement.yaml
+
+# Пробросить метрики через Ingress
+# - metrics-ingress.yaml
+# - metrics-middleware.yaml

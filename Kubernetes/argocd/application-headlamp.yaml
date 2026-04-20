@@ -4,13 +4,12 @@ metadata:
   name: headlamp
 spec:
   destination:
-    namespace: kubernetes-dashboard
+    namespace: kube-system
     server: https://kubernetes.default.svc
   source:
     path: Kubernetes/headlamp
     repoURL: https://github.com/Lifailon/rudocs
-    targetRevision: rsa
+    targetRevision: main
   sources: []
   project: default
-  syncPolicy:
-    automated: null
+  syncPolicy: {}

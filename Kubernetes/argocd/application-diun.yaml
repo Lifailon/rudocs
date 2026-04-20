@@ -3,7 +3,6 @@ kind: Application
 metadata:
   name: diun
 spec:
-  project: default
   source:
     repoURL: https://github.com/Lifailon/rudocs
     path: Kubernetes/diun
@@ -19,8 +18,7 @@ spec:
           value: test
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
-  syncPolicy:
-    automated: null
-    syncOptions:
-      - CreateNamespace=true
+    targetRevision: main
+  sources: []
+  project: default
+  syncPolicy: {}

@@ -1,16 +1,12 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: headlamp-service
+  name: headlamp
   namespace: kube-system
-  annotations:
-    metallb.universe.tf/address-pool: "default-pool"
-    metallb.universe.tf/loadBalancerIPs: "192.168.3.201"
 spec:
   type: LoadBalancer
   ports:
     - port: 80
       targetPort: 4466
-      nodePort: 30001
   selector:
     k8s-app: headlamp

@@ -9,10 +9,7 @@ spec:
   source:
     path: Kubernetes/uptime-kuma
     repoURL: https://github.com/Lifailon/rudocs
-    targetRevision: rsa
+    targetRevision: main
   sources: []
   project: default
-  syncPolicy:
-    automated: null
-    syncOptions:
-      - CreateNamespace=true
+  syncPolicy: {}
