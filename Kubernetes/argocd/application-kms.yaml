@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kube-state-metrics
+  name: kube-metrics-server
 spec:
   destination:
     namespace: kube-system
     server: https://kubernetes.default.svc
   source:
-    path: Kubernetes/kube-state-metrics
+    path: Kubernetes/kube-metrics-server
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
   sources: []
