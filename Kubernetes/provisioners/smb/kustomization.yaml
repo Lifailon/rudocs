@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kube-system
+
+resources:
+- rbac-csi-smb.yaml
+- csi-smb-driver.yaml
+- csi-smb-controller.yaml
+- csi-smb-node.yaml
+# - csi-smb-node-windows.yaml
+- csi-smb-node-windows-hostprocess.yaml.yaml

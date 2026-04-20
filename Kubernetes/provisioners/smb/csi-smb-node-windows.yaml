@@ -1,0 +1,166 @@
+---
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: csi-smb-node-win
+  namespace: kube-system
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: csi-smb-node-win
+  template:
+    metadata:
+      labels:
+        app: csi-smb-node-win
+    spec:
+      tolerations:
+        - key: "node.kubernetes.io/os"
+          operator: "Exists"
+          effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/os: windows
+      priorityClassName: system-node-critical
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: csi-smb-node-sa
+      containers:
+        - name: liveness-probe
+          volumeMounts:
+            - mountPath: C:\csi
+              name: plugin-dir
+          image: registry.k8s.io/sig-storage/livenessprobe:v2.16.0
+          args:
+            - --csi-address=$(CSI_ENDPOINT)
+            - --probe-timeout=3s
+            - --health-port=29643
+            - --v=2
+          env:
+            - name: CSI_ENDPOINT
+              value: unix://C:\\csi\\csi.sock
+          resources:
+            limits:
+              memory: 100Mi
+            requests:
+              cpu: 10m
+              memory: 40Mi
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+        - name: node-driver-registrar
+          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.15.0
+          args:
+            - --v=2
+            - --csi-address=$(CSI_ENDPOINT)
+            - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
+          env:
+            - name: CSI_ENDPOINT
+              value: unix://C:\\csi\\csi.sock
+            - name: DRIVER_REG_SOCK_PATH
+              value: C:\\var\\lib\\kubelet\\plugins\\smb.csi.k8s.io\\csi.sock
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: kubelet-dir
+              mountPath: "C:\\var\\lib\\kubelet"
+            - name: plugin-dir
+              mountPath: C:\csi
+            - name: registration-dir
+              mountPath: C:\registration
+          resources:
+            limits:
+              memory: 100Mi
+            requests:
+              cpu: 10m
+              memory: 40Mi
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+        - name: smb
+          image: gcr.io/k8s-staging-sig-storage/smbplugin:canary
+          imagePullPolicy: IfNotPresent
+          args:
+            - --v=5
+            - --endpoint=$(CSI_ENDPOINT)
+            - --nodeid=$(KUBE_NODE_NAME)
+            - "--remove-smb-mapping-during-unmount=true"
+          ports:
+            - containerPort: 29643
+              name: healthz
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /healthz
+              port: healthz
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
+            periodSeconds: 30
+          env:
+            - name: CSI_ENDPOINT
+              value: unix://C:\\csi\\csi.sock
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: kubelet-dir
+              mountPath: "C:\\var\\lib\\kubelet"
+            - name: plugin-dir
+              mountPath: C:\csi
+            - name: csi-proxy-fs-pipe-v1
+              mountPath: \\.\pipe\csi-proxy-filesystem-v1
+            - name: csi-proxy-smb-pipe-v1
+              mountPath: \\.\pipe\csi-proxy-smb-v1
+            # these paths are still included for compatibility, they're used
+            # only if the node has still the beta version of the CSI proxy
+            - name: csi-proxy-fs-pipe-v1beta1
+              mountPath: \\.\pipe\csi-proxy-filesystem-v1beta1
+            - name: csi-proxy-smb-pipe-v1beta1
+              mountPath: \\.\pipe\csi-proxy-smb-v1beta1
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 10m
+              memory: 40Mi
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: csi-proxy-fs-pipe-v1
+          hostPath:
+            path: \\.\pipe\csi-proxy-filesystem-v1
+        - name: csi-proxy-smb-pipe-v1
+          hostPath:
+            path: \\.\pipe\csi-proxy-smb-v1
+        # these paths are still included for compatibility, they're used
+        # only if the node has still the beta version of the CSI proxy
+        - name: csi-proxy-fs-pipe-v1beta1
+          hostPath:
+            path: \\.\pipe\csi-proxy-filesystem-v1beta1
+        - name: csi-proxy-smb-pipe-v1beta1
+          hostPath:
+            path: \\.\pipe\csi-proxy-smb-v1beta1
+        - name: registration-dir
+          hostPath:
+            path: C:\var\lib\kubelet\plugins_registry\
+            type: Directory
+        - name: kubelet-dir
+          hostPath:
+            path: C:\var\lib\kubelet\
+            type: Directory
+        - name: plugin-dir
+          hostPath:
+            path: C:\var\lib\kubelet\plugins\smb.csi.k8s.io\
+            type: DirectoryOrCreate

@@ -1,0 +1,95 @@
+---
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: csi-smb-node-win
+  namespace: kube-system
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: csi-smb-node-win
+  template:
+    metadata:
+      labels:
+        app: csi-smb-node-win
+    spec:
+      serviceAccountName: csi-smb-node-sa
+      tolerations:
+        - key: "node.kubernetes.io/os"
+          operator: "Exists"
+          effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/os: windows
+      priorityClassName: system-node-critical
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: "NT AUTHORITY\\SYSTEM"
+      hostNetwork: true
+      initContainers:
+        - name: init
+          image: gcr.io/k8s-staging-sig-storage/smbplugin:canary-windows-hp
+          imagePullPolicy: IfNotPresent
+          command:
+            - "powershell.exe"
+            - "-c"
+            - "New-Item -ItemType Directory -Path C:\\var\\lib\\kubelet\\plugins\\smb.csi.k8s.io\\ -Force"
+      containers:
+        - name: node-driver-registrar
+          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.16.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - "csi-node-driver-registrar.exe"
+          args:
+            - "--v=2"
+            - "--csi-address=$(CSI_ENDPOINT)"
+            - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+            - "--plugin-registration-path=$(PLUGIN_REG_DIR)"
+          env:
+            - name: CSI_ENDPOINT
+              value: unix://C:\\var\\lib\\kubelet\\plugins\\smb.csi.k8s.io\\csi.sock
+            - name: DRIVER_REG_SOCK_PATH
+              value: C:\\var\\lib\\kubelet\\plugins\\smb.csi.k8s.io\\csi.sock
+            - name: PLUGIN_REG_DIR
+              value: C:\\var\\lib\\kubelet\\plugins_registry\\
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          resources:
+            limits:
+              memory: 150Mi
+            requests:
+              cpu: 30m
+              memory: 40Mi
+        - name: smb
+          image: gcr.io/k8s-staging-sig-storage/smbplugin:canary-windows-hp
+          imagePullPolicy: IfNotPresent
+          command:
+            - "smbplugin.exe"
+          args:
+            - --v=5
+            - --endpoint=$(CSI_ENDPOINT)
+            - --nodeid=$(KUBE_NODE_NAME)
+            - --enable-windows-host-process=true
+            - --remove-smb-mapping-during-unmount=true
+          env:
+            - name: CSI_ENDPOINT
+              value: unix://C:\\var\\lib\\kubelet\\plugins\\smb.csi.k8s.io\\csi.sock
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+          resources:
+            limits:
+              memory: 600Mi
+            requests:
+              cpu: 10m
+              memory: 40Mi
