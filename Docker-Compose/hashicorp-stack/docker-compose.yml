@@ -1,31 +1,46 @@
 services:
-  consul:
+  consul-master:
     image: hashicorp/consul:latest
-    container_name: consul
+    container_name: consul-master
     restart: unless-stopped
     ports:
-      - "8500:8500"
-    command: "agent -server -bootstrap-expect=1 -client=0.0.0.0"
+      - 8500:8500
     volumes:
-      - ./consul_data:/consul/data
-      - ./consul.hcl.config:/consul/config/consul.hcl
+      - ./consul_config:/consul/config
+      - ./consul_data_master:/consul/data
+    command: "agent -server -bootstrap-expect=1 -node=consul-master -client=0.0.0.0 -data-dir=/consul/data"
+    # command: "agent -server -bootstrap-expect=3 -node=consul-master -client=0.0.0.0 -data-dir=/consul/data"
+
+  # consul-slave:
+  #   image: hashicorp/consul:latest
+  #   container_name: consul-slave
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./consul_data_slave:/consul/data
+  #   command: "agent -server -retry-join=consul-master -node=consul-slave -client=0.0.0.0 -data-dir=/consul/data"
+
+  # consul-arbiter:
+  #   image: hashicorp/consul:latest
+  #   container_name: consul-arbiter
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./consul_data_arbiter:/consul/data
+  #   command: "agent -server -retry-join=consul-master -node=consul-arbiter -client=0.0.0.0 -data-dir=/consul/data"
 
   vault:
     image: hashicorp/vault:latest
     container_name: vault
     restart: unless-stopped
-    depends_on:
-      - consul
-    environment:
-      - VAULT_ADDR=http://0.0.0.0:8200
-      - VAULT_API_ADDR=http://localhost:8200
-    ports:
-      - "8200:8200"
-    volumes:
-      - ./vault_config:/vault/config
-      # Использовать локальное файловое хранилище
-      # - ./vault_data:/vault/file
     cap_add:
       - IPC_LOCK
-    command: >
-      vault server -config=/vault/config/vault.hcl.config
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - SKIP_SETCAP=true
+      - SKIP_CHOWN=true
+    ports:
+      - 8200:8200
+    volumes:
+      - ./vault_config:/vault/config
+      # Использовать локальное хранилище (если отключен Consul)
+      - ./vault_data:/vault/file
+    command: vault server -config=/vault/config/vault.hcl
