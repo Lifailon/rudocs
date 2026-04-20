@@ -5,6 +5,11 @@ namespace: vault
 
 resources:
 - agent-injector-rbac.yaml
-- vault-checker-deployment.yaml
+- agent-injector-deployment.yaml
 - agent-injector-service.yaml
 - agent-injector-webhook.yaml
+
+# SA для настройки подключения к Vault
+- vault-checker-rbac.yaml
+# Под для проверки подключения к Vault
+# - vault-checker-deployment.yaml
