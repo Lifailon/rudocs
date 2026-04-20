@@ -1635,6 +1635,173 @@ kubectl get nodes
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 ```
 
+### Cluster Configuration
+
+[Cluster Configuration](https://kubernetes.io/docs/reference/config-api/kubeadm-config.v1beta4/) - это основной конфигурационный ресурс утилиты `kubeadm`, который определяет глобальные настройки для всего кластера Kubernetes. В отличие от настроек конкретной ноды в момент инициализации с помощь `InitConfiguration`, этот объект описывает общие параметры для всех компонентов [Control Plane](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/control-plane-flags) (API server, scheduler, controller manager) и `etcd`.
+
+Конфигурация кластера определяется в момент инициализации кластера с помощью команды `kubeadm init --config configuration.yaml`
+
+`EDITOR=nano kubectl edit cm -n kube-system kubeadm-config`
+
+```yaml
+kind: ConfigMap
+metadata:
+  name: kubeadm-config
+  namespace: kube-system
+apiVersion: v1
+data:
+  ClusterConfiguration: |
+    kind: ClusterConfiguration
+    kubernetesVersion: v1.35.4
+    imageRepository: registry.k8s.io
+    apiVersion: kubeadm.k8s.io/v1beta4
+    clusterName: kubernetes
+    # Директория с сертификатами (.crt, .key)
+    certificatesDir: /etc/kubernetes/pki
+    # Срок действия корневого сертификата (CA) 10 лет
+    caCertificateValidityPeriod: 87600h0m0s
+    # Срок действия сертификатов компонентов (API, Scheduler и др.) 1 год
+    certificateValidityPeriod: 8760h0m0s
+    encryptionAlgorithm: RSA-2048
+    etcd:
+      local:
+        dataDir: /var/lib/etcd
+    networking:
+      dnsDomain: cluster.local
+      podSubnet: 10.244.0.0/16
+      serviceSubnet: 10.96.0.0/12
+    apiServer: {}
+    dns: {}
+    proxy: {}
+    scheduler: {}
+    controllerManager: {}
+```
+
+### Kubelet Configuration
+
+[Kubelet Configuration](https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1) - глобальная конфигурация `Kubelet` агентов.
+
+`EDITOR=nano kubectl edit cm -n kube-system kubelet-config`
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubelet-config
+  namespace: kube-system
+data:
+  kubelet: |
+  kubelet: |
+    apiVersion: kubelet.config.k8s.io/v1beta1
+    kind: KubeletConfiguration
+    # Настройки аутентификации запросов к API kubelet
+    authentication:
+      anonymous:
+        enabled: false
+      # Настройки проверки через Webhook API-сервера
+      webhook:
+        # Время кэширования ответов об аутентификации (отключено)
+        cacheTTL: 0s
+        # Включение проверки прав доступа через API-сервер
+        enabled: true
+      # Настройки аутентификации по клиентским сертификатам
+      x509:
+        # Путь к CA-сертификату для проверки подписей клиентов
+        clientCAFile: /etc/kubernetes/pki/ca.crt
+    # Конфигурация авторизации (проверка прав)
+    authorization:
+      # Режим авторизации через Webhook (запросы прав у API-сервера)
+      mode: Webhook
+      # Параметры кэширования ответов авторизации
+      webhook:
+        cacheAuthorizedTTL: 0s
+        cacheUnauthorizedTTL: 0s
+    # Драйвер управления группами процессов (должен совпадать с runtime)
+    cgroupDriver: systemd
+    # Список IP-адресов внутренних DNS-серверов кластера
+    clusterDNS:
+    - 10.96.0.10
+    # Внутренний домен кластера
+    clusterDomain: cluster.local
+    # Путь к сокету среды выполнения контейнеров (CRI)
+    containerRuntimeEndpoint: ""
+    # Интервал согласования ресурсов для CPU Manager
+    cpuManagerReconcilePeriod: 0s
+    # Настройки поведения при циклической ошибке запуска контейнеров
+    crashLoopBackOff: {}
+    # Время ожидания перед переходом узла из состояния нехватки ресурсов
+    evictionPressureTransitionPeriod: 0s
+    # Частота проверки конфигурационных файлов на диске
+    fileCheckFrequency: 0s
+    # IP-адрес для отдачи данных о состоянии здоровья kubelet
+    healthzBindAddress: 127.0.0.1
+    # Порт для эндпоинта /healthz
+    healthzPort: 10248
+    # Частота выполнения HTTP-проб состояния
+    httpCheckFrequency: 0s
+    # Максимальный возраст образа перед его очисткой (GC)
+    imageMaximumGCAge: 0s
+    # Минимальный возраст образа перед его очисткой (GC)
+    imageMinimumGCAge: 0s
+    # Настройки использования Swap (подкачки) на узле
+    memorySwap: {}
+    # Частота отправки полного отчета о статусе узла в API
+    nodeStatusReportFrequency: 0s
+    # Частота обновления статуса узла внутри системы
+    nodeStatusUpdateFrequency: 0s
+    # Включение автоматического обновления сертификатов узла
+    rotateCertificates: true
+    # Таймаут для запросов к среде выполнения контейнеров
+    runtimeRequestTimeout: 0s
+    # Общий период задержки перед выключением узла
+    shutdownGracePeriod: 0s
+    # Период задержки перед выключением для критических подов
+    shutdownGracePeriodCriticalPods: 0s
+    # Путь к директории с манифестами статических подов
+    staticPodPath: /etc/kubernetes/manifests
+    # Таймаут простоя для потоковых соединений (exec/logs)
+    streamingConnectionIdleTimeout: 0s
+    # Частота синхронизации состояния подов с заданным конфигом
+    syncFrequency: 0s
+    # Интервал сбора статистики использования дисковых томов
+    volumeStatsAggPeriod: 0s
+    # Настройки системы логирования
+    logging:
+      # Уровень логирования
+      verbosity: 0
+      # Частота записи логов из буфера на диск
+      flushFrequency: 0
+      options:
+        json:
+          # Размер буфера для логов в формате JSON
+          infoBufferSize: "0"
+        text:
+          # Размер буфера для текстовых логов
+          infoBufferSize: "0"
+    # Тюнинг
+    # Максимальное кол-во подов на одной ноде
+    maxPods: 50
+    # Резервирование ресурсов для системы
+    systemReserved:
+      cpu: "500m"
+      memory: "1Gi"
+    kubeReserved:
+      cpu: "500m"
+      memory: "1Gi"
+    # Порог вытеснения (Eviction) при нехватке ресурсов
+    # Когда на диске останется меньше 5%, Kubelet начнет удалять поды
+    evictionHard:
+      memory.available: "500Mi"
+      nodefs.available: "5%"
+      imagefs.available: "5%"   
+    # Хранение логов
+    containerLogMaxSize: "10Mi"
+    containerLogMaxFiles: 5
+    # Настройка Garbage Collection (очистка старых образов)
+    imageGCHighThresholdPercent: 85   # Начинать чистку, если диск забит на 85%
+    imageGCLowThresholdPercent: 80    # Чистить, пока не станет 80%
+```
+
 ### Metrics Server
 
 [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) собирает метрики ресурсов из `Kubelet` агентов на нодах и предоставляет их в Kubernetes `apiserver` через Metrics API для использования в `HPA` и `VPA`.
@@ -1707,9 +1874,12 @@ EOF
 # Получить токен авторизации из секрета
 kubectl get secret headlamp-admin-token -n kube-system -o jsonpath='{.data.token}' | base64 --decode
 
-# Пробросить порт через ноду
+# Пробросить порт через ноду (изменяем режим сервиса на NodePort) и узнаем порты
 kubectl patch svc headlamp -n kube-system -p '{"spec": {"type": "NodePort"}}'
 kubectl get svc headlamp -n kube-system
+# Обновляем порт
+# kubectl patch svc headlamp -n kube-system -p '{"spec": {"ports": [{"port": 80, "nodePort": 30001}]}}'
+kubectl patch svc headlamp -n kube-system --type='json' -p '[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30001}]'
 ```
 
 ### Kubectl Config
@@ -1917,62 +2087,7 @@ kubectl stern . --all-namespaces --tail 5 --since 10m --no-follow 100
 kubectl outdated
 ```
 
-### Kubelet Configuration
-
-[Kubelet Configuration](https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1) - глобальная конфигурация `Kubelet` агентов.
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kubelet-config-1.28
-  namespace: kube-system
-data:
-  kubelet: |
-    apiVersion: kubelet.config.k8s.io/v1beta1
-    kind: KubeletConfiguration
-    # Резервирование ресурсов для системы
-    systemReserved:
-      cpu: "500m"
-      memory: "1Gi"
-    kubeReserved:
-      cpu: "500m"
-      memory: "1Gi"
-    # Порог вытеснения (Eviction) при нехватке ресурсов
-    # Когда на диске останется меньше 5%, Kubelet начнет удалять поды
-    evictionHard:
-      memory.available: "500Mi"
-      nodefs.available: "5%"
-      imagefs.available: "5%"
-    
-    # Настройки безопасности и доступа
-    authentication:
-      anonymous:
-        enabled: false # Запрещаем анонимные запросы к API kubelet
-      webhook:
-        enabled: true  # Разрешаем проверку прав через основной API-server
-    
-    # Максимальное кол-во подов на одной ноде
-    maxPods: 50
-    
-    # Хранение логов
-    containerLogMaxSize: "10Mi"
-    containerLogMaxFiles: 5
-    
-    # Настройка Garbage Collection (очистка старых образов)
-    imageGCHighThresholdPercent: 85   # Начинать чистку, если диск забит на 85%
-    imageGCLowThresholdPercent: 80    # Чистить, пока не станет 80%
-    
-    # DNS настройки для подов
-    clusterDNS:
-    - "10.96.0.10"
-    clusterDomain: "k8s.local"
-    
-    # Режим работы с Cgroups
-    cgroupDriver: systemd
-```
-
-### Node
+### Nodes
 
 ```bash
 # Отображает список всех узлов и их текущий статус (`Ready`, `SchedulingDisabled` и т.д.) \
@@ -2377,7 +2492,6 @@ livenessProbe:
   httpGet:
     path: /api/provider/list  # Конечная точка в контейнере, по которому будет проверяться работоспособность
     port: 8443                # Порт, на котором доступен этот endpoint внутри контейнера
-  initialDelaySeconds: 5      # Ждет 5 секунд после запуска контейнера перед первой проверкой
   initialDelaySeconds: 5      # Время ожидания до начала проверок (5 секунд)
   periodSeconds: 10           # Интервал проверок (каждые 10 секунд)
   timeoutSeconds: 2           # Максимальное время ожидания ответа в секундах
@@ -2898,7 +3012,7 @@ kubectl logs job/db-migrate
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: db-migrate-daily
+  name: image-checker-daily
 spec:
   # Расписание в формате Unix-cron (минута час день месяц день-недели)
   schedule: "0 0 * * *"
@@ -2914,11 +3028,80 @@ spec:
   failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      template:
+        spec:
+          serviceAccountName: image-checker-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: image-checker
+              image: alpine:3.23
+              command: ["sh", "-c"]
+              args:
+                - |
+                  apk add --no-cache kubectl skopeo jq              
+                  IMAGES=$(kubectl get pods --all-namespaces -o jsonpath='{range .items[*].status.containerStatuses[*]}{.image}{" "}{.imageID}{"\n"}{end}' | sort -u)
+                  echo "$IMAGES" | while read -r line; do
+                    [ -z "$line" ] && continue
+                    IMAGE=$(echo $line | cut -d' ' -f1)
+                    LOCAL_DIGEST=$(echo $line | cut -d'@' -f2)
+                    if [[ "$IMAGE" == *":"* ]]; then
+                      echo "- Image: ${IMAGE}"
+                      REMOTE_DIGEST=$(skopeo inspect docker://$IMAGE --format "{{.Digest}}" 2>/dev/null)
+                      if [ "$?" -eq 0 ] && [ "$LOCAL_DIGEST" != "$REMOTE_DIGEST" ]; then
+                        echo "   --- Local sha: ${LOCAL_DIGEST}"
+                        echo "   +++ Remote sha:  ${REMOTE_DIGEST}"
+                      else
+                        echo "   Local sha: ${LOCAL_DIGEST}"
+                        echo "   Remote sha:  ${REMOTE_DIGEST}"
+                      fi
+                      IMAGE_CLEAR=$(echo $IMAGE | sed -r "s/\s.+//")
+                      IMAGE_URL=$(echo $IMAGE_CLEAR | cut -d':' -f1)
+                      LOCAL_TAG=$(echo $IMAGE_CLEAR | cut -d':' -f2)
+                      REMOTE_TAGS=$(skopeo list-tags docker://$IMAGE_URL | jq -r '.Tags[]')
+                      LATEST_TAG=$(echo "$REMOTE_TAGS" | sort -V | tail -n 1)
+                      if [ "$LOCAL_TAG" != "$LATEST_TAG" ]; then
+                        echo "   --- Current local tag: $LOCAL_TAG"
+                        echo "   +++ Latest remote tag: $LATEST_TAG"
+                      else
+                        echo "   Current local tag: $LOCAL_TAG"
+                        echo "   Latest remote tag: $LATEST_TAG"
+                      fi
+                      echo
+                    fi
+                  done
 ```
+
+`kubectl apply -f job-daily.yaml`
 
 Запустить задачу, не дожидаясь ее времени запуска:
 
-`kubectl create job --from=cronjob/db-migrate-daily db-migrate-manual-run`
+`kubectl create job --from=cronjob/image-checker-daily image-checker-job`
+
+### Volumes
+
+[emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) - это временное хранилище, которое создается в момент запуска поды и удаляется вместе с ним, а также идеально подходит для передачи данных между контейнерами (включая init containers).
+
+Загрузка оперативной памяти контейнера:
+
+```yaml
+spec:
+  containers:
+    - name: mem-util
+      image: alpine:3.23
+      command: ["sh", "-c"]
+      args:
+        - |
+          # fallocate -l 1G /data/cache
+          dd if=/dev/zero of=/data/cache bs=1M count=1024
+      volumeMounts:
+        - name: mem-data
+          mountPath: /data
+  volumes:
+    - name: mem-data
+      emptyDir:
+        medium: Memory
+        sizeLimit: "1500Mi"
+```
 
 ### Init Containers
 
@@ -3404,6 +3587,35 @@ spec:
 
 ### Persistent Volume
 
+[Persistent Volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes) (`PV`) - это объект для настройки ручного подключения хранилища в кластер.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  # Путь на ноде для хранения данных
+  local:
+    path: /mnt/k8s_data
+  # Привязываем том к ноде и под при подключение хранилища
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+              - hv-us-101
+```
+
 Настройка `NFS` сервера для удаленного хранения данных:
 
 ```bash
@@ -3423,7 +3635,7 @@ sudo systemctl restart nfs-kernel-server
 sudo apt install nfs-common -y
 ```
 
-[Persistent Volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes) (`PV`) - это объект для настройки ручного подключения хранилища в кластер.
+Подключаем NFS хранилище к кластеру
 
 ```yaml
 apiVersion: v1
@@ -4566,13 +4778,12 @@ losetup -d /dev/loop2
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-# Включить режим LB
-kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
-# Зайти и изменить порт
-port: 8466
-port: 8467
-# Получить пароль
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl get all -n argocd
+# Включить режим NodePort или LoadBalancer
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
+kubectl patch svc argocd-server -n argocd --type='json' -p '[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30002}]'
+# Получить пароль от пользователя admin
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
@@ -4621,6 +4832,26 @@ annotations:
   argocd.argoproj.io/hook-delete-policy: HookSucceeded      # После успеха
   argocd.argoproj.io/hook-delete-policy: HookFailed         # После ошибки
   argocd.argoproj.io/hook-delete-policy: BeforeHookCreation # Перед новым запуском ошибки
+```
+
+Пример добавления приложения:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dozzle
+spec:
+  destination:
+    namespace: monitoring
+    server: https://kubernetes.default.svc
+  source:
+    path: Kubernetes/dozzle
+    repoURL: https://github.com/Lifailon/rudocs
+    targetRevision: main
+  sources: []
+  project: default
+  syncPolicy: {}
 ```
 
 ### MinIO
@@ -4798,7 +5029,7 @@ resources:
 kubectl kustomize ./base
 ```
 
-Для каждого ресурса автоматически добавляется указанный `namespace`, все `labels` и `annotations`.
+Для каждого ресурса автоматически добавляется указанный `namespace`, а также все `labels` и `annotations` указанные в файле.
 
 Применить все перечисленные манифесты из файла `kustomization.yaml` в кластере:
 
