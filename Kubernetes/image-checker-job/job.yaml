@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: image-checker-job
+  namespace: default
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: image-checker-sa
+          restartPolicy: OnFailure
+          containers:
+          - name: image-checker
+            image: alpine:3.23
+            command: ["sh", "-c"]
+            args:
+              - |
+                apk add --no-cache kubectl skopeo jq              
+                IMAGES=$(kubectl get pods --all-namespaces -o jsonpath='{range .items[*].status.containerStatuses[*]}{.image}{" "}{.imageID}{"\n"}{end}' | sort -u)
+                echo "$IMAGES" | while read -r line; do
+                  [ -z "$line" ] && continue
+                  IMAGE=$(echo $line | cut -d' ' -f1)
+                  LOCAL_DIGEST=$(echo $line | cut -d'@' -f2)
+                  if [[ "$IMAGE" == *":"* ]]; then
+                    echo "- Image: ${IMAGE}"
+                    REMOTE_DIGEST=$(skopeo inspect docker://$IMAGE --format "{{.Digest}}" 2>/dev/null)
+                    if [ "$?" -eq 0 ] && [ "$LOCAL_DIGEST" != "$REMOTE_DIGEST" ]; then
+                      echo "   --- Local sha: ${LOCAL_DIGEST}"
+                      echo "   +++ Remote sha:  ${REMOTE_DIGEST}"
+                    else
+                      echo "   Local sha: ${LOCAL_DIGEST}"
+                      echo "   Remote sha:  ${REMOTE_DIGEST}"
+                    fi
+                    IMAGE_CLEAR=$(echo $IMAGE | sed -r "s/\s.+//")
+                    IMAGE_URL=$(echo $IMAGE_CLEAR | cut -d':' -f1)
+                    LOCAL_TAG=$(echo $IMAGE_CLEAR | cut -d':' -f2)
+                    REMOTE_TAGS=$(skopeo list-tags docker://$IMAGE_URL | jq -r '.Tags[]')
+                    LATEST_TAG=$(echo "$REMOTE_TAGS" | sort -V | tail -n 1)
+                    if [ "$LOCAL_TAG" != "$LATEST_TAG" ]; then
+                      echo "   --- Current local tag: $LOCAL_TAG"
+                      echo "   +++ Latest remote tag: $LATEST_TAG"
+                    else
+                      echo "   Current local tag: $LOCAL_TAG"
+                      echo "   Latest remote tag: $LATEST_TAG"
+                    fi
+                    echo
+                  fi
+                done

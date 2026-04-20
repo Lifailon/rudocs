@@ -16,6 +16,8 @@ spec:
       annotations:
         # Включаем Vault Agent Sidecar
         vault.hashicorp.com/agent-inject: "true"
+        # Заставляет контейнеры ждать, пока vault-agent-init не завершится успешно (когда файл записан на диск)
+        vault.hashicorp.com/agent-init-first: 'true'
         # Роль доступа к секретам Vault
         vault.hashicorp.com/role: "tg-app-role"
         # Определяем название файла (/vault/secrets/env.txt) и путь к секрету в Vault 
@@ -27,10 +29,21 @@ spec:
           {{ $key }}="{{ $value }}"
           {{- end }}
           {{- end -}}
+        vault.hashicorp.com/agent-requests-cpu: 100m
+        vault.hashicorp.com/agent-limits-cpu: 200m
+        vault.hashicorp.com/agent-requests-mem: 64Mi
+        vault.hashicorp.com/agent-limits-mem: 128Mi
+        vault.hashicorp.com/log-level: debug
     spec:
       serviceAccountName: vault-sa
       containers:
         - name: env-checker
           image: alpine:3.23
-          # command: ["sh", "-c", "cat /vault/secrets/env.txt && sleep infinity"]
           command: ["sh", "-c", "source /vault/secrets/env.txt && echo $CHAT_ID && echo $API_KEY && sleep infinity"]
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "test -s /vault/secrets/env.txt"]
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
