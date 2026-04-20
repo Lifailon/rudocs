@@ -8,3 +8,25 @@ resources:
 - deployment.yaml
 - service.yaml
 - ingress.yaml
+
+patches:
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kube-state-metrics
+        namespace: kube-system
+        annotations:
+          metallb.universe.tf/address-pool: "default-pool"
+          metallb.universe.tf/loadBalancerIPs: "192.168.3.209"
+      spec:
+        type: LoadBalancer
+        ports:
+          - name: http-metrics
+            port: 80
+            targetPort: 8080
+            nodePort: 30010
+          - name: telemetry
+            port: 81
+            targetPort: 8081
+            nodePort: 30011
