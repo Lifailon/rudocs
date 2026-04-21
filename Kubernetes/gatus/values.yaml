@@ -22,7 +22,14 @@ app:
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
+  args: "--watch"
   env:
+    HTTP_PROXY: http://192.168.3.105:20171
+    HTTPS_PROXY: http://192.168.3.105:20171
+  config:
+    WEB_UI_AUTH: false
+    WEB_UI_USERNAME: admin
+    WEB_UI_PASSWORD: JDJ5JDA5JGdXQ2VjM3hkb2o2ZWN5enAwbnlCT09aMUdLUEYxM2FOM3ZBVGRSdkJiNTljWVhQSU5xYzh1
     TELEGRAM_API_KEY: ""
     TELEGRAM_CHAT_ID: ""
 

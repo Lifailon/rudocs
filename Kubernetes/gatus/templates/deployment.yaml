@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: {{ .Values.app.name }}
+      annotations:
+        config/checksum: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       containers:
         - name: {{ .Values.app.name }}
@@ -30,6 +32,15 @@ spec:
           livenessProbe:
             {{- toYaml .Values.app.probes.liveness | nindent 12 }}
           {{- end }}
+          {{- if .Values.app.args }}
+          args:
+            {{- splitList " " .Values.app.args | toYaml | nindent 6 }}
+          {{- end }}
+          env:
+            {{- range $key, $val := .Values.app.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
           volumeMounts:
             - name: {{ .Values.app.name }}-config-volume
               mountPath: /config
