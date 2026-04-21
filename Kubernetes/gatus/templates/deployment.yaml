@@ -34,7 +34,7 @@ spec:
           {{- end }}
           {{- if .Values.app.args }}
           args:
-            {{- splitList " " .Values.app.args | toYaml | nindent 6 }}
+            {{- splitList " " .Values.app.args | toYaml | nindent 12 }}
           {{- end }}
           env:
             {{- range $key, $val := .Values.app.env }}

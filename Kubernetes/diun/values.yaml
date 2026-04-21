@@ -1,6 +1,9 @@
 config:
   # Если значение false, то поды не имеющие аннотации - diun.enable: "true" будут игнорироваться
   watch: "true"
+  proxy:
+    enabled: true
+    url: "http://192.168.3.105:20171"
 secrets:
   telegram:
     token: ""

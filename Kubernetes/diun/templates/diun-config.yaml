@@ -12,3 +12,6 @@ data:
   DIUN_WATCH_JITTER: "30s"
   DIUN_PROVIDERS_KUBERNETES: "true"
   DIUN_PROVIDERS_KUBERNETES_WATCHBYDEFAULT: "{{ .Values.config.watch }}"
+  {{- if .Values.config.proxy.enabled }}
+  DIUN_NOTIF_TELEGRAM_PROXYURL: "{{ .Values.config.proxy.url }}"
+  {{- end }}
