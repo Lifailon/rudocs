@@ -9,27 +9,27 @@ data:
       routes:
         - match:
             - receiver: "dump"
-        - match:
-            - receiver: "telegram"
-              # Фильтрация по типу события, ресурса или namespace 
-              type: "Warning"
-              # kind: "Deployment"
-              # namespace: "dev"
+        # - match:
+        #     - receiver: "telegram"
+        #       # Фильтрация по типу события, ресурса или namespace 
+        #       type: "Warning"
+        #       # kind: "Deployment"
+        #       # namespace: "dev"
     receivers:
       - name: dump
         # Перенаправлять в лог контейнера
         stdout: {}
-      - name: telegram
-        webhook:
-          endpoint: "https://api.telegram.org/bot{{ env "TELEGRAM_API_KEY" }}/sendMessage"
-          headers:
-            Content-Type: "application/json"
-          layout:
-            chat_id: "{{ env "TELEGRAM_CHAT_ID" }}"
-            parse_mode: "HTML"
-            text: |
-              <b>⚠ [K8s Warning Event]</b>
-              <b>Object:</b> {{ .InvolvedObject.Kind }}/{{ .InvolvedObject.Name }}
-              <b>Namespace:</b> {{ .InvolvedObject.Namespace }}
-              <b>Reason:</b> {{ .Reason }}
-              <b>Message:</b> {{ .Message }}
+      # - name: telegram
+      #   webhook:
+      #     endpoint: "https://api.telegram.org/bot{{ env "TELEGRAM_API_KEY" }}/sendMessage"
+      #     headers:
+      #       Content-Type: "application/json"
+      #     layout:
+      #       chat_id: "{{ env "TELEGRAM_CHAT_ID" }}"
+      #       parse_mode: "HTML"
+      #       text: |
+      #         <b>⚠ [K8s Warning Event]</b>
+      #         <b>Object:</b> {{ .InvolvedObject.Kind }}/{{ .InvolvedObject.Name }}
+      #         <b>Namespace:</b> {{ .InvolvedObject.Namespace }}
+      #         <b>Reason:</b> {{ .Reason }}
+      #         <b>Message:</b> {{ .Message }}

@@ -12,10 +12,10 @@ spec:
     metadata:
       labels:
         app: event-exporter
-      # annotations:
-      #   prometheus.io/scrape: 'true'
-      #   prometheus.io/port: '2112'
-      #   prometheus.io/path: '/metrics'
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '2112'
+        prometheus.io/path: '/metrics'
     spec:
       serviceAccountName: event-exporter-sa
       containers:
@@ -26,12 +26,12 @@ spec:
             - name: TELEGRAM_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: telegram-secret
+                  name: telegram-secrets
                   key: TELEGRAM-API-KEY
             - name: TELEGRAM_CHAT_ID
               valueFrom:
                 secretKeyRef:
-                  name: telegram-secret
+                  name: telegram-secrets
                   key: TELEGRAM-CHAT-ID
           args:
             - -conf=/data/config.yaml
