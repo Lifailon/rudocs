@@ -1,11 +1,19 @@
 app:
+  # -- Application name
   name: dozzle
+  # -- Namespace used
   namespace: monitoring
+  # -- Number of active replicas
   replicas: 1
+  # -- Number of ReplicaSets to rollback
   revisionCount: 1
+  # -- Always download the latest image from the registry
   imagePullPolicy: Always
+  # -- Path to the image in the format: <registryUrl/userName/appName>
   image: amir20/dozzle
+  # -- Image tag
   version: v10.4
+  # -- Resource configuration
   resources:
     requests:
       cpu: 100m
@@ -13,6 +21,7 @@ app:
     limits:
       cpu: 200m
       memory: 128Mi
+  # -- Configuration health checks
   probes:
     liveness:
       exec:
@@ -21,24 +30,35 @@ app:
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
+  # -- Container environment variables
   env:
     DOZZLE_MODE: k8s
     DOZZLE_AUTH_PROVIDER: simple
 
 service:
+  # -- Service mode
   type: LoadBalancer
+  # -- Service port
   port: 80
+  # -- Container port on pod
   targetPort: 8080
+  # -- Open port on nodes
   nodePort: 30080
+  # -- Using MetalLB (optional)
   annotations:
     metallb.universe.tf/address-pool: "default-pool"
     metallb.universe.tf/loadBalancerIPs: "192.168.3.202"
 
 ingress:
+  # -- Ingess enabled
   enabled: true
+  # -- Ingress controller
   className: traefik
+  # -- External name
   host: dozzle.k8s.local
 
 rbac:
+  # -- Use the specified SA in deployment or when creating a new RBAC
   sa: dozzle-pod-viewer-sa
+  # -- Create a new SA
   create: true
