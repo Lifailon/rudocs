@@ -1,20 +1,35 @@
 app:
   name: dozzle
   namespace: monitoring
+  replicas: 1
+  revisionCount: 1
+  imagePullPolicy: Always
   image: amir20/dozzle
   version: v10.4
-  authProvider: simple
-
-rbac:
-  sa: dozzle-pod-viewer-sa
-  create: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  probes:
+    liveness:
+      exec:
+        command: ["/dozzle", "healthcheck"]
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  env:
+    DOZZLE_MODE: k8s
+    DOZZLE_AUTH_PROVIDER: simple
 
 service:
+  type: LoadBalancer
   port: 80
   targetPort: 8080
-  nodeShare: 
-    enabled: true
-    nodePort: 30080
+  nodePort: 30080
   annotations:
     metallb.universe.tf/address-pool: "default-pool"
     metallb.universe.tf/loadBalancerIPs: "192.168.3.202"
@@ -23,3 +38,7 @@ ingress:
   enabled: true
   className: traefik
   host: dozzle.k8s.local
+
+rbac:
+  sa: dozzle-pod-viewer-sa
+  create: true

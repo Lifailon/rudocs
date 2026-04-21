@@ -6,17 +6,14 @@ metadata:
   annotations:
     {{- if .Values.service.annotations }}
     {{- toYaml .Values.service.annotations | nindent 4 }}
-    # {{- range $key, $value := .Values.service.annotations }}
-    # {{ $key }}: {{ $value | quote }}
-    # {{- end }}
     {{- end }}
 spec:
-  type: LoadBalancer
+  type: {{ .Values.service.type }}
   selector:
     app: {{ .Values.app.name }}
   ports:
     - port: {{ .Values.service.port | default 80 }}
       targetPort: {{ .Values.service.targetPort | default 8080 }}
-      {{- if .Values.service.nodeShare.enabled }}
-      nodePort: {{ .Values.service.nodeShare.nodePort | default 30080 }}
+      {{- if .Values.service.nodePort }}
+      nodePort: {{ .Values.service.nodePort | default 30080 }}
       {{- end }}

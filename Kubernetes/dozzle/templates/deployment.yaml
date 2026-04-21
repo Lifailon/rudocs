@@ -4,6 +4,8 @@ metadata:
   name: {{ .Values.app.name }}
   namespace: {{ .Values.app.namespace }}
 spec:
+  replicas: {{ .Values.app.replicas }}
+  revisionHistoryLimit: {{ .Values.app.revisionCount }}
   selector:
     matchLabels:
       app: {{ .Values.app.name }}
@@ -16,13 +18,23 @@ spec:
       containers:
         - name: {{ .Values.app.name }}
           image: {{ .Values.app.image }}:{{ .Values.app.version }}
+          imagePullPolicy: {{ .Values.app.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort | default 8080 }}
+          {{- if .Values.app.resources }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.app.env }}
+          livenessProbe:
+            {{- toYaml .Values.app.probes.liveness | nindent 12 }}
+          {{- end }}
           env:
-            - name: DOZZLE_MODE
-              value: k8s
-            - name: DOZZLE_AUTH_PROVIDER
-              value: {{ .Values.app.authProvider }}
+            {{- range $key, $val := .Values.app.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          {{- end }}
           volumeMounts:
             - name: auth-config
               mountPath: /data/users.yml
