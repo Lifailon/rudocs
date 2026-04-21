@@ -1,0 +1,7 @@
+scrape_configs:
+  - job_name: kube-state-metrics
+    static_configs:
+      - targets:
+        - 192.168.3.101:30010
+        # - 192.168.3.209
+        # - ksm.k8s.local
