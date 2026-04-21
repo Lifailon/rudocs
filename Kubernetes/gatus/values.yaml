@@ -1,0 +1,41 @@
+app:
+  name: gatus
+  namespace: monitoring
+  replicas: 1
+  revisionCount: 1
+  imagePullPolicy: Always
+  image: twinproduction/gatus
+  version: v5.35.0
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  probes:
+    liveness:
+      httpGet:
+        path: /health
+        port: 8080
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  env:
+    TELEGRAM_API_KEY: ""
+    TELEGRAM_CHAT_ID: ""
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+  nodePort: 30081
+  annotations:
+    metallb.universe.tf/address-pool: "default-pool"
+    metallb.universe.tf/loadBalancerIPs: "192.168.3.205"
+
+ingress:
+  enabled: true
+  className: traefik
+  host: gatus.k8s.local

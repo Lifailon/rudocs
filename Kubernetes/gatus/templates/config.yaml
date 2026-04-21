@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-config
+  namespace: {{ .Values.app.namespace }}
+data:
+  config.yaml: |
+{{ tpl (.Files.Get "configs/config.yaml") . | nindent 4 }}

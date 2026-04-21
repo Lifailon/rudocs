@@ -1,0 +1,5 @@
+apiVersion: v2
+name: gatus
+description: Automated developer-oriented Status Page with Alerting
+version: 0.1.0
+appVersion: 5.35.0

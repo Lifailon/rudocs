@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  revisionHistoryLimit: {{ .Values.app.revisionCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+    spec:
+      containers:
+        - name: {{ .Values.app.name }}
+          image: {{ .Values.app.image }}:{{ .Values.app.version }}
+          imagePullPolicy: {{ .Values.app.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort | default 8080 }}
+              name: http
+              protocol: TCP
+          {{- if .Values.app.resources }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.app.probes.liveness }}
+          livenessProbe:
+            {{- toYaml .Values.app.probes.liveness | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: {{ .Values.app.name }}-config-volume
+              mountPath: /config
+      volumes:
+        - name: {{ .Values.app.name }}-config-volume
+          configMap:
+            name: {{ .Values.app.name }}-config

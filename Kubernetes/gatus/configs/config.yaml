@@ -2,8 +2,8 @@ metrics: true
 
 alerting:
   telegram:
-    token: 7777777777:XXX
-    id: 7777777777
+    token: {{ .Values.app.env.TELEGRAM_API_KEY | quote }}
+    id: {{ .Values.app.env.TELEGRAM_CHAT_ID | quote }}
 
 # storage:
 #   type: sqlite
