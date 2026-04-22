@@ -94,16 +94,5 @@ services:
       - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=
       - HTTPS_PROXY=http://192.168.3.105:20171
       - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
-      - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
-      - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=AA6o7PPsdJIFoo_
-
-  gotify:
-    image: gotify/server
-    container_name: gotify
-    restart: always
-    ports:
-      - 5080:80
-    environment:
-      GOTIFY_DEFAULTUSER_PASS: admin
-    volumes:
-      - ./gotify_data:/app/data
+      # - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
+      # - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=AA6o7PPsdJIFoo_

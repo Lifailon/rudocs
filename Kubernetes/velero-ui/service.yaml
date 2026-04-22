@@ -11,7 +11,7 @@ spec:
   selector:
     name: velero-ui
   ports:
-  - port: 80
-    name: http
+  - name: http
+    port: 80
     targetPort: http
     protocol: TCP

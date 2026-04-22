@@ -16,11 +16,12 @@ resources:
 - ../kube-state-metrics
 - ../event-exporter
 
+# DevOps
+- ../vault-agent-injector
+- ../reloader
+- ../keel
+
 # Network
 # - ../metallb
 # - ../traefik-ingress
 # - ../istio
-
-# DevOps
-- ../vault-agent-injector
-- ../reloader

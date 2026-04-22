@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: monitoring
+
+helmGlobals:
+  chartHome: .. 
+
+helmCharts:
+  - name: dozzle
+    releaseName: dozzle
+    additionalValuesFiles:
+      - ../dozzle/values.yaml
+  - name: gatus
+    releaseName: gatus
+    additionalValuesFiles:
+      - ../gatus/values.yaml
+  # - name: diun
+  #   releaseName: diun
+  #   additionalValuesFiles:
+  #     - ../diun/values.yaml

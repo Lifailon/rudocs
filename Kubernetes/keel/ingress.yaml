@@ -1,18 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: uptime-kuma-ingress
+  name: keel-ingress
   namespace: monitoring
 spec:
   ingressClassName: traefik
   rules:
-  - host: uptime-kuma.k8s.local
+  - host: keel.k8s.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: uptime-kuma-service
+            name: keel
             port:
-              number: 80
+              number: 9300
