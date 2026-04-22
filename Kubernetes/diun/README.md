@@ -17,6 +17,6 @@ Telegram notifications for Docker registry image updates
 | app.proxy.env.HTTPS_PROXY | string | `"http://192.168.3.105:20171"` | Прокси сервер для зашифрованных запросов HTTP+TLS     |
 | app.proxy.env.HTTP_PROXY | string | `"http://192.168.3.105:20171"` | Прокси сервер для HTTP запросов |
 | app.proxy.env.NO_PROXY | string | `"kubernetes.default,svc.cluster.local,cluster.local,localhost,10.96.0.1,127.0.0.1,192.168.3.0/24"` | Список адресов, запросы к котором идут напрямую без прокси |
-| app.secrets.telegram.id | string | `""` | Идентификатор чата или канала Telegram для получения уведомлений |
+| app.secrets.telegram.chatIds | string | `""` | Идентификаторы чатов или каналов Telegram для получения уведомлений |
 | app.secrets.telegram.token | string | `""` | API ключ для доступа к боту Telegram для отправки уведомлений |
 

@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: {{ .Values.app.name }}
   namespace: {{ .Values.app.namespace }}
+  {{- if .Values.app.annotations }}
+  annotations:
+    {{- toYaml .Values.app.annotations | nindent 4 }}
+  {{- end}}
 spec:
   replicas: {{ .Values.app.replicas }}
   revisionHistoryLimit: {{ .Values.app.revisionCount }}

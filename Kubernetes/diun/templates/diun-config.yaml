@@ -9,4 +9,4 @@ data:
   DIUN_WATCH_SCHEDULE: {{ .Values.app.config.scheduler | default "0 */6 * * *" }}
   LOG_LEVEL: {{ .Values.app.config.logLevel | default "info" }}
   LOG_JSON: {{ .Values.app.config.logJson | default "false" }}
-  TZ: {{ .Values.app.config.timezone | "Etc/UTC" }}
+  TZ: {{ .Values.app.config.timezone | default "Etc/UTC" }}

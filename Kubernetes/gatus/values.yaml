@@ -6,6 +6,8 @@ app:
   imagePullPolicy: Always
   image: twinproduction/gatus
   version: v5.35.0
+  annotations:
+    reloader.stakater.com/auto: "true"
   resources:
     requests:
       cpu: 100m
