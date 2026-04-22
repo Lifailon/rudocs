@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: diun-config
-  namespace: default
+  namespace: {{ .Values.app.namespace }}
 data:
   DIUN_PROVIDERS_KUBERNETES: "true"
   DIUN_PROVIDERS_KUBERNETES_WATCHBYDEFAULT: {{ .Values.app.config.watch | default "true" | quote }}

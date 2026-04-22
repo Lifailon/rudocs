@@ -37,7 +37,7 @@ app:
   volume:
     hostPath:
       enabled: true
-      path: /k8s_data/diun_data
+      path: /k8s_data/gatus_data
     nodeSelector:
       kubernetes.io/hostname: "hv-us-101"
 

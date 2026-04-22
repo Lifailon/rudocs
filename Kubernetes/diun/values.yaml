@@ -1,4 +1,6 @@
 app:
+  # -- Пространство имен для всех ресурсов
+  namespace: monitoring
   proxy:
     # -- Включить использование прокси
     enabled: true

@@ -17,8 +17,8 @@ spec:
     metadata:
       labels:
         app: {{ .Values.app.name }}
-      annotations:
-        config/checksum: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      # annotations:
+      #   config/checksum: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       containers:
         - name: {{ .Values.app.name }}

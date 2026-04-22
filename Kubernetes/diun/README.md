@@ -13,6 +13,7 @@ Telegram notifications for Docker registry image updates
 | app.config.scheduler | string | `"0 */6 * * *"` | Периодичность проверок обновления образов (каждые 6 часов по умолчанию) |
 | app.config.timezone | string | `"Etc/GMT+3"` | Временная зона |
 | app.config.watch | string | `"true"` | Если значение false, то поды не имеющие аннотации - diun.enable: "true" будут игнорироваться |
+| app.namespace | string | `"monitoring"` | Пространство имен для всех ресурсов |
 | app.proxy.enabled | bool | `true` | Включить использование прокси |
 | app.proxy.env.HTTPS_PROXY | string | `"http://192.168.3.105:20171"` | Прокси сервер для зашифрованных запросов HTTP+TLS     |
 | app.proxy.env.HTTP_PROXY | string | `"http://192.168.3.105:20171"` | Прокси сервер для HTTP запросов |

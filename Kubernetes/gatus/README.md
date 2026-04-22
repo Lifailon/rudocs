@@ -35,7 +35,7 @@ Automated developer-oriented Status Page with Alerting
 | app.revisionCount | int | `1` |  |
 | app.version | string | `"v5.35.0"` |  |
 | app.volume.hostPath.enabled | bool | `true` |  |
-| app.volume.hostPath.path | string | `"/k8s_data/diun_data"` |  |
+| app.volume.hostPath.path | string | `"/k8s_data/gatus_data"` |  |
 | app.volume.nodeSelector."kubernetes.io/hostname" | string | `"hv-us-101"` |  |
 | ingress.className | string | `"traefik"` |  |
 | ingress.enabled | bool | `true` |  |
