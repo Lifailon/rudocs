@@ -5,10 +5,22 @@ resources:
 - ../headlamp
 - ../flannel
 
+# Storages
 - ../provisioners/local
 # - ../provisioners/nfs
 # - ../provisioners/smb
+# - ../longhorn
 
+# Monitoring
 - ../kube-metrics-server
 - ../kube-state-metrics
 - ../event-exporter
+
+# Network
+# - ../metallb
+# - ../traefik-ingress
+# - ../istio
+
+# DevOps
+- ../vault-agent-injector
+- ../reloader

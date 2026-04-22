@@ -11,14 +11,14 @@ spec:
     path: Kubernetes/diun
     targetRevision: main
     helm:
-      values: ''
+      values: ""
       valueFiles:
         - values.yaml
       parameters:
         - name: app.secrets.telegram.chatIds
-          value: ''
+          value: ""
         - name: app.secrets.telegram.token
-          value: ''
+          value: ""
   sources: []
   project: default
   syncPolicy: {}

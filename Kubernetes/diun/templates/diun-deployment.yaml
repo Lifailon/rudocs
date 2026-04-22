@@ -46,7 +46,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: diun-config
-            {{- if and .Values.secrets.telegram (and .Values.secrets.telegram.token .Values.secrets.telegram.id) }}
+            {{- with .Values.app.secrets.telegram }}
+            {{- if and .token .chatIds }}
             - secretRef:
                 name: diun-secret
+            {{- end }}
             {{- end }}
