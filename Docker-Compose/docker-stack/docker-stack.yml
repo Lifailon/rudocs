@@ -81,6 +81,7 @@ services:
   wud:
     image: getwud/wud
     container_name: wud
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -93,11 +94,16 @@ services:
       - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=
       - HTTPS_PROXY=http://192.168.3.105:20171
       - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
-    labels:
-      - "wud.watch=true"
-    healthcheck:
-      test: curl --fail http://localhost:3000/health
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+      - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
+      - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=AA6o7PPsdJIFoo_
+
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    restart: always
+    ports:
+      - 5080:80
+    environment:
+      GOTIFY_DEFAULTUSER_PASS: admin
+    volumes:
+      - ./gotify_data:/app/data
