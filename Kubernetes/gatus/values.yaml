@@ -34,6 +34,12 @@ app:
     WEB_UI_PASSWORD: JDJ5JDA5JGdXQ2VjM3hkb2o2ZWN5enAwbnlCT09aMUdLUEYxM2FOM3ZBVGRSdkJiNTljWVhQSU5xYzh1
     TELEGRAM_API_KEY: ""
     TELEGRAM_CHAT_ID: ""
+  volume:
+    hostPath:
+      enabled: true
+      path: /k8s_data/diun_data
+    nodeSelector:
+      kubernetes.io/hostname: "hv-us-101"
 
 service:
   type: LoadBalancer

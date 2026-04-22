@@ -1,8 +1,8 @@
 metrics: true
 
-# storage:
-#   type: sqlite
-#   path: /data/data.db
+storage:
+  type: sqlite
+  path: /data/gatus.db
 
 # htpasswd -nbBC 9 admin GatusAdmin | cut -d: -f2 | tr -d '\n' | base64 | tr -d '\n'
 {{- if .Values.app.config.WEB_UI_AUTH }}

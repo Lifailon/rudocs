@@ -21,13 +21,17 @@ spec:
           imagePullPolicy: {{ .Values.app.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort | default 8080 }}
-          {{- if .Values.app.resources }}
+          {{- with .Values.app.resources }}
           resources:
-            {{- toYaml .Values.app.resources | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.app.env }}
+          {{- with .Values.app.probes.liveness }}
           livenessProbe:
-            {{- toYaml .Values.app.probes.liveness | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.app.probes.readiness }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
             {{- range $key, $val := .Values.app.env }}

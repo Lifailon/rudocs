@@ -3,9 +3,9 @@ kind: Deployment
 metadata:
   name: {{ .Values.app.name }}
   namespace: {{ .Values.app.namespace }}
-  {{- if .Values.app.annotations }}
+  {{- with .Values.app.annotations }}
   annotations:
-    {{- toYaml .Values.app.annotations | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end}}
 spec:
   replicas: {{ .Values.app.replicas }}
@@ -28,13 +28,17 @@ spec:
             - containerPort: {{ .Values.service.targetPort | default 8080 }}
               name: http
               protocol: TCP
-          {{- if .Values.app.resources }}
+          {{- with .Values.app.resources }}
           resources:
-            {{- toYaml .Values.app.resources | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.app.probes.liveness }}
+          {{- with .Values.app.probes.liveness }}
           livenessProbe:
-            {{- toYaml .Values.app.probes.liveness | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.app.probes.readiness }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
             {{- range $key, $val := .Values.app.env }}
@@ -44,7 +48,21 @@ spec:
           volumeMounts:
             - name: {{ .Values.app.name }}-config-volume
               mountPath: /config
+            {{- if .Values.app.volume.hostPath.enabled }}
+            - name: diun-data
+              mountPath: /data
+            {{- end }}
       volumes:
         - name: {{ .Values.app.name }}-config-volume
           configMap:
             name: {{ .Values.app.name }}-config
+        {{- if .Values.app.volume.hostPath.enabled }}
+        - name: diun-data
+          hostPath:
+            path: {{ .Values.app.volume.hostPath.path }}
+            type: DirectoryOrCreate
+        {{- end }}
+      {{- with .Values.app.volume.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
