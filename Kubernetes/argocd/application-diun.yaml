@@ -3,22 +3,22 @@ kind: Application
 metadata:
   name: diun
 spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
   source:
     repoURL: https://github.com/Lifailon/rudocs
     path: Kubernetes/diun
-    targetRevision: rsa
+    targetRevision: main
     helm:
       values: ''
       valueFiles:
         - values.yaml
       parameters:
-        - name: secrets.telegram.id
-          value: 'test'
-        - name: secrets.telegram.token
-          value: test
-  destination:
-    server: https://kubernetes.default.svc
-    targetRevision: main
+        - name: app.secrets.telegram.chatIds
+          value: ''
+        - name: app.secrets.telegram.token
+          value: ''
   sources: []
   project: default
   syncPolicy: {}

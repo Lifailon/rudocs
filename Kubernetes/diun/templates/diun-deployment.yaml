@@ -16,6 +16,7 @@ spec:
         diun.enable: "true"
     spec:
       serviceAccountName: diun
+      restartPolicy: Always
       containers:
         - name: diun
           image: crazymax/diun:4.31
@@ -35,24 +36,17 @@ spec:
             periodSeconds: 86400
             timeoutSeconds: 10
             failureThreshold: 1
+          {{- if .Values.app.proxy.enabled }}
           env:
-            {{- if .Values.app.proxy.enabled }}
             {{- range $key, $val := .Values.app.proxy.env }}
             - name: {{ $key }}
               value: {{ $val | quote }}
             {{- end }}
-            {{- end }}
+          {{- end }}
           envFrom:
             - configMapRef:
                 name: diun-config
+            {{- if and .Values.secrets.telegram (and .Values.secrets.telegram.token .Values.secrets.telegram.id) }}
             - secretRef:
                 name: diun-secret
-          volumeMounts:
-            - mountPath: "/data"
-              name: "diun-data"
-      restartPolicy: Always
-      volumes:
-        - name: "diun-data"
-          hostPath:
-            path: "/tmp/diun-data"
-            type: DirectoryOrCreate
+            {{- end }}

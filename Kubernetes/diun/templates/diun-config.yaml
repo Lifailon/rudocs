@@ -5,8 +5,8 @@ metadata:
   namespace: default
 data:
   DIUN_PROVIDERS_KUBERNETES: "true"
-  DIUN_PROVIDERS_KUBERNETES_WATCHBYDEFAULT: {{ .Values.app.config.watch }}
-  DIUN_WATCH_SCHEDULE: {{ .Values.app.config.scheduler }}
-  LOG_LEVEL: {{ .Values.app.config.logLevel }}
-  LOG_JSON: {{ .Values.app.config.logJson }}
-  TZ: {{ .Values.app.config.timezone }}
+  DIUN_PROVIDERS_KUBERNETES_WATCHBYDEFAULT: {{ .Values.app.config.watch | default "true" }}
+  DIUN_WATCH_SCHEDULE: {{ .Values.app.config.scheduler | default "0 */6 * * *" }}
+  LOG_LEVEL: {{ .Values.app.config.logLevel | default "info" }}
+  LOG_JSON: {{ .Values.app.config.logJson | default "false" }}
+  TZ: {{ .Values.app.config.timezone | "Etc/UTC" }}
