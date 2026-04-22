@@ -1,19 +1,4 @@
 services:
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    restart: always
-    command: --interval 600 --http-api-metrics --http-api-update
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=hv-us-101
-      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
-      - WATCHTOWER_HTTP_API_TOKEN=demotoken
-    ports:
-      - 8088:8080
-
   dockge:
     image: louislam/dockge:1
     container_name: dockge
@@ -27,6 +12,20 @@ services:
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
       - 5001:5001
+
+  lazycompose:
+    image: lifailon/lazycompose:latest
+    container_name: lazycompose
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      - TTYD_MODE=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/lifailon/docker:/docker
+    ports:
+      - 3333:3333
 
   dozzle:
     image: amir20/dozzle:latest
@@ -44,9 +43,9 @@ services:
     ports:
       - 9999:8080
 
-  dozzle-syslog:
+  host-syslog:
     image: alpine
-    container_name: dozzle-syslog
+    container_name: host-syslog
     restart: always
     volumes:
       - /var/log/syslog:/var/log/custom.log
@@ -78,3 +77,27 @@ services:
         AAAAC3NzaC1lZDI1NTE5AAAAICY621efzKYU5D1qYOWsiL2d2QGx/O2IcMV2S4xPYyln
       - HUB_URL=http://beszel-server:8090
       - LISTEN=45876
+
+  wud:
+    image: getwud/wud
+    container_name: wud
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5002:3000
+    environment:
+      - WUD_TRIGGER_DOCKER_LOCAL_ENABLED=true
+      - WUD_TRIGGER_DOCKER_LOCAL_MODE=pull
+      # - WUD_TRIGGER_DOCKER_LOCAL_MODE=recreate
+      - WUD_TRIGGER_TELEGRAM_1_CHATID=
+      - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=
+      - HTTPS_PROXY=http://192.168.3.105:20171
+      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+    labels:
+      - "wud.watch=true"
+    healthcheck:
+      test: curl --fail http://localhost:3000/health
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

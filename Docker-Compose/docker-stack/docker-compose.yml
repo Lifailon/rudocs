@@ -1,22 +1,26 @@
 services:
-  # Web interface for docker manager on remote hosts via lazydocker or ctop
-  docker-web-manager:
-    image: lifailon/docker-web-manager:latest
-    container_name: docker-web-manager
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
-    environment:
-      - WEB_USERNAME=admin
-      - WEB_PASSWORD=admin
-      - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
-      - SSH_USER=lifailon
-      - SSH_PORT=2121
-      - DOCKER_CLIENT=lazydocker
-    ports:
-      - 3333:3333
+################################################### WebUI ###################################################
 
+  # Web interface for docker manager on remote hosts via lazydocker or ctop
+  # docker-web-manager:
+  #   image: lifailon/docker-web-manager:latest
+  #   container_name: docker-web-manager
+  #   restart: always
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - $HOME/.ssh/id_rsa:/root/.ssh/id_rsa
+  #   environment:
+  #     - WEB_USERNAME=admin
+  #     - WEB_PASSWORD=admin
+  #     - SSH_HOSTS=localhost,192.168.3.105,192.168.3.106
+  #     - SSH_USER=lifailon
+  #     - SSH_PORT=2121
+  #     - DOCKER_CLIENT=lazydocker
+  #   ports:
+  #     - 3333:3333
+
+  # WebUI for managing Docker containers, images, networks and volumes
+  # https://github.com/getarcaneapp/arcane
   # arcane:
   #   image: ghcr.io/getarcaneapp/arcane:latest
   #   container_name: arcane
@@ -55,21 +59,8 @@ services:
   #   ports:
   #     - 5432:5432
 
-  # Web interface for docker managing containers
-  # dweebui:
-  #   image: lllllllillllllillll/dweebui:latest
-  #   container_name: dweebui
-  #   restart: always
-  #   environment:
-  #     - PORT=8000
-  #     - SECRET=AdminSecret # for registration
-  #   volumes:
-  #     - ./dweebui_data:/app/config
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   ports:
-  #     - 8000:8000
-
   # Web interface for docker containers (defining traefik tags and image updates, without control)
+  # https://github.com/dockpeek/dockpeek
   # dockpeek:
   #   image: ghcr.io/dockpeek/dockpeek:latest
   #   container_name: dockpeek
@@ -83,9 +74,25 @@ services:
   #   ports:
   #     - 3420:8000
 
+  # Web interface for docker managing containers
+  # https://github.com/lllllllillllllillll/DweebUI
+  # dweebui:
+  #   image: lllllllillllllillll/dweebui:latest
+  #   container_name: dweebui
+  #   restart: always
+  #   environment:
+  #     - PORT=8000
+  #     - SECRET=AdminSecret # for registration
+  #   volumes:
+  #     - ./dweebui_data:/app/config
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - 8000:8000
+
 ################################################### Compose ###################################################
 
   # Web interface for Docker Compose
+  # https://github.com/louislam/dockge
   dockge:
     image: louislam/dockge:1
     container_name: dockge
@@ -107,7 +114,34 @@ services:
     ports:
       - 5001:5001
 
+  # Manage Docker Compose services from the terminal (TUI) or browser
+  # https://github.com/Lifailon/lazycompose
+  # WebUI:  http://192.168.3.101:3333
+  # TUI:    docker attach lazycompose
+  lazycompose:
+    image: lifailon/lazycompose:latest
+    container_name: lazycompose
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      - COMPOSE_PATH=/docker
+      - COMPOSE_FIND_DEPTH=3
+      - TTYD_MODE=true
+      - TTYD_PORT=3333
+      - TTYD_USER=
+      - TTYD_PASS=
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Path to your Docker Compose projects (host:container)
+      - /home/lifailon/docker:/docker
+      # Configuration using your custom commands (optional)
+      # - ./config.yml:/config.yml
+    ports:
+      - 3333:3333
+
   # Web interface to manage Docker containers, compose, files, databases, websites and LLMs
+  # https://github.com/1panel-dev/1panel
   # 1panel:
   #   image: moelin/1panel:latest
   #   container_name: 1panel
@@ -125,6 +159,8 @@ services:
   #   labels:
   #     createdBy: Apps
 
+  # Docker containers and compose stacks management + File Browser
+  # https://github.com/Finsys/dockhand
   # dockhand:
   #   image: fnsys/dockhand:latest
   #   container_name: dockhand
@@ -138,6 +174,7 @@ services:
   #     - /home/lifailon/docker:/docker
 
   # Web interface for Docker (like Dockge)
+  # https://github.com/RA341/dockman
   # dockman:
   #   container_name: dockman
   #   image: ghcr.io/ra341/dockman:latest
@@ -159,67 +196,10 @@ services:
   #   ports:
   #     - 8866:8866
 
-################################################### Images ###################################################
-
-  # Auto-update docker images and restart containers
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    restart: always
-    command: --interval 600 --http-api-metrics --http-api-update
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
-      - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
-      - WATCHTOWER_HTTP_API_TOKEN=demotoken
-    ports:
-      - 8088:8080 # api
-
-  # Docker Image Update Notifier
-  # diun:
-  #   image: crazymax/diun:latest
-  #   container_name: diun
-  #   restart: always
-  #   command: serve
-  #   volumes:
-  #     - ./diun_data:/data
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   environment:
-  #     - TZ=Etc/GMT+3
-  #     - LOG_LEVEL=info
-  #     - LOG_JSON=false
-  #     - DIUN_WATCH_WORKERS=20
-  #     - DIUN_WATCH_SCHEDULE=0 */6 * * *
-  #     - DIUN_WATCH_JITTER=30s
-  #     - DIUN_PROVIDERS_DOCKER=true
-  #     - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
-  #     - DIUN_NOTIF_TELEGRAM_TOKEN=
-  #     - DIUN_NOTIF_TELEGRAM_CHATIDS=
-  #     # https://crazymax.dev/diun/faq/?h=entry#notification-template
-  #     - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
-  #   labels:
-  #     - diun.enable=true
-  #   healthcheck:
-  #     test: ["CMD", "diun", "notif", "test"]
-  #     interval: 24h
-  #     timeout: 10s
-  #     retries: 1
-  #     start_period: 30s
-
-  # Watcher containers and registries and performing actions
-  # wud:
-  #   image: getwud/wud
-  #   container_name: wud
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   ports:
-  #     - 5002:3000
-
 ################################################### Logs ###################################################
 
   # Web interface for docker logs
+  # https://github.com/amir20/dozzle
   dozzle:
     image: amir20/dozzle:latest
     container_name: dozzle
@@ -255,9 +235,9 @@ services:
   #   ports:
   #     - 7007:7007
 
-  # dozzle-journald:
+  # host-journald:
   #   image: debian:bookworm-slim
-  #   container_name: dozzle-journald
+  #   container_name: host-journald
   #   restart: always
   #   volumes:
   #     - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
@@ -273,24 +253,24 @@ services:
   #         apt-get install -y --no-install-recommends systemd \
   #       journalctl --no-pager --follow
 
-  # dozzle-syslog:
-  #   image: alpine
-  #   container_name: dozzle-syslog
-  #   restart: always
-  #   volumes:
-  #     - /var/log/syslog:/var/log/custom.log
-  #   command:
-  #     - tail
-  #     - -f
-  #     - /var/log/custom.log
-
-  # Container for monitoring files from /var/log on host
-  dozzle-varlog:
-    image: lifailon/dozzle-varlog:latest
-    container_name: dozzle-varlog
+  host-syslog:
+    image: alpine
+    container_name: host-syslog
     restart: always
     volumes:
-      - /var/log:/logs
+      - /var/log/syslog:/var/log/custom.log
+    command:
+      - tail
+      - -f
+      - /var/log/custom.log
+
+  # Container for monitoring files from /var/log on host
+  # dozzle-varlog:
+  #   image: lifailon/dozzle-varlog:latest
+  #   container_name: dozzle-varlog
+  #   restart: always
+  #   volumes:
+  #     - /var/log:/logs
 
 ################################################### Monitoring ###################################################
 
@@ -334,10 +314,87 @@ services:
   #     - ./dockmon_data:/app/data
   #     - /var/run/docker.sock:/var/run/docker.sock
   #   healthcheck:
-  #     test: ["CMD", "curl", "-k", "-f", "https://localhost:443/health"]
+  #     test: curl --fail http://localhost:443/health
   #     interval: 30s
   #     timeout: 10s
   #     retries: 3
+
+################################################### Images ###################################################
+
+  # Auto-update docker images and restart containers
+  # https://github.com/containrrr/watchtower
+  # watchtower:
+  #   image: containrrr/watchtower
+  #   container_name: watchtower
+  #   restart: always
+  #   command: --interval 600 --http-api-metrics --http-api-update
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - WATCHTOWER_NOTIFICATIONS=shoutrrr
+  #     - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
+  #     - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+  #     - WATCHTOWER_HTTP_API_TOKEN=demotoken
+  #   ports:
+  #     - 8088:8080 # api
+
+  # Docker Image Update Notifier
+  # https://github.com/crazy-max/diun
+  diun:
+    image: crazymax/diun:latest
+    container_name: diun
+    restart: always
+    command: serve
+    volumes:
+      - ./diun_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=Etc/GMT+3
+      - LOG_LEVEL=info
+      - LOG_JSON=false
+      - DIUN_WATCH_SCHEDULE=0 */6 * * *
+      - DIUN_PROVIDERS_DOCKER=true
+      - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
+      - DIUN_NOTIF_TELEGRAM_CHATIDS=<CHAT/CHANNEL_ID>
+      - DIUN_NOTIF_TELEGRAM_TOKEN=<BOT_API_KEY>
+      # https://crazymax.dev/diun/faq/?h=entry#notification-template
+      - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
+      - HTTPS_PROXY=http://192.168.3.105:20171
+      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+    labels:
+      - diun.enable=true
+    healthcheck:
+      test: diun notif test
+      interval: 24h
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # What's up Docker
+  # https://github.com/getwud/wud
+  wud:
+    image: getwud/wud
+    container_name: wud
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5002:3000
+    environment:
+      - WUD_TRIGGER_DOCKER_LOCAL_ENABLED=true
+      - WUD_TRIGGER_DOCKER_LOCAL_MODE=pull
+      # - WUD_TRIGGER_DOCKER_LOCAL_MODE=recreate
+      - WUD_TRIGGER_TELEGRAM_1_CHATID=<CHAT/CHANNEL_ID>
+      - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=<BOT_API_KEY>
+      - HTTPS_PROXY=http://192.168.3.105:20171
+      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+    labels:
+      - "wud.watch=true"
+    healthcheck:
+      test: curl --fail http://localhost:3000/health
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 ################################################### Proxy ###################################################
 
@@ -390,8 +447,7 @@ services:
 ################################################### Registry ###################################################
 
   # sudo apt install apache2-utils -y && htpasswd -Bbn admin admin > ./creds
-  # mkdir certs && \
-  # openssl req -x509 -new -nodes -days 365 \
+  # mkdir certs && openssl req -x509 -new -nodes -days 365 \
   #   -out ./certs/public.pem \
   #   -keyout ./certs/private.key \
   #   -subj "/C=RU/ST=MSK/L=MSK/O=Registry/OU=Registry/CN=registry.docker.local"
@@ -430,6 +486,8 @@ services:
 
 ################################################### Dockerfile ###################################################
 
+  # WebUI for Dockerfile linter (static analyze)
+  # https://github.com/deckrun/dockadvisor
   dockadvisor:
     image: deckrun/dockadvisor:latest
     container_name: dockadvisor
@@ -437,6 +495,9 @@ services:
     ports:
       - 3030:80
 
+  # Dockerfile linter check and bash scripts to RUN usting ShellCheck
+  # https://github.com/hadolint/hadolint
+  # https://hadolint.github.io/hadolint
   # hadolint:
   #   image: hadolint/hadolint:latest
   #   command: hadolint < Dockerfile
