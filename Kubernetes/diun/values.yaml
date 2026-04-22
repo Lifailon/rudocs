@@ -1,10 +1,28 @@
-config:
-  # Если значение false, то поды не имеющие аннотации - diun.enable: "true" будут игнорироваться
-  watch: "true"
+app:
   proxy:
+    # -- Включить использование прокси
     enabled: true
-    url: "http://192.168.3.105:20171"
-secrets:
-  telegram:
-    token: ""
-    id: ""
+    env:
+      # -- Прокси сервер для HTTP запросов
+      HTTP_PROXY: http://192.168.3.105:20171
+      # -- Прокси сервер для зашифрованных запросов HTTP+TLS    
+      HTTPS_PROXY: http://192.168.3.105:20171
+      # -- Список адресов, запросы к котором идут напрямую без прокси
+      NO_PROXY: "kubernetes.default,svc.cluster.local,cluster.local,localhost,10.96.0.1,127.0.0.1,192.168.3.0/24"
+  config:
+    # -- Если значение false, то поды не имеющие аннотации - diun.enable: "true" будут игнорироваться
+    watch: "true"
+    # -- Периодичность проверок обновления образов (каждые 6 часов по умолчанию)
+    scheduler: "0 */6 * * *"
+    # -- Режим логирования
+    logLevel: "info"
+    # -- Логи в формате json
+    logJson: "false"
+    # -- Временная зона
+    timezone: "Etc/GMT+3"
+  secrets:
+    telegram:
+      # -- API ключ для доступа к боту Telegram для отправки уведомлений
+      token: ""
+      # -- Идентификатор чата или канала Telegram для получения уведомлений
+      id: ""

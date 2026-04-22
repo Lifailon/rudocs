@@ -35,6 +35,13 @@ spec:
             periodSeconds: 86400
             timeoutSeconds: 10
             failureThreshold: 1
+          env:
+            {{- if .Values.app.proxy.enabled }}
+            {{- range $key, $val := .Values.app.proxy.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: diun-config

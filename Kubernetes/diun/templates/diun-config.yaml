@@ -4,14 +4,9 @@ metadata:
   name: diun-config
   namespace: default
 data:
-  TZ: "Etc/GMT+3"
-  LOG_LEVEL: "info"
-  LOG_JSON: "false"
-  DIUN_WATCH_WORKERS: "20"
-  DIUN_WATCH_SCHEDULE: "0 */6 * * *"
-  DIUN_WATCH_JITTER: "30s"
   DIUN_PROVIDERS_KUBERNETES: "true"
-  DIUN_PROVIDERS_KUBERNETES_WATCHBYDEFAULT: "{{ .Values.config.watch }}"
-  {{- if .Values.config.proxy.enabled }}
-  DIUN_NOTIF_TELEGRAM_PROXYURL: "{{ .Values.config.proxy.url }}"
-  {{- end }}
+  DIUN_PROVIDERS_KUBERNETES_WATCHBYDEFAULT: {{ .Values.app.config.watch }}
+  DIUN_WATCH_SCHEDULE: {{ .Values.app.config.scheduler }}
+  LOG_LEVEL: {{ .Values.app.config.logLevel }}
+  LOG_JSON: {{ .Values.app.config.logJson }}
+  TZ: {{ .Values.app.config.timezone }}

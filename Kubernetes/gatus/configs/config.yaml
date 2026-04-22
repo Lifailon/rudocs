@@ -86,24 +86,8 @@ endpoints:
     group: external
     url: https://api.telegram.org
     interval: 10m
-    conditions:
-      - "[STATUS] == 200"
-      - "[RESPONSE_TIME] < 2s"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-    alerts:
-      - type: telegram
-        enabled: true
-        failure-threshold: 3
-        success-threshold: 3
-        minimum-reminder-interval: 30m
-        send-on-resolved: true
-
-  - name: "Telegram API using Proxy"
-    group: external
-    url: https://api.telegram.org
-    interval: 10m
-    client:
-      proxy-url: http://192.168.3.105:20171
+    # client:
+    #   proxy-url: http://192.168.3.105:20171
     conditions:
       - "[STATUS] == 200"
       - "[RESPONSE_TIME] < 2s"
@@ -132,20 +116,6 @@ endpoints:
       - "[BODY].method == GET"
       - "[BODY].url == pat(https://httpbin*)"
       - "[BODY].url == any(https://httpbingo.org/anything,https://httpbin.org/anything)"
-
-  # - name: "HTTPBin"
-  #   group: external
-  #   url: https://httpbingo.org/basic-auth/admin/admin
-  #   interval: 10m
-  #   headers:
-  #     Authorization: "Basic YWRtaW46YWRtaW4="
-  #   conditions:
-  #     - "[STATUS] == 200"
-  #     - "[RESPONSE_TIME] < 2s"
-  #     - "[CERTIFICATE_EXPIRATION] > 168h"
-  #     - "[BODY].authenticated == true"
-  #     - "[BODY].authorized == true"
-  #     - "[BODY].user == admin"
 
   # HTTP Kubernetes cluster health check
   - name: "node-01 (hv-us-101)"

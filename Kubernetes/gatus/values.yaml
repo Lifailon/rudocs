@@ -22,10 +22,10 @@ app:
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
-  args: "--watch"
   env:
     HTTP_PROXY: http://192.168.3.105:20171
     HTTPS_PROXY: http://192.168.3.105:20171
+    NO_PROXY: "kubernetes.default,svc.cluster.local,cluster.local,localhost,10.96.0.1,127.0.0.1,192.168.3.0/24"
   config:
     WEB_UI_AUTH: false
     WEB_UI_USERNAME: admin

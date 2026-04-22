@@ -32,10 +32,6 @@ spec:
           livenessProbe:
             {{- toYaml .Values.app.probes.liveness | nindent 12 }}
           {{- end }}
-          {{- if .Values.app.args }}
-          args:
-            {{- splitList " " .Values.app.args | toYaml | nindent 12 }}
-          {{- end }}
           env:
             {{- range $key, $val := .Values.app.env }}
             - name: {{ $key }}
