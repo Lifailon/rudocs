@@ -13,6 +13,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: beszel-service
+            name: beszel-server-service
             port:
               number: 80

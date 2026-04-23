@@ -4,5 +4,4 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
-- ./beszel-server
-- ./beszel-agent
+- daemon-set.yaml

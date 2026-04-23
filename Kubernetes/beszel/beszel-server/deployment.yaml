@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beszel-server
+  namespace: monitoring
+  labels:
+    app: beszel-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beszel-server
+  template:
+    metadata:
+      labels:
+        app: beszel-server
+    spec:
+      containers:
+        - name: beszel-server
+          image: henrygd/beszel:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8090
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: beszel-data
+              mountPath: /beszel_data
+      volumes:
+        - name: beszel-data
+          persistentVolumeClaim:
+            claimName: beszel-pvc

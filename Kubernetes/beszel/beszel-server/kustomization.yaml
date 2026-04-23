@@ -4,5 +4,7 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
-- ./beszel-server
-- ./beszel-agent
+- pvc.yaml
+- deployment.yaml
+- service.yaml
+- ingress.yaml
