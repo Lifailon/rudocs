@@ -3,12 +3,11 @@ kind: Application
 metadata:
   name: kube-system-stack
 spec:
-  destination:
-    server: https://kubernetes.default.svc
+  project: default
+  syncPolicy: {}
   source:
     path: Kubernetes/kube-system-stack
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
-  sources: []
-  project: default
-  syncPolicy: {}
+  destination:
+    server: https://kubernetes.default.svc

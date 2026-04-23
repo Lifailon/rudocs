@@ -45,4 +45,4 @@ spec:
         #     pass: "admin"
   destination:
     server: https://kubernetes.default.svc
-    namespace: keel
+    namespace: monitoring

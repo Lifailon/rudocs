@@ -1,14 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: reloader
+  name: mon-stack
 spec:
   project: default
   syncPolicy: {}
   source:
-    path: Kubernetes/reloader
+    path: Kubernetes/mon-stack
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
+    plugin:
+      name: helmfile
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

@@ -3,13 +3,12 @@ kind: Application
 metadata:
   name: velero-ui
 spec:
-  destination:
-    namespace: velero-ui
-    server: https://kubernetes.default.svc
+  project: default
+  syncPolicy: {}
   source:
     path: Kubernetes/velero-ui
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
-  sources: []
-  project: default
-  syncPolicy: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero-ui

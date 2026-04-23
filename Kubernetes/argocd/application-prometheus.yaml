@@ -4,6 +4,7 @@ metadata:
   name: prometheus
 spec:
   project: default
+  syncPolicy: {}
   source:
     repoURL: https://github.com/prometheus-community/helm-charts
     path: charts/prometheus

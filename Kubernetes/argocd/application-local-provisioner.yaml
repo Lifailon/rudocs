@@ -3,13 +3,12 @@ kind: Application
 metadata:
   name: local-path-provisioner
 spec:
-  destination:
-    namespace: local-path-storage
-    server: https://kubernetes.default.svc
+  project: default
+  syncPolicy: {}
   source:
     path: Kubernetes/provisioners/local
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
-  sources: []
-  project: default
-  syncPolicy: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: local-path-storage

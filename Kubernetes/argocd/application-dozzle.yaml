@@ -3,13 +3,16 @@ kind: Application
 metadata:
   name: dozzle
 spec:
-  destination:
-    namespace: monitoring
-    server: https://kubernetes.default.svc
+  project: default
+  syncPolicy:
+    automated:
+      enabled: false
+  syncOptions:
+    - CreateNamespace=true
   source:
     path: Kubernetes/dozzle
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
-  sources: []
-  project: default
-  syncPolicy: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring

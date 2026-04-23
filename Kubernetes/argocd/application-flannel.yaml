@@ -3,13 +3,12 @@ kind: Application
 metadata:
   name: flannel
 spec:
-  destination:
-    namespace: kube-flannel
-    server: https://kubernetes.default.svc
+  project: default
+  syncPolicy: {}
   source:
     path: Kubernetes/flannel
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
-  sources: []
-  project: default
-  syncPolicy: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-flannel

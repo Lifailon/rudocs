@@ -3,13 +3,12 @@ kind: Application
 metadata:
   name: beszel
 spec:
-  destination:
-    namespace: monitoring
-    server: https://kubernetes.default.svc
+  project: default
+  syncPolicy: {}
   source:
     path: Kubernetes/beszel
     repoURL: https://github.com/Lifailon/rudocs
     targetRevision: main
-  sources: []
-  project: default
-  syncPolicy: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring

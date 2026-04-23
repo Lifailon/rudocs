@@ -4,6 +4,7 @@ metadata:
   name: openrouter-bot
 spec:
   project: default
+  syncPolicy: {}
   source:
     repoURL: https://github.com/Lifailon/openrouter-bot
     path: chart
@@ -24,7 +25,3 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: telegram
-  syncPolicy:
-    automated: null
-    syncOptions:
-      - CreateNamespace=true

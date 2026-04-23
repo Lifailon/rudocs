@@ -3,9 +3,8 @@ kind: Application
 metadata:
   name: diun
 spec:
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: monitoring
+  project: default
+  syncPolicy: {}
   source:
     repoURL: https://github.com/Lifailon/rudocs
     path: Kubernetes/diun
@@ -19,6 +18,6 @@ spec:
           value: ""
         - name: app.secrets.telegram.token
           value: ""
-  sources: []
-  project: default
-  syncPolicy: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
