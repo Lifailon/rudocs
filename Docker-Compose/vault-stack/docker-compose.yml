@@ -1,0 +1,28 @@
+services:
+  consul-master:
+    image: hashicorp/consul:latest
+    container_name: consul-master
+    restart: unless-stopped
+    ports:
+      - 8500:8500
+    volumes:
+      - ./consul_config:/consul/config
+      - ./consul_data_master:/consul/data
+    command: "agent -server -bootstrap-expect=1 -node=consul-master -client=0.0.0.0 -data-dir=/consul/data"
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - SKIP_SETCAP=true
+      - SKIP_CHOWN=true
+    ports:
+      - 8200:8200
+    volumes:
+      - ./vault_config:/vault/config
+      # - ./vault_data:/vault/file
+    command: vault server -config=/vault/config/vault.hcl

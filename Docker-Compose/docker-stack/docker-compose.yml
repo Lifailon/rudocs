@@ -281,6 +281,8 @@ services:
     restart: always
     extra_hosts:
       - host.docker.internal:host-gateway
+    environment:
+      - HTTPS_PROXY=http://192.168.3.105:20171
     volumes:
       - ./beszel_server_data:/beszel_data
     ports:
