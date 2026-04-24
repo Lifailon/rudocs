@@ -34,9 +34,11 @@ Automated developer-oriented Status Page with Alerting
 | app.resources.requests.memory | string | `"64Mi"` |  |
 | app.revisionCount | int | `1` |  |
 | app.version | string | `"v5.35.0"` |  |
-| app.volume.hostPath.enabled | bool | `true` |  |
+| app.volume.hostPath.enabled | bool | `false` |  |
+| app.volume.hostPath.nodeSelector."kubernetes.io/hostname" | string | `"hv-us-101"` |  |
 | app.volume.hostPath.path | string | `"/k8s_data/gatus_data"` |  |
-| app.volume.nodeSelector."kubernetes.io/hostname" | string | `"hv-us-101"` |  |
+| app.volume.pvc.claimName | string | `"local-path-pvc"` |  |
+| app.volume.pvc.enabled | bool | `true` |  |
 | ingress.className | string | `"traefik"` |  |
 | ingress.enabled | bool | `true` |  |
 | ingress.host | string | `"gatus.k8s.local"` |  |

@@ -36,10 +36,13 @@ app:
     TELEGRAM_CHAT_ID: ""
   volume:
     hostPath:
-      enabled: true
+      enabled: false
       path: /k8s_data/gatus_data
-    nodeSelector:
-      kubernetes.io/hostname: "hv-us-101"
+      nodeSelector:
+        kubernetes.io/hostname: "hv-us-101"
+    pvc:
+      enabled: true
+      claimName: local-path-pvc
 
 service:
   type: LoadBalancer

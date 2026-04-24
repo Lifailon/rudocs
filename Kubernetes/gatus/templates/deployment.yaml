@@ -48,8 +48,8 @@ spec:
           volumeMounts:
             - name: {{ .Values.app.name }}-config-volume
               mountPath: /config
-            {{- if .Values.app.volume.hostPath.enabled }}
-            - name: diun-data
+            {{- if or .Values.app.volume.hostPath.enabled .Values.app.volume.pvc.enabled }}
+            - name: gatus-data
               mountPath: /data
             {{- end }}
       volumes:
@@ -57,12 +57,18 @@ spec:
           configMap:
             name: {{ .Values.app.name }}-config
         {{- if .Values.app.volume.hostPath.enabled }}
-        - name: diun-data
+        - name: gatus-data
           hostPath:
             path: {{ .Values.app.volume.hostPath.path }}
             type: DirectoryOrCreate
+        {{- else if .Values.app.volume.pvc.enabled }}
+        - name: gatus-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.app.volume.pvc.claimName }}
         {{- end }}
-      {{- with .Values.app.volume.nodeSelector }}
+      {{- if .Values.app.volume.hostPath.enabled }}
+      {{- with .Values.app.volume.hostPath.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
