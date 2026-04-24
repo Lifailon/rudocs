@@ -19,6 +19,7 @@ spec:
       containers:
         - name: operator
           image: lifailon/event-notify-operator:v1
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: 100m
