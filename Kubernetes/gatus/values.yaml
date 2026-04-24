@@ -42,7 +42,9 @@ app:
         kubernetes.io/hostname: "hv-us-101"
     pvc:
       enabled: true
+      storageClassName: local-path
       claimName: local-path-pvc
+      size: 1Gi
 
 service:
   type: LoadBalancer
