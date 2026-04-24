@@ -14,8 +14,8 @@ spec:
         app: event-notify-operator
     spec:
       # SA с правами выполнения kubectl get events
-      serviceAccountName: event-notify-operator-sa
       # serviceAccountName: event-exporter-sa
+      serviceAccountName: event-notify-operator-sa
       containers:
         - name: operator
           image: lifailon/event-notify-operator:v1
@@ -33,6 +33,11 @@ spec:
                 secretKeyRef:
                   name: shoutrrr-secrets
                   key: SHOUTRRR-TELEGRAM
-            # Статическая и стандартная переменная для настройки пересылки трафика через прокси сервер
+            # Статическая переменная для фильтрации событий
+            - name: WARNING_ONLY
+              value: "false"
+            # Стандартные переменные для настройки пересылки трафика через прокси сервер и исключения
             - name: HTTPS_PROXY
-              values: http://192.168.3.105:20171
+              value: http://192.168.3.105:20171
+            - name: NO_PROXY
+              value: kubernetes.default,svc.cluster.local,cluster.local,localhost,10.96.0.1,127.0.0.1,192.168.3.0/24

@@ -1,11 +1,14 @@
 FROM flant/shell-operator:latest
 
 ARG TARGETARCH
-ARG SHOUTRRR_VERSION=0.8.0
+ARG SHOUTRRR_VERSION=v0.8.0
 
 RUN apk add --no-cache curl tar && \
-    curl -L "https://github.com{SHOUTRRR_VERSION}/shoutrrr-linux-${TARGETARCH}.tar.gz" \
+    curl -Lf "https://github.com/containrrr/shoutrrr/releases/download/${SHOUTRRR_VERSION}/shoutrrr_linux_${TARGETARCH}.tar.gz" \
+    -o /tmp/shoutrrr.tar.gz && \
+    tar -xzf /tmp/shoutrrr.tar.gz -C /usr/local/bin shoutrrr && \
     chmod +x /usr/local/bin/shoutrrr && \
+    rm /tmp/shoutrrr.tar.gz && \
     apk del curl tar
 
 COPY event-notify-operator.sh /hooks/handler.sh
