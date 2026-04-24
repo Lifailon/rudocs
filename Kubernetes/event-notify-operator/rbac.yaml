@@ -1,21 +1,18 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: telegram-operator-sa
-  namespace: default
+  name: event-notify-operator-sa
+  namespace: monitoring
 
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: telegram-operator-role
+  name: event-notify-operator-role
 rules:
-  # Права на CRD TelegramNotify
-  - apiGroups: ["api.tg.com"]
-    resources: ["notify"]
-    verbs: ["get", "list", "watch"]
-  # Права на системные события
+  # Права на чтение и наблюдение системных событий
+  # Выполнение команды kubectl get events
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "list", "watch"]
@@ -25,12 +22,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: telegram-operator-rb
+  name: event-notify-operator-rb
 subjects:
   - kind: ServiceAccount
-    name: telegram-operator-sa
-    namespace: default
+    name: event-notify-operator-sa
+    namespace: monitoring
 roleRef:
   kind: ClusterRole
-  name: telegram-operator-role
+  name: event-notify-operator-role
   apiGroup: rbac.authorization.k8s.io

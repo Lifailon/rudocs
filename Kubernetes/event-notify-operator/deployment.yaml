@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-notify-operator
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-notify-operator
+  template:
+    metadata:
+      labels:
+        app: event-notify-operator
+    spec:
+      # SA с правами выполнения kubectl get events
+      serviceAccountName: event-notify-operator-sa
+      # serviceAccountName: event-exporter-sa
+      containers:
+        - name: operator
+          image: lifailon/event-notify-operator:v1
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          env:
+            # Прокидываем переменную окружения из секрета в контейнер
+            - name: SHOUTRRR_TELEGRAM
+              valueFrom:
+                secretKeyRef:
+                  name: shoutrrr-secrets
+                  key: SHOUTRRR-TELEGRAM
+            # Статическая и стандартная переменная для настройки пересылки трафика через прокси сервер
+            - name: HTTPS_PROXY
+              values: http://192.168.3.105:20171

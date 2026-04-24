@@ -20,8 +20,15 @@ spec:
       serviceAccountName: event-exporter-sa
       containers:
         - name: event-exporter
-          image: ghcr.io/resmoio/kubernetes-event-exporter:latest
+          image: ghcr.io/resmoio/kubernetes-event-exporter:v1.7
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
           env:
             - name: TELEGRAM_API_KEY
               valueFrom:
@@ -33,6 +40,8 @@ spec:
                 secretKeyRef:
                   name: telegram-secrets
                   key: TELEGRAM-CHAT-ID
+            - name: HTTPS_PROXY
+              values: http://192.168.3.105:20171
           args:
             - -conf=/data/config.yaml
           volumeMounts:

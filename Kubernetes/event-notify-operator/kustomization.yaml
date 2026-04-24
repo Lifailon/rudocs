@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
-- crd.yaml
 - rbac.yaml
-- telegram-secrets.yaml
+- shoutrrr-secrets.yaml
 - deployment.yaml
