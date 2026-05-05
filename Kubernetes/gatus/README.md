@@ -39,6 +39,8 @@ Automated developer-oriented Status Page with Alerting
 | app.volume.hostPath.path | string | `"/k8s_data/gatus_data"` |  |
 | app.volume.pvc.claimName | string | `"local-path-pvc"` |  |
 | app.volume.pvc.enabled | bool | `true` |  |
+| app.volume.pvc.size | string | `"1Gi"` |  |
+| app.volume.pvc.storageClassName | string | `"local-path"` |  |
 | ingress.className | string | `"traefik"` |  |
 | ingress.enabled | bool | `true` |  |
 | ingress.host | string | `"gatus.k8s.local"` |  |

@@ -104,9 +104,9 @@
     - SourceForge:
         icon: https://a.fsdn.com/con/img/sandiego/svg/originals/sf-icon-orange-no_sf.svg
         href: https://sourceforge.net/directory/windows
-    - Web Installer:
-        icon: https://webinstall.dev/favicon.ico
-        href: https://webinstall.dev
+    - F-Droid:
+        icon: f-droid.png
+        href: https://f-droid.org/ru/packages
     - 🧲 Trackers:
         - Apps Torrent:
             icon: apple.png
@@ -255,6 +255,12 @@
             - ASCII Flow:
                 icon: https://asciiflow.com/public/favicon.png
                 href: https://asciiflow.com
+            - the SVG Icons:
+                icon: https://thesvg.org/logo-transparent.svg
+                href: https://thesvg.org
+            - 3D SVG:
+                icon: https://3dsvg.design/icon.svg
+                href: https://3dsvg.design
             - SVG Editor:
                 icon: https://raw.githubusercontent.com/SVG-Edit/svgedit/refs/heads/master/src/editor/images/logo.svg
                 href: https://svgplayground.com
@@ -282,9 +288,6 @@
             - PlantUML:
                 icon: plantuml.png
                 href: https://www.plantuml.com/plantuml/uml
-            # - Sweet Home 3D:
-            #     icon: https://www.sweethome3d.com/images/icon.png
-            #     href: https://sweethome3d.com/SweetHome3DJSOnline.jsp?lang=ru
 
 - AI:
     - ChatGPT:
@@ -390,15 +393,9 @@
         - Portainer Templates:
             icon: portainer.png
             href: https://portainer-templates.as93.net
-        - Dockerfile Configuration:
+        - Dockerfile Generator:
             icon: https://www.dockerfile.app/logo.png
             href: https://www.dockerfile.app
-        # - Dockerfile Editor:
-        #     icon: https://www.dockerfile.app/logo.png
-        #     href: https://www.dockerfile.app/editor
-        # - Docker Compose Editor:
-        #     icon: https://www.dockerfile.app/logo.png
-        #     href: https://www.dockerfile.app/composer
         - Dockerfile Hadolint:
             icon: https://hadolint.github.io/hadolint/img/cat_container.png
             href: https://hadolint.github.io/hadolint
@@ -441,9 +438,6 @@
     - Reference:
         icon: https://cheatsheets.zip/images/favicon.png
         href: https://cheatsheets.zip
-    # - Quick Reference:
-    #     icon: https://quickref.me/images/favicon.png
-    #     href: https://quickref.me
     - Over API:
         icon: https://overapi.com/favicon.ico
         href: https://overapi.com
@@ -515,9 +509,6 @@
         - HTTPie API Client:
             icon: https://httpie.io/app/Favicons/favicon-32x32.png
             href: https://httpie.io/app
-        # - Scalar API Client:
-        #     icon: https://scalar.com/favicon.png
-        #     href: https://client.scalar.com/workspace/default/request/default
         - Scalar API Reference:
             icon: https://docs.scalar.com/favicon.png
             href: https://docs.scalar.com/editor#/reference
@@ -568,21 +559,24 @@
     - JSON Crack:
         icon: https://jsoncrack.com/favicon.ico
         href: https://jsoncrack.com/editor
-    - JWT Debugger:
-        icon: https://www.jwt.io/img/icon.svg
-        href: https://www.jwt.io
+    - JSON Viewer:
+        icon: https://codebeautify.org/img/cb.png
+        href: https://codebeautify.org/jsonviewer
     - QuickType (JSON to Code):
         icon: https://app.quicktype.io/favicon.ico
         href: https://app.quicktype.io
+    - JWT Debugger:
+        icon: https://www.jwt.io/img/icon.svg
+        href: https://www.jwt.io
     - Go Playground:
         icon: https://go.dev/images/favicon-gopher.png
         href: https://go.dev/play
-    - Go Better Playground:
+    - Better Go Playground:
         icon: https://raw.githubusercontent.com/x1unix/go-playground/refs/heads/master/web/public/favicon.ico
         href: https://goplay.tools
-    # - Scriggo Playground:
-    #     icon: https://play.scriggo.com/favicon.ico
-    #     href: https://play.scriggo.com
+    - Scriggo Go Playground:
+        icon: https://play.scriggo.com/favicon.ico
+        href: https://play.scriggo.com
     - Go Linters:
         icon: https://golangci-lint.run/images/logo-circle.svg
         href: https://golangci-lint.run/docs/linters
@@ -606,18 +600,27 @@
     - JS Playground:
         icon: https://jsplayground.dev/logo.svg
         href: https://jsplayground.dev
+    - PlayJS:
+        icon: https://playjs.dev/icon.svg
+        href: https://playjs.dev/
     - Monakai Code Editor:
         icon: https://monokai.vercel.app/code.webp
         href: https://monokai.vercel.app
-    - Groovy Compiler:
+    - Groovy One Compiler:
         icon: https://gwc-experiment.appspot.com/favicon.ico
         href: https://onecompiler.com/groovy
-    # - Groovy Web Console:
-    #     icon: https://gwc-experiment.appspot.com/favicon.ico
-    #     href: https://gwc-experiment.appspot.com
-    # - Groovy IDE:
-    #     icon: https://groovy-lang.org/img/favicon.ico
-    #     href: https://groovyide.com/playground
+    - Groovy Web Console:
+        icon: https://gwc-experiment.appspot.com/favicon.ico
+        href: https://gwc-experiment.appspot.com
+    - Groovy IDE Playground:
+        icon: https://groovy-lang.org/img/favicon.ico
+        href: https://groovyide.com/playground
+    - DartPad:
+        icon: https://dartpad.dev/favicon.png
+        href: https://dartpad.dev
+    - Web ADB:
+        icon: https://app.webadb.com/favicon.ico
+        href: https://app.webadb.com
     - Vue SFC Playground:
         icon: https://play.vuejs.org/logo.svg
         href: https://play.vuejs.org
@@ -630,25 +633,21 @@
     - Vueform Builder:
         icon: https://builder.vueform.com/favicon.ico
         href: https://builder.vueform.com/demo
-    # - SurveyJS Creator:
-    #     icon: https://surveyjs.io/icon.svg
-    #     href: https://surveyjs.io/create-free-survey
-    # - Open Chakra UI:
-    #     icon: https://openchakra.app/favicon-32x32.png
-    #     href: https://openchakra.app
-    # - formBuilder:
-    #     icon: https://formbuilder.online/assets/img/favicon-32x32.png
-    #     href: https://formbuilder.online
-    #     # href: https://kevinchappell.github.io/formBuilder
-    - GrapesJS:
-        icon: https://github.com/GrapesJS/grapesjs/blob/dev/docs/.vuepress/public/logo-icon.png?raw=true
-        href: https://grapesjs.com/demo.html
     - OpenSilver XAML Designer:
         icon: https://xaml.io/favicon.ico
         href: https://xaml.io
-    # - Pygments:
-    #     icon: https://pygments.org/_static/favicon.ico
-    #     href: https://pygments.org/demo
+    - GrapesJS:
+        icon: https://github.com/GrapesJS/grapesjs/blob/dev/docs/.vuepress/public/logo-icon.png?raw=true
+        href: https://grapesjs.com/demo.html
+    - SurveyJS Creator:
+        icon: https://surveyjs.io/icon.svg
+        href: https://surveyjs.io/create-free-survey
+    - Open Chakra UI:
+        icon: https://openchakra.app/favicon-32x32.png
+        href: https://openchakra.app
+    - Pygments:
+        icon: https://pygments.org/_static/favicon.ico
+        href: https://pygments.org/demo
     - Chroma Playground:
         icon: https://pygments.org/_static/favicon.ico
         href: https://swapoff.org/chroma/playground
@@ -681,7 +680,10 @@
         - Jitsi Meet:
             icon: jitsi-meet.png
             href: https://meet.jit.si
-        - Recorder:
+        - Web Cammic Test:
+            icon: https://webcammictest.com/favicon.ico
+            href: https://webcammictest.com/ru
+        - Video Recorder:
             icon: https://recorder.getcontrast.io/logo.svg
             href: https://recorder.getcontrast.io
         - Video Editor:
@@ -690,15 +692,24 @@
         - Cobalt Media Downloader:
             icon: cobalt.png
             href: https://cobalt.tools
-        # - Emoji finder:
-        #     icon: https://emoji.muan.co/fav.png
-        #     href: https://emoji.muan.co
-        # - Shields:
-        #     icon: https://shields.io/img/favicon.ico
-        #     href: https://shields.io
-        # - Icons:
-        #     icon: https://icon-icons.com/favicon.ico
-        #     href: https://icon-icons.com/ru
+        - Emoji finder:
+            icon: https://emoji.muan.co/fav.png
+            href: https://emoji.muan.co
+        - Shields:
+            icon: https://shields.io/img/favicon.ico
+            href: https://shields.io
+        - Google Fonts Icons:
+            icon: https://www.gstatic.com/images/icons/material/apps/fonts/1x/catalog/v5/favicon.svg
+            href: https://fonts.google.com/icons
+        - Flutter Icons:
+            icon: https://api.flutter.dev/flutter/static-assets/favicon.png
+            href: https://api.flutter.dev/flutter/material/Icons-class.html
+        - Font Awesome:
+            icon: https://fontawesome.com/images/favicon/icon.svg
+            href: https://fontawesome.com
+        - Icons:
+            icon: https://icon-icons.com/favicon.ico
+            href: https://icon-icons.com/ru
 
 - 🐧 Nodes:
     - node-01 (hv-us-101):

@@ -45,6 +45,8 @@ app:
       storageClassName: local-path
       claimName: local-path-pvc
       size: 1Gi
+      # Path format: /opt/local-path-provisioner/pvc-<id>_<namespace>_<claimName>
+      # ls /opt/local-path-provisioner/pvc-*_monitoring_local-path-pvc/
 
 service:
   type: LoadBalancer

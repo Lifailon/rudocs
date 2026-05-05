@@ -19,6 +19,19 @@ services:
     ports:
       - 9117:9117
 
+  # prowlarr:
+  #   image: lscr.io/linuxserver/prowlarr:latest
+  #   container_name: prowlarr
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Etc/UTC+3
+  #   volumes:
+  #     - ./prowlarr_conf:/config
+  #   ports:
+  #     - 9696:9696
+
   kinozal-bot:
     image: lifailon/kinozal-bot:latest
     container_name: kinozal-bot
@@ -343,19 +356,6 @@ services:
   #     - ./sonarr_downloads:/downloads
   #   ports:
   #     - 7878:7878
-
-  # prowlarr:
-  #   image: lscr.io/linuxserver/prowlarr:latest
-  #   container_name: prowlarr
-  #   restart: unless-stopped
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - TZ=Etc/UTC+3
-  #   volumes:
-  #     - ./prowlarr_conf:/config
-  #   ports:
-  #     - 9696:9696
 
   # flexget:
   #   image: flexget/flexget
