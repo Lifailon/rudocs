@@ -27,14 +27,38 @@ services:
       - WGUI_MANAGE_START=true
       - WGUI_MANAGE_RESTART=true
       - WGUI_DEFAULT_CLIENT_USE_SERVER_DNS=false
-      # Разрешает доступ между клиентами внутри подсети
-      - WGUI_SERVER_POST_UP_SCRIPT=iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT;
-      # Запрещать по умолчанию все, что не разрешено
-      # iptables -P FORWARD DROP;
       # Разрешает выход в интернет через внешний интерфейс
       # iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT;
-      # Разрешает ответы на уже установленные соединения из интернета
-      # iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT;
+
     volumes:
       - ./wg_db:/app/db
       - ./wg_etc:/etc/wireguard
+    entrypoint: |
+      sh -c "
+        # Разрешает прохождение трафика между клиентами внутри VPN
+        iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT
+        # Разрешает все ответы на уже установленные соединения из Интернета
+        iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+        # iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT
+        # Разрешаем VPN-клиентам устанавливать новые соединения в Интернет через внешний интерфейс
+        iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT
+        # Разрешает выход в интернет через внешний интерфейс
+        iptables -t nat -A POSTROUTING -s 10.252.1.0/24 -o eth0 -j MASQUERADE
+        # Разрешаем прохождение трафика от хостовой подсети в VPN подсеть
+        iptables -t nat -A POSTROUTING -s 172.50.0.0/24 -o wg0 -j MASQUERADE
+        ./init.sh
+      "
+    networks:
+      wg_net:
+        ipv4_address: 172.50.0.2
+
+# Маршрут до подсети VPN на хосте
+# sudo ip route add 10.252.1.0/24 via 172.50.0.2
+networks:
+  wg_net:
+    ipam:
+      config:
+        - subnet: 172.50.0.0/24
+          gateway: 172.50.0.1
+
+# docker exec -it wg wg show
