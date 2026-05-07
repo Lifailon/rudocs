@@ -26,6 +26,15 @@
   - [Rebase](#rebase)
   - [Bisect](#bisect)
   - [Remote](#remote)
+- [SQL](#sql)
+  - [Базовые инструкции](#базовые-инструкции)
+  - [Ключевые слова](#ключевые-слова)
+  - [Логические операторы](#логические-операторы)
+  - [Функции вычисления](#функции-вычисления)
+  - [Операторы объединения](#операторы-объединения)
+  - [Настройка ролей](#настройка-ролей)
+  - [Настройка схем](#настройка-схем)
+  - [Таблицы связей](#таблицы-связей)
 - [Docker](#docker)
   - [Namespaces/Cgroups](#namespacescgroups)
   - [Namespace Enter](#namespace-enter)
@@ -69,11 +78,12 @@
     - [nfs](#nfs)
     - [smb](#smb)
   - [Network](#network-1)
-    - [config](#config)
+    - [config](#config-1)
     - [external](#external)
     - [host](#host)
     - [macvlan](#macvlan)
     - [ipvlan](#ipvlan)
+  - [Depends on](#depends-on)
 - [Swarm](#swarm)
 - [Kubernetes](#kubernetes)
   - [Kompose](#kompose)
@@ -435,13 +445,15 @@ git stash pop
 # Отключить прокрутку (включить --no-pager для всех команд по умолчанию)
 git config --global core.pager cat
 
-# Отобразить историю коммитов для всех веток (--all) в сжатом формате (--oneline)
+# Отобразить историю коммитов для всех веток (--all) в сжатом формате (--oneline) или с изменениями в файлах (--patch)
 git log --all --oneline
 git log --all --graph --oneline
 git log --all --graph --date=short --pretty='%ad %an %h %S: %s'
 git log --all --graph --date=short --pretty='%C(cyan)%ad%Creset %C(green)%an%Creset %C(yellow)%h%Creset %C(magenta)%S%Creset: %s'
 # Отобразить историю коммитов указанного пользователя
 git log --author="Lifailon"
+# Найти все коммиты, где в коде указанный текст в строке добавлися иди удалился
+git log -S "func_name" --oneline
 
 # Отобразить историю локальных изменений с момента клонирования репозитория и удаленные коммиты, которых уже нет в истории
 git reflog
@@ -449,6 +461,8 @@ git reflog
 git show f6034e9
 # Отобразить кто и когда внес изменения в каждую строку указанного файла
 git blame README.md
+# Узнать какой коммит принес изменения в указанные строки файла
+git blame -L 10,20 main.go
 ```
 
 ### Reset
@@ -562,6 +576,168 @@ git diff --stat HEAD..origin/dev
 git merge origin/dev --no-edit
 # Отправляем изменения в удаленный репозиторий
 git push gitlab main
+```
+
+## SQL
+
+### Базовые инструкции
+
+- `CREATE` - создает новые объекты, такие как базы, таблицы, индексы (`CREATE TABLE users (id INT, name TEXT, status TEXT)`).
+- `SELECT` - выборка (чтение) данных ИЗ таблицы по столбцам (`SELECT * FROM users` или `SELECT name FROM users`).
+- `INSERT` - добавление новых строк В таблицу (`INSERT INTO users (id, name, status) VALUES (10, 'alex', 'active'),(11, 'jack', 'active')`).
+- `UPDATE` - обновление существующие данных (`UPDATE users SET status = 'inactive' WHERE id = 10`). Сначала находим нужные строки с помощью фильтра (`SELECT * FROM users WHERE id = 10`) и потом обновляем.
+- `DELETE` - удаление конкретных строк (`DELETE FROM users WHERE status = 'inactive'`).
+- `ALTER` - изменение структуры - добавление или удаление полей/столбцов (`ALTER TABLE users ADD age INT`).
+- `DROP` - полностью удаляет таблицу или базу данных (`DROP TABLE users`).
+- `TRUNCATE` - мгновенно очищает таблицу от всех данных, оставляя пустую таблицу (`TRUNCATE TABLE users`).
+
+### Ключевые слова
+
+- `FROM` - указывает таблицу-источник (`SELECT name FROM users`).
+- `JOIN` - соединяет несколько таблиц по общему полю (`JOIN users_orders ON users.id = orders.user_id`).
+- `WHERE` - фильтрует строки по условию (`WHERE age >= 18`).
+- `GROUP BY` - группировка строк по значению поля (например, узнать количество пользователей в состояние каждого отдельного статуса с помощью функции `COUNT(*)` - `SELECT status, COUNT(*) FROM users GROUP BY status`)
+- `HAVING` - фильтрует уже сгруппированные данные (`SELECT status, COUNT(*) FROM users GROUP BY status HAVING COUNT(*) > 5`).
+- `ORDER BY` - сортирует результат (по возрастанию/убыванию) (`SELECT * FROM users ORDER BY name ASC` или `DESC`).
+- `LIMIT`/`TOP` - ограничивает количество выводимых строк (например, только первые 10) (`SELECT * FROM users LIMIT 10`).
+
+### Логические операторы
+
+- `AND` - логическое И (`SELECT * FROM users WHERE status = 'active' AND age >= 18`).
+- `OR` - логическое ИЛИ (`SELECT * FROM users WHERE status = 'active' OR status = 'inactive'`).
+- `NOT` - отрицание (`SELECT * FROM users WHERE NOT status = 'inactive'`).
+- `IN` - проверка по списку (`SELECT * FROM users WHERE age IN (18, 20, 25, 30)`).
+- `BETWEEN` - проверка диапазона (`SELECT * FROM users WHERE age BETWEEN 18 AND 30`).
+- `LIKE` - поиск по шаблону (`SELECT * FROM users WHERE name LIKE 'alex%'`, найдет `alex` и `alexander`).
+- `IS NULL` - поиск пустых значений (`SELECT * FROM users WHERE email IS NULL`).
+
+### Функции вычисления
+
+- `COUNT()` - считает количество строк (например, общее число пользователей - `SELECT COUNT(id) FROM users`).
+- `SUM()` - считает сумму чисел (например, общая сумма баланса всех пользователей - `SELECT SUM(balance) FROM users` или сумма баланса пользователей для всех статусов `SELECT status, SUM(balance) AS total_balance FROM users GROUP BY status`).
+- `AVG()` - вычисляет среднее значение (например, средний возраст - `SELECT AVG(age) FROM users`).
+- `MAX()`/`MIN()` - находит максимальное или минимальное значение (например, самого взрослого пользователя - `SELECT MAX(age) FROM users`).
+- `DISTINCT` - получить список уникальных значений (`SELECT DISTINCT name FROM users`)
+
+### Операторы объединения
+
+- `UNION` - склеивает результаты двух запросов в один список, убирая дубликаты (`SELECT name FROM users UNION SELECT name FROM admins`).
+- `UNION ALL` - склеивает результаты двух запросов, сохраняя все дубликаты (`SELECT name FROM users UNION ALL SELECT name FROM admins`).
+- `INTERSECT` - оставляет только те строки людей, которые есть в обоих списках (`SELECT name FROM users INTERSECT SELECT name FROM admins`).
+- `EXCEPT`/`MINUS` - вычитает данные одного запроса из другого (например, оставить только список пользователей не являющихся админами `SELECT name FROM users EXCEPT SELECT name FROM admins`).
+
+### Настройка ролей
+
+В PostgreSQL пользователь и роль - это одно почти и то же, разница заключается только в праве на вход в систему. По умолчанию команда `CREATE ROLE` создает роль без права входа (`NOLOGIN`), а команда `CREATE USER` — это удобный псевдоним для CREATE ROLE ... LOGIN.
+
+```sql
+-- Создать пользователя с паролем
+CREATE USER gatusdb_read WITH PASSWORD '123098';
+-- Создать только роль
+CREATE ROLE gatusdb_admin;
+-- Дать права на логин (создать пользователя из роли)
+ALTER ROLE gatusdb_admin WITH LOGIN PASSWORD '123098';
+
+-- Предоставить разрешения на создание базы данных для роли
+ALTER ROLE gatusdb_admin CREATEDB;
+-- Разрешить создание других пользователей
+ALTER ROLE gatusdb_admin CREATEROLE;
+-- Дать права суперпользователя (полный доступ)
+-- ALTER ROLE gatusdb_admin SUPERUSER;
+
+-- Создать базу данных
+CREATE DATABASE gatusdb;
+-- Дать права роли на подключение к базе данных
+GRANT CONNECT ON DATABASE gatusdb TO gatusdb_read,gatusdb_admin;
+-- Дать права роли на просмотр схемы
+GRANT USAGE ON SCHEMA gatusdb TO gatusdb_read,gatusdb_admin;
+-- Разрешить указанные действия (SELECT,INSERT или ALL) с всеми таблицами (ALL TABLES) в схеме gatusdb для роли gatusdb_admin
+GRANT SELECT,INSERT ON ALL TABLES IN SCHEMA gatusdb TO gatusdb_admin;
+```
+
+### Настройка схем
+
+В PostgreSQL схема - это именованное пространство имен (namespace), содержащее независимые объекты базы данных (таблицы, представления, типы, функции) от других namespaces.
+
+```sql
+-- Удаляем схему gatusdb со всеми вложенными объектами, если она уже существует
+DROP SCHEMA IF EXISTS gatusdb CASCADE;
+-- Создаем схему gatusdb (только если она еще не существует) и назначаем ее владельцем роль gatusdb_admin
+CREATE SCHEMA IF NOT EXISTS gatusdb AUTHORIZATION gatusdb_admin;
+
+-- Предоставляем полные права (USAGE + CREATE) роли gatusdb_admin на схему
+GRANT ALL ON SCHEMA gatusdb TO gatusdb_admin;
+-- Предоставляем права только на чтение для роли gatusdb_read
+GRANT USAGE ON SCHEMA gatusdb TO gatusdb_read;
+
+-- Предоставляет полные права по умолчанию для всех будущих создаваемых таблиц внутри схемы
+ALTER DEFAULT PRIVILEGES IN SCHEMA gatusdb GRANT ALL ON TABLES TO gatusdb_admin;
+-- Предоставляет права только на выполнение команд SELECT (или к примеру SELECT,UPDATE,INSERT)
+ALTER DEFAULT PRIVILEGES IN SCHEMA gatusdb GRANT SELECT ON TABLES TO gatusdb_read;
+
+-- Предоставить права на текущие таблицы
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA gatusdb TO gatusdb_admin;
+GRANT SELECT ON ALL TABLES IN SCHEMA gatusdb TO gatusdb_read;
+
+-- Предоставить права на последовательность (порядковый номер при INSERT)
+ALTER DEFAULT PRIVILEGES IN SCHEMA gatusdb GRANT ALL ON SEQUENCES TO gatusdb_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA gatusdb GRANT SELECT, USAGE ON SEQUENCES TO gatusdb_read;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA gatusdb TO gatusdb_admin;
+GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA gatusdb TO gatusdb_read;
+```
+
+### Таблицы связей
+
+Таблица `Actors` содержит только личные данные:
+
+```
+id	      name
+-         -
+1         Киану Ривз
+2         Лоренс Фишберн
+```
+
+Таблица `Movies` содержит только данные о фильмах:
+
+```
+id	      title
+-         -
+101       Матрица
+102       Джон Уик
+```
+
+Промежуточная таблица `Movie_Actors` содержит только пары для связи идентификаторов:
+
+```
+actor_id	movie_id
+-         -
+1	        101
+2	        101
+1	        102
+```
+
+Получить список всех актеров фильма Матрица с помощью `JOIN`:
+
+```sql
+SELECT Actors.name
+FROM Actors
+JOIN Movie_Actors ON Actors.id = Movie_Actors.actor_id
+JOIN Movies ON Movies.id = Movie_Actors.movie_id
+WHERE Movies.title = 'Матрица';
+-- или используя псевдонимы для сокращения
+SELECT a.name
+FROM Actors AS a
+JOIN Movie_Actors AS ma ON a.id = ma.actor_id
+JOIN Movies AS m ON m.id = ma.movie_id
+WHERE m.title = 'Матрица';
+```
+
+Вывод:
+
+```
+name
+Киану Ривз
+Лоренс Фишберн
 ```
 
 ## Docker
@@ -1767,6 +1943,32 @@ networks:
       config:
         - subnet: 192.168.3.0/24
           gateway: 192.168.3.1
+```
+
+### Depends on
+
+[Depends on](https://docs.docker.com/compose/how-tos/startup-order) - механизм управление порядком запуска с проверкой готовности.
+
+```yaml
+services:
+  pg-migrate:
+    image: app
+    command: ["./pg-migrate.sh"]
+    environment:
+      - DATABASE_URL=postgres://user:pass@pg:5432/dbname
+    # Дожидаемся успешного запуска контейнера с базой данных
+    depends_on:
+      pg:
+        condition: service_healthy
+
+  # Основное приложение
+  app:
+    image: app
+    command: ["./app-start.sh"]
+    # Ждет успешного завершения миграции
+    depends_on:
+      pg-migrate:
+        condition: service_completed_successfully
 ```
 
 ## Swarm
@@ -6406,7 +6608,7 @@ jobs:
     steps:
       # Клонируем репозиторий (ветку main и историю всех комиттов)
       - name: Checkout repository (main branch and all commits)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: main
@@ -6472,7 +6674,7 @@ jobs:
       # Клонируем репозиторий (ветку main и последний коммит)
       - name: Checkout repository (main branch and all commits)
         id: dockerPull
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
           ref: main
@@ -6552,7 +6754,7 @@ jobs:
 
     steps:
       - name: Checkout repository (main branch and 1 last commits)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
           ref: main
@@ -6750,7 +6952,7 @@ jobs:
 
     steps:
       - name: Checkout repository (main branch and 1 last commits)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
           ref: main
@@ -7164,7 +7366,7 @@ jobs:
   payload:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check params
         run: |
           echo "App version: ${{ github.event.client_payload.app_version }}"
@@ -7615,6 +7817,7 @@ Invoke-RestMethod "http://192.168.3.101:8080/job/${jobName}/${lastCompletedBuild
 | [Ansible](https://plugins.jenkins.io/ansible)                                                     | Параметраризует запуск `ansible-playbook` (требуется установка на агенте) через метод `ansiblePlaybook`                         |
 | [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                                        | Плагин для подключения к удаленным машинам через протокол `ssh` по ключу или паролю                                             |
 | [SSH Agent](https://www.jenkins.io/doc/pipeline/steps/ssh-agent)                                  | Плагин для подключения к удаленным машинам с использованием `ssh-agent` и `Credentials`                                         |
+| [Workspace Cleanup](https://plugins.jenkins.io/ws-cleanup)                                        | Плагин добавляет метод `cleanWs()` для удаления рабочей область сборки.                                                         |
 | [Pipeline Stage View](https://plugins.jenkins.io/pipeline-stage-view)                             | Визуализация шагов (`stages`) в интерфейсе проекта с временем их выполнения                                                     |
 | [Rebuilder](https://plugins.jenkins.io/rebuild)                                                   | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке                            |
 | [Schedule Build](https://plugins.jenkins.io/schedule-build)                                       | Позволяет запланировать сборку на указанный момент времени                                                                      |
