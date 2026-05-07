@@ -255,6 +255,9 @@
             - ASCII Flow:
                 icon: https://asciiflow.com/public/favicon.png
                 href: https://asciiflow.com
+            - Tabler Icons:
+                icon: https://tabler.io/favicon.ico
+                href: https://tabler.io/icons
             - the SVG Icons:
                 icon: https://thesvg.org/logo-transparent.svg
                 href: https://thesvg.org

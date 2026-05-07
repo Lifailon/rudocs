@@ -92,7 +92,7 @@ services:
 
 env:
 
-```env
+```ini
 # Telegram api key from https://telegram.me/BotFather
 TELEGRAM_BOT_TOKEN=XXXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # Your Telegram id from https://t.me/getmyid_bot
@@ -142,7 +142,7 @@ services:
 
 env:
 
-```env
+```ini
 # OpenRouter api key from https://openrouter.ai/settings/keys
 API_KEY=
 
@@ -190,8 +190,6 @@ STATS_MIN_ROLE=ADMIN
 
 [Kinozal Bot](https://github.com/Lifailon/Kinozal-Bot) - Telegram бот, который позволяет автоматизировать процесс доставки контента до вашего телевизора, используя только телефон. С помощью бота вы получите удобный и привычный интерфейс для взаимодействия с торрент трекером [Кинозал](https://kinozal.tv) и базой данных [TMDB](https://www.themoviedb.org) для отслеживания даты выхода серий, сезонов и поиска актеров для каждой серии, а также возможность управлять торрент клиентом [qBittorrent](https://github.com/qbittorrent/qBittorrent) или [Transmission](https://github.com/transmission/transmission) на вашем компьютере, находясь удаленно от дома, а главное, все это доступно из единого интерфейса и без установки клиентского приложения на конечные устройства. В отличии от других приложений, предназначенных для удаленного управления торрент клиентами, вам не нужно находиться в той же локальной сети или использовать VPN.
 
-[Kinozal News Channel](https://t.me/kinozal_news) - новостной канала на базе бота, который генерирует посты на основе новых публикаций в торрент трекере Кинозал (современная альтернатива RSS). Каждый пост содержит краткую информацию о раздаче (год выхода, страна производства, рейтинг, качество и перевод), а также *#хештеги* по жанру для фильтрации контента на канале и кнопки с ссылками описания фильма или сериала, бесплатный онлайн просмотр через плееры ▶️ [Kinobox](https://kinobox.tv) и 🧲 [магнитные ссылки](https://en.wikipedia.org/wiki/Magnet_URI_scheme) для прямой загрузки содержимого раздачи в торрент клиенте по умолчанию.
-
 ```yaml
 services:
   kinozal-bot:
@@ -219,7 +217,7 @@ services:
 
 env:
 
-```env
+```ini
 API_ID=             # get from https://my.telegram.org
 API_HASH=           # get from https://my.telegram.org
 BOT_TOKEN=          # get from https://telegram.me/BotFather
@@ -231,35 +229,6 @@ YTDLP_PATH=         # default: /tmp/yt-dlp
 ALLOWED_GROUPIDS=
 MAX_SIZE=
 YTDLP_COOKIES=
-```
-
-### yt-dlp Telegram
-
-[yt-dlp Telegram](https://github.com/ssebastianoo/yt-dlp-telegram) - еще один Telegram бот для загрузки видео из YouTube с ограничением 50 МБ.
-
-🔗 [Telegram Bot Demo](https://t.me/SatoruBot) ↗
-
-```yaml
-services:
-  yt-dlp-bot:
-    image: lifailon/yt-dlp-bot:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: yt-dlp-bot
-    restart: unless-stopped
-    volumes:
-      - ./config:/bot/config.py
-```
-
-config:
-
-```env
-token = ""                  # Telegram api key your bot
-logs = 2390049              # Telegram your chat id
-max_filesize = 50000000     # Max file size in bytes
-
-# output_folder = "/download"
 ```
 
 ### RSS to Telegram Bot
@@ -312,7 +281,7 @@ services:
 
 ### Telegram Bot API
 
-[Telegram Bot API](https://github.com/tdlib/telegram-bot-api) - полнофункциональный сервер-заглушка Telegram Bot API, который может использоваться для отладки при создание ботов Telegram.
+[Telegram Bot API](https://github.com/tdlib/telegram-bot-api) - это локальный сервер Telegram Bot API, который выступает в роле посредника для Telegram ботов, что позволяет снять ограничения на загрузку файлов с 50 МБ до 2 ГБ и настроить подключение через прокси сервер для всех запросов.
 
 ```yaml
 services:
@@ -323,6 +292,8 @@ services:
     environment:
       - TELEGRAM_API_ID=<api-id>
       - TELEGRAM_API_HASH=<api-hash>
+      # - http_proxy=http://user:password@ip:port
+      # - https_proxy=http://user:password@ip:port
     volumes:
       - ./telegram_bot_api_data:/var/lib/telegram-bot-api
     ports:
@@ -398,6 +369,42 @@ services:
       retries: 10
 ```
 
+### Telemt
+
+[Telemt](https://github.com/telemt/telemt) - быстрый и безопасный прокси-сервер, который реализует официальный алгоритм прокси Telegram через TLS.
+
+[Бесплатные MTProto сервера](https://mtproto.ru)
+
+```yaml
+services:
+  telemt:
+    image: ghcr.io/telemt/telemt:latest
+    container_name: telemt
+    restart: always
+    ports:
+      - 4343:4343             # Proxy
+      - 127.0.0.1:19090:9090  # Metrics
+      - 127.0.0.1:19091:9091  # API
+    working_dir: /run/telemt
+    volumes:
+      - ./config.toml:/run/telemt/config.toml:ro
+    tmpfs:
+      - /run/telemt:rw,mode=1777,size=1m
+    environment:
+      - RUST_LOG=debug
+    cap_drop:
+      - ALL
+    # allow binding to port 443
+    # cap_add:
+    #   - NET_BIND_SERVICE
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+```
 
 ## LLM Stack
 
@@ -448,7 +455,7 @@ services:
 
 env:
 
-```env
+```ini
 WEBUI_SECRET_KEY=OpenWebUiAdmin
 
 OLLAMA_BASE_URL=http://ollama:11434
@@ -488,7 +495,7 @@ services:
 
 env:
 
-```env
+```ini
 CODE=NextChatAdmin
 
 BASE_URL=http://192.168.3.100:12345 # LM Studio
@@ -994,9 +1001,9 @@ services:
   gotify:
     image: gotify/server
     container_name: gotify
-    restart: unless-stopped
+    restart: always
     ports:
-      - 8844:80
+      - 5080:80
     environment:
       GOTIFY_DEFAULTUSER_PASS: admin
     volumes:
@@ -3206,7 +3213,7 @@ volumes:
 
 env:
 
-```env
+```ini
 OWNCLOUD_VERSION=10.15
 OWNCLOUD_DOMAIN=localhost:8080
 OWNCLOUD_TRUSTED_DOMAINS=localhost
@@ -4027,7 +4034,7 @@ services:
 
 env:
 
-```env
+```ini
 GODOXY_FRONTEND_ALIASES=godoxy.docker.local
 # API listening address
 GODOXY_API_ADDR=127.0.0.1:8888
@@ -4354,17 +4361,41 @@ services:
       - WGUI_MANAGE_START=true
       - WGUI_MANAGE_RESTART=true
       - WGUI_DEFAULT_CLIENT_USE_SERVER_DNS=false
-      # Разрешает доступ между клиентами внутри подсети
-      - WGUI_SERVER_POST_UP_SCRIPT=iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT;
-      # Запрещать по умолчанию все, что не разрешено
-      # iptables -P FORWARD DROP;
       # Разрешает выход в интернет через внешний интерфейс
       # iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT;
-      # Разрешает ответы на уже установленные соединения из интернета
-      # iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT;
+
     volumes:
       - ./wg_db:/app/db
       - ./wg_etc:/etc/wireguard
+    entrypoint: |
+      sh -c "
+        # Разрешает прохождение трафика между клиентами внутри VPN
+        iptables -A FORWARD -i wg0 -o wg0 -j ACCEPT
+        # Разрешает все ответы на уже установленные соединения из Интернета
+        iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+        # iptables -A FORWARD -i eth0 -o wg0 -j ACCEPT
+        # Разрешаем VPN-клиентам устанавливать новые соединения в Интернет через внешний интерфейс
+        iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT
+        # Разрешает выход в интернет через внешний интерфейс
+        iptables -t nat -A POSTROUTING -s 10.252.1.0/24 -o eth0 -j MASQUERADE
+        # Разрешаем прохождение трафика от хостовой подсети в VPN подсеть
+        iptables -t nat -A POSTROUTING -s 172.50.0.0/24 -o wg0 -j MASQUERADE
+        ./init.sh
+      "
+    networks:
+      wg_net:
+        ipv4_address: 172.50.0.2
+
+# Маршрут до подсети VPN на хосте
+# sudo ip route add 10.252.1.0/24 via 172.50.0.2
+networks:
+  wg_net:
+    ipam:
+      config:
+        - subnet: 172.50.0.0/24
+          gateway: 172.50.0.1
+
+# docker exec -it wg wg show
 ```
 
 ### WG Easy
@@ -4457,9 +4488,10 @@ services:
     restart: always
     # network_mode: host
     ports:
-      - 20533:2053  # UI
-      - 443:443     # Vless
-      - 51318:51318 # WG
+      - 20533:2053    # UI
+      - 443:443       # Vless+Reality
+      # - 12537:12537 # Mixed Proxy (HTTP+SOCKS5)
+      # - 51318:51318 # WireGuard
     privileged: true
     cap_add:
       - NET_ADMIN
@@ -4470,8 +4502,11 @@ services:
       - XRAY_VMESS_AEAD_FORCED=false
       - XUI_ENABLE_FAIL2BAN=true
     volumes:
-      - ./3x_data/:/etc/x-ui/
-      - ./3x_cert/:/root/cert/
+      - ./3x_data:/etc/x-ui
+      - ./3x_cert:/root/cert
+      # mkdir 3x_logs && touch ./3x_logs/access.log ./3x_logs/error.log
+      - ./3x_logs/access.log:/app/access.log
+      - ./3x_logs/error.log:/app/error.log
     logging:
       driver: journald
       options:
@@ -4496,9 +4531,9 @@ services:
       - ./service:/service:ro
 ```
 
-### Fail2ban
+### Fail2Ban
 
-[Fail2ban](https://github.com/fail2ban/fail2ban) - инструмент для блокировки хостов (обновляя правила `iptables`), вызывающих множественные ошибки аутентификации по ssh и в веб-приложениях, используя анализ журналов (например, из лог-файлов или journald).
+[Fail2Ban](https://github.com/fail2ban/fail2ban) - инструмент для блокировки хостов (обновляя правила `iptables`), вызывающих множественные ошибки аутентификации по ssh и в веб-приложениях, используя анализ журналов (например, из лог-файлов или journald).
 
 ```yaml
 services:
@@ -4517,6 +4552,27 @@ services:
     volumes:
       - ./config:/config
       - /var/log:/var/log:ro
+```
+
+### Fail2Ban
+
+[Fail2Ban UI](https://github.com/swissmakers/fail2ban-ui) - платформа управления Fail2Ban на локальном или удаленных хостах Linux через сокет или ssh, предоставляя централизованный интерфейс для просмотра блокировок, поиска и разблокировки IP-адресов, управления конфигурациями и фильтрами, а также получения уведомлений.
+
+```yaml
+services:
+  fail2ban-ui:
+    image: swissmakers/fail2ban-ui:latest
+    container_name: fail2ban-ui
+    restart: always
+    network_mode: host
+    environment:
+      - PORT=18080
+      - BIND_ADDRESS=0.0.0.0
+      - AUTODARK=true
+    volumes:
+      - /var/log:/var/log:ro
+      - /etc/fail2ban:/etc/fail2ban:Z
+      - /var/run/fail2ban:/var/run/fail2ban
 ```
 
 ### AutoSSH
@@ -4663,7 +4719,7 @@ services:
 
 env:
 
-```env
+```ini
 POSTGRES_DB=authentik
 POSTGRES_USER=authentik
 POSTGRES_PASSWORD=AuthentikAdmin
@@ -5328,7 +5384,7 @@ services:
 
 env:
 
-```env
+```ini
 KOMODO_DB_USERNAME=admin
 KOMODO_DB_PASSWORD=admin
 
@@ -5575,9 +5631,9 @@ services:
       - 8088:8080 # api
 ```
 
-### DIUN
+### Diun
 
-[DIUN](https://github.com/crazy-max/diun) (Docker Image Update Notifier) - система для получения уведомлений об обновлении образа Docker в реестре Docker.
+[Diun](https://github.com/crazy-max/diun) (Docker Image Update Notifier) - система для получения уведомлений об обновлении образа Docker в реестре Docker.
 
 ```yaml
 services:
@@ -5593,38 +5649,57 @@ services:
       - TZ=Etc/GMT+3
       - LOG_LEVEL=info
       - LOG_JSON=false
-      - DIUN_WATCH_WORKERS=20
       - DIUN_WATCH_SCHEDULE=0 */6 * * *
-      - DIUN_WATCH_JITTER=30s
       - DIUN_PROVIDERS_DOCKER=true
       - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
-      - DIUN_NOTIF_TELEGRAM_TOKEN=
-      - DIUN_NOTIF_TELEGRAM_CHATIDS=
+      - DIUN_NOTIF_TELEGRAM_CHATIDS=<CHAT/CHANNEL_ID>
+      - DIUN_NOTIF_TELEGRAM_TOKEN=<BOT_API_KEY>
       # https://crazymax.dev/diun/faq/?h=entry#notification-template
       - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
+      - HTTPS_PROXY=http://192.168.3.105:20171
+      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
     labels:
       - diun.enable=true
     healthcheck:
-      test: ["CMD", "diun", "notif", "test"]
+      test: diun notif test
       interval: 24h
       timeout: 10s
-      retries: 1
-      start_period: 30s
+      retries: 3
+      start_period: 10s
 ```
 
 ### WUD
 
-[WUD](https://github.com/getwud/wud) (What's up Docker) - веб-интерфейс для поиска обновлений и автоматизации выполнения действий (отправки оповещений, запуска обновления и т.п.).
+[WUD](https://github.com/getwud/wud) (What's up Docker) - веб-интерфейс для поиска обновлений и автоматизации выполнения действий (триггеры для отправки оповещений в Telegram, Discord, Slack, [Rocket.Chat](https://getwud.github.io/wud/#/configuration/triggers/rocketchat/) или [Gotify](https://getwud.github.io/wud/#/configuration/triggers/gotify), автоматическая загрузка и пересоздание контейнеров на новом образе, обновление образа в файлах [docker-compose](https://getwud.github.io/wud/#/configuration/triggers/docker-compose) и другие).
 
 ```yaml
 services:
   wud:
     image: getwud/wud
     container_name: wud
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5002:3000
+    environment:
+      # Включить доступ к управлению локальным docker socket
+      - WUD_TRIGGER_DOCKER_LOCAL_ENABLED=true
+      # Автоматически загружать образы
+      - WUD_TRIGGER_DOCKER_LOCAL_MODE=pull
+      # Автоматически перезапускать контейнеры на новом образе
+      # - WUD_TRIGGER_DOCKER_LOCAL_MODE=recreate
+      # Настройка триггера для отправки уведомлений в Telegram
+      - WUD_TRIGGER_TELEGRAM_1_CHATID=<CHAT/CHANNEL_ID>
+      - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=<BOT_API_KEY>
+      # Прокси для доступа к Telegram API
+      - HTTPS_PROXY=http://192.168.3.105:20171
+      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+      # Интеграция с Gotify для отправки уведомлений
+      - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
+      - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=<API_KEY>
+    labels:
+      - wud.watch=true
 ```
 
 ### Dozzle
@@ -5720,6 +5795,8 @@ services:
     restart: always
     extra_hosts:
       - host.docker.internal:host-gateway
+    environment:
+      - HTTPS_PROXY=http://192.168.3.105:20171
     volumes:
       - ./beszel_server_data:/beszel_data
     ports:
@@ -6366,7 +6443,7 @@ ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
 
 env:
 
-```env
+```ini
 JENKINS_SERVER_URL=http://jenkins-server:8080
 JENKINS_AGENT_NAME=local-agent
 JENKINS_SECRET=b040ab8fa1de3e64e77ed57d4ce45f42c843950f981f8db18a97091a94395f32
@@ -6908,40 +6985,55 @@ services:
 
 [HashiCorp Vault](https://github.com/hashicorp/vault) - инструмент хранения и управления секретами (например, API ключи, пароли, сертификаты и многое другое).
 
-[HashiCorp Consul](https://github.com/hashicorp/consul) - распределенное и высокодоступное (HA) решение для подключения и настройки приложений в динамической распределенной инфраструктуре, например, для отказоустойчивости Vault.
+[HashiCorp Consul](https://github.com/hashicorp/consul) - распределенное и высокодоступное (HA) решение для подключения и настройки приложений в динамической распределенной инфраструктуре, например, для отказоустойчивости `Vault` в качестве backend хранилища.
 
 ```yaml
 services:
-  consul:
+  consul-master:
     image: hashicorp/consul:latest
-    container_name: consul
+    container_name: consul-master
     restart: unless-stopped
     ports:
-      - "8500:8500"
-    command: "agent -server -bootstrap-expect=1 -client=0.0.0.0"
+      - 8500:8500
     volumes:
-      - ./consul_data:/consul/data
-      - ./consul.hcl.config:/consul/config/consul.hcl
+      - ./consul_config:/consul/config
+      - ./consul_data_master:/consul/data
+    command: "agent -server -bootstrap-expect=1 -node=consul-master -client=0.0.0.0 -data-dir=/consul/data"
+    # command: "agent -server -bootstrap-expect=3 -node=consul-master -client=0.0.0.0 -data-dir=/consul/data"
+
+  # consul-slave:
+  #   image: hashicorp/consul:latest
+  #   container_name: consul-slave
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./consul_data_slave:/consul/data
+  #   command: "agent -server -retry-join=consul-master -node=consul-slave -client=0.0.0.0 -data-dir=/consul/data"
+
+  # consul-arbiter:
+  #   image: hashicorp/consul:latest
+  #   container_name: consul-arbiter
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./consul_data_arbiter:/consul/data
+  #   command: "agent -server -retry-join=consul-master -node=consul-arbiter -client=0.0.0.0 -data-dir=/consul/data"
 
   vault:
     image: hashicorp/vault:latest
     container_name: vault
     restart: unless-stopped
-    depends_on:
-      - consul
-    environment:
-      - VAULT_ADDR=http://0.0.0.0:8200
-      - VAULT_API_ADDR=http://localhost:8200
-    ports:
-      - "8200:8200"
-    volumes:
-      - ./vault_config:/vault/config
-      # Использовать локальное файловое хранилище
-      # - ./vault_data:/vault/file
     cap_add:
       - IPC_LOCK
-    command: >
-      vault server -config=/vault/config/vault.hcl.config
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - SKIP_SETCAP=true
+      - SKIP_CHOWN=true
+    ports:
+      - 8200:8200
+    volumes:
+      - ./vault_config:/vault/config
+      # Использовать локальное хранилище (если отключен Consul)
+      - ./vault_data:/vault/file
+    command: vault server -config=/vault/config/vault.hcl
 ```
 
 ### VaultWarden
@@ -9189,7 +9281,7 @@ services:
 
 env:
 
-```env
+```ini
 NODE_ENV=production
 HOSTNAME=meshcentral.docker.local
 
@@ -9646,6 +9738,28 @@ services:
       - ./jackett_conf:/config
     ports:
       - 9117:9117
+```
+
+### Prowlarr
+
+[Prowlarr](https://github.com/Prowlarr/Prowlarr) - менеджер и прокси-сервер для индексаторов (интерфейс поиска и добавления идентичен `Jackett`), созданный на основе популярного базового стека `*arr` для интеграции с различными приложениями `PVR`. Prowlarr поддерживает управление торрент-трекерами, Usenet индексаторами, а также легко интегрируется с [Radarr](https://github.com/Radarr/Radarr), [Sonarr](https://github.com/Sonarr/Sonarr), [Lidarr](https://github.com/Lidarr/Lidarr) и [Readarr](https://github.com/Readarr/Readarr), без необходимости настройки индексатора для каждого приложения.
+
+🔗 [Prowlarr API Docs](https://prowlarr.com/docs/api) ↗
+
+```yaml
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    volumes:
+      - ./prowlarr_conf:/config
+    ports:
+      - 9696:9696
 ```
 
 ### FreshRSS
@@ -10127,28 +10241,6 @@ services:
       - ./sonarr_downloads:/downloads
     ports:
       - 7878:7878
-```
-
-### Prowlarr
-
-[Prowlarr](https://github.com/Prowlarr/Prowlarr) - менеджер и прокси-сервер для индексаторов, созданный на основе популярного базового стека `*arr` для интеграции с различными приложениями PVR. Prowlarr поддерживает управление торрент-трекерами, Usenet индексаторами, а также легко интегрируется с [Radarr](https://github.com/Radarr/Radarr), [Sonarr](https://github.com/Sonarr/Sonarr), [Lidarr](https://github.com/Lidarr/Lidarr) и [Readarr](https://github.com/Readarr/Readarr), без необходимости настройки индексатора для каждого приложения.
-
-🔗 [Prowlarr API Docs](https://prowlarr.com/docs/api) ↗
-
-```yaml
-services:
-  prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
-    container_name: prowlarr
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC+3
-    volumes:
-      - ./prowlarr_conf:/config
-    ports:
-      - 9696:9696
 ```
 
 ### Posterizarr
