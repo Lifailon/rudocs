@@ -14,12 +14,18 @@
 
 - [Git](#git)
   - [Config](#config)
+  - [Clone/WorkTree](#cloneworktree)
+  - [Submodules](#submodules)
+  - [Fetch/Pull](#fetchpull)
+  - [Commits](#commits)
   - [Branches/Tags](#branchestags)
   - [Merge/Cherry-Pick](#mergecherry-pick)
-  - [Logs](#logs)
-  - [Rebase](#rebase)
-  - [Reset](#reset)
   - [Stash](#stash)
+  - [Logs](#logs)
+  - [Reset](#reset)
+  - [Rebase](#rebase)
+  - [Bisect](#bisect)
+  - [Remote](#remote)
 - [Docker](#docker)
   - [Namespaces/Cgroups](#namespacescgroups)
   - [Namespace Enter](#namespace-enter)
@@ -228,21 +234,48 @@
 git config --global user.name "Lifailon"
 git config --global user.email "lifailon@yandex.ru"
 
-# Изменить редактор по умолчанию для rebase и сообщений коммитов
+# Изменить редактор по умолчанию для сообщений коммитов и интерактивного rebase
 git config --global core.editor "code --wait"
 git config --global --edit
 
 # Выпускаем ключ и копируем в https://github.com/settings/keys
 ssh-keygen -t rsa -b 4096
-# Добавление в ssh-agent для сохранения passphrase в оперативной памяти для последующих команд
+# Добавляем ключ в ssh-agent для сохранения passphrase в оперативной памяти для последующих команд
 ssh-add /home/lifailon/.ssh/id_rsa
 ssh-add -l
+```
 
-# Автоматически добавлять ключ в агента при перезагрузки системы через файл ~/.ssh/config
+Автоматически добавлять ключ в агента при перезагрузки системы через файл `~/.ssh/config`
+
+```sshconfig
 # Host *
 #   AddKeysToAgent yes
 #   IdentityFile ~/.ssh/id_rsa
+```
 
+Базовые команды:
+
+```bash
+# Глобальный поиск текста во всех файлах проекта
+git --no-pager grep -n "^ping"
+
+# Показать список всех файлов, которые отслеживает Git
+git ls-files
+
+# Удалить файл из индекса и при этом оставить его физически на диске (например, если файл был добавлен в файл .gitignore) 
+git rm --cached test.log
+# Применить .gitignore ко всем файлам заново
+git rm -r --cached .
+
+# Удалить все неотслеживаемые файлы на диске (которые добавлены в файл .gitinore)
+git clean -f
+# Показать, что будет удалено (режим dry-run)
+git clean -n
+```
+
+### Clone/WorkTree
+
+```bash
 # Клонируем репозиторий по протоколу https
 git clone https://github.com/Lifailon/lifailon.github.io.git
 cd lifailon.github.io
@@ -250,11 +283,45 @@ cd lifailon.github.io
 # Создаем новую рабочую область из ветки dev (при этом будет синхронизация изменений между директориями и одна директория .git)
 git worktree add ../lifailon.github.io-zola-duckquill zola-duckquill
 git worktree list
-ls ..
+ls ../lifailon.github.io*
+# Удалить рабочаю область или очистить список при удаление директории
+git worktree remove ../lifailon.github.io-zola-duckquill
+git worktree prune
+```
 
-# Глобальный поиск текста во всех файлах проекта
-git --no-pager grep -n "^ping"
+### Submodules
 
+Submodules - это механизм встраивания одного Git-репозитория внутрь другого как дочернюю директорию. Например, если есть библиотека или тема оформления, которая используется в множестве разных проектах, и чтобы не копировать файлы проекта вручную (и не обновлять их потом везде), подключается подмодуль.
+
+```bash
+# Создать и инициализировать новый сайт
+hugo new site lifailon.github.io
+cd lifailon.github.io
+# Инициализировать новый Git репозиторий в текущем каталоге
+git init
+# Добавляем новый репозиторий как модуль
+git submodule add -f https://github.com/JingWangTW/dark-theme-editor.git themes/dark-theme-editor
+echo 'theme = "dark-theme-editor"' >> hugo.toml
+# Скопировать markdown документацию в директорию content и запустить сервер
+hugo server
+```
+
+При подключение первого submodule, в репозитории создается файл `.gitmodules`, который хранит пути к подмодулям. При обычном клонирование, директории подмодулей будут пустыми.
+
+```bash
+# Загрузить все подмодули при клонирование репозитория
+git clone --recursive https://github.com/Lifailon/lifailon.github.io.git
+# Если проект уже клонирован, но подмодули не были загружены
+git submodule update --init --recursive
+# Обновить изменения для подмодулей
+git submodule update --remote --merge
+```
+
+Когда вы меняете версию подмодуля, Git видит это не как изменение файлов, а как изменение ссылки на коммит:Subproject commit a1b2c3d4...
+
+### Fetch/Pull
+
+```bash
 # Загружаем изменения из удаленного репозитория, не затрагивая локальные изменения
 git fetch --all
 # Выполняет git fetch и git merge (если был локальный commit, создается новый merge commit) для объединения изменений с локальной копией репозитория
@@ -263,9 +330,14 @@ git pull
 git pull --rebase
 # Включить rebase по умолчанию
 git config --global pull.rebase true
+```
 
+### Commits
+
+```bash
 # Отобразить статус изменений в файлах локального репозитория
 git status
+
 # Отобразить историю изменений с последнем коммитом в указанной ветке
 git diff
 git diff dev
@@ -325,94 +397,13 @@ git push origin --delete 1.0
 ```bash
 # Слияние изменений из указанной ветки (zola-duckquill) в текущую ветку (на которой стоим)
 git merge zola-duckquill
+
 # Влить изменения указанного коммита в текущую ветку, что позволяет не дублировать код и избегать конфликтов при последующем git merge
 git cherry-pick a1b2c3d
 # Добавляет комментарий к коммиту в формате - cherry picked from commit a1b2c3d...
 git cherry-pick -x a1b2c3d
 # Перенести несколько коммитов
 git cherry-pick -x a1b2c3d..e5f6g7h
-```
-
-### Logs
-
-```bash
-# Отключить прокрутку (включить --no-pager для всех команд по умолчанию)
-git config --global core.pager cat
-
-# Отобразить историю коммитов для всех веток (--all) в сжатом формате (--oneline)
-git log --all --oneline
-git log --all --graph --oneline
-git log --all --graph --date=short --pretty='%ad %an %h %S: %s'
-git log --all --graph --date=short --pretty='%C(cyan)%ad%Creset %C(green)%an%Creset %C(yellow)%h%Creset %C(magenta)%S%Creset: %s'
-# Отобразить историю коммитов указанного пользователя
-git log --author="Lifailon"
-
-# Отобразить историю локальных изменений с момента клонирования репозитория и удаленные коммиты, которых уже нет в истории
-git reflog
-
-# Отобразить изменения в файлах (diff) по номеру коммита
-git show f6034e9
-
-# Отобразить кто и когда внес изменения в каждую строку указанного файла
-git blame README.md
-```
-
-### Rebase
-
-Rebase - интерактивный интерфейс для изменения истории коммитов.
-
-```bash
-# Открыть последние пять коммитов
-git rebase -i HEAD~5
-
-# pick      - оставить коммит без изменений
-# reword/r  - изменить только сообщение коммита
-# squash/s  - склеить этот коммит с предыдущим (сообщения объединятся)
-# fixup/f   - склеить коммит с предыдущим и удалить его сообщение
-# edit/e    - остановиться на этом коммите, чтобы изменить код
-# drop/d    - полностью удалить указанный коммит из истории
-
-# Пример:
-# drop  a1b2c3d Доработал кнопку обновления
-# r     e5f6g7h Добавил новую кнопку для повторного обновления
-# f     i9j0k1l Исправил цвет кнопки
-
-# Если во время rebase возник конфликт, после правок делается git add . и вместо коммита
-git rebase --continue
-# Откатить все действия до начала rebase
-git rebase --abort
-# Запушить изменения с проверкой новых коммитов в удаленном репозитории перед изменением истории
-git push --force-with-lease
-```
-
-### Reset
-
-```bash
-# Отменить индекацию (git add README.md) без изменения содержимого в файле
-git restore --staged README.md
-# Отменить не проиндексированные (до git add) изменения содержимого в файле, возвращая к состоянию на момент последнего коммита
-git restore README.md
-# Восстановить файл на указанную версию по хэшу коммита
-git restore --source f6e4ca8eaa4db18632a6ce747452b9b0ce8a518c ./content/_index.md
-git restore --source f4a35518f501cdb6d7a563f27124a20233ebbec7 ./content/_index.md
-
-# Аналог команды git restore --staged README.md (если был git add но не было git commit)
-git reset HEAD README.md
-# Отменяет последний (^ или HEAD~1) коммит, сохраняя изменения из этого коммита в рабочем каталоге и индексе, позволяя внести изменения в файлы и повторно их зафиксировать
-git reset --soft HEAD^
-# Отменяет последние 5 коммитов, сохраняя все локальные изменения, для последующего их объединения в один коммит (like squash)
-git reset --soft HEAD~5
-# Откатывает изменения к указанному коммиту и удаляет все коммиты, которые были сделаны после него
-git reset --soft d01f09dead3a6a8d75dda848162831c58ca0ee13
-# Отменяет последний коммит, удаляя все его изменения из рабочего каталога и индекса до состояния последнего коммита
-git reset --hard HEAD^
-# Удалить последний коммит в удаленном репозитории (после git reset --hard) 
-git push origin main --force
-
-# Создает новый коммит, который отменяет изменения последнего коммита (тем самым сохраняя историю коммитов, в отличии от reset, который удаляет коммиты)
-git revert HEAD --no-edit
-# Создает новый коммит, который отменяет изменения, внесенные в указанный коммит (удалит то, что было добавлено, и вернет то, что было удалено) - возможны конфликты
-git revert d01f09dead3a6a8d75dda848162831c58ca0ee13
 ```
 
 ### Stash
@@ -436,6 +427,141 @@ git stash drop stash@{1}
 git stash branch check-stash stash@{0}
 # Применяет и удаляет изменения из stash
 git stash pop
+```
+
+### Logs
+
+```bash
+# Отключить прокрутку (включить --no-pager для всех команд по умолчанию)
+git config --global core.pager cat
+
+# Отобразить историю коммитов для всех веток (--all) в сжатом формате (--oneline)
+git log --all --oneline
+git log --all --graph --oneline
+git log --all --graph --date=short --pretty='%ad %an %h %S: %s'
+git log --all --graph --date=short --pretty='%C(cyan)%ad%Creset %C(green)%an%Creset %C(yellow)%h%Creset %C(magenta)%S%Creset: %s'
+# Отобразить историю коммитов указанного пользователя
+git log --author="Lifailon"
+
+# Отобразить историю локальных изменений с момента клонирования репозитория и удаленные коммиты, которых уже нет в истории
+git reflog
+# Отобразить изменения в файлах (diff) по номеру коммита
+git show f6034e9
+# Отобразить кто и когда внес изменения в каждую строку указанного файла
+git blame README.md
+```
+
+### Reset
+
+```bash
+# Отменить не проиндексированные (до git add) изменения содержимого в файле, возвращая к состоянию на момент последнего коммита
+git restore README.md
+# Отменить индекацию (git add README.md) без изменения содержимого в файле
+git restore --staged README.md
+# Восстановить файл на указанную версию по хэшу коммита
+git restore --source f6e4ca8eaa4db18632a6ce747452b9b0ce8a518c ./content/_index.md
+git restore --source f4a35518f501cdb6d7a563f27124a20233ebbec7 ./content/_index.md
+
+# Аналог команды git restore --staged README.md (если был git add но не было git commit)
+git reset HEAD README.md
+# Отменяет последний (^ или ~1) коммит, сохраняя изменения из этого коммита в рабочем каталоге и индексе, позволяя внести изменения в файлы и повторно их зафиксировать
+git reset --soft HEAD^
+# Отменяет последние 5 коммитов, сохраняя все локальные изменения, для последующего их объединения в один коммит (like squash from rebase)
+git reset --soft HEAD~5
+# Откатывает изменения к указанному коммиту и удаляет все коммиты, которые были сделаны после него
+git reset --soft d01f09dead3a6a8d75dda848162831c58ca0ee13
+# Отменяет последний коммит, удаляя все его изменения из рабочего каталога и индекса до состояния последнего коммита
+git reset --hard HEAD^
+# Удалить последний коммит в удаленном репозитории (после git reset --hard) 
+git push origin main --force
+
+# Создает новый коммит, который отменяет изменения последнего коммита (тем самым сохраняя историю коммитов, в отличии от reset, который удаляет коммиты)
+git revert HEAD --no-edit
+# Создает новый коммит, который отменяет изменения, внесенные в указанный коммит (удалит то, что было добавлено, и вернет то, что было удалено) - возможны конфликты
+git revert d01f09dead3a6a8d75dda848162831c58ca0ee13
+```
+
+### Rebase
+
+Rebase - интерактивный интерфейс для изменения истории коммитов.
+
+```bash
+# Открыть последние пять коммитов
+git rebase -i HEAD~5
+```
+
+- `pick` - оставить коммит без изменений
+- `reword`/`r` - изменить только сообщение коммита
+- `squash`/`s` - склеить этот коммит с предыдущим (сообщения объединятся)
+- `fixup`/`f` - склеить коммит с предыдущим и удалить его сообщение
+- `edit`/`e` - остановиться на этом коммите, чтобы изменить код
+- `drop`/`d` - полностью удалить указанный коммит из истории
+
+Пример:
+
+```
+drop  a1b2c3d Доработал кнопку обновления
+r     e5f6g7h Добавил новую кнопку для повторного обновления
+f     i9j0k1l Исправил цвет кнопки
+```
+
+Если во время rebase возник конфликт, после правок делается `git add .` и вместо коммита `git rebase --continue`.
+
+```bash
+# Откатить все действия до начала rebase
+git rebase --abort
+# Запушить изменения с проверкой новых коммитов в удаленном репозитории перед изменением истории
+git push --force-with-lease
+```
+
+### Bisect
+
+Bisect - механизм поиска виновного коммита. Гит всегда прыгает в середину, по этому, даже если прошло 1000 коммитов, можно найти виновного максимум за 10 шагов.
+
+```yaml
+# Запускает процесс поиска
+git bisect start
+# Пометить текущий коммит как плохой
+git bisect bad HEAD
+# Пометить старый известный коммит как плохой (по тегу или хешу коммита)
+git bisect good 0.8.0 # f6034e9
+# Git сам переключает коммиты, можно проверять код и помечать коммиты
+# Если баг не воспроизводится
+# Если баг есть
+git bisect good
+git bisect bad
+# По завершению Git напишет "... is the first bad commit", смотрим изменения:
+git show
+# Завершить bisect и вернуться на свою ветку
+git bisect reset
+
+# Автоматический поиск с использованием теста, который возврощает код возврата
+git bisect start HEAD v1.0.0
+git bisect run go test ./...
+```
+
+### Remote
+
+Добавление второго сервера Git:
+
+```bash
+# Посмотреть текущий URL удаленного репозитория (для origin - где стоим)
+git remote -v
+# Загружаем все ветки из текущего репозитория
+git fetch origin
+# Добавляем новый удаленный репозиторий на другом сервере или изменяем его url
+git remote add gitlab $gitlabUrl || git remote set-url gitlab $gitlabUrl
+# Загружаем все ветки из нового репозитория
+git fetch gitlab
+# Переключаемся на ветку нового репозитория (куда вливаем)
+# git checkout -B main gitlab/main
+git switch -C main gitlab/main
+# Выводим изменения перед объединением
+git diff --stat HEAD..origin/dev
+# Вливаем изменения из локального репозитория GitHub (по названию указанной ветке) в удаленный (на которой стоим)
+git merge origin/dev --no-edit
+# Отправляем изменения в удаленный репозиторий
+git push gitlab main
 ```
 
 ## Docker
