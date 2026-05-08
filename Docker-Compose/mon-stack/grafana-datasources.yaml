@@ -1,0 +1,28 @@
+apiVersion: 1
+
+datasources:
+  - name: prometheus
+    type: prometheus    
+    url: http://prometheus:9090
+    isDefault: true
+    access: proxy
+    editable: true
+  - name: loki
+    type: loki
+    url: http://loki-server:3100
+    access: proxy
+    editable: true
+  # - name: graphite
+  #   type: graphite
+  #   url: http://192.168.3.101:2025
+  #   access: proxy
+  #   editable: true
+  # - name: influxdb
+  #   type: influxdb
+  #   url: http://192.168.3.101:8086
+  #   access: proxy
+  #   editable: true
+  #   database: telegraf
+  #   user: admin
+  #   secureJsonData:
+  #     password: admin

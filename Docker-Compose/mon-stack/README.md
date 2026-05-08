@@ -1,4 +1,4 @@
-# Monitoring Stack
+## Monitoring Stack
 
 Этой основной стек, который я использую для мониторинга систем на базе Linux, Windows и контейнеров Docker в своей домашней среде.
 
@@ -11,13 +11,6 @@
 - [logporter](https://github.com/Lifailon/logporter) для сбора всех базовых метрик из контейнеров Docker (легковесная альтернатива [cAdvisor](https://github.com/google/cadvisor)).
 - [Loki](https://github.com/grafana/loki) сервер и агент `promtail` для сборка логов из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
 
-Перед запуском необходимо настроить параметры подключения к Telegram боту в файле [alertmanager](./alertmanager.yml) для отправки оповещений.
-
-```yml
-- chat_id: <CHAT/CHANNEL_ID>
-  bot_token: <BOT_API_KEY>
-```
-
 Клонируем и запускаем:
 
 ```bash
@@ -25,17 +18,26 @@ mkdir -p $HOME/docker/mon-stack && cd $HOME/docker/mon-stack
 git clone https://github.com/Lifailon/rudocs
 mv ./rudocs/Docker-Compose/mon-stack/* ./
 rm -rf rudocs
+```
 
-mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
-mkdir -p prometheus_data && sudo chown -R 65534:65534 prometheus_data prometheus.yml alert-rules.yml alertmanager.yml telegram.tmpl
-mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
+Перед запуском необходимо настроить параметры подключения к Telegram боту в файле [alertmanager](./alertmanager.yml) для отправки оповещений.
 
+```yml
+- chat_id: <CHAT/CHANNEL_ID>
+  bot_token: <BOT_API_KEY>
+```
+
+В стеке используется контейнер `volume-permissions-update` для предварительной настройки прав доступа к файлам.
+
+Запускаем стек:
+
+```bash
 docker-compose up -d
 ```
 
-Идем в браузер: http://localhost:9091 (логин и пароль `admin:admin`) и подключаем источники данных:
+Источики данных prometheus и koki, а также все dashboards автоматически импортируются при запуске. Панели уже преднастроенны для работы с текущим стеком.
 
-- Prometheus: http://prometheus:9092
-- Loki: http://loki-server:3100
+Идем в браузер => http://localhost:9091
 
-Импортируем Dashboards из директории [grafana_dashboards](./grafana_dashboards) (все панели уже преднастроенны для работы с текущим стеком).
+- Логин: `admin`
+- Пароль: `GrafanaAdmin`

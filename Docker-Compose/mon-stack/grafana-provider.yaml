@@ -1,0 +1,30 @@
+apiVersion: 1
+
+providers:
+  - name: 'Linux'
+    orgId: 1
+    folder: 'Linux'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/linux
+  - name: 'Docker'
+    orgId: 1
+    folder: 'Docker'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/docker
+  - name: 'API'
+    orgId: 1
+    folder: 'API'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/api

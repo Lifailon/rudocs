@@ -5,18 +5,21 @@ services:
     restart: no
     volumes:
       - ./grafana_data:/grafana_data
+      - ./grafana_dashboards:/grafana_dashboards
+      - ./grafana-provider.yaml:/grafana-provider.yaml
+      - ./grafana-datasources.yaml:/grafana-datasources.yaml
       - ./prometheus_data:/prometheus_data
       - ./prometheus.yml:/prometheus.yml
       - ./alert-rules.yml:/alert-rules.yml
       - ./alertmanager.yml:/alertmanager.yml
       - ./telegram.tmpl:/telegram.tmpl
       - ./loki_data:/loki_data
-    command: >
+    command: |
       sh -c "
-        chown -R 472:472 /grafana_data &&
-        chown -R 65534:65534 /prometheus_data /prometheus.yml /alert-rules.yml /alertmanager.yml /telegram.tmpl &&
-        chown -R 1000:1000 loki_data &&
-        echo 'Volume permissions updated' &&
+        chown -R 472:472 /grafana_data /grafana_dashboards grafana-provider.yaml grafana-datasources.yaml
+        chown -R 65534:65534 /prometheus_data /prometheus.yml /alert-rules.yml /alertmanager.yml /telegram.tmpl
+        chown -R 1000:1000 loki_data
+        echo 'Volume permissions updated successfully.'
         exit 0
       "
 
@@ -39,6 +42,9 @@ services:
       # - GF_DATABASE_SSL_MODE=disable
     volumes:
       - ./grafana_data:/var/lib/grafana
+      - ./grafana_dashboards:/var/lib/grafana/dashboards
+      - ./grafana-provider.yaml:/etc/grafana/provisioning/dashboards/provider.yaml
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     depends_on:
       volume-permissions-update:
         condition: service_completed_successfully
@@ -126,19 +132,6 @@ services:
       - /host/proc
       - -config.path
       - /conf.yml
-
-  # github-exporter:
-  #   image: githubexporter/github-exporter:latest
-  #   container_name: github-exporter
-  #   restart: always
-  #   environment:
-  #     - REPOS=Lifailon/rudocs,Lifailon/lazyjournal
-  #     - USERS=Lifailon
-  #     # - GITHUB_TOKEN=
-  #   # ports:
-  #   #   - 9171:9171
-  #   tty: true
-  #   stdin_open: true
 
   # cadvisor:
   #   image: gcr.io/cadvisor/cadvisor:latest
