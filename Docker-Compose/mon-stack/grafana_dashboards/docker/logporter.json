@@ -1,14 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
   "__elements": {},
   "__requires": [
     {
@@ -104,7 +94,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "",
       "fieldConfig": {
@@ -163,7 +153,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "time() - docker_started_time{containerName=~\"$ContainerName\", hostname=~\"$HostName\"}",
@@ -180,7 +170,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -230,7 +220,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(docker_containers_up_count{hostname=~\"$HostName\"})",
@@ -245,7 +235,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -296,7 +286,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(docker_containers_down_count{hostname=~\"$HostName\"})",
@@ -311,7 +301,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "User + Kernel = Total",
       "fieldConfig": {
@@ -405,7 +395,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -427,7 +417,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Total memory usage of all containers",
       "fieldConfig": {
@@ -479,7 +469,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(rate(docker_cpu_usage_total{hostname=~\"$HostName\"}[$__rate_interval]))",
@@ -494,7 +484,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Total memory usage of all containers",
       "fieldConfig": {
@@ -546,7 +536,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(docker_memory_usage{hostname=~\"$HostName\"})",
@@ -561,7 +551,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Total network usage of all containers",
       "fieldConfig": {
@@ -613,7 +603,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(rate(docker_network_received_bytes{hostname=~\"$HostName\"}[1m]))",
@@ -626,7 +616,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(rate(docker_network_transmit_bytes{hostname=~\"$HostName\"}[1m]))",
@@ -643,7 +633,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Total block storage usage of all containers",
       "fieldConfig": {
@@ -695,7 +685,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(rate(docker_io_read_bytes{hostname=~\"$HostName\"}[1m]))",
@@ -707,7 +697,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(rate(docker_io_write_bytes{hostname=~\"$HostName\"}[1m]))",
@@ -724,7 +714,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -817,7 +807,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -839,7 +829,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Input from the network",
       "fieldConfig": {
@@ -931,7 +921,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -954,7 +944,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Input from the block storage",
       "fieldConfig": {
@@ -1046,7 +1036,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -1068,7 +1058,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Processes count",
       "fieldConfig": {
@@ -1160,7 +1150,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -1182,7 +1172,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Output to the network",
       "fieldConfig": {
@@ -1274,7 +1264,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -1296,7 +1286,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Output to the block storage",
       "fieldConfig": {
@@ -1388,7 +1378,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -1423,7 +1413,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -1514,7 +1504,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -1536,7 +1526,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -1627,7 +1617,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -1659,7 +1649,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "fieldConfig": {
             "defaults": {
@@ -1750,7 +1740,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -1772,7 +1762,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "fieldConfig": {
             "defaults": {
@@ -1863,7 +1853,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -1899,7 +1889,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "fieldConfig": {
             "defaults": {
@@ -1989,7 +1979,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2011,7 +2001,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "fieldConfig": {
             "defaults": {
@@ -2102,7 +2092,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2124,7 +2114,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "description": "stdout + stderr",
           "fieldConfig": {
@@ -2215,7 +2205,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2237,7 +2227,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "description": "Number of errors in logs using a custom query (by default error level in json format)",
           "fieldConfig": {
@@ -2328,7 +2318,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2364,7 +2354,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "description": "User + Kernel = Total",
           "fieldConfig": {
@@ -2431,7 +2421,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2453,7 +2443,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "fieldConfig": {
             "defaults": {
@@ -2519,7 +2509,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2541,7 +2531,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "description": "Received + Transmit",
           "fieldConfig": {
@@ -2608,7 +2598,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2631,7 +2621,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "description": "Input + Output (Write + Read)",
           "fieldConfig": {
@@ -2698,7 +2688,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -2734,7 +2724,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "fieldConfig": {
             "defaults": {
@@ -2819,7 +2809,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "editorMode": "code",
               "expr": "sum(docker_containers_up_count{hostname=~\"$HostName\"}+docker_containers_down_count{hostname=~\"$HostName\"}) by (hostname)",
@@ -2834,7 +2824,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "fieldConfig": {
             "defaults": {
@@ -2919,7 +2909,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "editorMode": "code",
               "expr": "sum(docker_containers_down_count{hostname=~\"$HostName\"}) by (hostname)",

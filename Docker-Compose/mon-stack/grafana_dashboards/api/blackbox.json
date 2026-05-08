@@ -1,14 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
   "__elements": {},
   "__requires": [
     {
@@ -62,7 +52,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "",
       "fieldConfig": {
@@ -472,7 +462,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "probe_success{job=~\"$job\", instance=~\"$instance\"}",
           "format": "table",
@@ -484,7 +474,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "probe_http_ssl{job=~\"$job\", instance=~\"$instance\"} > 0",
           "format": "table",
@@ -496,7 +486,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "(probe_ssl_earliest_cert_expiry{job=~\"$job\", instance=~\"$instance\"} - time()) / 3600 / 24",
           "format": "table",
@@ -508,7 +498,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "probe_http_status_code{job=~\"$job\", instance=~\"$instance\"} > 0",
           "format": "table",
@@ -520,7 +510,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "avg_over_time(probe_duration_seconds{job=~\"$job\", instance=~\"$instance\"}[1m])",
           "format": "table",
@@ -534,7 +524,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "probe_tls_version_info{job=~\"$job\", instance=~\"$instance\"}",
           "format": "table",
@@ -546,7 +536,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "avg_over_time(probe_dns_lookup_time_seconds{job=~\"$job\", instance=~\"$instance\"}[1m])",
           "format": "table",
@@ -668,7 +658,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Returns how long the probe took to complete in seconds",
       "fieldConfig": {
@@ -758,7 +748,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "expr": "sum(probe_http_duration_seconds{job=~\"$job\", instance=~\"$instance\"}) by (instance)",
           "instant": false,
@@ -774,7 +764,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Checking the availability of all hosts",
       "fieldConfig": {
@@ -862,7 +852,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sum(probe_success{job=~\"$job\", instance=~\"$instance\"}) by (instance)",
@@ -889,7 +879,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "description": "Duration of http request by phase, summed over all redirects",
           "fieldConfig": {
@@ -973,7 +963,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "${DS_PROMETHEUS}"
+                "uid": null
               },
               "expr": "probe_http_duration_seconds{job=~\"$job\", instance=~\"$instance\"}",
               "interval": "",
@@ -1005,7 +995,7 @@
         "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": null
         },
         "definition": "label_values(probe_success, job)",
         "includeAll": true,
@@ -1023,7 +1013,7 @@
         "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": null
         },
         "definition": "label_values(probe_success{job=~\"$job\"}, instance)",
         "includeAll": true,

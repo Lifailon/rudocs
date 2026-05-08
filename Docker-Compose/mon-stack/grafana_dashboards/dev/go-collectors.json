@@ -1,14 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
   "__elements": {},
   "__requires": [
     {
@@ -55,7 +45,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Total user and system CPU time spent in seconds.",
       "fieldConfig": {
@@ -164,7 +154,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "rate(process_cpu_seconds_total{instance=~\"$namespace\",job=~\"$pod\"}[1m])",
@@ -180,7 +170,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of open file descriptors.",
       "fieldConfig": {
@@ -289,7 +279,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "process_open_fds{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -305,7 +295,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of bytes received by the process over the network.",
       "fieldConfig": {
@@ -414,7 +404,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "rate(process_network_receive_bytes_total{instance=~\"$namespace\",job=~\"$pod\"}[1m])",
@@ -430,7 +420,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of bytes sent by the process over the network.",
       "fieldConfig": {
@@ -539,7 +529,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "rate(process_network_transmit_bytes_total{instance=~\"$namespace\",job=~\"$pod\"}[1m])",
@@ -555,7 +545,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of goroutines that currently exist.",
       "fieldConfig": {
@@ -664,7 +654,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_goroutines{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -680,7 +670,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.",
       "fieldConfig": {
@@ -764,7 +754,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_gc_duration_seconds{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -780,7 +770,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of bytes obtained from system. Equals to /memory/classes/total:byte.",
       "fieldConfig": {
@@ -889,7 +879,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -905,7 +895,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of heap bytes allocated and currently in use, same as go_memstats_alloc_bytes. Equals to /memory/classes/heap/objects:bytes.",
       "fieldConfig": {
@@ -1014,7 +1004,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_heap_alloc_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1026,7 +1016,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_heap_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1038,7 +1028,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_heap_idle_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1050,7 +1040,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_heap_inuse_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1063,7 +1053,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_heap_released_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1079,7 +1069,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of bytes obtained from system for stack allocator in non-CGO environments. Equals to /memory/classes/heap/stacks:bytes.",
       "fieldConfig": {
@@ -1188,7 +1178,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_stack_inuse_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1200,7 +1190,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_stack_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1216,7 +1206,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Number of bytes in use by mspan structures. Equals to /memory/classes/metadata/mspan/inuse:bytes.",
       "fieldConfig": {
@@ -1325,7 +1315,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_mspan_inuse_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1337,7 +1327,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_mspan_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1349,7 +1339,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_mcache_inuse_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1361,7 +1351,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_mcache_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1373,7 +1363,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_buck_hash_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1385,7 +1375,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_gc_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1397,7 +1387,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_other_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"} - go_memstats_other_sys_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1410,7 +1400,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_next_gc_bytes{instance=~\"$namespace\",job=~\"$pod\"}",
@@ -1426,7 +1416,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Total number of heap objects allocated, both live and gc-ed. Semantically a counter version for go_memstats_heap_objects gauge. Equals to /gc/heap/allocs:objects + /gc/heap/tiny/allocs:objects.",
       "fieldConfig": {
@@ -1535,7 +1525,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "go_memstats_mallocs_total{instance=~\"$namespace\",job=~\"$pod\"} - go_memstats_frees_total",
@@ -1551,7 +1541,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "shows how many heap objects are allocated. This is a counter value so you can use rate() to objects allocated/s.",
       "fieldConfig": {
@@ -1635,7 +1625,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "rate(go_memstats_mallocs_total{instance=~\"$namespace\",job=~\"$pod\"}[1m])",
@@ -1651,7 +1641,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "description": "Total number of bytes allocated in heap until now, even if released already. Equals to /gc/heap/allocs:bytes.",
       "fieldConfig": {
@@ -1760,7 +1750,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "rate(go_memstats_alloc_bytes_total{instance=~\"$namespace\",job=~\"$pod\"}[1m])",
@@ -1786,7 +1776,7 @@
         "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": null
         },
         "definition": "label_values(go_goroutines,instance)",
         "includeAll": false,
@@ -1808,7 +1798,7 @@
         "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": null
         },
         "definition": "label_values(go_goroutines,job)",
         "includeAll": false,

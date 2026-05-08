@@ -1,14 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_LOKI-SERVER",
-      "label": "loki-server",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "loki",
-      "pluginName": "Loki"
-    }
-  ],
   "__elements": {},
   "__requires": [
     {
@@ -62,7 +52,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "${DS_LOKI-SERVER}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -145,7 +135,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "${DS_LOKI-SERVER}"
+            "uid": null
           },
           "direction": "backward",
           "editorMode": "code",
@@ -160,7 +150,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "${DS_LOKI-SERVER}"
+        "uid": null
       },
       "gridPos": {
         "h": 25,
@@ -186,7 +176,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "${DS_LOKI-SERVER}"
+            "uid": null
           },
           "direction": "backward",
           "editorMode": "code",
@@ -210,7 +200,7 @@
         "current": {},
         "datasource": {
           "type": "loki",
-          "uid": "${DS_LOKI-SERVER}"
+          "uid": null
         },
         "definition": "",
         "name": "Node",
@@ -231,7 +221,7 @@
         "current": {},
         "datasource": {
           "type": "loki",
-          "uid": "${DS_LOKI-SERVER}"
+          "uid": null
         },
         "definition": "",
         "includeAll": false,
@@ -254,7 +244,7 @@
         "current": {},
         "datasource": {
           "type": "loki",
-          "uid": "${DS_LOKI-SERVER}"
+          "uid": null
         },
         "definition": "",
         "includeAll": true,
@@ -275,7 +265,7 @@
         "current": {},
         "datasource": {
           "type": "loki",
-          "uid": "${DS_LOKI-SERVER}"
+          "uid": null
         },
         "definition": "",
         "includeAll": true,
