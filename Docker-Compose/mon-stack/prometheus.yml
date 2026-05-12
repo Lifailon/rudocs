@@ -19,7 +19,7 @@ scrape_configs:
 
 ################################################### Linux ###################################################
 
-  - job_name: linux-node-exporter
+  - job_name: node-exporter
     static_configs:
       - targets:
         - node-exporter:9100
@@ -33,17 +33,23 @@ scrape_configs:
         # - 192.168.3.105:9256
         # - 192.168.3.106:9256
 
+  - job_name: beyla
+    static_configs:
+      - targets:
+        - beyla-exporter:8080
+        # - 192.168.3.105:9876
+        # - 192.168.3.106:9876
+
 ################################################### Windows ###################################################
 
-  # Windows
-  # - job_name: windows-ohm-exporter
+  # - job_name: ohm-exporter
   #   static_configs:
   #     - targets:
   #       - 192.168.3.100:4445
 
 ################################################### Docker ###################################################
 
-  - job_name: docker-exporter-logporter
+  - job_name: logporter
     scrape_interval: 5s
     scrape_timeout: 1s
     static_configs:
@@ -52,26 +58,26 @@ scrape_configs:
         # - 192.168.3.105:9333
         # - 192.168.3.106:9333
 
-  # - job_name: docker-exporter-cadvisor
+  # - job_name: cadvisor
   #   static_configs:
   #     - targets:
   #       - cadvisor:8080
-  #       - 192.168.3.105:8080
-  #       - 192.168.3.106:8080
+  #       # - 192.168.3.105:8080
+  #       # - 192.168.3.106:8080
 
 ################################################### Blackbox ###################################################
 
   - job_name: blackbox-icmp
     scrape_interval: 30s
-    scrape_timeout: 5s
+    scrape_timeout: 10s
     metrics_path: /probe
     params:
       module: [icmp_ping]
     static_configs:
       - targets:
-          - 8.8.8.8
-          # - 192.168.3.105
-          # - 192.168.3.106
+        - 8.8.8.8
+        # - 192.168.3.105
+        # - 192.168.3.106
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -88,8 +94,8 @@ scrape_configs:
   #     module: [tcp_ssh]
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.105:2121
-  #         - 192.168.3.106:2121
+  #       - 192.168.3.105:2121
+  #       - 192.168.3.106:2121
   #   relabel_configs:
   #     - source_labels: [__address__]
   #       target_label: __param_target
@@ -99,16 +105,20 @@ scrape_configs:
   #       replacement: blackbox-exporter:9115
 
   - job_name: blackbox-http
-    scrape_interval: 30s
+    scrape_interval: 1m
     scrape_timeout: 5s
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets:
-          - https://google.com
-          # - http://192.168.3.105:9100
-          # - http://192.168.3.106:9100
+        - https://google.com
+        - https://github.com
+        - https://gitlab.com
+        - https://docker.com
+        - https://vercel.com
+        # - http://192.168.3.105:9100
+        # - http://192.168.3.106:9100
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -116,23 +126,6 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: blackbox-exporter:9115
-
-  # - job_name: blackbox-api
-  #   scrape_interval: 60s
-  #   scrape_timeout: 5s
-  #   metrics_path: /probe
-  #   params:
-  #     module: [rest_api]
-  #   static_configs:
-  #     - targets:
-  #         - https://torapi.vercel.app/api/provider/list
-  #   relabel_configs:
-  #     - source_labels: [__address__]
-  #       target_label: __param_target
-  #     - source_labels: [__param_target]
-  #       target_label: instance
-  #     - target_label: __address__
-  #       replacement: blackbox-exporter:9115
 
 ################################################### REST API ###################################################
 
@@ -148,13 +141,6 @@ scrape_configs:
   #       - 192.168.3.101:8081
   #   basic_auth:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
-
-################################################### eBPF ###################################################
-
-  - job_name: beyla
-    static_configs:
-      - targets:
-        - beyla-exporter:8080
 
 ################################################### Speedtest ###################################################
 

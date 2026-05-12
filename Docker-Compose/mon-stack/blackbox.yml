@@ -17,20 +17,13 @@ modules:
     prober: http
     timeout: 5s
     http:
-      preferred_ip_protocol: "ip4"
-      no_follow_redirects: false
-      ip_protocol_fallback: false
       tls_config:
         insecure_skip_verify: true
       method: GET
-      valid_status_codes: [200]
-
-  rest_api:
-    prober: http
-    timeout: 5s
-    http:
-      method: GET
       headers:
         Content-Type: "application/json"
-      fail_if_body_not_matches_regexp:
-        - '.+"Provider":"RuTracker".+'
+      no_follow_redirects: false
+      valid_status_codes: []
+      # valid_status_codes: [200]
+      # fail_if_body_not_matches_regexp:
+      #   - '.+Provider.+'

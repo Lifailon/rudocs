@@ -988,7 +988,7 @@
             - Loki:
                 icon: loki.png
                 server: local
-                container: loki-server
+                container: loki
                 href: http://192.168.3.101:3100/loki/api/v1/labels
                 widget:
                     type: customapi

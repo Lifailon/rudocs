@@ -3242,6 +3242,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./localstack_data:/var/lib/localstack
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: localstack
 
   fluent-bit:
     image: fluent/fluent-bit:latest
@@ -7565,27 +7570,26 @@ services:
 # mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
 
 services:
-  loki-server:
+  loki:
     image: grafana/loki:latest
-    container_name: loki-server
+    container_name: loki
     restart: always
     user: root
     volumes:
-      - ./loki-server.yml:/etc/loki/loki-config.yaml
+      - ./loki.yml:/etc/loki/loki-config.yaml
       - ./loki_data:/loki
-    # Порт нужен для внешних агентов и api: http://loki-server:3100/loki/api/v1/labels
     ports:
       - 3100:3100
 
-  loki-promtail:
+  promtail:
     image: grafana/promtail:latest
-    container_name: loki-promtail
+    container_name: promtail
     restart: always
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./loki-promtail.yml:/etc/promtail/promtail.yml
+      - ./promtail.yml:/etc/promtail/promtail.yml
     command: -config.file=/etc/promtail/promtail.yml
     # ports:
     #   - 9080:9080
@@ -8192,23 +8196,10 @@ services:
 
 [Fluent Bit](https://github.com/fluent/fluent-bit) - быстрый и легковесный агент для сбора логов, метрик и трассировок в системах Linux, BSD, OSX и Windows.
 
-Пример пересылки логов из контейнера [Zerobyte](https://github.com/nicotsx/zerobyte) в сервис AWS CloudWatch (может быть запущен в [localstack](https://github.com/localstack/localstack)) через Fluent Bit:
+Пример пересылки логов из контейнера [Zerobyte](https://github.com/nicotsx/zerobyte) в сервис AWS CloudWatch (может быть запущен в [localstack](https://github.com/localstack/localstack)) через fluent-bit агента:
 
 ```yaml
 services:
-  fluent-bit:
-    image: fluent/fluent-bit:latest
-    container_name: fluent-bit
-    ports:
-      - 24224:24224
-    volumes:
-      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
-    environment:
-      - AWS_ENDPOINT_URL=http://192.168.3.101:4566
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
-      - AWS_REGION=us-east-1
-
   zerobyte:
     image: ghcr.io/nicotsx/zerobyte:v0.19
     container_name: zerobyte
@@ -8230,6 +8221,19 @@ services:
       options:
         fluentd-address: localhost:24224
         tag: zerobyte
+
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    ports:
+      - 24224:24224
+    environment:
+      - AWS_ENDPOINT_URL=http://192.168.3.101:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
 ```
 
 ### Vector
