@@ -984,9 +984,11 @@
   "refresh": "1m",
   "schemaVersion": 41,
   "tags": [
+    "API",
+    "HTTP",
     "ICMP",
     "TCP",
-    "API"
+    "UDP"
   ],
   "templating": {
     "list": [

@@ -59,7 +59,7 @@ scrape_configs:
   #       - 192.168.3.105:8080
   #       - 192.168.3.106:8080
 
-################################################### ICMP/ping ###################################################
+################################################### Blackbox ###################################################
 
   - job_name: blackbox-icmp
     scrape_interval: 30s
@@ -78,9 +78,7 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: blackbox:9115
-
-################################################### TCP/SSH ###################################################
+        replacement: blackbox-exporter:9115
 
   # - job_name: blackbox-tcp
   #   scrape_interval: 30s
@@ -98,11 +96,8 @@ scrape_configs:
   #     - source_labels: [__param_target]
   #       target_label: instance
   #     - target_label: __address__
-  #       replacement: blackbox:9115
+  #       replacement: blackbox-exporter:9115
 
-################################################### HTTP/HTTPS ###################################################
-
-  #  (check google and node exporters)
   - job_name: blackbox-http
     scrape_interval: 30s
     scrape_timeout: 5s
@@ -120,9 +115,7 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: blackbox:9115
-
-################################################### REST API ###################################################
+        replacement: blackbox-exporter:9115
 
   # - job_name: blackbox-api
   #   scrape_interval: 60s
@@ -139,12 +132,14 @@ scrape_configs:
   #     - source_labels: [__param_target]
   #       target_label: instance
   #     - target_label: __address__
-  #       replacement: blackbox:9115
+  #       replacement: blackbox-exporter:9115
+
+################################################### REST API ###################################################
 
   # - job_name: gatus
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.205:80
+  #       - 192.168.3.205:80
 
   # - job_name: uptime-kuma
   #   scrape_interval: 30s
@@ -154,10 +149,12 @@ scrape_configs:
   #   basic_auth:
   #     password: uk1_fl3JxkSDwGLzQuHk2FVb8z89SCRYq0_3JbXsy73t
 
-  # - job_name: github-exporter
-  #   static_configs:
-  #     - targets:
-  #         - github-exporter:9171
+################################################### eBPF ###################################################
+
+  - job_name: beyla
+    static_configs:
+      - targets:
+        - beyla-exporter:8080
 
 ################################################### Speedtest ###################################################
 
@@ -176,19 +173,12 @@ scrape_configs:
   #     - targets:
   #       - 192.168.3.101:9798
 
-################################################### Go App ###################################################
-
-  # - job_name: go-app
-  #   static_configs:
-  #     - targets:
-  #       - 192.168.3.100:2112
-
 ################################################### DNS ###################################################
 
   # - job_name: pi-hole-exporter
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.101:9617
+  #       - 192.168.3.101:9617
 
 ################################################### Proxy ###################################################
 
@@ -200,7 +190,7 @@ scrape_configs:
   # - job_name: traefik-exporter
   #   static_configs:
   #     - targets:
-  #         - 192.168.3.101:4318
+  #       - 192.168.3.101:4318
 
 ################################################### CI/CD ###################################################
 
@@ -211,14 +201,21 @@ scrape_configs:
   #     - targets:
   #       - 192.168.3.101:8080
 
-################################################### k8s ###################################################
+################################################### K8s ###################################################
 
   # - job_name: ksm
   #   static_configs:
   #     - targets:
-  #       - 192.168.3.101:30002
+  #       - ksm.k8s.local
 
   # - job_name: metallb
   #   static_configs:
   #     - targets:
   #       - metallb.k8s.local
+
+################################################### Go App ###################################################
+
+  # - job_name: go-app
+  #   static_configs:
+  #     - targets:
+  #       - 192.168.3.100:2112

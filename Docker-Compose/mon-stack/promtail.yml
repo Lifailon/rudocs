@@ -19,10 +19,10 @@ scrape_configs:
           __path__: /var/log/*log
     pipeline_stages:
       - regex:
-          expression: "^/var/log/(?P<file_name>.+)$"
+          expression: "^/var/log/(?P<service_name>.+)$"
           source: filename
       - labels:
-          file_name:
+          service_name:
 
   - job_name: docker
     # static_configs:

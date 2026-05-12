@@ -99,9 +99,9 @@ services:
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
 
-  blackbox:
+  blackbox-exporter:
     image: prom/blackbox-exporter:latest
-    container_name: blackbox
+    container_name: blackbox-exporter
     restart: always
     volumes:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
@@ -133,6 +133,18 @@ services:
       - -config.path
       - /conf.yml
 
+  beyla-exporter:
+    image: grafana/beyla:latest
+    container_name: beyla-exporter
+    restart: always
+    privileged: true
+    pid: host
+    environment:
+      - BEYLA_OPEN_PORT=1-65535
+      - BEYLA_PROMETHEUS_PORT=8080
+    # ports:
+    #   - 9876:8080
+
   # cadvisor:
   #   image: gcr.io/cadvisor/cadvisor:latest
   #   container_name: cadvisor
@@ -145,6 +157,7 @@ services:
   #   # ports:
   #   #   - 8080:8080
 
+  # Docker Exporter
   logporter:
     image: lifailon/logporter:latest
     container_name: logporter
@@ -154,27 +167,42 @@ services:
     # ports:
     #   - 9333:9333
 
-  loki-server:
+  # Log server
+  loki:
     image: grafana/loki:latest
-    container_name: loki-server
+    container_name: loki
     restart: always
     user: root
     volumes:
-      - ./loki-server.yml:/etc/loki/loki-config.yaml
+      - ./loki.yml:/etc/loki/loki-config.yaml
       - ./loki_data:/loki
-    # Порт нужен для внешних агентов и api: http://loki-server:3100/loki/api/v1/labels
     ports:
       - 3100:3100
 
-  loki-promtail:
+  # Log agent
+  promtail:
     image: grafana/promtail:latest
-    container_name: loki-promtail
+    container_name: promtail
     restart: always
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./loki-promtail.yml:/etc/promtail/promtail.yml
+      - ./promtail.yml:/etc/promtail/promtail.yml
+      - /etc/hostname:/etc/hostname:ro
     command: -config.file=/etc/promtail/promtail.yml
     # ports:
     #   - 9080:9080
+
+  # fluent-bit:
+  #   image: fluent/fluent-bit:latest
+  #   container_name: fluent-bit
+  #   restart: always
+  #   user: root
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+  #     - ./parsers.conf:/fluent-bit/etc/parsers.conf:ro
+  #   logging:
+  #     driver: local

@@ -139,7 +139,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "sum(count_over_time({job_name=\"docker\",node_name=\"$Node\",container_name=~\"$Container\",level=~\"$Level\",tag=~\"$Tag\"} |~ \"$Search\"[$__interval]))",
+          "expr": "sum(count_over_time({job_name=\"system\",node_name=\"$Node\",file_name=~\"$File\"} |~ \"$Search\"[$__interval]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -180,7 +180,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{job_name=\"docker\",node_name=\"$Node\",container_name=~\"$Container\",level=~\"$Level\",tag=~\"$Tag\"} |~ \"$Search\"",
+          "expr": "{job_name=\"system\",node_name=\"$Node\",file_name=~\"$File\"} |~ \"$Search\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -192,7 +192,7 @@
   "refresh": false,
   "schemaVersion": 41,
   "tags": [
-    "Docker"
+    "LInux"
   ],
   "templating": {
     "list": [
@@ -226,10 +226,10 @@
         "definition": "",
         "includeAll": false,
         "multi": true,
-        "name": "Container",
+        "name": "File",
         "options": [],
         "query": {
-          "label": "container_name",
+          "label": "file_name",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1
@@ -237,48 +237,6 @@
         "refresh": 1,
         "regex": "",
         "sort": 5,
-        "type": "query"
-      },
-      {
-        "allValue": ".*",
-        "current": {},
-        "datasource": {
-          "type": "loki",
-          "uid": null
-        },
-        "definition": "",
-        "includeAll": true,
-        "name": "Level",
-        "options": [],
-        "query": {
-          "label": "level",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "",
-          "type": 1
-        },
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "allValue": ".*",
-        "current": {},
-        "datasource": {
-          "type": "loki",
-          "uid": null
-        },
-        "definition": "",
-        "includeAll": true,
-        "name": "Tag",
-        "options": [],
-        "query": {
-          "label": "tag",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "",
-          "type": 1
-        },
-        "refresh": 1,
-        "regex": "",
         "type": "query"
       },
       {
@@ -300,7 +258,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -317,8 +275,8 @@
     ]
   },
   "timezone": "",
-  "title": "Loki Docker Logs",
-  "uid": "eacad119-069c-4ce7-a895-c67287d64c91",
-  "version": 11,
+  "title": "System Logs",
+  "uid": "eacad119-069c-4ce7-a895-c67287d64c92",
+  "version": 7,
   "weekStart": ""
 }
