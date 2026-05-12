@@ -167,7 +167,6 @@ services:
     # ports:
     #   - 9333:9333
 
-  # Log server
   loki:
     image: grafana/loki:latest
     container_name: loki
@@ -179,7 +178,6 @@ services:
     ports:
       - 3100:3100
 
-  # Log agent
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
@@ -206,3 +204,36 @@ services:
   #     - ./parsers.conf:/fluent-bit/etc/parsers.conf:ro
   #   logging:
   #     driver: local
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    restart: always
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+    command: -config.file=/etc/tempo.yaml
+    ports:
+      - 3200:3200
+      # - 4317:4317
+      # - 4318:4318
+
+  pyroscope:
+    image: grafana/pyroscope:latest
+    container_name: pyroscope
+    restart: always
+    ports:
+      - 4040:4040
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    restart: always
+    privileged: true
+    pid: host
+    init: true
+    volumes:
+      - ./alloy.hcl:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/kernel/debug:/sys/kernel/debug
+      - /sys/kernel/tracing:/sys/kernel/tracing
+    command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy

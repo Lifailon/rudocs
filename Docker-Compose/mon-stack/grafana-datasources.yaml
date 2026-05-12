@@ -9,7 +9,16 @@ datasources:
     editable: true
   - name: loki
     type: loki
-    url: http://loki-server:3100
+    url: http://loki:3100
+    access: proxy
+    editable: true
+  - name: Pyroscope
+    type: phlare
+    url: http://pyroscope:4040
+    access: proxy
+  - name: Tempo
+    type: tempo
+    url: http://tempo:3200
     access: proxy
     editable: true
   # - name: graphite
