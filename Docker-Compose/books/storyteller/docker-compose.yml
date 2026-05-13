@@ -1,0 +1,11 @@
+services:
+  storyteller:
+    image: registry.gitlab.com/storyteller-platform/storyteller:latest
+    container_name: storyteller
+    restart: unless-stopped
+    environment:
+      - STORYTELLER_SECRET_KEY=changemechangemechangeme
+    ports:
+      - 8001:8001
+    volumes:
+      - ./storyteller_data:/data:rw
