@@ -1,4 +1,19 @@
 services:
+  pulse:
+    image: rcourtman/pulse:latest
+    container_name: pulse
+    restart: unless-stopped
+    ports:
+      - 7655:7655
+    volumes:
+      - ./pulse_data:/data
+
+  # Получить токен:
+  # docker exec pulse cat /data/.bootstrap_token
+
+  # Подключение агентов:
+  # curl -sSL http://192.168.3.101:7655/install.sh | bash -s -- --url "http://192.168.3.101:7655" --token "c276d05d260e7dbdb6840d0942de4413b91a6e8ede9515ed"
+
   proxmox-backup-server:
     image: ayufan/proxmox-ve:latest
     container_name: proxmox-backup-server

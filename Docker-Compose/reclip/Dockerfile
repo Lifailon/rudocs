@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git ffmpeg && \
-    git clone https://github.com/ritz078/transform.git /app && \
+    git clone https://github.com/averygan/reclip /app && ls -lh && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
