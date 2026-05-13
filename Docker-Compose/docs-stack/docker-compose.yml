@@ -1,4 +1,18 @@
 services:
+  paperless-ngx:
+    image: lscr.io/linuxserver/paperless-ngx:latest
+    container_name: paperless-ngx
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    ports:
+      - 8000:8000
+    volumes:
+      - ./paperless_config:/config
+      - ./paperless_data:/data
+
   grist:
     image: gristlabs/grist:latest
     container_name: grist
@@ -7,8 +21,6 @@ services:
       APP_HOME_URL: https://grist.docker.local
       GRIST_DEFAULT_EMAIL: admin@docker.local
       GRIST_FORCE_LOGIN: false
-      # GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
-      # GRIST_SINGLE_ORG: my-grist-team
     volumes:
       - ./grist_data:/persist
     ports:
