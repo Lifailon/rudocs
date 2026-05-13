@@ -14,7 +14,7 @@ services:
     volumes:
       - ./docs:/docs:ro
 
-  # REST API Client (поддерживает импорт коллекций из OpenAPI и экспорт в Postman и Insomnia)
+  # REST API клиент (поддерживает импорт коллекций из OpenAPI и экспорт в Postman и Insomnia)
   restfox:
     image: flawiddsouza/restfox:latest
     container_name: restfox
@@ -22,7 +22,7 @@ services:
     ports:
       - 4004:4004
 
-  # REST API Client
+  # REST API клиент
   # yaade:
   #   image: esperotech/yaade:latest 
   #   container_name: yaade
@@ -35,7 +35,7 @@ services:
   #   volumes:
   #     - ./yaade_data:/app/data
 
-  # API для тестирования HTTP-запросов и ответов
+  # REST API клиент для тестирования HTTP-запросов и ответов
   httpbin:
     image: ghcr.io/mccutchen/go-httpbin
     container_name: httpbin
@@ -73,16 +73,6 @@ services:
       - URL=http://192.168.3.101:8889/swagger.json
     depends_on:
       - httpbin
-
-  # Прокси сервер для перехвата, анализа и изменения HTTP-трафика
-  # mitmproxy:
-  #   image: mitmproxy/mitmproxy:latest
-  #   container_name: mitmproxy
-  #   restart: unless-stopped
-  #   ports:
-  #     - 8880:8080 # Proxy
-  #     - 8881:8081 # Web UI
-  #   command: mitmweb --web-host 0.0.0.0 --listen-host 0.0.0.0
 
   # Инструмент командной строки для тестирования GraphQL, gRPC, SOAP и REST API
   # step-ci:
