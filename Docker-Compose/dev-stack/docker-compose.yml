@@ -25,23 +25,24 @@ services:
   #     - ./cloud_data:/cloud
 
   # Подключение к RDP, VNC, SSH и управление файлами через SFTP в браузере от создателя MySpeed
-  nexterm:
-    image: germannewsmaker/nexterm:latest
-    container_name: nexterm
-    restart: unless-stopped
-    environment:
-      # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
-      # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
-      - ENCRYPTION_KEY=9dbde894647845ab33e13a9334cdbadc5f8d22abe42df0b3daff431eec0df870
-    ports:
-      - 6989:6989
-    volumes:
-      - ./nexterm_data:/app/data
+  # nexterm:
+  #   image: germannewsmaker/nexterm:latest
+  #   container_name: nexterm
+  #   restart: unless-stopped
+  #   environment:
+  #     # head -c 32 /dev/urandom | base64 || openssl rand -base64 32
+  #     # head -c 32 /dev/urandom | xxd -p -c 32 || openssl rand -hex 32
+  #     - ENCRYPTION_KEY=9dbde894647845ab33e13a9334cdbadc5f8d22abe42df0b3daff431eec0df870
+  #   ports:
+  #     - 6989:6989
+  #   volumes:
+  #     - ./nexterm_data:/app/data
 
-  # Сервер лицензирования
+############################################################ Licensing system ############################################################
+
   licenseapi:
     image: germannewsmaker/licenseapi:development
-    container_name: nexlicenseapiterm
+    container_name: licenseapi
     restart: unless-stopped
     environment:
       - MONGOOSE_STRING=mongodb://licenseapi-mongo:27017/licenseapi
@@ -63,59 +64,10 @@ services:
     volumes:
       - ./licenseapi_mongo_data:/data/db
 
-############################################################ Tools ############################################################
-
-  # Большая коллекция утилит для разработчиков (криптография, конверторы, веб инструменты и многое другое).
-  it-tools:
-    image: corentinth/it-tools:latest
-    container_name: it-tools
-    restart: unless-stopped
-    ports:
-      - 6990:80
-
-  # Универсальный инструмент для шифрования, кодирования, сжатия и анализа данных
-  cyberchef:
-    image: mpepping/cyberchef:latest
-    container_name: cyberchef
-    restart: unless-stopped
-    ports:
-      - 6990:8000
-
-  # Универсальный веб-конвертор
-  transform:
-    image: lifailon/transform:amd64
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    container_name: transform
-    restart: unless-stopped
-    ports:
-      - 3090:3000
-
-  # Инструмент для сжатия, изменения разрешения и конвертации изображений
-  mazanoke:
-    image: ghcr.io/civilblur/mazanoke:latest
-    container_name: mazanoke
-    restart: unless-stopped
-    ports:
-      - 3474:80
-
-  # Веб-приложение для визуализации JSON, YAML, XML и CSV в интерактивные графики
-  jsoncrack:
-    image: shokohsc/jsoncrack:latest
-    container_name: jsoncrack
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-    # Доступ через Proxy по FQDN
-    # ports:
-    #   - 3080:8080
-    labels:
-      - traefik.enable=true
-
 ############################################################ Playground ############################################################
 
   # Улучшенная игровая площадка для запуска кода на Go
+  # Playground: https://goplay.tools
   go-playground:
     image: x1unix/go-playground:latest
     container_name: go-playground
@@ -126,6 +78,7 @@ services:
       - 9444:8000
 
   # Игровая площадка для тестирования шаблонизатора Go
+  # Playground: https://repeatit.io
   go-template-playground:
     image: ghcr.io/rytsh/repeatit:latest
     # image: lifailon/go-template-playground:latest # 0.5.5-amd64
@@ -136,13 +89,39 @@ services:
     ports:
       - 9445:8080
 
-  # Backlog
-  # https://github.com/shipmight/helm-playground
-  # https://github.com/dainiak/jinja2-playground
+  # Helm Playground: https://github.com/shipmight/helm-playground
+  # Playground: https://helm-playground.com
 
-############################################################ IDE ############################################################
+############################################################ REST API Client ############################################################
 
-  # VSCode в браузере
+  restfox:
+    image: flawiddsouza/restfox:latest
+    container_name: restfox
+    restart: unless-stopped
+    ports:
+      - 4004:4004
+
+  # yaade:
+  #   image: esperotech/yaade:latest 
+  #   container_name: yaade
+  #   restart: unless-stopped
+  #   ports:
+  #     - 9339:9339
+  #   environment:
+  #     - YAADE_ADMIN_USERNAME=admin
+  #     - YAADE_ADMIN_PASSWORD=password
+  #   volumes:
+  #     - ./yaade_data:/app/data
+
+  # httpbin:
+  #   image: ghcr.io/mccutchen/go-httpbin
+  #   container_name: httpbin
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8888:8080
+
+############################################################ VSCode/IDE ############################################################
+
   code-server:
     image: linuxserver/code-server:latest
     container_name: code-server
@@ -158,40 +137,104 @@ services:
     ports:
       - 9443:8443
 
-  # IDE в браузере
-  judge0-server:
-    image: judge0/judge0:latest
-    container_name: judge0-server
+  # judge0-server:
+  #   image: judge0/judge0:latest
+  #   container_name: judge0-server
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./judge0.conf:/judge0.conf:ro
+  #   ports:
+  #     - "2358:2358"
+  #   privileged: true
+
+  # judge0-worker:
+  #   image: judge0/judge0:latest
+  #   container_name: judge0-worker
+  #   restart: unless-stopped
+  #   command: ["./scripts/workers"]
+  #   volumes:
+  #     - ./judge0.conf:/judge0.conf:ro
+  #   privileged: true
+
+  # judge0-db:
+  #   image: postgres:16.2
+  #   container_name: judge0-db
+  #   restart: unless-stopped
+  #   env_file: judge0.conf
+  #   volumes:
+  #     - ./judge0_data:/var/lib/postgresql/data/
+
+  # judge0-redis:
+  #   image: redis:7.2.4
+  #   container_name: judge0-redis
+  #   restart: unless-stopped
+  #   command: [
+  #     "bash", "-c",
+  #     'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
+  #   ]
+  #   env_file: judge0.conf
+
+############################################################ Tools ############################################################
+
+  # Большая коллекция утилит для разработчиков (криптография, конверторы, веб инструменты и многое другое).
+  # Playground: https://it-tools.tech
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
     restart: unless-stopped
-    volumes:
-      - ./judge0.conf:/judge0.conf:ro
     ports:
-      - "2358:2358"
-    privileged: true
+      - 6990:80
 
-  judge0-worker:
-    image: judge0/judge0:latest
-    container_name: judge0-worker
+  # Универсальный инструмент для шифрования, кодирования, сжатия и анализа данных
+  # Playground: https://gchq.github.io/CyberChef
+  cyberchef:
+    image: mpepping/cyberchef:latest
+    container_name: cyberchef
     restart: unless-stopped
-    command: ["./scripts/workers"]
-    volumes:
-      - ./judge0.conf:/judge0.conf:ro
-    privileged: true
+    ports:
+      - 6990:8000
 
-  judge0-db:
-    image: postgres:16.2
-    container_name: judge0-db
+  # Универсальный веб-конвертор
+  # Playground: https://transform.tools
+  transform:
+    image: lifailon/transform:amd64
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: transform
     restart: unless-stopped
-    env_file: judge0.conf
-    volumes:
-      - ./judge0_data:/var/lib/postgresql/data/
+    ports:
+      - 3090:3000
 
-  judge0-redis:
-    image: redis:7.2.4
-    container_name: judge0-redis
+  # Веб-приложение для визуализации JSON, YAML, XML и CSV в интерактивные графики
+  # Playground: https://jsoncrack.com/editor
+  jsoncrack:
+    image: shokohsc/jsoncrack:latest
+    container_name: jsoncrack
     restart: unless-stopped
-    command: [
-      "bash", "-c",
-      'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
-    ]
-    env_file: judge0.conf
+    environment:
+      - NODE_ENV=production
+    # Доступ через Proxy по FQDN
+    # ports:
+    #   - 3080:8080
+    labels:
+      - traefik.enable=true
+
+  # Инструмент для сжатия, изменения разрешения и конвертации изображений
+  # Playground: https://mazanoke.com
+  mazanoke:
+    image: ghcr.io/civilblur/mazanoke:latest
+    container_name: mazanoke
+    restart: unless-stopped
+    ports:
+      - 3474:80
+
+  # imgcompress:
+  #   image: karimz1/imgcompress:latest
+  #   container_name: imgcompress
+  #   restart: unless-stopped
+  #   ports:
+  #     - 5000:5000
+  #   environment:
+  #     - DISABLE_LOGO=false
+  #     - DISABLE_STORAGE_MANAGEMENT=false

@@ -500,6 +500,19 @@ services:
     environment:
       - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
 
+  # nora:
+  #   image: ghcr.io/getnora-io/nora:latest
+  #   container_name: nora
+  #   restart: unless-stopped
+  #   ports:
+  #     - 4000:4000
+  #   environment:
+  #     - RUST_LOG=info
+  #     - NORA_HOST=0.0.0.0
+  #     - NORA_AUTH_ENABLED=false
+  #   volumes:
+  #     - ./nora_data:/data
+
 ################################################### Dockerfile ###################################################
 
   # WebUI for Dockerfile linter (static analyze)
