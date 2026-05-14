@@ -323,54 +323,75 @@ services:
 
 ################################################### Images ###################################################
 
+  # Notification system
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    restart: always
+    ports:
+      - 5080:80
+    environment:
+      GOTIFY_DEFAULTUSER_PASS: admin
+    volumes:
+      - ./gotify_data:/app/data
+
   # Auto-update docker images and restart containers
   # https://github.com/containrrr/watchtower
-  # watchtower:
-  #   image: containrrr/watchtower
-  #   container_name: watchtower
-  #   restart: always
-  #   command: --interval 600 --http-api-metrics --http-api-update
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   environment:
-  #     - WATCHTOWER_NOTIFICATIONS=shoutrrr
-  #     - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
-  #     - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
-  #     - WATCHTOWER_HTTP_API_TOKEN=demotoken
-  #   ports:
-  #     - 8088:8080 # api
+  watchtower:
+    # image: containrrr/watchtower
+    # Fork: https://github.com/nicholas-fedor/watchtower
+    image: nickfedor/watchtower
+    container_name: watchtower
+    restart: always
+    command: --interval 600 # --http-api-metrics --http-api-update
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Telegram via Shoutrrr
+      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # - WATCHTOWER_NOTIFICATIONS_HOSTNAME=<HOST_NAME>
+      # - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
+      # - WATCHTOWER_HTTP_API_TOKEN=demotoken
+      # - HTTPS_PROXY=http://192.168.3.105:20171
+      # - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+      # Gotify
+      - WATCHTOWER_NOTIFICATIONS=gotify
+      - WATCHTOWER_NOTIFICATION_GOTIFY_URL=http://gotify:80
+      - WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN=<API_KEY>
+    ports:
+      - 8088:8080 # api
 
   # Docker Image Update Notifier
   # https://github.com/crazy-max/diun
-  diun:
-    image: crazymax/diun:latest
-    container_name: diun
-    restart: always
-    command: serve
-    volumes:
-      - ./diun_data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - TZ=Etc/GMT+3
-      - LOG_LEVEL=info
-      - LOG_JSON=false
-      - DIUN_WATCH_SCHEDULE=0 */6 * * *
-      - DIUN_PROVIDERS_DOCKER=true
-      - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
-      - DIUN_NOTIF_TELEGRAM_CHATIDS=<CHAT/CHANNEL_ID>
-      - DIUN_NOTIF_TELEGRAM_TOKEN=<BOT_API_KEY>
-      # https://crazymax.dev/diun/faq/?h=entry#notification-template
-      - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
-      - HTTPS_PROXY=http://192.168.3.105:20171
-      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
-    labels:
-      - diun.enable=true
-    healthcheck:
-      test: diun notif test
-      interval: 24h
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+  # diun:
+  #   image: crazymax/diun:latest
+  #   container_name: diun
+  #   restart: always
+  #   command: serve
+  #   volumes:
+  #     - ./diun_data:/data
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - TZ=Etc/GMT+3
+  #     - LOG_LEVEL=info
+  #     - LOG_JSON=false
+  #     - DIUN_WATCH_SCHEDULE=0 */6 * * *
+  #     - DIUN_PROVIDERS_DOCKER=true
+  #     - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
+  #     - DIUN_NOTIF_TELEGRAM_CHATIDS=<CHAT/CHANNEL_ID>
+  #     - DIUN_NOTIF_TELEGRAM_TOKEN=<BOT_API_KEY>
+  #     # https://crazymax.dev/diun/faq/?h=entry#notification-template
+  #     - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
+  #     - HTTPS_PROXY=http://192.168.3.105:20171
+  #     - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+  #   labels:
+  #     - diun.enable=true
+  #   healthcheck:
+  #     test: diun notif test
+  #     interval: 24h
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 10s
 
   # What's up Docker
   # https://github.com/getwud/wud
@@ -383,34 +404,16 @@ services:
     ports:
       - 5002:3000
     environment:
-      # Включить доступ к управлению локальным docker socket
-      - WUD_TRIGGER_DOCKER_LOCAL_ENABLED=true
-      # Автоматически загружать образы
-      - WUD_TRIGGER_DOCKER_LOCAL_MODE=pull
-      # Автоматически перезапускать контейнеры на новом образе
-      # - WUD_TRIGGER_DOCKER_LOCAL_MODE=recreate
-      # Настройка триггера для отправки уведомлений в Telegram
-      - WUD_TRIGGER_TELEGRAM_1_CHATID=<CHAT/CHANNEL_ID>
-      - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=<BOT_API_KEY>
-      # Прокси для доступа к Telegram API
-      - HTTPS_PROXY=http://192.168.3.105:20171
-      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
-      # Интеграция с Gotify для отправки уведомлений
+      # Telegram trigger
+      # - WUD_TRIGGER_TELEGRAM_1_CHATID=<CHAT/CHANNEL_ID>
+      # - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=<BOT_API_KEY>
+      # - HTTPS_PROXY=http://192.168.3.105:20171
+      # - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+      # Gotify trigger
       - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
       - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=<API_KEY>
     labels:
       - wud.watch=true
-
-  gotify:
-    image: gotify/server
-    container_name: gotify
-    restart: always
-    ports:
-      - 5080:80
-    environment:
-      GOTIFY_DEFAULTUSER_PASS: admin
-    volumes:
-      - ./gotify_data:/app/data
 
 ################################################### Proxy ###################################################
 

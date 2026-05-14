@@ -1,0 +1,33 @@
+services:
+  numa:
+    image: ghcr.io/razvandimescu/numa:latest
+    container_name: numa
+    restart: unless-stopped
+    command: ["/etc/numa/numa.toml"]
+    ports:
+      - 53:53/udp
+      - 53:53/tcp
+      - 5380:5380/tcp    # Dashboard + REST API
+    volumes:
+      - ./numa.toml:/etc/numa/numa.toml:ro
+      - ./numa_data:/var/lib/numa
+
+  # numa-relay:
+  #   image: ghcr.io/razvandimescu/numa:latest
+  #   container_name: numa-relay
+  #   restart: unless-stopped
+  #   command: ["relay", "8443", "0.0.0.0"]
+
+  # numa-caddy:
+  #   image: caddy:2
+  #   container_name: numa-caddy
+  #   restart: unless-stopped
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
+  #     - ./caddy_data:/data
+  #     - ./caddy_config:/config
+  #   depends_on:
+  #     - numa-relay

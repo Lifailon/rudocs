@@ -7,12 +7,12 @@ services:
     image: jenkins/jenkins:latest
     container_name: jenkins-server
     restart: unless-stopped
-    user: "1000:1000"
+    user: 1000:1000
     volumes:
       - ./jenkins_home:/var/jenkins_home
     ports:
-      - "8080:8080"   # Веб-интерфейс и регистрации агентов
-      - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
+      - 8010:8080   # Веб-интерфейс и регистрации агентов
+      - 50000:50000 # Передача данных и выполнение сборок между Jenkins Controller и агентами
 
   jenkins-agent:
     # image: jenkins/inbound-agent:latest
@@ -21,17 +21,17 @@ services:
       dockerfile: Dockerfile
     container_name: jenkins-agent
     restart: unless-stopped
-    depends_on:
-      - jenkins-server
+    user: 1000:1000
     environment:
       # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
       - JENKINS_URL=${JENKINS_SERVER_URL}
       - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
       # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
       - JENKINS_SECRET=${JENKINS_SECRET}
-    user: "1000:1000"
     volumes:
       - ./jenkins_agent:/home/jenkins
     labels:
-      # Отключаем автоматическое обновление образа через Watchtower (не поддерживается при использовании build из dockerfile)
-      - "com.centurylinklabs.watchtower.enable=false"
+      # Отключаем автоматическое обновление образа через Watchtower
+      - com.centurylinklabs.watchtower.enable=false
+    depends_on:
+      - jenkins-server

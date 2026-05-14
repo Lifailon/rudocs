@@ -80,21 +80,25 @@ services:
       - HUB_URL=http://beszel-server:8090
       - LISTEN=45876
 
-  wud:
-    image: getwud/wud
-    container_name: wud
+  gotify:
+    image: gotify/server
+    container_name: gotify
     restart: always
+    ports:
+      - 5080:80
+    environment:
+      GOTIFY_DEFAULTUSER_PASS: admin
+    volumes:
+      - ./gotify_data:/app/data
+
+  watchtower:
+    image: nickfedor/watchtower
+    container_name: watchtower
+    restart: always
+    command: --interval 600
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 5002:3000
     environment:
-      - WUD_TRIGGER_DOCKER_LOCAL_ENABLED=true
-      - WUD_TRIGGER_DOCKER_LOCAL_MODE=pull
-      # - WUD_TRIGGER_DOCKER_LOCAL_MODE=recreate
-      - WUD_TRIGGER_TELEGRAM_1_CHATID=
-      - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=
-      - HTTPS_PROXY=http://192.168.3.105:20171
-      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
-      # - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
-      # - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=AA6o7PPsdJIFoo_
+      - WATCHTOWER_NOTIFICATIONS=gotify
+      - WATCHTOWER_NOTIFICATION_GOTIFY_URL=http://gotify:80
+      - WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN=As3e1oVioVEYvvZ
