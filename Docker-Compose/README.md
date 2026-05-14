@@ -406,6 +406,24 @@ services:
         hard: 65536
 ```
 
+### Pusk
+
+[Pusk](https://github.com/getpusk/pusk) - автономная платформа для оповещений и командной коалиции. Webhook из любого, ACK одним инструментом, нажмите на телефон. Один бинарник, без внешних зависимостей.
+
+```yaml
+services:
+  pusk:
+    image: ghcr.io/getpusk/pusk:latest
+    container_name: pusk
+    restart: unless-stopped
+    ports:
+      - 8443:8443
+    environment:
+      - PUSK_ALERTMANAGER_URL=http://alertmanager:9093
+    volumes:
+      - ./pusk_data:/app/data
+```
+
 ## LLM Stack
 
 ### Open WebUI
@@ -688,22 +706,6 @@ services:
       - URL=http://192.168.3.101:8889/swagger.json
     depends_on:
       - httpbin
-```
-
-### Mitm Proxy
-
-[Mitm Proxy](https://github.com/mitmproxy/mitmproxy) - прямой (forward) прокси сервер для перехвата и изменения HTTP-трафика с веб-интерфейсом для анализа запросов и ответов (like [Fiddler](https://www.telerik.com/fiddler)), удобно для отладки мобильных приложений.
-
-```yaml
-services:
-  mitmproxy:
-    image: mitmproxy/mitmproxy:latest
-    container_name: mitmproxy
-    restart: unless-stopped
-    ports:
-      - 8880:8080 # Proxy
-      - 8881:8081 # Web UI
-    command: mitmweb --web-host 0.0.0.0 --listen-host 0.0.0.0
 ```
 
 ### Step CI
@@ -1451,6 +1453,23 @@ services:
       - 3474:80
 ```
 
+### ImgCompress
+
+[ImgCompress](https://github.com/karimz1/imgcompress) - инструмент для обработки изображений, который позволяет сжимать, конвертировать, изменять размер и массово обрабатывать изображения, а также удалять фон с помощью локального ИИ без использования облачных сервисов.
+
+```yaml
+services:
+  imgcompress:
+    image: karimz1/imgcompress:latest
+    container_name: imgcompress
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    environment:
+      - DISABLE_LOGO=false
+      - DISABLE_STORAGE_MANAGEMENT=false
+```
+
 ### 8mb.local
 
 [8mb.local](https://github.com/JMS1717/8mb.local) - веб-интерфейс для сжатия видео. Позволяет загружать видеофайлы, выбирать целевой размер в МБ и получать сжатые версии с использованием современных кодеков. Поддерживается аппаратное ускорение с помощью NVIDIA/Intel/AMD и CPU.
@@ -1586,7 +1605,7 @@ services:
 services:
   licenseapi:
     image: germannewsmaker/licenseapi:development
-    container_name: nexlicenseapiterm
+    container_name: licenseapi
     restart: unless-stopped
     environment:
       - MONGOOSE_STRING=mongodb://licenseapi-mongo:27017/licenseapi
@@ -2219,6 +2238,36 @@ services:
       - 7070:80
 ```
 
+### PgWatch
+
+[PgWatch](https://github.com/cybertec-postgresql/pgwatch) - веб-интерфейс и экспортер метрик для мониторинга Postgres.
+
+```yaml
+services:
+  pgwatch:
+    image: cybertecpostgresql/pgwatch:latest
+    container_name: pgwatch
+    restart: unless-stopped
+    environment:
+      PGUSER: postgres
+      PW_SOURCES: postgresql://pgwatch@postgres:5432/pgwatch
+      # PW_METRICS: /etc/pgwatch/metrics.yml
+    command:
+      - "--sink=postgresql://pgwatch@postgres:5432/pgwatch_metrics"
+      - "--sink=prometheus://pgwatch:9187/pgwatch"
+      # - "--web-base-path=pgwatch"
+    ports:
+      - 8080:8080
+      - 9187:9187
+      # - "6060:6060" # profiling
+    volumes:
+      - ../internal/metrics/metrics.yaml:/etc/pgwatch/metrics.yml
+      - ./bootstrap/.pgpass:/root/.pgpass:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+```
+
 ### Kafka
 
 [Apache Kafka](https://github.com/apache/kafka) - распределенная потоковая платформа с открытым исходным кодом, которая позволяет приложениям публиковать, подписываться, хранить и обрабатывать потоки данных. Для работы требует JVM и [Zookeeper](https://zookeeper.apache.org) для координации распределенных систем, обеспечения их согласованности и отказоустойчивости.
@@ -2584,33 +2633,6 @@ services:
         - ./kopia_logs:/app/logs
         - ./kopia_backup:/repository
         - /home/lifailon/docker:/data:ro
-```
-
-### Proxmox Backup Server
-
-[PBS (Proxmox Backup Server)](https://github.com/ayufan/pve-backup-server-dockerfiles) - неофициальная сборка Proxmox Backup Server для запуска в контейнере на разных платформах.
-
-```yaml
-services:
-  proxmox-backup-server:
-    image: ayufan/proxmox-ve:latest
-    container_name: proxmox-backup-server
-    restart: unless-stopped
-    stop_signal: SIGHUP
-    ports:
-      - 8007:8007
-    volumes:
-      - ./pbs_etc:/etc/proxmox-backup
-      - ./pbs_logs:/var/log/proxmox-backup
-      - ./pbs_lib:/var/lib/proxmox-backup
-    mem_limit: 2G
-    tmpfs:
-      - /run
-    # smartctl support
-    cap_add:
-      - SYS_RAWIO
-    devices:
-      - /dev/sda
 ```
 
 ## FS Stack
@@ -3569,6 +3591,26 @@ services:
       - blocky
 ```
 
+### Numa
+
+[Numa](https://github.com/razvandimescu/numa) - портативный DNS-резолвер в одном исполняемом файле с поддержкой блокировки рекламы на ноутбуке без облачной учетной записи или Raspberry Pi.
+
+```yaml
+services:
+  numa:
+    image: ghcr.io/razvandimescu/numa:latest
+    container_name: numa
+    restart: unless-stopped
+    command: ["/etc/numa/numa.toml"]
+    ports:
+      - 53:53/udp
+      - 53:53/tcp
+      - 5380:5380/tcp    # Dashboard + REST API
+    volumes:
+      - ./numa.toml:/etc/numa/numa.toml:ro
+      - ./numa_data:/var/lib/numa
+```
+
 ### Gravity
 
 [Gravity](https://github.com/BeryJu/gravity) - легковесное решение DNS, DHCP и TFTP сервера, использующее `etcd` для полной репликации, подходящее для малых и средних сетей. Поддерживает встроенную кластеризацию (HA), кеширование DNS, блокировку рекламы и метрики Prometheus, а также современный интерфейс с графиками.
@@ -4326,6 +4368,44 @@ services:
       interval: 60s
       timeout: 5s
       retries: 3
+```
+
+### Mitm Proxy
+
+[Mitm Proxy](https://github.com/mitmproxy/mitmproxy) - прямой (forward) прокси сервер для перехвата и изменения HTTP-трафика с веб-интерфейсом для анализа запросов и ответов (like [Fiddler](https://www.telerik.com/fiddler)), удобно для отладки мобильных приложений.
+
+```yaml
+services:
+  mitmproxy:
+    image: mitmproxy/mitmproxy:latest
+    container_name: mitmproxy
+    restart: unless-stopped
+    ports:
+      - 8880:8080 # Proxy
+      - 8881:8081 # Web UI
+    command: mitmweb --web-host 0.0.0.0 --listen-host 0.0.0.0
+```
+
+### Proxelar
+
+[Proxelar](https://github.com/emanuele-em/proxelar) - веб-интерфейс и TUI инструмент типа MITM, предназначенный для перехвата и анализа HTTP и HTTPS трафика (like mitmproxy). Используется как посредник между приложением и Интернетом для анализа, изменения и мокирования трафика.
+
+```yaml
+services:
+    proxelar:
+      image: ghcr.io/emanuele-em/proxelar
+      container_name: proxelar
+      restart: always
+      command: --interface gui --addr 0.0.0.0
+      ports:
+        - 8082:8080
+        - 8081:8081
+      volumes:
+        - ./proxelar_data:/root/.proxelar
+      # TUI mode
+      # stdin_open: true
+      # tty: true
+      # command: --interface terminal --addr 0.0.0.0
 ```
 
 ## VPN
@@ -5952,6 +6032,26 @@ services:
       - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
 ```
 
+### Nora
+
+[Nora](https://github.com/getnora-io/nora) - легковесный реестр артефактов, поддерживающий `Docker`, `Maven`, `npm`, `PyPI`, `Cargo`, `Go`, `RubyGems`, `Terraform`, `NuGet` и другие. Один исполняемый файл и никаких зависимостей.
+
+```yaml
+services:
+  nora:
+    image: ghcr.io/getnora-io/nora:latest
+    container_name: nora
+    restart: unless-stopped
+    ports:
+      - 4000:4000
+    environment:
+      - RUST_LOG=info
+      - NORA_HOST=0.0.0.0
+      - NORA_AUTH_ENABLED=false
+    volumes:
+      - ./nora_data:/data
+```
+
 ### Hadolint
 
 [Hadolint](https://hadolint.github.io/hadolint/) - интеллектуальный линтер для анализа `Dockerfile` на на основе [best practices](https://docs.docker.com/build/building/best-practices). Он преобразует файл в абстрактное синтаксическое дерево `AST` и применяет правила на основе этого дерева, а также использует инструмент [Shellcheck](https://github.com/koalaman/shellcheck) для проверки кода Bash внутри `RUN` инструкций.
@@ -6010,6 +6110,81 @@ services:
 https://www.shellcheck.net
 
 ## Kubernetes Stack
+
+### k3s
+
+[k3s](https://github.com/k3s-io/k3s) - легковесный Kubernetes от Rancher/SUSE. Позволяет установить кластер в контейнере Docker или одной командой с помощью скрипта, занимает в два раза меньше памяти, и все это в двоичном файле размером менее 100 МБ.
+
+```yaml
+services:
+  k3s-server:
+    image: rancher/k3s:latest
+    container_name: k3s-server
+    restart: always
+    command: server
+    privileged: true
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+    - K3S_TOKEN=${K3S_TOKEN:?err}
+    - K3S_KUBECONFIG_OUTPUT=/cfg/kubeconfig.yaml
+    - K3S_KUBECONFIG_MODE=666
+    ports:
+    - 6443:6443  # Kubernetes API Server
+    - 80:80      # Ingress controller port 80
+    - 443:443    # Ingress controller port 443
+    volumes:
+    - ./k3s_server_data:/var/lib/rancher/k3s
+    # Get kubeconfig
+    - .:/cfg
+    tmpfs:
+    - /run
+    - /var/run
+
+  agent:
+    image: rancher/k3s:latest
+    container_name: k3s-agent
+    restart: always
+    privileged: true
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+    - K3S_URL=https://k3s-server:6443
+    - K3S_TOKEN=${K3S_TOKEN:?err}
+    volumes:
+    - ./k3s_agent_data:/var/lib/rancher/k3s
+    tmpfs:
+    - /run
+    - /var/run
+```
+
+`K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} docker-compose up -d`
+
+### Rancher
+
+[Rancher](https://github.com/rancher/rancher) - инструмент для быстрого запуска и управления кластерами Kubernetes через Веб-интерфейс.
+
+```yaml
+services:
+  rancher:
+    image: rancher/rancher:latest
+    container_name: rancher
+    restart: unless-stopped
+    privileged: true
+    volumes:
+    - ./rancher_data:/var/lib/rancher
+    ports:
+    - 3080:80
+    - 3443:443
+```
+
+Получить пароль: `docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"`
 
 ### Kompose UI
 
@@ -6272,79 +6447,53 @@ services:
       - 8003:3000
 ```
 
-### Rancher
+## Proxmox Stack
 
-[Rancher](https://github.com/rancher/rancher) - инструмент для быстрого запуска и управления кластерами Kubernetes через Веб-интерфейс.
+### Pulse
+
+[Pulse](https://github.com/rcourtman/Pulse) - панель мониторинга инфраструктуры всех продуктов Proxmox (`PVE`, `PBS`, `PMG`), Docker и Kubernetes, которая объединяет метрики, оповещения и аналитические данные, полученные с помощью ИИ, из всех систем в единый интерфейс.
 
 ```yaml
 services:
-  rancher:
-    image: rancher/rancher:latest
-    container_name: rancher
+  pulse:
+    image: rcourtman/pulse:latest
+    container_name: pulse
     restart: unless-stopped
-    privileged: true
-    volumes:
-    - ./rancher_data:/var/lib/rancher
     ports:
-    - 3080:80
-    - 3443:443
-    # Password:
-    # docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"
+      - 7655:7655
+    volumes:
+      - ./pulse_data:/data
 ```
 
-### k3s
+Получить токен: `docker exec pulse cat /data/.bootstrap_token`
 
-[k3s](https://github.com/k3s-io/k3s) - легковесный Kubernetes от Rancher/SUSE. Позволяет установить кластер в контейнере Docker или одной командой с помощью скрипта, занимает в два раза меньше памяти, и все это в двоичном файле размером менее 100 МБ.
+Подключение агентов: `curl -sSL http://192.168.3.101:7655/install.sh | bash -s -- --url "http://192.168.3.101:7655" --token "c276d05d260e7dbdb6840d0942de4413b91a6e8ede9515ed"`
+
+### Proxmox Backup Server
+
+[PBS (Proxmox Backup Server)](https://github.com/ayufan/pve-backup-server-dockerfiles) - неофициальная сборка Proxmox Backup Server для запуска в контейнере на разных платформах.
 
 ```yaml
 services:
-  k3s-server:
-    image: "rancher/k3s:${K3S_VERSION:-latest}"
-    container_name: k3s-server
-    restart: always
-    command: server
-    privileged: true
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
-    environment:
-    - K3S_TOKEN=${K3S_TOKEN:?err}
-    - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
-    - K3S_KUBECONFIG_MODE=666
-    tmpfs:
-    - /run
-    - /var/run
-    volumes:
-    - ./k3s_server_data:/var/lib/rancher/k3s
-    # To get the Kubeconfig file
-    - .:/output
+  proxmox-backup-server:
+    image: ayufan/proxmox-ve:latest
+    container_name: proxmox-backup-server
+    restart: unless-stopped
+    stop_signal: SIGHUP
     ports:
-    - 6443:6443  # Kubernetes API Server
-    - 80:80      # Ingress controller port 80
-    - 443:443    # Ingress controller port 443
-
-  agent:
-    image: "rancher/k3s:${K3S_VERSION:-latest}"
-    container_name: k3s-agent
-    restart: always
-    privileged: true
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
-    environment:
-    - K3S_URL=https://k3s-server:6443
-    - K3S_TOKEN=${K3S_TOKEN:?err}
-    tmpfs:
-    - /run
-    - /var/run
+      - 8007:8007
     volumes:
-    - ./k3s_agent_data:/var/lib/rancher/k3s
-
-# K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} docker-compose up -d
+      - ./pbs_etc:/etc/proxmox-backup
+      - ./pbs_logs:/var/log/proxmox-backup
+      - ./pbs_lib:/var/lib/proxmox-backup
+    mem_limit: 2G
+    tmpfs:
+      - /run
+    # smartctl support
+    cap_add:
+      - SYS_RAWIO
+    devices:
+      - /dev/sda
 ```
 
 ## CI/CD Stack
@@ -7207,142 +7356,35 @@ services:
 
 ## Monitoring Stack
 
-### Change Detection
+### Grafana Stack
 
-[Change Detection](https://github.com/dgtlmoon/changedetection.io) - следите за обновлениями на веб-сайтах, с поддержкой новостной RSS ленты, REST API, а также уведомлениями в Telegram, Discord, Slack, Webhook и другие каналы.
+- [Grafana](https://github.com/grafana/grafana) - система для визуализации метрик из более чем 100 источников данных.
 
-```yaml
-services:
-  changedetection:
-    image: ghcr.io/dgtlmoon/changedetection.io
-    container_name: changedetection
-    restart: unless-stopped
-    volumes:
-      - ./changedetection_data:/datastore
-    ports:
-      - 5000:5000
-```
+- [Loki](https://github.com/grafana/loki) - сервер для хранения и агрегации логов из удаленных систем (как Prometheus, но для логов).
 
-### Uptime Kuma
+- [Promtail](https://grafana.com/docs/loki/latest/send-data/promtail) - агент для сбора логов из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
 
-[Uptime Kuma](https://github.com/louislam/uptime-kuma) - инструмент для мониторинга веб-приложений, поддерживающий настройку добавления хостов и правил с помощью веб-интерфейса.
+- [Tempo](https://github.com/grafana/tempo) - хранилище для данных трассировок.
 
-[Uptime Kuma API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - Swagger документация для Uptime Kuma API.
+- [Pyroscope](https://github.com/grafana/pyroscope) - хранилище для данных профилирования.
 
-🔗 [Uptime Kuma Demo](https://demo.kuma.pet/start-demo) ↗
+- [Alloy](https://github.com/grafana/alloy) - агент для сбора и пересылки данных профилирования контейнеров Docker из сокета с помощью eBPF и трассировок с помощью встроенного в агент Beyla.
+
+- [Beyla](https://github.com/grafana/beyla) - экспортер RED метрик (RPS, ошибок и продолжительности времени запросов) для HTTP и gRPC трафика.
 
 ```yaml
-services:
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    container_name: uptime-kuma
-    restart: unless-stopped
-    ports:
-      - 3001:3001
-    volumes:
-      - ./kuma_data:/app/data
-
-  uptime-kuma-api:
-    image: medaziz11/uptimekuma_restapi
-    container_name: uptime-kuma-api
-    restart: unless-stopped
-    environment:
-      - KUMA_SERVER=http://uptime-kuma:3001
-      - KUMA_USERNAME=admin
-      - KUMA_PASSWORD=KumaAdmin
-      - ADMIN_PASSWORD=KumaApiAdmin
-    ports:
-      - 3002:8000
-    volumes:
-      - ./kuma_api:/db
-    depends_on:
-      - uptime-kuma
-```
-
-### Gatus
-
-[Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
-
-🔗 [Gatus Web Playground](https://gatus.io/demo) ↗ - используется для составления запросов через веб-интерфейс без генерации конфигурации (код закрыт)
-
-В демо-версии присутствует интерфейс (конструктор) для настройки и проверки правил мониторинга (без экспорта в формате конфигурации).
-
-```yaml
-services:
-  gatus:
-    image: twinproduction/gatus:latest
-    container_name: gatus
-    restart: unless-stopped
-    volumes:
-      - ./config:/config  # yaml configuration
-      - ./data:/data      # SQLite
-    ports:
-      - 8180:8080
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-```
-
-### StatPing
-
-[StatPing](https://github.com/statping/statping) - страница статуса для проверки доступности веб-сайтов с настройкой в веб-интерфейсе, автоматическим построением графиков и оповещениями в Telegram. Поддерживает хранение данных в MySQL, PostgreSQL или SQLite.
-
-🔗 [StatPing Android](https://play.google.com/store/apps/details?id=com.statping) ↗
-
-```yaml
-services:
-  statping:
-    image: statping/statping:latest
-    container_name: statping
-    restart: unless-stopped
-    volumes:
-      - ./statping_data:/app
-    ports:
-      - 8001:8080
-    # environment:
-    #   VIRTUAL_HOST: localhost
-    #   VIRTUAL_PORT: 8080
-    #   DB_CONN: statping-postgres
-    #   DB_HOST: statping-postgres
-    #   DB_DATABASE: statping
-    #   DB_USER: statping
-    #   DB_PASS: statping
-```
-
-[Форк statping](https://github.com/dockur/statping) от ветки [statping-ng](https://github.com/statping-ng/statping-ng).
-
-```yaml
-services:
-  statping:
-    image: dockurr/statping
-    container_name: statping
-    restart: unless-stopped
-    stop_grace_period: 1m
-    ports:
-      - 8001:8080
-    volumes:
-      - ./statping_data:/app
-```
-
-### Grafana
-
-[Grafana](https://github.com/grafana/grafana) - система для визуализации метрик из более чем 100 источников данных.
-
-```yaml
-# mkdir -p grafana_data && sudo chown -R 472:472 grafana_data
-
 services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: always
+    user: 472:472
     ports:
       - 9089:3000
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin # grafana-cli admin reset-admin-password newpassword
+      # docker exec -it grafana grafana cli admin reset-admin-password GrafanaAdminNew
+      - GF_SECURITY_ADMIN_PASSWORD=GrafanaAdmin
       # - GF_DATABASE_TYPE=postgres
       # - GF_DATABASE_HOST=grafana-db:5432
       # - GF_DATABASE_NAME=grafana
@@ -7351,6 +7393,9 @@ services:
       # - GF_DATABASE_SSL_MODE=disable
     volumes:
       - ./grafana_data:/var/lib/grafana
+      - ./grafana_dashboards:/var/lib/grafana/dashboards
+      - ./grafana-provider.yaml:/etc/grafana/provisioning/dashboards/provider.yaml
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
 
   # grafana-db:
   #   image: postgres:latest
@@ -7364,75 +7409,118 @@ services:
   #     - ./postgres_data:/var/lib/postgresql/data
   #   ports:
   #     - 5432:5432
+
+  beyla-exporter:
+    image: grafana/beyla:latest
+    container_name: beyla-exporter
+    restart: always
+    privileged: true
+    pid: host
+    environment:
+      - BEYLA_OPEN_PORT=1-65535
+      - BEYLA_PROMETHEUS_PORT=8080
+    # ports:
+    #   - 9876:8080
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: always
+    user: root
+    volumes:
+      - ./loki.yml:/etc/loki/loki-config.yaml
+      - ./loki_data:/loki
+    ports:
+      - 3100:3100
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: always
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./promtail.yml:/etc/promtail/promtail.yml
+      - /etc/hostname:/etc/hostname:ro
+    command: -config.file=/etc/promtail/promtail.yml
+    # ports:
+    #   - 9080:9080
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    restart: always
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+    command: -config.file=/etc/tempo.yaml
+    ports:
+      - 3200:3200
+      # - 4317:4317
+      # - 4318:4318
+
+  pyroscope:
+    image: grafana/pyroscope:latest
+    container_name: pyroscope
+    restart: always
+    ports:
+      - 4040:4040
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    restart: always
+    privileged: true
+    pid: host
+    init: true
+    volumes:
+      - ./alloy.hcl:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/kernel/debug:/sys/kernel/debug
+      - /sys/kernel/tracing:/sys/kernel/tracing
+    command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
 ```
 
 ### Prometheus Stack
 
-[Prometheus](https://github.com/prometheus/prometheus) - система мониторинга и оповещения с открытым исходным кодом, которая собирает и анализирует метрики работы серверов и приложений в реальном времени. Она хранит данные в виде временных рядов (значений с метками времени и ключами/меткам/тегами для идентификации). Веб-интефрейс поддерживает браузер запросов с визуализацией на графиках, отображение ролей из Alertmanager, их статусы и валидность, а также статус работы экспортеров, базы данных TSDB, доступные метки (labels в Service discovery), текущие флаги запуска сервера и итоговая конфигурация для экспорта.
+- [Prometheus](https://github.com/prometheus/prometheus) - система мониторинга и оповещения с открытым исходным кодом, которая собирает и анализирует метрики работы серверов и приложений в реальном времени. Она хранит данные в виде временных рядов (значений с метками времени и ключами/меткам/тегами для идентификации). Веб-интефрейс поддерживает браузер запросов с визуализацией на графиках, отображение ролей из Alertmanager, их статусы и валидность, а также статус работы экспортеров, базы данных TSDB, доступные метки (labels в Service discovery), текущие флаги запуска сервера и итоговая конфигурация для экспорта.
 
-[Alertmanager](https://github.com/prometheus/alertmanager) - система оповещений для экосистемы Prometheus (например, в Telegram, при превышение заданных порого в конфигурации), а также поддерживает свой веб-интерфейс.
+- [Alertmanager](https://github.com/prometheus/alertmanager) - система оповещений для экосистемы Prometheus (например, в Telegram, при превышение заданных порого в конфигурации), а также поддерживает свой веб-интерфейс.
 
-[PromLens](https://github.com/prometheus/promlens) – веб-конструктор для анализа и визуализации запросов `PromQL` (уже встроен в интерфейс Prometheus).
+- [PromLens](https://github.com/prometheus/promlens) – веб-конструктор для анализа и визуализации запросов `PromQL` (уже встроен в интерфейс Prometheus).
 
-[PushGateway](https://github.com/prometheus/pushgateway) - автономный шлюз-экспорт для сбора метрик через API (выступает в роли listener для приема метрик из скриптов, как в InfluxDB).
+- [Push Gateway](https://github.com/prometheus/pushgateway) - автономный шлюз-экспорт для сбора метрик через API (выступает в роли listener для приема метрик из скриптов, как в InfluxDB).
 
-[Blackbox Exporter](https://github.com/prometheus/blackbox_exporter) - мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC для предоставления метрик в формате Prometheus (похож на [Gatus](https://github.com/TwiN/gatus)).
+- [Blackbox Exporter](https://github.com/prometheus/blackbox_exporter) - мониторинг ICMP, TCP, DNS, HTTP/HTTPS и gRPC для предоставления метрик в формате Prometheus (похож на [Gatus](https://github.com/TwiN/gatus)).
 
-[Node Exporter](https://github.com/prometheus/node_exporter) - основной экспортер Prometheus для сбора системных метрик Linux.
+- [Node Exporter](https://github.com/prometheus/node_exporter) - основной экспортер Prometheus для сбора системных метрик Linux.
 
-[Process Exporter](https://github.com/ncabatoff/process-exporter) - экспортер Prometheus для сбора метрик запущенных процессов.
+- [Process Exporter](https://github.com/ncabatoff/process-exporter) - экспортер Prometheus для сбора метрик запущенных процессов.
 
-[github-exporter](https://github.com/githubexporter/github-exporter) - предоставляет базовые метрики для репозиториев из API GitHub через совместимую с Prometheus конечную точку.
+- [cAdvisor](https://github.com/google/cadvisor) (Container Advisor) - экспортер метрик для всех запущенных контейнеров Docker с собственным веб-интерфейсом от Google.
 
-[cAdvisor](https://github.com/google/cadvisor) (Container Advisor) - экспортер метрик для всех запущенных контейнеров Docker с собственным веб-интерфейсом от Google.
-
-[LogPorter](https://github.com/Lifailon/logporter) - простая и легковесная альтернатива cAdvisor для получения всех основных метрик из контейнеров Docker.
+- [LogPorter](https://github.com/Lifailon/logporter) - простая и легковесная альтернатива cAdvisor для получения всех основных метрик из контейнеров Docker.
 
 ```yaml
 services:
-  volume-permissions-update:
-    image: alpine
-    container_name: volume-permissions-update
-    restart: no
-    volumes:
-      - ./grafana_data:/grafana_data
-      - ./prometheus_data:/prometheus_data
-      - ./prometheus.yml:/prometheus.yml
-      - ./alert-rules.yml:/alert-rules.yml
-      - ./alertmanager.yml:/alertmanager.yml
-      - ./telegram.tmpl:/telegram.tmpl
-      - ./loki_data:/loki_data
-    command: >
-      sh -c "
-        chown -R 472:472 /grafana_data &&
-        chown -R 65534:65534 /prometheus_data /prometheus.yml /alert-rules.yml /alertmanager.yml /telegram.tmpl &&
-        chown -R 1000:1000 loki_data &&
-        echo 'Volume permissions updated' &&
-        exit 0
-      "
-
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     restart: always
+    user: 65534:65534
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alert-rules.yml:/etc/prometheus/alert.yml
       - ./prometheus_data:/prometheus
     ports:
       - 9090:9090
-    # dns:
-    #   - 192.168.3.101
-    depends_on:
-      volume-permissions-update:
-        condition: service_completed_successfully
 
-  # pushgateway:
-  #   image: prom/pushgateway:latest
-  #   container_name: pushgateway
-  #   restart: always
-  #   ports:
-  #     - 9091:9091
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: pushgateway
+    restart: always
+    ports:
+      - 9091:9091
 
   alertmanager:
     image: prom/alertmanager
@@ -7440,16 +7528,15 @@ services:
     restart: always
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
-      # Custom template
       - ./telegram.tmpl:/etc/alertmanager/telegram.tmpl
     ports:
       - 9093:9093
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
 
-  blackbox:
+  blackbox-exporter:
     image: prom/blackbox-exporter:latest
-    container_name: blackbox
+    container_name: blackbox-exporter
     restart: always
     volumes:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
@@ -7480,19 +7567,6 @@ services:
       - /host/proc
       - -config.path
       - /conf.yml
-
-  github-exporter:
-    image: githubexporter/github-exporter:latest
-    container_name: github-exporter
-    restart: always
-    environment:
-      - REPOS=Lifailon/rudocs,Lifailon/lazyjournal
-      - USERS=Lifailon
-      # - GITHUB_TOKEN=
-    # ports:
-    #   - 9171:9171
-    tty: true
-    stdin_open: true
 
   # cadvisor:
   #   image: gcr.io/cadvisor/cadvisor:latest
@@ -7562,39 +7636,6 @@ services:
       - victoriametrics
 ```
 
-### Loki
-
-[Loki](https://github.com/grafana/loki) - централизованный сервер и агент `promtail` для агрегации и хранения логов удаленных систем от Grafana (как Prometheus, но для логов) из файловой системы и контейнеров через сокет Docker с поддержкой фильтрации по `node`, `container`, `level` и `tag`.
-
-```yaml
-# mkdir -p loki_data && sudo chown -R 1000:1000 loki_data
-
-services:
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    restart: always
-    user: root
-    volumes:
-      - ./loki.yml:/etc/loki/loki-config.yaml
-      - ./loki_data:/loki
-    ports:
-      - 3100:3100
-
-  promtail:
-    image: grafana/promtail:latest
-    container_name: promtail
-    restart: always
-    volumes:
-      - /var/log:/var/log:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./promtail.yml:/etc/promtail/promtail.yml
-    command: -config.file=/etc/promtail/promtail.yml
-    # ports:
-    #   - 9080:9080
-```
-
 ### Jaeger
 
 [Jaeger](https://github.com/jaegertracing/jaeger) - распределенная система трассировки для анализа времени обработки запросов и ответов к веб-приложениям (например, используется в Traefik), созданная компанией Uber Technologies и переданная в дар Cloud Native Computing Foundation.
@@ -7649,6 +7690,126 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup
       - /sys/fs/bpf:/sys/fs/bpf
       - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+```
+
+
+### Gatus
+
+[Gatus](https://github.com/TwiN/gatus) - современная и ориентированная на разработчиков (IaC подход для управления через конфигурацию) панель мониторинга состояние API и веб-сервисов с помощью HTTP, ICMP, TCP и DNS-запросов, с проверкой результатов тестирования в запросах (используются списки условий, проверка кода ответа, времени ответа, срок действия сертификата, тела запроса, парсинг json и другие функции). Поддерживает экспорт метрик Prometheus и динамическая панель инструментов Grafana.
+
+🔗 [Gatus Web Playground](https://gatus.io/demo) ↗ - используется для составления запросов через веб-интерфейс без генерации конфигурации (код закрыт)
+
+В демо-версии присутствует интерфейс (конструктор) для настройки и проверки правил мониторинга (без экспорта в формате конфигурации).
+
+```yaml
+services:
+  gatus:
+    image: twinproduction/gatus:latest
+    container_name: gatus
+    restart: unless-stopped
+    volumes:
+      - ./config:/config  # yaml configuration
+      - ./data:/data      # SQLite
+    ports:
+      - 8180:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+### Uptime Kuma
+
+[Uptime Kuma](https://github.com/louislam/uptime-kuma) - инструмент для мониторинга веб-приложений, поддерживающий настройку добавления хостов и правил с помощью веб-интерфейса.
+
+[Uptime Kuma API](https://github.com/MedAziz11/Uptime-Kuma-Web-API) - Swagger документация для Uptime Kuma API.
+
+🔗 [Uptime Kuma Demo](https://demo.kuma.pet/start-demo) ↗
+
+```yaml
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - 3001:3001
+    volumes:
+      - ./kuma_data:/app/data
+
+  uptime-kuma-api:
+    image: medaziz11/uptimekuma_restapi
+    container_name: uptime-kuma-api
+    restart: unless-stopped
+    environment:
+      - KUMA_SERVER=http://uptime-kuma:3001
+      - KUMA_USERNAME=admin
+      - KUMA_PASSWORD=KumaAdmin
+      - ADMIN_PASSWORD=KumaApiAdmin
+    ports:
+      - 3002:8000
+    volumes:
+      - ./kuma_api:/db
+    depends_on:
+      - uptime-kuma
+```
+
+### StatPing
+
+[StatPing](https://github.com/statping/statping) - страница статуса для проверки доступности веб-сайтов с настройкой в веб-интерфейсе, автоматическим построением графиков и оповещениями в Telegram. Поддерживает хранение данных в MySQL, PostgreSQL или SQLite.
+
+🔗 [StatPing Android](https://play.google.com/store/apps/details?id=com.statping) ↗
+
+```yaml
+services:
+  statping:
+    image: statping/statping:latest
+    container_name: statping
+    restart: unless-stopped
+    volumes:
+      - ./statping_data:/app
+    ports:
+      - 8001:8080
+    # environment:
+    #   VIRTUAL_HOST: localhost
+    #   VIRTUAL_PORT: 8080
+    #   DB_CONN: statping-postgres
+    #   DB_HOST: statping-postgres
+    #   DB_DATABASE: statping
+    #   DB_USER: statping
+    #   DB_PASS: statping
+```
+
+[Форк statping](https://github.com/dockur/statping) от ветки [statping-ng](https://github.com/statping-ng/statping-ng).
+
+```yaml
+services:
+  statping:
+    image: dockurr/statping
+    container_name: statping
+    restart: unless-stopped
+    stop_grace_period: 1m
+    ports:
+      - 8001:8080
+    volumes:
+      - ./statping_data:/app
+```
+
+### Change Detection
+
+[Change Detection](https://github.com/dgtlmoon/changedetection.io) - следите за обновлениями на веб-сайтах, с поддержкой новостной RSS ленты, REST API, а также уведомлениями в Telegram, Discord, Slack, Webhook и другие каналы.
+
+```yaml
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io
+    container_name: changedetection
+    restart: unless-stopped
+    volumes:
+      - ./changedetection_data:/datastore
+    ports:
+      - 5000:5000
 ```
 
 ### Graphite
@@ -8477,9 +8638,9 @@ services:
       - /run/dbus:/run/dbus:ro
 ```
 
-### HomePage
+### Home Page
 
-[Homepage](https://github.com/gethomepage/homepage) - быстрая и полностью статическая панель управления для быстрого доступа к веб-приложениям в формате закладок. Поддерживает мониторинг доступности веб-сервисов с помощью ICMP и HTTP, нагрузки CPU, памяти и сетевого трафика контейнеров Docker через сокет, автоматическое обнаружение приложений с помощь labels, подключение через конфигурацию к приложениям в кластерах Kubernetes и мониторинг сервисов через API (поддерживает более 100 интеграций с помощью [виджетов](https://gethomepage.dev/widgets)).
+[Home Page](https://github.com/gethomepage/homepage) - быстрая и полностью статическая панель управления для быстрого доступа к веб-приложениям в формате закладок. Поддерживает мониторинг доступности веб-сервисов с помощью ICMP и HTTP, нагрузки CPU, памяти и сетевого трафика контейнеров Docker через сокет, автоматическое обнаружение приложений с помощь labels, подключение через конфигурацию к приложениям в кластерах Kubernetes и мониторинг сервисов через API (поддерживает более 100 интеграций с помощью [виджетов](https://gethomepage.dev/widgets)).
 
 ```yaml
 services:
@@ -8699,127 +8860,6 @@ services:
       - ./thinkdashboard_data:/app/data
 ```
 
-### It's MyTabs
-
-[It's MyTabs](https://github.com/louislam/its-mytabs) - веб-интерфейс для просмотра и проигрывания табулатуры гитары, похожий на [Songsterr](https://www.songsterr.com), от создателя [Uptime-Kuma](https://github.com/louislam/uptime-kuma) и [Dockge](https://github.com/louislam/dockge).
-
-🔗 [It's MyTabs Playground](https://its-mytabs.kuma.pet/tab/1?audio=youtube-VuKSlOT__9s&track=2) ↗
-
-```yaml
-services:
-  its-mytabs:
-    image: louislam/its-mytabs:1
-    container_name: its-mytabs
-    restart: unless-stopped
-    ports:
-      - 47777:47777
-    volumes:
-      - ./data:/app/data # db and tabs
-```
-
-### Grist
-
-[Grist](https://github.com/gristlabs/grist-core) (like MS Excel) - современный реляционный редактор электронных таблиц в вебе и приложением рабочего стола, как достойная замена Microsoft Excel.
-
-🔗 [Grist Playground](https://docs.getgrist.com) ↗
-
-🔗 [Grist Static Playground](https://gristlabs.github.io/grist-static) ↗
-
-🔗 [Grist Desktop](https://github.com/gristlabs/grist-desktop/releases/tag/v0.3.6) ↗
-
-```yaml
-services:
-  grist:
-    image: gristlabs/grist:latest
-    container_name: grist
-    restart: unless-stopped
-    environment:
-      APP_HOME_URL: https://grist.docker.local
-      GRIST_DEFAULT_EMAIL: admin@docker.local
-      GRIST_FORCE_LOGIN: false
-      # GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
-      # GRIST_SINGLE_ORG: my-grist-team
-    volumes:
-      - ./grist_data:/persist
-    ports:
-      - 8484:8484
-    labels:
-      - traefik.http.services.grist.loadbalancer.server.port=8484
-      - traefik.http.routers.grist.rule=Host(`grist.docker.local`)
-      # - traefik.http.routers.grist-auth.rule=Host(`grist.docker.local`) && (PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`))
-      # - traefik.http.routers.grist-auth.middlewares=grist-basic-auth@file
-      # - traefik.http.middlewares.grist-basic-auth.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW # admin:admin
-```
-
-### ArchiveBox
-
-[ArchiveBox](https://github.com/ArchiveBox/ArchiveBox) - веб-приложение для сохранения контент с веб-сайтов в различных форматах, с сохранением файлов `HTML`, `PNG`, `PDF`, `TXT`, `JSON`, `WARC` и `SQLite`, которые гарантированно будут доступны для чтения десятилетиями. Предлагает cli, `REST API` и Webhooks для интеграции с другими сервисами.
-
-🔗 [ArchiveBox Demo](https://demo.archivebox.io/public/) ↗
-
-```yaml
-services:
-  archivebox:
-    image: archivebox/archivebox:latest
-    container_name: archivebox
-    restart: unless-stopped
-    ports:
-      - 7733:8000
-    volumes:
-      - ./archivebox_data:/data
-    environment:
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=admin
-      - ALLOWED_HOSTS=*
-      - CSRF_TRUSTED_ORIGINS=http://archivebox.docker.local
-      - PUBLIC_INDEX=True
-      - PUBLIC_SNAPSHOTS=True
-      - PUBLIC_ADD_VIEW=False
-      - SEARCH_BACKEND_ENGINE=sonic
-      - SEARCH_BACKEND_HOST_NAME=sonic
-      - SEARCH_BACKEND_PASSWORD=AdminSecret
-      - PUID=911
-      - PGID=911
-
-  archivebox_scheduler:
-    image: archivebox/archivebox:latest
-    container_name: archivebox_scheduler
-    restart: unless-stopped
-    command: schedule --foreground --update --every=day
-    volumes:
-      - ./archivebox_scheduler_data:/data
-    environment:
-      - PUID=911
-      - PGID=911
-      - TIMEOUT=120
-      - SEARCH_BACKEND_ENGINE=sonic
-      - SEARCH_BACKEND_HOST_NAME=sonic
-      - SEARCH_BACKEND_PASSWORD=AdminSecret
-
-  archivebox_sonic:
-    image: archivebox/sonic:latest
-    container_name: archivebox_sonic
-    restart: unless-stopped
-    expose:
-      - 1491
-    volumes:
-      - ./archivebox_sonic:/var/lib/sonic/store
-      #- ./sonic.cfg:/etc/sonic.cfg:ro    # https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/stable/etc/sonic.cfg
-    environment:
-      - SEARCH_BACKEND_PASSWORD=AdminSecret
-
-  novnc:
-    image: theasp/novnc:latest
-    container_name: novnc
-    restart: unless-stopped
-    ports:
-      - 8080:8080
-    environment:
-      - DISPLAY_WIDTH=1920
-      - DISPLAY_HEIGHT=1080
-      - RUN_XTERM=no
-```
-
 ### Memos
 
 [Memos](https://github.com/usememos/memos) - сервис заметок (like Google Keep) с поддержкой синтаксиса Merkdown и интеграцией с Telegram (запись теста и файлов через бота).
@@ -8850,7 +8890,63 @@ services:
       - ALLOWED_USERNAMES=
 ```
 
-### Immich
+### Luna
+
+[Luna](https://github.com/Opisek/luna) - веб-интерфейс и агрегатор календарей, с поддержкой протоколов CalDAV , iCal и Google Calendar.
+
+```yaml
+services:
+  luna-frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    container_name: luna-frontend
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      PORT: 8080
+      PUBLIC_URL: https://cal.example.com
+      API_URL: http://luna-backend:3000
+
+  luna-backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    container_name: luna-backend
+    restart: unless-stopped
+    volumes:
+      - ./luna_data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      PUBLIC_URL: https://cal.example.com
+      DB_HOST: luna-postgres
+      DB_PORT: 5432
+      DB_USERNAME: luna
+      DB_PASSWORD: luna
+      DB_DATABASE: luna
+    depends_on:
+      - luna-postgres
+
+  luna-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    container_name: luna-postgres
+    volumes:
+      - ./luna_postgres:/var/lib/postgresql/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      POSTGRES_USER: luna
+      POSTGRES_PASSWORD: luna
+      POSTGRES_DB: luna
+```
+
+### Immich (Google Photo)
 
 [Immich](https://github.com/immich-app/immich) - система хранения и просмотра фото и видео (клон Google Photo).
 
@@ -9080,76 +9176,6 @@ services:
   # docker compose exec ollama ollama pull gemma3:latest
 ```
 
-### Invidious
-
-[Invidious](https://github.com/iv-org/invidious) - альтернативный интерфейс YouTube с открытым исходным кодом.
-
-```yaml
-services:
-  invidious:
-    # docker run quay.io/invidious/youtube-trusted-session-generator
-    image: quay.io/invidious/invidious:latest
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: invidious
-    restart: unless-stopped
-    ports:
-      - 3000:3000
-    environment:
-      # Gen password for hmac_key: pwgen 20 1
-      INVIDIOUS_CONFIG: |
-        db:
-          dbname: invidious
-          user: kemal
-          password: kemal
-          host: invidious-db
-          port: 5432
-        check_tables: true
-        # external_port:
-        # domain:
-        # https_only: false
-        # statistics_enabled: false
-        hmac_key: "aiph2EeShu6ohng0ohqu"
-    healthcheck:
-      test: wget -nv --tries=1 --spider http://127.0.0.1:3000/api/v1/trending || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 2
-
-  invidious-db:
-    image: docker.io/library/postgres:14
-    container_name: invidious-db
-    restart: unless-stopped
-    volumes:
-      - ./invidious_db:/var/lib/postgresql/data
-      - ./invidious_data/config/sql:/config/sql
-      - ./invidious_data/docker/init-invidious-db.sh:/docker-entrypoint-initdb.d/init-invidious-db.sh
-    environment:
-      POSTGRES_DB: invidious
-      POSTGRES_USER: kemal
-      POSTGRES_PASSWORD: kemal
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-```
-
-### MeTube
-
-MeTube - Веб-интерфейс для загрузки видео из YouTube с помощь [yt-dlp](https://github.com/yt-dlp/yt-dlp).
-
-```yaml
-services:
-  metube:
-    image: ghcr.io/alexta69/metube
-    container_name: metube
-    restart: unless-stopped
-    ports:
-      - "8090:8081"
-    volumes:
-      # Директория для хранения видео в хостовой системе : контейнере
-      - ./downloads:/downloads
-```
-
 ### Jitsi Meet
 
 [Jitsi Meet](https://github.com/jitsi/jitsi-meet) - система видео-конференц связи (ВКС/VCS), с выделенными комнатами и управлением доступа (поддерживает демонстрацию экрана и запись разговоров).
@@ -9214,6 +9240,248 @@ services:
       service: jitsi-jvb
     depends_on:
       - prosody
+```
+
+### Grist (Excel)
+
+[Grist](https://github.com/gristlabs/grist-core) (like MS Excel) - современный реляционный редактор электронных таблиц в вебе и приложением рабочего стола, как достойная замена Microsoft Excel.
+
+🔗 [Grist Playground](https://docs.getgrist.com) ↗
+
+🔗 [Grist Static Playground](https://gristlabs.github.io/grist-static) ↗
+
+🔗 [Grist Desktop](https://github.com/gristlabs/grist-desktop/releases/tag/v0.3.6) ↗
+
+```yaml
+services:
+  grist:
+    image: gristlabs/grist:latest
+    container_name: grist
+    restart: unless-stopped
+    environment:
+      APP_HOME_URL: https://grist.docker.local
+      GRIST_DEFAULT_EMAIL: admin@docker.local
+      GRIST_FORCE_LOGIN: false
+    volumes:
+      - ./grist_data:/persist
+    ports:
+      - 8484:8484
+    labels:
+      - traefik.http.services.grist.loadbalancer.server.port=8484
+      - traefik.http.routers.grist.rule=Host(`grist.docker.local`)
+      # - traefik.http.routers.grist-auth.rule=Host(`grist.docker.local`) && (PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`))
+      # - traefik.http.routers.grist-auth.middlewares=grist-basic-auth@file
+      # - traefik.http.middlewares.grist-basic-auth.basicauth.users=admin:$$2y$$05$$c0r5A6SCKX4R6FjuCgRqrufbIE5tmXw2sDPq1vZ8zNrrwNZIH9jgW # admin:admin
+```
+
+### Paperless-NGX
+
+[Paperless-NGX](https://github.com/paperless-ngx/paperless-ngx) - веб-интерфейс для хранения и просмотра документов. Поддерживает распознавание текста на документах с помощью Tesseract, что позволяет индексировать содержимое для быстрого поиска документов по содержимому.
+
+```yaml
+services:
+  paperless-ngx:
+    image: lscr.io/linuxserver/paperless-ngx:latest
+    container_name: paperless-ngx
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    ports:
+      - 8000:8000
+    volumes:
+      - ./paperless_config:/config
+      - ./paperless_data:/data
+```
+
+### ArchiveBox
+
+[ArchiveBox](https://github.com/ArchiveBox/ArchiveBox) - веб-приложение для сохранения контент с веб-сайтов в форматах `HTML`, `PNG`, `PDF`, `TXT`, `JSON`, `WARC` и `SQLite`. Предлагает cli, `REST API` и Webhooks для интеграции с другими сервисами. Позволяет автоматически сохранять копии веб-страниц, видео и другого контента на личном сервере, чтобы информация оставалась доступной, даже если оригинал будет удален из сети Интернет.
+
+🔗 [ArchiveBox Demo](https://demo.archivebox.io/public) ↗
+
+```yaml
+services:
+  archivebox:
+    image: archivebox/archivebox:latest
+    container_name: archivebox
+    restart: unless-stopped
+    ports:
+      - 7733:8000
+    volumes:
+      - ./archivebox_data:/data
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - ALLOWED_HOSTS=*
+      - CSRF_TRUSTED_ORIGINS=http://archivebox.docker.local
+      - PUBLIC_INDEX=True
+      - PUBLIC_SNAPSHOTS=True
+      - PUBLIC_ADD_VIEW=False
+      - SEARCH_BACKEND_ENGINE=sonic
+      - SEARCH_BACKEND_HOST_NAME=sonic
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+      - PUID=911
+      - PGID=911
+
+  archivebox_scheduler:
+    image: archivebox/archivebox:latest
+    container_name: archivebox_scheduler
+    restart: unless-stopped
+    command: schedule --foreground --update --every=day
+    volumes:
+      - ./archivebox_scheduler_data:/data
+    environment:
+      - PUID=911
+      - PGID=911
+      - TIMEOUT=120
+      - SEARCH_BACKEND_ENGINE=sonic
+      - SEARCH_BACKEND_HOST_NAME=sonic
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+
+  archivebox_sonic:
+    image: archivebox/sonic:latest
+    container_name: archivebox_sonic
+    restart: unless-stopped
+    expose:
+      - 1491
+    volumes:
+      - ./archivebox_sonic:/var/lib/sonic/store
+      #- ./sonic.cfg:/etc/sonic.cfg:ro    # https://raw.githubusercontent.com/ArchiveBox/ArchiveBox/stable/etc/sonic.cfg
+    environment:
+      - SEARCH_BACKEND_PASSWORD=AdminSecret
+
+  novnc:
+    image: theasp/novnc:latest
+    container_name: novnc
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+      - RUN_XTERM=no
+```
+
+### MeTube
+
+[MeTube](https://github.com/alexta69/metube) - Веб-интерфейс для загрузки видео из YouTube с помощь [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+
+```yaml
+services:
+  metube:
+    image: ghcr.io/alexta69/metube
+    container_name: metube
+    restart: unless-stopped
+    ports:
+      - "8090:8081"
+    volumes:
+      # Директория для хранения видео в хостовой системе : контейнере
+      - ./downloads:/downloads
+```
+
+### Invidious
+
+[Invidious](https://github.com/iv-org/invidious) - альтернативный интерфейс YouTube с открытым исходным кодом.
+
+```yaml
+services:
+  invidious:
+    # docker run quay.io/invidious/youtube-trusted-session-generator
+    image: quay.io/invidious/invidious:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: invidious
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      # Gen password for hmac_key: pwgen 20 1
+      INVIDIOUS_CONFIG: |
+        db:
+          dbname: invidious
+          user: kemal
+          password: kemal
+          host: invidious-db
+          port: 5432
+        check_tables: true
+        # external_port:
+        # domain:
+        # https_only: false
+        # statistics_enabled: false
+        hmac_key: "aiph2EeShu6ohng0ohqu"
+    healthcheck:
+      test: wget -nv --tries=1 --spider http://127.0.0.1:3000/api/v1/trending || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 2
+
+  invidious-db:
+    image: docker.io/library/postgres:14
+    container_name: invidious-db
+    restart: unless-stopped
+    volumes:
+      - ./invidious_db:/var/lib/postgresql/data
+      - ./invidious_data/config/sql:/config/sql
+      - ./invidious_data/docker/init-invidious-db.sh:/docker-entrypoint-initdb.d/init-invidious-db.sh
+    environment:
+      POSTGRES_DB: invidious
+      POSTGRES_USER: kemal
+      POSTGRES_PASSWORD: kemal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+```
+
+### ReClip
+
+[ReClip](https://github.com/averygan/reclip) - веб-интерфейс для загрузки видео и аудио с YouTube, TikTok, Instagram, Twitter/X и более чем 1000 других сайтов через [yt-dlp](https://github.com/yt-dlp/yt-dlp) в формате MP4 или MP3, с поддержкой выбора качества и разрешения. Фронтенд без фреймворков и этапа сборки на чистом HTML и бэкенд в одном файле Python на 150 строк.
+
+```yaml
+services:
+  reclip:
+    image: lifailon/reclip:latest
+    container_name: reclip
+    restart: unless-stopped
+    ports:
+      - 8899:8899
+```
+
+### EternalVows
+
+[EternalVows](https://github.com/jacoknapp/EternalVows) - легковесный шаблон свадебного сайта для самостоятельного размещений. Позволяет настроить имена, дату, место проведения, историю, расписание, детали площадки (с картой), ссылки на подарочные реестры, часто задаваемые вопросы и опциональные ссылки для обмена фотографиями через YAML файл без необходимости пересборки.
+
+```yaml
+services:
+  eternalvows:
+    image: ghcr.io/jacoknapp/eternalvows:latest
+    container_name: eternalvows
+    restart: unless-stopped
+    environment:
+      - PORT=5500
+    ports:
+      - 5500:5500
+    volumes:
+      - ./config:/app/config
+```
+
+### It's MyTabs
+
+[It's MyTabs](https://github.com/louislam/its-mytabs) - веб-интерфейс для просмотра и проигрывания табулатуры гитары, похожий на [Songsterr](https://www.songsterr.com), от создателя [Uptime-Kuma](https://github.com/louislam/uptime-kuma) и [Dockge](https://github.com/louislam/dockge).
+
+🔗 [It's MyTabs Playground](https://its-mytabs.kuma.pet/tab/1?audio=youtube-VuKSlOT__9s&track=2) ↗
+
+```yaml
+services:
+  its-mytabs:
+    image: louislam/its-mytabs:1
+    container_name: its-mytabs
+    restart: unless-stopped
+    ports:
+      - 47777:47777
+    volumes:
+      - ./data:/app/data # db and tabs
 ```
 
 ### Guacamole
@@ -9306,64 +9574,51 @@ MINIFY=true
 ARGS=
 ```
 
-### EternalVows
+### Warracker
 
-[EternalVows](https://github.com/jacoknapp/EternalVows) - легковесный шаблон свадебного сайта для самостоятельного размещений. Позволяет настроить имена, дату, место проведения, историю, расписание, детали площадки (с картой), ссылки на подарочные реестры, часто задаваемые вопросы и опциональные ссылки для обмена фотографиями через YAML файл без необходимости пересборки.
+[Warracker](https://github.com/sassanix/warracker) - веб-интерфейс для инвентаризации и отслеживания гарантий оборудования и программного обеспечения, позволяет отслеживать срок их действия и хранить чеки или другие связанные с ними документы. Поддерживает быстрый поиск по названию продукта, серийному номеру, производителю, тегам и другим параметрам, а также отправку оповещений через Apprise.
 
 ```yaml
 services:
-  eternalvows:
-    image: ghcr.io/jacoknapp/eternalvows:latest
-    container_name: eternalvows
+  warracker:
+    image: ghcr.io/sassanix/warracker/main:latest
+    container_name: warracker
     restart: unless-stopped
+    ports:
+      - 8005:80
     environment:
-      - PORT=5500
-    ports:
-      - 5500:5500
+      - DB_HOST=warracker-db
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=warranty_db
+      - DB_USER=warranty_user
+      - DB_PASSWORD=${DB_PASSWORD:-warranty_password}
+      - SECRET_KEY=${APP_SECRET_KEY:-your_strong_default_secret_key_here} 
+      - MAX_UPLOAD_MB=32
+      - NGINX_MAX_BODY_SIZE_VALUE=32M
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8005} 
+      - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8005}
+      - WARRACKER_MEMORY_MODE=${WARRACKER_MEMORY_MODE:-optimized}
+      - PYTHONUNBUFFERED=1
     volumes:
-      - ./config:/app/config
-```
-
-### Windows
-
-[Windows](https://github.com/dockur/windows) внутри контейнера Docker.
-
-```yaml
-services:
-  windows:
-    image: dockurr/windows
-    container_name: windows
-    restart: always
+      - ./warracker_data/uploads:/data/uploads
+    depends_on:
+      warracker-db:
+        condition: service_healthy
+  warracker-db:
+    image: postgres:15-alpine
+    container_name: warracker-db
+    restart: unless-stopped
+    volumes:
+      - ./warracker_data/postgres:/var/lib/postgresql/data
     environment:
-      VERSION: 11
-    ports:
-      - 8006:8006
-      - 3389:3389/tcp
-      - 3389:3389/udp
-    volumes:
-      - ./windows:/storage
-    stop_grace_period: 2m
-    devices:
-      - /dev/kvm
-      - /dev/net/tun
-    cap_add:
-      - NET_ADMIN
-```
-
-### ShareHousePlan
-
-[ShareHousePlan](https://github.com/Raynoxis/ShareHousePlan) - планировщик домов и квартир в браузере, с поддержкой 3D-просмотрщика (совместимого с SweetHome3D).
-
-```yaml
-services:
-  share-house-plan:
-    image: raynoxis/sharehouseplan:latest
-    container_name: share-house-plan
-    restart: always
-    volumes:
-      - ./sharehouseplan_data:/app/datas
-    ports:
-      - 8680:8080
+      - POSTGRES_DB=warranty_db
+      - POSTGRES_USER=warranty_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-warranty_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 ```
 
 ## Kanban
@@ -9582,6 +9837,189 @@ services:
       retries: 10
 ```
 
+### Plane
+
+[Plane](https://github.com/makeplane/plane) - платформа для управления проектами (задачами и спринтами) как альтернатива Jira, Linear, Monday и ClickUp с открытым исходным кодом.
+
+```yaml
+services:
+  web:
+    container_name: web
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile.web
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: always
+    depends_on:
+      - api
+
+  admin:
+    container_name: admin
+    build:
+      context: .
+      dockerfile: ./apps/admin/Dockerfile.admin
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: always
+    depends_on:
+      - api
+      - web
+
+  space:
+    container_name: space
+    build:
+      context: .
+      dockerfile: ./apps/space/Dockerfile.space
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: always
+    depends_on:
+      - api
+      - web
+
+  api:
+    container_name: api
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.api
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: always
+    command: ./bin/docker-entrypoint-api.sh
+    env_file:
+      - ./apps/api/.env
+    depends_on:
+      - plane-db
+      - plane-redis
+
+  worker:
+    container_name: bgworker
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.api
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: always
+    command: ./bin/docker-entrypoint-worker.sh
+    env_file:
+      - ./apps/api/.env
+    depends_on:
+      - api
+      - plane-db
+      - plane-redis
+
+  beat-worker:
+    container_name: beatworker
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.api
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: always
+    command: ./bin/docker-entrypoint-beat.sh
+    env_file:
+      - ./apps/api/.env
+    depends_on:
+      - api
+      - plane-db
+      - plane-redis
+
+  migrator:
+    container_name: plane-migrator
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.api
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: no
+    command: ./bin/docker-entrypoint-migrator.sh
+    env_file:
+      - ./apps/api/.env
+    depends_on:
+      - plane-db
+      - plane-redis
+
+  live:
+    container_name: plane-live
+    build:
+      context: .
+      dockerfile: ./apps/live/Dockerfile.live
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: always
+
+  plane-db:
+    container_name: plane-db
+    image: postgres:15.7-alpine
+    restart: always
+    command: postgres -c 'max_connections=1000'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data
+
+  plane-redis:
+    container_name: plane-redis
+    image: valkey/valkey:7.2.11-alpine
+    restart: always
+    volumes:
+      - redisdata:/data
+
+  plane-mq:
+    container_name: plane-mq
+    image: rabbitmq:3.13.6-management-alpine
+    restart: always
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  plane-minio:
+    container_name: plane-minio
+    image: minio/minio
+    restart: always
+    command: server /export --console-address ":9090"
+    volumes:
+      - uploads:/export
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+
+  proxy:
+    container_name: proxy
+    build:
+      context: ./apps/proxy
+      dockerfile: Dockerfile.ce
+    restart: always
+    ports:
+      - ${LISTEN_HTTP_PORT}:80
+      - ${LISTEN_HTTPS_PORT}:443
+    environment:
+      FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
+      BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
+    depends_on:
+      - web
+      - api
+      - space
+      - admin
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:
+  rabbitmq_data:
+```
+
 ## NVR
 
 ### ZoneMinder
@@ -9766,9 +10204,9 @@ services:
       - 9696:9696
 ```
 
-### FreshRSS
+### Fresh RSS
 
-[Freshrss](https://github.com/FreshRSS/FreshRSS) - агрегатор RSS-каналов с поддержкой хранения данных в SQLite, PostgreSQL и MySQL/MariaDB, а также предоставляет единую точку всех добавленных RSS лент, API и виджет [Homepage](https://gethomepage.dev/widgets/services/freshrss).
+[Fresh RSS](https://github.com/FreshRSS/FreshRSS) - агрегатор RSS-каналов с поддержкой хранения данных в SQLite, PostgreSQL и MySQL/MariaDB, а также предоставляет единую точку всех добавленных RSS лент, API и виджет [Homepage](https://gethomepage.dev/widgets/services/freshrss).
 
 🔗 [FreshRSS Demo](https://demo.freshrss.org) ↗
 
@@ -10160,7 +10598,7 @@ services:
       - 5055:5055
 ```
 
-### UMS
+### Universal Media Server
 
 [UMS](https://github.com/UniversalMediaServer/UniversalMediaServer) (Universal Media Server) - медиасервер, поддерживающий протоколы DLNA, UPnP и HTTP/S. Он способен передавать видео, аудио и изображения между большинством современных устройств. Изначально он был основан на PS3 Media Server от shagrath для обеспечения большей стабильности и совместимости файлов.
 
@@ -10185,9 +10623,11 @@ services:
       - 8000-8010:8000-8010
 ```
 
-### Navidrome Music Server
+### Navidrome (Music Server)
 
-[NMS](https://github.com/navidrome/navidrome/) (Navidrome Music Server) - музыкальный веб-сервер для хранения и аудио стриминга.
+[NMS](https://github.com/navidrome/navidrome/) (Navidrome Music Server) - музыкальный веб-сервер для хранения и стриминга аудио.
+
+🔗 [Navidrome Demo](https://demo.navidrome.org) ↗
 
 ```yaml
 services:
@@ -10201,6 +10641,88 @@ services:
     volumes:
       - ./navidrome_data:/data
       - ./navidrome_music:/music:ro
+```
+
+### Kavita (Book Server)
+
+[Kavita](https://github.com/Kareadita/Kavita) - это оффлай ридер для книг в форматах EPUB и PDF как альтернатива Kindle от Amazon. Сервер самостоятельно сканирует каталог с книгами и формирует библиотеку для чтения через веб-интерфейс.
+
+🔗 [Kavita Demo](https://demo.kavitareader.com/home) ↗
+
+```yaml
+services:
+  kavita:
+    image: lscr.io/linuxserver/kavita:latest
+    container_name: kavita
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+    ports:
+      - 5000:5000
+    volumes:
+      - ./kavita_config:/config
+      - ./kavita_data:/data
+```
+
+### Koodo Reader
+
+[Koodo Reader](https://github.com/koodo-reader/koodo-reader) - программа для чтения электронных книг с возможностями синхронизации и резервного копирования для Windows, macOS, Linux, Android, iOS и веб-версией.
+
+```yaml
+services:
+  koodo-reader:
+    image: liwangsheng/koodo-reader:latest
+    container_name: koodo-reader
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 8080:8080
+    environment:
+      - SERVER_USERNAME=admin
+      - SERVER_PASSWORD=admin
+      - ENABLE_HTTP_SERVER=false
+    volumes:
+      - ./koodo_data:/app/uploads
+```
+
+### Audio Books Helf
+
+[Audio Books Helf](https://github.com/advplyr/audiobookshelf) - сервер для самостоятельного размещения аудиокниг и подкастов.
+
+```yaml
+services:
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    restart: unless-stopped
+    user: 1000:1000
+    ports:
+      - 13378:80
+    volumes:
+      - ./audiobookshelf_data/audiobooks:/audiobooks
+      - ./audiobookshelf_data/podcasts:/podcasts
+      - ./audiobookshelf_data/metadata:/metadata
+      - ./audiobookshelf_data/config:/config
+```
+
+### Storyteller
+
+[Storyteller](https://gitlab.com/storyteller-platform/storyteller) - хранилище для аудиокниг с веб интерфейсом и поддержкой мобильного приложения.
+
+```yaml
+services:
+  storyteller:
+    image: registry.gitlab.com/storyteller-platform/storyteller:latest
+    container_name: storyteller
+    restart: unless-stopped
+    environment:
+      - STORYTELLER_SECRET_KEY=changemechangemechangeme
+    ports:
+      - 8001:8001
+    volumes:
+      - ./storyteller_data:/data:rw
 ```
 
 ### Sonarr
@@ -10297,7 +10819,7 @@ services:
 
 ### Autobrr
 
-[Autobrr](https://github.com/autobrr/autobrr) - система автоматизации загрузки торрентов и Usenet, вдохновленная [trackarr](https://github.com/florianjs/trackarr), autodl-irssi и [flexget](https://github.com/Flexget/Flexget), от создателя [qUI](https://github.com/autobrr/qui).
+[Autobrr](https://github.com/autobrr/autobrr) - система автоматизации загрузки торрентов и Usenet, вдохновленная [trackarr](https://github.com/florianjs/trackarr), autodl-irssi и [flexget](https://github.com/Flexget/Flexget), от создателя [qUI](https://github.com/autobrr/qui). Этот инструмент объеденяет лучшее из этих миров в один универсальный инструмент, который может делать все и даже больше.
 
 ```yaml
 services:
@@ -10309,6 +10831,10 @@ services:
       - ./config:/config
     ports:
       - 7474:7474
+    # environment:
+    #   AUTOBRR__POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    # secrets:
+    #   - db_password
 
   autobrr-postgres:
     image: postgres:12.10
@@ -10319,9 +10845,13 @@ services:
     ports:
       - 5432:5432
     environment:
-      - POSTGRES_USER=autobrr
-      - POSTGRES_PASSWORD=autobrr
       - POSTGRES_DB=autobrr
+      - POSTGRES_USER=autobrr
+      - POSTGRES_PASSWORD=postgres
+
+# secrets:
+#   db_password:
+#     file: db_password.txt
 ```
 
 ## Game Stack
