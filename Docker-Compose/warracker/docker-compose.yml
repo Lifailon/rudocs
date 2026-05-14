@@ -1,0 +1,40 @@
+services:
+  warracker:
+    image: ghcr.io/sassanix/warracker/main:latest
+    container_name: warracker
+    restart: unless-stopped
+    ports:
+      - 8005:80
+    environment:
+      - DB_HOST=warracker-db
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=warranty_db
+      - DB_USER=warranty_user
+      - DB_PASSWORD=${DB_PASSWORD:-warranty_password}
+      - SECRET_KEY=${APP_SECRET_KEY:-your_strong_default_secret_key_here} 
+      - MAX_UPLOAD_MB=32
+      - NGINX_MAX_BODY_SIZE_VALUE=32M
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8005} 
+      - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8005}
+      - WARRACKER_MEMORY_MODE=${WARRACKER_MEMORY_MODE:-optimized}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./warracker_data/uploads:/data/uploads
+    depends_on:
+      warracker-db:
+        condition: service_healthy
+  warracker-db:
+    image: postgres:15-alpine
+    container_name: warracker-db
+    restart: unless-stopped
+    volumes:
+      - ./warracker_data/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=warranty_db
+      - POSTGRES_USER=warranty_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-warranty_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
