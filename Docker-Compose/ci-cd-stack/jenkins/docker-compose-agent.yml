@@ -1,0 +1,16 @@
+services:
+  jenkins-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-agent
+    restart: unless-stopped
+    user: 1000:1000
+    environment:
+      - JENKINS_URL=${JENKINS_SERVER_URL}
+      - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
+      - JENKINS_SECRET=${JENKINS_SECRET}
+    volumes:
+      - ./jenkins_agent:/home/jenkins
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
