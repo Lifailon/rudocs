@@ -71,6 +71,7 @@
     - [journald](#journald)
     - [syslog](#syslog)
     - [gelf](#gelf)
+    - [loki](#loki)
     - [fluentd](#fluentd)
     - [rsyslog](#rsyslog)
   - [Volumes](#volumes)
@@ -88,6 +89,7 @@
 - [Kubernetes](#kubernetes)
   - [Kompose](#kompose)
   - [Kubeadm](#kubeadm)
+  - [Etcd](#etcd)
   - [Cluster Configuration](#cluster-configuration)
   - [Kubelet Configuration](#kubelet-configuration)
   - [Metrics Server](#metrics-server)
@@ -579,6 +581,35 @@ git push gitlab main
 ```
 
 ## SQL
+
+Индексы в базе данных - это специальные структуры, которые ускоряют поиск данных. Без индекса базе данных приходится выполнять полное сканирование (перебирать все строки в таблице одну за другой, что крайне медленно на больших объемах данных). Индекс хранит отсортированные значения определенных столбцов и ссылки на соответствующие строки, позволяя СУБД мгновенно находить нужные записи.
+
+Когда индексов мало или нет совсем:
+
+- Плюс: Данные записываются максимально быстро (операции `INSERT`, `UPDATE` и `DELETE`), так как базе не нужно ничего обновлять, кроме самой таблицы.
+- Минус: Поиск данных (`SELECT`) становится очень медленным при росте базы. Нагрузка на процессор и диск возрастает, так как системе приходится обрабатывать огромные массивы информации.
+
+Когда индексов слишком много:
+
+- Плюс: Можно мгновенно найти данные по любому критерию.
+- Минусы: замедляется запись (при каждом изменении данных, базе приходится обновлять и все связанные индексы) и повышенный расход памяти (индексы занимают место на диске и в оперативной памяти, часто 10–20% от размера таблицы на каждый индекс).
+
+Репликация - это когда есть основной сервер (Master) и его копии (Replica). Все изменения идут на мастер, а он в свою очередь копирует их на реплики, чтобы распределить чтение (например, если тысячи человек хотят просто посмотреть товары, они идут на реплики, не нагружая основной сервер), а также если мастер выйдет из строя, его сможет заменить реплика.
+
+Репликация в синхронном режиме дожидается ответа. Мастер записывает данные и отправляет их реплики, реплика подтверждает получение и мастер говорит пользователю - УСПЕХ.
+
+- Плюс: Данные везде идентичны на 100%. Если мастер выйдет из строя, все данные гарантированно будут на реплике.
+- Минус: Это медленно. Если реплика или сеть между ними тормозит, то запись для пользователя будет висеть.
+
+Репликация в асинхронном режиме не дожидается ответа от реплики. Мастер записал у себя и сразу сказал пользователю - УСПЕХ, и уже после этого в фоновом режиме отправил данные на реплики.
+
+- Плюс: максимально высокая скорость.
+- Минус: есть риск потери данных.
+
+Шардирование - это стратегия горизонтального масштабирования, при которой одна физическая БД разбивается на несколько логических и независимых частей (шардов), каждая из которых размещается на отдельном физическом узле (экземпляре СУБД), в отличии от репликации, где каждая реплика хранит копию базу целиком. Данного механизма можно добиться за счет прокси-слоя, где прокси-сервер парсит SQL-запрос на лету, вычленяет Shard Key и перенаправляет запрос на нужный физический сервер, что позволяет увиличить производительность на запись.
+
+- Плюс: приложение не знает, что база разделена, по этому удобно масштабировать и проводить обслуживание шардов.
+- Минус: сам прокси становится узким местом, которое тоже нужно масштабировать и увеличивается шанс потери данных (если из 10 шардов 1 упал то 10% данных недоступно, поэтому шардирование никогда не используется без репликации).
 
 ### Базовые инструкции
 
@@ -1696,6 +1727,17 @@ logging:
     tag: "{{.Name}}"
 ```
 
+#### loki
+
+Отправка напрямую в систему агрегации логов [Loki](https://github.com/grafana/loki).
+
+```yaml
+logging:
+  driver: loki
+  options:
+    loki-url: "http://loki:3100/loki/api/v1/push"
+```
+
 #### fluentd
 
 Отправка данных на агент [fluen-bit](https://github.com/fluent/fluent-bit) через драйвер [fluentd](https://github.com/fluent/fluentd):
@@ -2196,6 +2238,79 @@ sed 's/127.0.0.1/192.168.3.101/g' -i $HOME/.kube/config
 kubectl get nodes
 # Удалить taint метку на всех Master нодах
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+```
+
+### Etcd
+
+[etcd](https://github.com/etcd-io/etcd) - это распределенное хранилище данных формата ключ-значение в распределенной системы, например, Kubernetes.
+
+[auger](https://github.com/etcd-io/auger) - декодировщик содержимого объектов данных Kubernetes, хранящимся в etcd.  
+
+```bash
+ETCD_VER=v3.6.11
+GITHUB_URL=https://github.com/etcd-io/etcd/releases/download
+
+curl -L ${GITHUB_URL}/${ETCD_VER}/etcd-${ETCD_VER}-linux-amd64.tar.gz -o /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
+sudo tar xzvf /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz -C /usr/local/bin --strip-components=1 --no-same-owner
+rm -f /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
+
+etcd --version
+etcdctl version
+etcdutl version
+
+sudo curl https://github.com/etcd-io/auger/releases/download/v1.0.3/auger_1.0.3_linux_amd64.tar.gz -o /usr/local/bin/auger
+sudo chmod +x /usr/local/bin/auger
+
+export ETCDCTL_API=3
+
+# Проверить подключение к БД и ее работоспособность
+etcdctl --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  endpoint health
+
+# Вывести все ключи в базе
+etcdctl --endpoints=localhost:2379 get / --prefix --keys-only
+# Вывести ключи всех Deployment в БД
+etcdctl --endpoints=localhost:2379 get /registry/deployments/ --prefix --keys-only
+# Вывести содержимое манифеста указаного Deployment с декодированием (/registry/<kind>/<namespace>/<metadata.name>)
+etcdctl --endpoints=localhost:2379 get /registry/deployments/default/torapi --print-value-only | /usr/local/bin/auger decode
+# Вытащить содержимое секрета
+etcdctl --endpoints=localhost:2379 get /registry/secrets/monitoring/telegram-secrets --print-value-only | strings
+# Получить данные обо всех подах
+etcdctl --endpoints=localhost:2379 get /registry/pods --prefix
+
+# Записать, прочитать и удалить ключ
+etcdctl --endpoints=localhost:2379 put key value
+etcdctl --endpoints=localhost:2379 get key
+etcdctl --endpoints=localhost:2379 del key
+
+# Список узлов кластера etcd
+etcdctl --endpoints=localhost:2379 member list
+# Детальный статус - размер БД (кота на запись по умолчанию 2 Гб), количество revision и лидер ли этот узел
+etcdctl --endpoints=localhost:2379 endpoint status -w table # json
+# Сжатие - удалет всю историю записи до 152043 ревизии (останется 1 ривизия)
+etcdctl --endpoints=localhost:2379 compact 152043
+# Дефрагминатция данных на диске в файловой системе
+etcdctl --endpoints=localhost:2379 defrag 152043
+# Список событий
+etcdctl --endpoints=localhost:2379 alarm list
+# Логи
+journalctl -u etcd
+kubectl logs -n kube-system <etcd-pod-name>
+
+# Сделать backup базы данных и конфигурации
+etcdctl snapshot save snapshot.db
+cp /etc/kubernetes/manifests/etcd.yaml ~/.etcd.yaml.backup
+# Очистить содержимое БД в файловой системе перед восстановлением (например, при потере кворума)
+# rm -rf /var/lib/etcd/*
+# Восстановление из снапшота
+etcdutl snapshot restore snapshot.db \
+  --data-dir=/var/lib/etcd \
+  --name=master-node \
+  --initial-cluster=master-node=https://127.0.0.1:2380 \
+  --initial-advertise-peer-urls=https://127.0.0.1:2380
 ```
 
 ### Cluster Configuration

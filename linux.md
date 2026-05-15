@@ -1601,6 +1601,15 @@ while true; do
 done
 ```
 
+Пример отправки оповещения в [Gotify](https://github.com/gotify/server):
+
+```bash
+curl -k 'http://localhost:5080/message' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Gotify-Key: As3e1oVioVEYvvZ' \
+  -d '{"title":"Curl","message":"Test","priority":0}'
+```
+
 ### netcat
 
 `nc -zv 192.168.3.100 5985` проверить порт без попытки соединения (`-z`) в подробном режиме (`-v`) \
