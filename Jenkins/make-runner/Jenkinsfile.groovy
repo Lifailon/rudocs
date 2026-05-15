@@ -1,9 +1,8 @@
 def getVariables = "make -np | grep ':=' | grep -v '^#'"
 
 pipeline {
-    // Jenkins Agent with make installed
     agent {
-        label 'linux'
+        label 'linux' // Jenkins Agent with make installed
     }
     options {
         timestamps()

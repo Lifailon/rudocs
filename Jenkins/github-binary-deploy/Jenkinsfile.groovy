@@ -132,6 +132,8 @@ pipeline {
                 script {
                     // Извлекаем название исполняемого файла
                     binName = params.repository.split('/')[1] ? params.repository.split('/')[1] : params.repository
+                    // Определяем режим работы в название сборки
+                    currentBuild.displayName = "#${BUILD_NUMBER} ${binName}: uninstall"
                     // Проверяем путь из параметра или присваиваем значение по умолчанию
                     binPath = params.binPath ? params.binPath : "./.local/bin"
                     // Формируем полный путь до исполняемого файла
@@ -158,6 +160,7 @@ pipeline {
             }
             steps {
                 script {
+                    // Определяем режим работы в название сборки
                     def buildName = params.repository.split("/")[1]
                     currentBuild.displayName = "#${BUILD_NUMBER} ${buildName}: ${params.tags}"
                     // Определяем архитектуру на сборщике
