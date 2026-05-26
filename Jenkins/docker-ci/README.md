@@ -15,9 +15,11 @@
 
 ![](img/params.jpg)
 
-- Лог сборки:
+- Лог сборки и публикации образа:
 
 > [!NOTE]
 > В примере используется образ [Jenkins агента](/Docker-Compose/ci-cd-stack/jenkins/Dockerfile), который я использую для запуска сборщиков в своей домашней среде.
 
 ![](img/build.jpg)
+
+![](img/publish.jpg)
