@@ -2,16 +2,7 @@
 
 Коллекция универсальных Jenkins Pipeline, которые я использую в своей домашней лаборатории для автоматизации базовых задач.
 
-- [Parallel Execution Pipeline](parallel-execution-pipeline/README.md)
-- [Parallel SSH Pipeline](parallel-ssh-pipeline/README.md)
-- [Make Runner](make-runner/README.md)
-- [GitHub Binary Deploy](github-binary-deploy/README.md)
-- [Go CI/CD](go-ci-cd/README.md)
-- [Docker CI](docker-ci/README.md)
-- [Docker CD](docker-cd/README.md)
-- [API Request](api-request/README.md)
-- [Update authorized_keys](update-authorized_keys/README.md)
-- [Backup Jobs](export-and-backup-jobs/README.md)
+Каждый проект имеет краткое описание и скриншоты с примерами работы.
 
 ## Plugins
 
@@ -28,6 +19,7 @@
 | [SSH Pipeline Steps](https://plugins.jenkins.io/ssh-steps)                                        | Плагин для подключения к удаленным машинам через протокол `ssh` по ключу или паролю                                             |
 | [SSH Agent](https://www.jenkins.io/doc/pipeline/steps/ssh-agent)                                  | Плагин для подключения к удаленным машинам с использованием `ssh-agent` и `Credentials`                                         |
 | [Workspace Cleanup](https://plugins.jenkins.io/ws-cleanup)                                        | Плагин добавляет метод `cleanWs()` для удаления рабочей область сборки.                                                         |
+| [HTML Publisher](https://plugins.jenkins.io/htmlpublisher)                                        | Добавляем метод `publishHTML` для публикации статической страницы в формате `HTML`                                              |
 | [Pipeline Stage View](https://plugins.jenkins.io/pipeline-stage-view)                             | Визуализация шагов (`stages`) в интерфейсе проекта с временем их выполнения                                                     |
 | [Pipeline Graph View](https://plugins.jenkins.io/pipeline-graph-view)                             | Группирует все шаги и выполняемые команды, добавляя кнопку `Pipeline Overview` и заменяя стандартный лог сборки                 |
 | [Rebuilder](https://plugins.jenkins.io/rebuild)                                                   | Позволяет перезапускать параметризованную сборку с предустановленными параметрами в выбранной сборке                            |

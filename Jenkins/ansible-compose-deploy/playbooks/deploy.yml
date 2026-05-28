@@ -1,0 +1,75 @@
+- name: Deploy Monitoring Stack
+  hosts: all
+  tasks:
+    - name: Create deploy directory
+      ansible.builtin.file:
+        path: ./mon-agent
+        state: directory
+        mode: 0755
+
+    - name: Generate docker compose
+      ansible.builtin.template:
+        # src: /home/jenkins/workspace/ansible/playbooks/templates/docker-compose.yml.j2
+        src: ./templates/docker-compose.yml.j2
+        dest: ./mon-agent/docker-compose.yml
+        mode: 0644
+
+    - name: Generate loki promtail config
+      ansible.builtin.template:
+        # src: /home/jenkins/workspace/ansible/playbooks/templates/loki-promtail.yml.j2
+        src: ./templates/loki-promtail.yml.j2
+        dest: ./mon-agent/loki-promtail.yml
+        mode: 0644
+
+    - name: Remove containers
+      community.docker.docker_container:
+        name: "{{ item }}"
+        state: absent
+        force_kill: yes
+      loop:
+        - "node-exporter"
+        - "cadvisor"
+        - "logporter"
+        - "loki-promtail"
+        - "dozzle-agent"
+        - "beszel-agent"
+        - "watchtower"
+      ignore_errors: yes
+
+    # - name: Restart containers
+    #   ansible.builtin.shell: |
+    #     docker-compose down
+    #     docker-compose up -d
+    #   args:
+    #     chdir: ./mon-agent
+    #   environment:
+    #     PATH: "/home/lifailon/.local/bin:/usr/bin:/bin"
+
+    - name: Recreated container
+      community.docker.docker_compose_v2:
+        project_src: ./mon-agent
+        state: present
+        recreate: always
+        pull: always
+
+    - name: Get all containers info
+      community.docker.docker_host_info:
+        containers: yes
+      register: docker_host_info
+
+    - name: Get container IDs
+      set_fact:
+        container_ids: "{{ docker_host_info.containers | map(attribute='Id') | list }}"
+
+    - name: Get containers info for each container
+      community.docker.docker_container_info:
+        name: "{{ item }}"
+      loop: "{{ container_ids }}"
+      register: containers_info
+
+    - name: Get containers status
+      debug:
+        msg: "Container {{ item.container.Name }} => {{ item.container.State.Status }}"
+      loop: "{{ containers_info.results }}"
+      loop_control:
+        label: "{{ item.container.Name }}"

@@ -1,0 +1,23 @@
+node_exporter: true
+node_exporter_port: "9100"
+
+cadvisor: true
+cadvisor_port: "8080"
+
+logporter: true
+logporter_port: "9333"
+
+loki_promtail: true
+loki_promtail_port: "9080"
+loki_server: "http://192.168.3.101:3100"
+
+dozzle: false
+dozzle_port: "7007"
+
+beszel: false
+beszel_port: "45876"
+beszel_key: ""
+
+watchtower: false
+telegram_bot_api_key: ""
+telegram_chat_id: ""
