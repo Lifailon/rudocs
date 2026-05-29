@@ -221,6 +221,8 @@
   - [Server](#server)
   - [Client](#client)
   - [Consul](#consul)
+  - [Vault Agent Injector](#vault-agent-injector)
+  - [Jenkins withVault](#jenkins-withvault)
 - [Prometheus](#prometheus)
   - [Exporter](#exporter)
   - [PromQL](#promql)
@@ -9635,6 +9637,283 @@ consul kv delete ssh/key
 curl -sS http://localhost:8500/v1/kv/ssh/key --request PUT --header "X-Consul-Token: 89fa8962-1b32-2089-5893-37f294444adb" --data "ssh-rsa AAAA"
 # Извлечь содержимое секрета
 curl -sS http://localhost:8500/v1/kv/ssh/key --header "X-Consul-Token: 89fa8962-1b32-2089-5893-37f294444adb" | jq -r .[].Value | base64 --decode
+```
+
+### Vault Agent Injector
+
+Создаем `SA` и выдаем ему кластерные права на встроенную системную роль `auth-delegator` для делегирования аутентификации:
+
+```bash
+kubectl create serviceaccount vault-sa -n telegram
+kubectl create clusterrolebinding vault-auth-delegator \
+    --clusterrole=system:auth-delegator \
+    --serviceaccount=telegram:vault-sa
+```
+
+Создаем токен для инициализации кластера в Vault:
+
+```yaml
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+  name: vault-token
+  namespace: telegram
+  annotations:
+    kubernetes.io/service-account.name: vault-sa
+```
+
+`kubectl apply -f vault-sa.yaml`
+
+Извлекаем сертификат и токен доступа для передачи в концигурацию Vault:
+
+```bash
+kubectl get secret vault-token -n telegram -o jsonpath='{.data.ca\.crt}' | base64 --decode > ca.crt
+kubectl get secret vault-token -n telegram -o jsonpath='{.data.token}' | base64 --decode > token.jwt
+```
+
+Создаем новое `KV` хранилище и секрет:
+
+```bash
+vault secrets enable -version=2 -path=k8s kv
+vault kv put k8s/app/telegram-bot API_KEY=admin CHAT_ID=admin
+```
+
+Создаем политику для доступа к хранилищу:
+
+```bash
+vault policy write k8s-telegram-policy - <<EOT
+path "k8s/data/app/telegram-bot" {
+  capabilities = ["read"]
+}
+
+path "k8s/metadata/app/*" {
+  capabilities = ["list"]
+}
+EOT
+```
+
+Настройка метода аутентификации для подключения к Vault из кластера Kubernetes:
+
+```bash
+# Включаем метод аутентификации Kubernetes
+vault auth enable kubernetes
+
+# Настраиваем связь с API сервером Kubernetes (кто может подключаться)
+vault write auth/kubernetes/config \
+    kubernetes_host="https://192.168.3.101:6443" \
+    kubernetes_ca_cert=@ca.crt \
+    token_reviewer_jwt=$(cat token.jwt)
+
+# Создаем роль для приложения (привязываем SA к политике)
+vault write auth/kubernetes/role/tg-app-role \
+    bound_service_account_names=vault-sa \
+    bound_service_account_namespaces=telegram \
+    policies=k8s-telegram-policy \
+    audience="https://kubernetes.default.svc.cluster.local" \
+    ttl=24h
+
+vault read auth/kubernetes/role/tg-app-role
+```
+
+По умолчанию [Vault Agent Injector](https://developer.hashicorp.com/vault/docs/deploy/kubernetes/injector) сохраняет все секреты в общую память пода (`tmpfs`) по пути `/vault/secrets/`.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-checker
+  namespace: telegram
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: vault-checker
+  template:
+    metadata:
+      labels:
+        app: vault-checker
+      annotations:
+        # Включаем Vault Agent Sidecar
+        vault.hashicorp.com/agent-inject: "true"
+        # Заставляет контейнеры ждать, пока vault-agent-init не завершится успешно (когда файл записан на диск)
+        vault.hashicorp.com/agent-init-first: 'true'
+        # Роль доступа к секретам Vault
+        vault.hashicorp.com/role: "tg-app-role"
+        # Определяем название файла (/vault/secrets/env.txt) и путь к секрету в Vault 
+        vault.hashicorp.com/agent-inject-secret-env.txt: "k8s/app/telegram-bot"
+        # Шаблон для парсинга выходного файла с содержимым секретов в формте ключ=значение
+        vault.hashicorp.com/agent-inject-template-env.txt: |
+          {{- with secret "k8s/data/app/telegram-bot" -}}
+          {{- range $key, $value := .Data.data }}
+          {{ $key }}="{{ $value }}"
+          {{- end }}
+          {{- end -}}
+        vault.hashicorp.com/agent-requests-cpu: 100m
+        vault.hashicorp.com/agent-limits-cpu: 200m
+        vault.hashicorp.com/agent-requests-mem: 64Mi
+        vault.hashicorp.com/agent-limits-mem: 128Mi
+        vault.hashicorp.com/log-level: debug
+    spec:
+      serviceAccountName: vault-sa
+      containers:
+        - name: env-checker
+          image: alpine:3.23
+          command: ["sh", "-c", "source /vault/secrets/env.txt && echo $CHAT_ID && echo $API_KEY && sleep infinity"]
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "test -s /vault/secrets/env.txt"]
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+```
+
+### Jenkins withVault
+
+- Создаем SA и получаем токен доступа к кластеру Kubernetes:
+
+```bash
+kubectl create serviceaccount jenkins -n kube-system
+kubectl create clusterrolebinding jenkins-role --clusterrole=cluster-admin --serviceaccount=kube-system:jenkins
+kubectl create token jenkins -n kube-system --duration=999999h
+```
+
+- Создаем политику доступа `jenkins-policy.hcl`:
+
+```hcl
+path "jenkins/data/k3s" {
+  capabilities = ["read"]
+}
+```
+
+`vault policy write jenkins-policy jenkins-policy.hcl`
+
+- Включаем метод аутентификации AppRole:
+
+`vault auth enable approle`
+
+- Создаем бессрочную роль для Jenkins c привязкой политики `jenkins-policy`:
+
+```bash
+vault write auth/approle/role/jenkins \
+    token_policies="jenkins-policy" \
+    secret_id_ttl=0 \
+    secret_id_num_uses=0
+```
+
+- Получите учетные данные для доступа к роли:
+
+```bash
+vault read auth/approle/role/jenkins/role-id
+vault write -f auth/approle/role/jenkins/secret-id
+```
+
+Добавляем `Role ID` и `Secret ID` в Jenkins Credentials с название `k3s-approle`.
+
+- Команда (скрипт) для загрузки `kubectl` в Jenkins с помощью Custom Tools:
+
+```bash
+mkdir -p ./bin
+curl https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl -sSLo ./bin/kubectl
+chmod +x ./bin/kubectl
+```
+
+Получение секретов (на примере токена доступа или содержимого `kubeconfig`) с помощью метода `withVault` в Jenkins:
+
+```Groovy
+def K8S_TOKEN = ""
+
+pipeline {
+    agent {
+        label 'linux && (amd64 || arm64)'
+    }
+    options {
+        ansiColor("xterm")
+        timestamps()
+        timeout(time: 10, unit: "MINUTES")
+    }
+    environment {
+        // KUBECONFIG = "${WORKSPACE}/kubeconfig.yaml"
+        KUBECTLPATH = tool(
+            name: 'kubectl-amd64-1.36.0',
+            type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
+        )
+        PATH = "${KUBECTLPATH}:${env.PATH}"
+    }
+    parameters {
+        string(
+            name: "vaultUrl",
+            defaultValue: "http://192.168.3.101:8200"
+        )
+        string(
+            name: "vaultPath",
+            defaultValue: "jenkins/k3s",
+            description: "Путь к секретам в Vault (где хранится ключ token или config с содержимым kubeconfig)"
+        )
+        credentials(
+            name: "vaultAppRole",
+            credentialType: "com.datapipe.jenkins.vault.credentials.VaultAppRoleCredential",
+            defaultValue: "k3s-approle",
+            description: "AppRole для чтения секретов из Vault"
+        )
+    }
+    stages {
+        stage("Get Kubernetes token from Vault") {
+            steps {
+                script {
+                    // Конфигурация для подключения к Vault
+                    def vaultConfiguration = [
+                        vaultUrl:           params.vaultUrl,
+                        vaultCredentialId:  params.vaultAppRole,
+                        engineVersion:      2
+                    ]
+                    // Массив для извлечения секретов
+                    def vaultSecrets  = [
+                        [
+                            path: params.vaultPath,
+                            engineVersion: 2,
+                            secretValues: [
+                                // [
+                                //     envVar: "kubeconfig",
+                                //     vaultKey: "config"
+                                // ],
+                                [
+                                    envVar: "kubetoken",    // название переменной
+                                    vaultKey: "token"       // ключ в Vault
+                                ]
+                            ]
+                        ]
+                    ]
+                    // Метод извлечения секретов из Vault
+                    withVault(
+                        [
+                            configuration:  vaultConfiguration,
+                            vaultSecrets:   vaultSecrets
+                        ]
+                    ) {
+                        // Записываем содержимое конфигурации в файл
+                        // writeFile(
+                        //     file: "${WORKSPACE}/kubeconfig.yaml",
+                        //     text: kubeconfig
+                        // )
+                        // Передаем содержимое токена в глобальную переменную
+                        K8S_TOKEN = kubetoken
+                    }
+                }
+            }
+        }
+        stage("Check kubectl tool and token") {
+            steps {
+                script {
+                    sh "kubectl version --output=json || true"
+                    echo K8S_TOKEN
+                }
+            }
+        }
+    }
+}
 ```
 
 ## Prometheus
