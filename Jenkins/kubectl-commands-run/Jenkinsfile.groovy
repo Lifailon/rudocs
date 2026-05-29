@@ -30,10 +30,27 @@ pipeline {
     }
     parameters {
         separator(
+            name: "separatorCredentials",
+            sectionHeader: "Credentials",
+            separatorStyle: "border-color: blue",
+            sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
+        )
+        credentials(
+            name: 'tokenCred',
+            credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
+            defaultValue: 'k3s-token',
+            description: 'Token for access to Kubernetes API'
+        )
+        separator(
             name: "separatorVault",
             sectionHeader: "Vault",
             separatorStyle: "border-color: blue",
             sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
+        )
+        booleanParam(
+            name: "vault",
+            defaultValue: false,
+            description: 'Use Vault to get a token'
         )
         string(
             name: "vaultUrl",
@@ -73,7 +90,27 @@ kubectl top pods"""
         )
     }
     stages {
+        stage("Get Kubernetes token from Jenkins Credentials") {
+            when {
+                expression { ! params.vault }
+            }
+            steps {
+                script {
+                    log.stage()
+                    withCredentials([
+                        string(
+                            credentialsId: "${params.tokenCred}",
+                            variable: "kubetoken"
+                        )]) {
+                        K8S_TOKEN = kubetoken
+                    }
+                }
+            }
+        }
         stage("Get Kubernetes token from Vault") {
+            when {
+                expression { params.vault }
+            }
             steps {
                 script {
                     log.stage()
@@ -118,15 +155,19 @@ kubectl top pods"""
                 }
             }
         }
-        // stage("Check kubectl tool and token") {
-        //     steps {
-        //         script {
-        //             log.stage()
-        //             sh "kubectl version --output=json || true"
-        //             echo K8S_TOKEN
-        //         }
-        //     }
-        // }
+        stage("Check tools") {
+            steps {
+                script {
+                    log.stage()
+                    def results = sh(
+                        script: "kubectl version --output=json || true",
+                        returnStatus: false,
+                        returnStdout: true
+                    )
+                    log.info(results)
+                }
+            }
+        }
         stage("Run kubectl commands") {
             steps {
                 script {
