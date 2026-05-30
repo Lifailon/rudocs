@@ -145,7 +145,7 @@ def exportJobsConfig(jenkinsUrl, username, password, jobsList, exportPath) {
 }
 
 def jenkinsUrl = "http://192.168.3.101:8010"                // Change url for Jenkins server
-def credentials = "15d05be6-682a-472b-9c1d-cf5080e98170"    // Change ID for Username with password from credentials
+def credentials = "ssh-creds"    // Change ID for Username with password from credentials
 
 if (!jenkinsUrl) {
     return ["Jenkins url not set"]

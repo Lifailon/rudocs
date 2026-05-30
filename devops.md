@@ -97,6 +97,7 @@
   - [Local Path Provisioner](#local-path-provisioner)
   - [Headlamp](#headlamp)
   - [Kubectl Config](#kubectl-config)
+  - [Swagger](#swagger)
   - [K9s](#k9s)
   - [Krew](#krew)
   - [Nodes](#nodes)
@@ -2656,6 +2657,13 @@ kubectl auth can-i --list
 - `--v=3`	- расширенная информация об изменениях
 - `--v=6`	- показать запрашиваемые ресурсы (например, загрузка файла `kubeconfig` и url для GET-запроса при вызове `kubectl get pods`)
 - `--v=9`	- показать содержимого HTTP-запроса в полном виде (включая заголовки)
+
+### Swagger
+
+```bash
+kubectl get --raw /openapi/v2 --insecure-skip-tls-verify > kube-openapi.json
+docker run -d --name=k8s-swagger -p 8099:8080 -v $(pwd)/kube-openapi.json:/tmp/swagger.json -e SWAGGER_JSON=/tmp/swagger.json swaggerapi/swagger-ui
+```
 
 ### K9s
 

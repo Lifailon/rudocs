@@ -160,7 +160,7 @@ pipeline {
             name: 'credentials',
             description: 'Username with password from Jenkins Credentials for API connection.',
             credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl',
-            defaultValue: '15d05be6-682a-472b-9c1d-cf5080e98170',
+            defaultValue: 'ssh-creds',
             required: true
         )
         booleanParam(
