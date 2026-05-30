@@ -2,11 +2,9 @@
 
 Универсальный Jenkins Pipeline для развертвывания манифестов в кластере Kubernetes из репозитория GitHub с помощью [Kustomize](https://github.com/kubernetes-sigs/kustomize).
 
-Активный параметр `project` сканирует указанный репозиторий на наличие файлов `kustomization.yaml` и выводит список директорий.
+Поддерживает несколько режимов работы и настройку опций `kubectl`. Активный параметр `project` сканирует указанный репозиторий на наличие файлов `kustomization.yaml` и выводит список директорий - проектов для развертвывания.
 
-Поддерживает несколько режимов работы (развертвывание, replace и удаление) и настройку опций `kubectl`.
-
-Для подключения к кластерам Kubernetes используется файл `kubeconfig` из Jenkins Credentials.
+Для подключения к кластерам Kubernetes используется файл `kubeconfig` из Jenkins File Credentials или с помощью [File Parameters](https://www.jenkins.io/doc/pipeline/steps/file-parameters) (имеет повышенный приоритет, необходимо передавать перед каждой сборкой).
 
 Для установки [kubectl](https://github.com/kubernetes/kubectl) на сборщике Jenkins используется Custom Tools:
 

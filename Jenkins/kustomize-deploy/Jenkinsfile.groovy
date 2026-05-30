@@ -154,11 +154,11 @@ try {
         booleanParam(
             name: "prune",
             defaultValue: false,
-            description: "Removes resources from the cluster that are not in the repository (available when using the addLabels parameter during deployment)."
+            description: "Removes resources from the cluster that are not in the repository (available when using the addLabels parameter during deployment)"
         )
         separator(
             name: "kubeconfigOptions",
-            sectionHeader: "Kubeconfig from Jenkins File Credentials",
+            sectionHeader: "Kubeconfig file from Jenkins Credentials or Parameter",
             separatorStyle: "border-color: blue",
             sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
         )
@@ -167,6 +167,7 @@ try {
             credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl',
             defaultValue: 'kubeconfig-file'
         )
+        base64File 'UPLOAD_KUBECONFIG_FILE'
     }
     stages {
         stage('Git checkout') {
@@ -222,26 +223,46 @@ try {
                 }
             }
         }
-        stage("Get kubeconfig from Jenkins File Credentials") {
+        stage("Get kubeconfig file from Jenkins Credentials or Parameter") {
             when {
                 expression { ! params.dryRunClient }
             }
             steps {
                 script {
                     log.stage()
-                    withCredentials([
-                        file(
-                            credentialsId: params.kubeconfigFile,
-                            variable: "KUBECONFIG_PATH"
-                        )
-                    ]) {
+                    def kubeconfigReady = false
+                    withFileParameter(
+                        name: "UPLOAD_KUBECONFIG_FILE",
+                        allowNoFile: true
+                    ) {
                         def KUBECONFIG = readFile(
-                            file: KUBECONFIG_PATH
+                            file: UPLOAD_KUBECONFIG_FILE
                         )
-                        writeFile(
-                            file: "${WORKSPACE}/kubeconfig.yaml",
-                            text: KUBECONFIG
-                        )
+                        if (KUBECONFIG.trim().length() > 0) {
+                            log.info("Get kubeconfig from File Parameter")
+                            writeFile(
+                                file: "${WORKSPACE}/kubeconfig.yaml",
+                                text: KUBECONFIG
+                            )
+                            kubeconfigReady = true
+                        }
+                    }
+                    if (!kubeconfigReady) {
+                        log.info("Get kubeconfig from Jenkins File Credentials")
+                        withCredentials([
+                            file(
+                                credentialsId: params.kubeconfigFile,
+                                variable: "KUBECONFIG_PATH"
+                            )
+                        ]) {
+                            def KUBECONFIG = readFile(
+                                file: KUBECONFIG_PATH
+                            )
+                            writeFile(
+                                file: "${WORKSPACE}/kubeconfig.yaml",
+                                text: KUBECONFIG
+                            )
+                        }
                     }
                 }
             }
