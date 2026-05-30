@@ -28,3 +28,7 @@ services:
       driver: journald
       options:
         tag: 3x
+
+# docker-compose up -d
+# docker-compose exec 3x /app/x-ui setting -username admin -password admin
+# journalctl SYSLOG_IDENTIFIER=3x --no-pager -f

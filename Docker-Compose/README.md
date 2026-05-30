@@ -6117,51 +6117,55 @@ https://www.shellcheck.net
 
 ```yaml
 services:
-  k3s-server:
+  k3s-control-plane:
     image: rancher/k3s:latest
-    container_name: k3s-server
+    container_name: k3s-control-plane
     restart: always
-    command: server
+    command: server # --disable servicelb
     privileged: true
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
     environment:
-    - K3S_TOKEN=${K3S_TOKEN:?err}
-    - K3S_KUBECONFIG_OUTPUT=/cfg/kubeconfig.yaml
-    - K3S_KUBECONFIG_MODE=666
+      - K3S_TOKEN=${K3S_TOKEN:?err}
+      - K3S_KUBECONFIG_OUTPUT=/cfg/kubeconfig.yaml
+      - K3S_KUBECONFIG_MODE=666
+    # network_mode: host
     ports:
-    - 6443:6443  # Kubernetes API Server
-    - 80:80      # Ingress controller port 80
-    - 443:443    # Ingress controller port 443
+    # Kubernetes API Server
+    - 6443:6443
+    # Ingress controller
+    - 6480:80
+    - 6444:443
     volumes:
-    - ./k3s_server_data:/var/lib/rancher/k3s
-    # Get kubeconfig
-    - .:/cfg
+      - ./k3s_server_data:/var/lib/rancher/k3s
+      # Get kubeconfig
+      - .:/cfg
     tmpfs:
-    - /run
-    - /var/run
-
-  agent:
-    image: rancher/k3s:latest
-    container_name: k3s-agent
-    restart: always
-    privileged: true
+      - /run
+      - /var/run
     ulimits:
       nproc: 65535
       nofile:
         soft: 65535
         hard: 65535
+
+  k3s-worker:
+    image: rancher/k3s:latest
+    container_name: k3s-worker
+    restart: always
+    privileged: true
     environment:
-    - K3S_URL=https://k3s-server:6443
-    - K3S_TOKEN=${K3S_TOKEN:?err}
+      - K3S_URL=https://k3s-control-plane:6443
+      # - K3S_URL=https://192.168.3.101:6443
+      - K3S_TOKEN=${K3S_TOKEN:?err}
     volumes:
-    - ./k3s_agent_data:/var/lib/rancher/k3s
+      - ./k3s_agent_data:/var/lib/rancher/k3s
     tmpfs:
-    - /run
-    - /var/run
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
 ```
 
 `K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} docker-compose up -d`

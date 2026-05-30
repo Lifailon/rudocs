@@ -1,7 +1,7 @@
 services:
-  telemt:
+  tg-proxy:
     image: ghcr.io/telemt/telemt:latest
-    container_name: telemt
+    container_name: tg-proxy
     restart: always
     ports:
       - 4343:4343             # Proxy
@@ -26,3 +26,7 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+
+# docker compose up -d
+# ip=$(ip a show eth0 | awk '/inet / {print $2}' | cut -d/ -f1)
+# docker compose logs | grep -m 1 tg://proxy | awk -F' ' '{print $NF}' | sed -E "s/server=[0-9.]+/server=$ip/"
