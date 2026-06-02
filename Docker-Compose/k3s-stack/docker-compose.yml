@@ -2,6 +2,7 @@ services:
   k3s-control-plane:
     image: rancher/k3s:latest
     container_name: k3s-control-plane
+    hostname: k3s-control-plane
     restart: always
     command: server # --disable servicelb
     privileged: true
@@ -16,6 +17,8 @@ services:
     # Ingress controller
     - 6480:80
     - 6444:443
+    # Node ports
+    - 30000-30100:30000-30100
     volumes:
       - ./k3s_server_data:/var/lib/rancher/k3s
       # Get kubeconfig
@@ -29,9 +32,10 @@ services:
         soft: 65535
         hard: 65535
 
-  k3s-worker:
+  k3s-worker-01:
     image: rancher/k3s:latest
-    container_name: k3s-worker
+    container_name: k3s-worker-01
+    hostname: k3s-worker-01
     restart: always
     privileged: true
     environment:

@@ -1,11 +1,10 @@
 services:
-  # Proxy/Gateway for v2ray
   v2raya:
     image: ghcr.io/v2raya/v2raya:latest
     container_name: v2raya
     restart: always
     privileged: true
-    network_mode: host
+    network_mode: host # WebUI :2017
     volumes:
       - /lib/modules:/lib/modules:ro
       - /etc/resolv.conf:/etc/resolv.conf

@@ -1,0 +1,22 @@
+services:
+  raspap:
+    image: ghcr.io/raspap/raspap-docker:latest
+    container_name: raspap
+    restart: always
+    privileged: true
+    network_mode: host # WebUI :8081
+    environment:
+      - RASPAP_SSID=failon.vpn
+      - RASPAP_SSID_PASS=12340987
+      - RASPAP_COUNTRY=RU
+      - RASPAP_WEBGUI_PORT=8081
+      - RASPAP_WEBGUI_USER=admin
+      - RASPAP_WEBGUI_PASS=admin
+      - INTERFACE=uap0
+      - UPSTREAM_INTERFACE=wlan0
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroup: host
