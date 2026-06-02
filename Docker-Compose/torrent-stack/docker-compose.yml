@@ -314,15 +314,29 @@ services:
 
 ################################################### Music Server ###################################################
 
-  nms:
+  navidrome:
     image: deluan/navidrome:latest
-    container_name: nms
+    container_name: navidrome
     restart: unless-stopped
     user: 1000:1000
     ports:
       - 4533:4533
     volumes:
       - ./navidrome_data:/data
+      - ./navidrome_music:/music:ro
+
+  blackcandy:
+    image: blackcandy/blackcandy:latest
+    container_name: blackcandy
+    restart: unless-stopped
+    ports:
+      - 4033:80
+    environment:
+      - MEDIA_PATH=/media_data
+      # - DB_ADAPTER=postgresql
+      # - DB_URL=postgresql://db_url
+    volumes:
+      - ./blackcandy_data:/media_data
       - ./navidrome_music:/music:ro
 
 ################################################### PVR ###################################################

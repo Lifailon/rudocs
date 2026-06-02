@@ -43,6 +43,25 @@ services:
     volumes:
       - ./nmap_reports:/opt/xml
 
+  # Port monitoring and discovery tool
+  portracker:
+    image: mostafawahied/portracker:latest
+    container_name: portracker
+    restart: unless-stopped
+    pid: host  # Required for port detection
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    ports:
+      - 4999:4999
+    # environment:
+    #   - TRUENAS_API_KEY=api-key
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./portracker_data:/data
+
   # Network Traffic Monitoring
   ntopng:
     image: ntop/ntopng:latest
