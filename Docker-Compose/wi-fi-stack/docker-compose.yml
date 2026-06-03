@@ -1,0 +1,35 @@
+services:
+  raspap:
+    image: ghcr.io/raspap/raspap-docker:latest
+    container_name: raspap
+    restart: always
+    privileged: true
+    network_mode: host
+    environment:
+      - RASPAP_WEBGUI_USER=admin
+      - RASPAP_WEBGUI_PASS=admin
+      - RASPAP_WEBGUI_PORT=8081
+      - RASPAP_COUNTRY=RU
+      - RASPAP_SSID=failon.vpn
+      - RASPAP_SSID_PASS=12340987
+      # - INTERFACE=uap0
+      # - UPSTREAM_INTERFACE=wlan0
+      - INTERFACE=wlan0 # AP (Access Point)
+      - UPSTREAM_INTERFACE=end0
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroup: host
+
+  v2raya:
+    image: ghcr.io/v2raya/v2raya:latest
+    container_name: v2raya
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /etc/resolv.conf:/etc/resolv.conf
+      - ./service:/service:ro

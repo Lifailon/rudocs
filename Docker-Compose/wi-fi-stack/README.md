@@ -1,13 +1,20 @@
-# Wi-Fi over Vless
+# Wi-Fi over Vless stack
 
-Настройка [RaspAP](https://github.com/RaspAP/raspap-webgui) в контейнере [Docker](https://github.com/RaspAP/raspap-docker) на Raspberry Pi с использованием одного Wi-Fi интерфейса для приема и раздачи интернета с маршрутизацией трафика через Vless с помощью клиента [v2rayA](https://github.com/v2rayA/v2rayA).
+Настройка [RaspAP](https://github.com/RaspAP/raspap-webgui) в контейнере [Docker](https://github.com/RaspAP/raspap-docker) на Raspberry Pi с маршрутизацией трафика через протокол Vless, используя клиент [v2rayA](https://github.com/v2rayA/v2rayA) для подключения к VPN-серверу.
+
+Настройка с использованием одного Wi-Fi интерфейса для приема и раздачи интернета.
+
+> [!WARNING]
+> Использование одного Wi-Fi интерфейса одновременно для приема и раздачи интернета не рекомендуется, т.к. это значительно снижает скорость и стабильность соединения.
 
 Вводные:
 
 - `wlan0` - интерфейс для подключения к роутеру (выход в интернет).
 - `uap0` - виртуальный интерфейс для раздачи сети Wi-Fi.
 
-- 1. Создаем юнит systemd для инициализации виртуального адаптера из физического чипа `wlan0` при загрузки системы (до запуска Docker):
+Настройка:
+
+- Создаем юнит systemd для инициализации виртуального адаптера из физического чипа `wlan0` при загрузки системы (до запуска Docker):
 
 `sudo nano /etc/systemd/system/uap0-init.service`
 
@@ -37,7 +44,7 @@ sudo systemctl enable uap0-init.service
 sudo systemctl start uap0-init.service
 ```
 
-- 2. Освобождаем порты для `DHCP` и `DNS`:
+- Освобождаем порты для `DHCP` и `DNS`:
 
 В Ubuntu Server системный резолвер по умолчанию занимает 53 порт.
 
@@ -65,14 +72,14 @@ bind-interfaces
 `ss -tulpn | grep -E ":(53|67)"`
 
 
-- 3. Включаем пересылку трафика между интерфейсами на уровне ядра Linux:
+- Включаем пересылку трафика между интерфейсами на уровне ядра Linux:
 
 ```bash
 sudo sysctl -w net.ipv4.ip_forward=1
 echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
 ```
 
-- 4. Настраиваем правила Firewall:
+- Настраиваем правила Firewall:
 
 ```bash
 # Сбрасываем старые правила
@@ -93,7 +100,7 @@ sudo apt update && sudo apt install -y iptables-persistent
 sudo iptables-save | sudo tee /etc/iptables/rules.v4
 ```
 
-- 5. Запускаем стек контейнеров:
+- Запускаем стек контейнеров:
 
 ```bash
 mkdir -p ~/docker/wi-fi-stack
@@ -110,12 +117,12 @@ services:
     privileged: true
     network_mode: host
     environment:
-      - RASPAP_SSID=failon.vpn
-      - RASPAP_SSID_PASS=12340987
-      - RASPAP_COUNTRY=RU
-      - RASPAP_WEBGUI_PORT=8081
       - RASPAP_WEBGUI_USER=admin
       - RASPAP_WEBGUI_PASS=admin
+      - RASPAP_WEBGUI_PORT=8081
+      - RASPAP_COUNTRY=RU
+      - RASPAP_SSID=failon.vpn
+      - RASPAP_SSID_PASS=12340987
       - INTERFACE=uap0
       - UPSTREAM_INTERFACE=wlan0
     cap_add:
@@ -139,6 +146,6 @@ services:
 
 `docker-compose up -d`
 
-- 6. Идем в интерфейс v2rayA для настройки подключения к Vless: http://localhost:2017
+- Идем в интерфейс v2rayA для настройки подключения к Vless: http://localhost:2017
 
-- 7. Идем в интерфейс RaspAP для настройки интерфейса `uap0 (AP)` в Hotspot: http://localhost:8081
+- Идем в интерфейс RaspAP для настройки интерфейса `uap0 (AP)` в Hotspot: http://localhost:8081
