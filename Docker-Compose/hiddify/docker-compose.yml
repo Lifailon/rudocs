@@ -1,0 +1,45 @@
+services:
+  hiddify:
+    image: ghcr.io/hiddify/hiddify-manager:latest
+    container_name: hiddify
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    volumes:
+       - ./hiddify_data/:/hiddify-data/
+    environment:
+      - REDIS_PASSWORD=RedisAdmin
+      - REDIS_URI_MAIN=redis://:RedisAdmin@hiddify-redis:6379/0
+      - REDIS_URI_SSH=redis://:RedisAdmin@hiddify-redis:6379/1
+      - SQLALCHEMY_DATABASE_URI=mysql+mysqldb://hiddify_usr:MySqlPassword@hiddify-mariadb/hiddify_db?charset=utf8mb4
+    depends_on: 
+      - hiddify-mariadb
+      - hiddify-redis
+
+  hiddify-mariadb:
+    image: mariadb:latest
+    container_name: mariadb_container
+    restart: always
+    environment:
+      - MYSQL_PASSWORD=MySqlPassword
+      - MARIADB_RANDOM_ROOT_PASSWORD=1
+      - MYSQL_DATABASE=hiddify_db
+      - MYSQL_USER=hiddify_usr
+    volumes:
+      - ./hiddify_data/mariadb_data:/var/lib/mysql
+
+  hiddify-redis:
+    image: redis:latest
+    container_name: redis_container
+    restart: always
+    command: sh -c "redis-server --requirepass \"$REDIS_PASSWORD\""
+    environment:
+      - REDIS_PASSWORD=RedisAdmin
+      - MYSQL_PASSWORD=MySqlPassword
+    volumes:
+      - ./hiddify_data/redis_data:/data
+    
