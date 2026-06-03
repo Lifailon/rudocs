@@ -95,6 +95,8 @@ services:
   # https://github.com/louislam/dockge
   dockge:
     image: louislam/dockge:1
+    # Fork: https://github.com/cmcooper1980/dockge
+    # image: containrrr/watchtower
     container_name: dockge
     restart: always
     volumes:
@@ -253,9 +255,9 @@ services:
   #         apt-get install -y --no-install-recommends systemd \
   #       journalctl --no-pager --follow
 
-  host-syslog:
+  syslog:
     image: alpine
-    container_name: host-syslog
+    container_name: syslog
     restart: always
     volumes:
       - /var/log/syslog:/var/log/custom.log
@@ -353,7 +355,7 @@ services:
       # - WATCHTOWER_NOTIFICATION_URL=telegram://<BOT_API_KEY>@telegram/?channels=<CHAT/CHANNEL_ID>
       # - WATCHTOWER_HTTP_API_TOKEN=demotoken
       # - HTTPS_PROXY=http://192.168.3.105:20171
-      # - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+      # - NO_PROXY=localhost,127.0.0.1,192.168.3.0/24
       # Gotify
       - WATCHTOWER_NOTIFICATIONS=gotify
       - WATCHTOWER_NOTIFICATION_GOTIFY_URL=http://gotify:80
@@ -383,7 +385,7 @@ services:
   #     # https://crazymax.dev/diun/faq/?h=entry#notification-template
   #     - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
   #     - HTTPS_PROXY=http://192.168.3.105:20171
-  #     - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+  #     - NO_PROXY=localhost,127.0.0.1,192.168.3.0/24
   #   labels:
   #     - diun.enable=true
   #   healthcheck:
@@ -408,7 +410,7 @@ services:
       # - WUD_TRIGGER_TELEGRAM_1_CHATID=<CHAT/CHANNEL_ID>
       # - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=<BOT_API_KEY>
       # - HTTPS_PROXY=http://192.168.3.105:20171
-      # - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+      # - NO_PROXY=localhost,127.0.0.1,192.168.3.0/24
       # Gotify trigger
       - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
       - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=<API_KEY>

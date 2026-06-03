@@ -1,8 +1,8 @@
 # Wi-Fi over Vless stack
 
-Настройка [RaspAP](https://github.com/RaspAP/raspap-webgui) в контейнере [Docker](https://github.com/RaspAP/raspap-docker) на Raspberry Pi с маршрутизацией трафика через протокол Vless, используя клиент [v2rayA](https://github.com/v2rayA/v2rayA) для подключения к VPN-серверу.
+Настройка [RaspAP](https://github.com/RaspAP/raspap-webgui) в контейнере [Docker](https://github.com/RaspAP/raspap-docker) на Raspberry Pi с маршрутизацией трафика через протокол Vless, используя клиент [v2RayA](https://github.com/v2rayA/v2rayA) для подключения к VPN-серверу.
 
-Настройка с использованием одного Wi-Fi интерфейса для приема и раздачи интернета.
+Пример настройки с использованием одного Wi-Fi интерфейса для приема и раздачи интернета.
 
 > [!WARNING]
 > Использование одного Wi-Fi интерфейса одновременно для приема и раздачи интернета не рекомендуется, т.к. это значительно снижает скорость и стабильность соединения.
@@ -146,6 +146,15 @@ services:
 
 `docker-compose up -d`
 
-- Идем в интерфейс v2rayA для настройки подключения к Vless: http://localhost:2017
+- Идем в интерфейс v2RayA для добавления подключения к Vless: http://localhost:2017
+
+В настройках v2RayA включаем режим `On: Do not Split Traffic` и `IP Forward` в `Transparent Proxy/System Proxy` для маршрутизации трафика через VPN-туннель без разделения трафика.
+
+Проверяем внешний ip-адрес в терминале на хосте: `curl ifconfig.me`
 
 - Идем в интерфейс RaspAP для настройки интерфейса `uap0 (AP)` в Hotspot: http://localhost:8081
+
+Данные для подключения из `environment`:
+
+- Логин: admin
+- Пароль: admin

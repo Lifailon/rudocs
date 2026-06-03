@@ -12,8 +12,6 @@ services:
       - RASPAP_COUNTRY=RU
       - RASPAP_SSID=failon.vpn
       - RASPAP_SSID_PASS=12340987
-      # - INTERFACE=uap0
-      # - UPSTREAM_INTERFACE=wlan0
       - INTERFACE=wlan0 # AP (Access Point)
       - UPSTREAM_INTERFACE=end0
     cap_add:
@@ -28,7 +26,7 @@ services:
     container_name: v2raya
     restart: always
     privileged: true
-    network_mode: host
+    network_mode: host # WebUI 2017 port
     volumes:
       - /lib/modules:/lib/modules:ro
       - /etc/resolv.conf:/etc/resolv.conf
