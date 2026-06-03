@@ -4556,15 +4556,22 @@ network:
 ```yaml
 network:
   version: 2
+  renderer: networkd
   wifis:
-    wlp33:
-      dhcp4: yes
-      dhcp6: no
+    wlan0:
+      optional: true
+      dhcp4: no
+      addresses:
+        - 192.168.3.105/24
+      gateway4: 192.168.3.1
       nameservers:
-        addresses: [8.8.8.8]
+        addresses:
+          - 8.8.8.8
       access-points:
         "wifi-ssid":
-          password: "12345678"
+          auth:
+            key-management: "psk"
+            password: "12340987"
 ```
 
 - `Bonding` - используется для объединения физических сетевых интерфейсов в один логический:

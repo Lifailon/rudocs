@@ -74,6 +74,33 @@ services:
       - ./macos_data:/storage
 ```
 
+### Android
+
+[DockDroid](https://github.com/sickcodes/dock-droid) - позволяет запускать Android x86 и ARM в контейнере Docker с использованием `QEMU` и `KVM`. Поддерживает X11 Forwarding, что позволяет отображать графический интерфейс Android, ADB на порту 5555, ssh-доступ через порт 50922, проброс веб-камеры (`/dev/video0`), аудио (`/dev/snd`) и GPU (`/dev/dri`) в контейнер.
+
+```yaml
+services:
+  dock-droid:
+    image: sickcodes/dock-droid:latest
+    container_name: dock-droid
+    restart: always
+    privileged: true
+    stdin_open: true
+    tty: true
+    environment:
+      - EXTRA=-display none -vnc 0.0.0.0:99,password=on
+      - VNC_PASSWORD=admin
+      - CPU=qemu64
+      - ENABLE_KVM=
+      - KVM=
+      - CPUID_FLAGS=
+    ports:
+      - 5555:5555 # ADB
+      - 5999:5999 # VNC
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+```
+
 ## Bot Stack
 
 ### SSH Bot
@@ -1255,6 +1282,31 @@ services:
 
 🔗 [Temp Fast Mail Playground](https://tempfastmail.com) ↗
 
+### Portracker
+
+[Portracker](https://github.com/mostafa-wahied/portracker) - система мониторинга портов для автоматического выявления сервисов и отрисовки карты сети. Поддерживает сборщиков данных для Docker и TrueNAS, а также возможность мониторинга в режиме peer-to-peer.
+
+```yaml
+services:
+  portracker:
+    image: mostafawahied/portracker:latest
+    container_name: portracker
+    restart: unless-stopped
+    pid: host  # Required for port detection
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    ports:
+      - 4999:4999
+    # environment:
+    #   - TRUENAS_API_KEY=api-key
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./portracker_data:/data
+```
+
 ## SMTP Stack
 
 ### SMTP to Telegram
@@ -1436,6 +1488,12 @@ services:
     ports:
       - 3090:3000
 ```
+
+### Browsery Tools
+
+[Browsery Tools](https://github.com/aghyad97/browserytools) - коллекция из более чем 130 браузерных инструментов, например, конвертации файлов, сжатия изображений, генерации паролей и форматирование кода, выполняемые непосредственно в браузере. Все инструменты работают локально, гарантируя, что данные пользователя не покидают его устройство.
+
+🔗 [Browsery Tools Playground](https://browserytools.com) ↗
 
 ### Mazanoke
 
@@ -4600,7 +4658,7 @@ services:
 
 ### v2rayA
 
-[v2rayA](https://github.com/v2rayA/v2rayA) - клиент для ядер V2Ray/Xray с веб-интерфейсом для настройки подключений, который используется в роли VPN-клиента для перенаправления трафика через компьютер на роутере, который не поддерживает протокол Vless.
+[v2rayA](https://github.com/v2rayA/v2rayA) - клиент V2Ray/Xray с веб-интерфейсом для настройки подключения в роли VPN-клиента, который может использоваться как Proxy-сервер (поддерживает встроенный HTTP/SOCKS5) или для перенаправления трафика через VPN через компьютер на роутере, который не поддерживает протокол Vless.
 
 ```yaml
 services:
@@ -4614,6 +4672,59 @@ services:
       - /lib/modules:/lib/modules:ro
       - /etc/resolv.conf:/etc/resolv.conf
       - ./service:/service:ro
+```
+
+### Hiddify
+
+[Hiddify Manager](https://github.com/hiddify/Hiddify-Manager) - инструмент для борьбы с цензурой, представляющий собой многопользовательскую панель с простой установкой и поддержкой более 20 протоколов, включая Reality и Telegram Proxy, для обхода фильтрации, который оптимизирован для обхода цензуры в Китае, России и Иране, а также включен в список Xray.
+
+[Hiddify App](https://github.com/hiddify/hiddify-app/blob/main/README_ru.md) - прокси-клиент на основе ядра [Sing-box](https://github.com/SagerNet/sing-box) для Android, Windows, Linux и macOS.
+
+```yaml
+services:
+  hiddify:
+    image: ghcr.io/hiddify/hiddify-manager:latest
+    container_name: hiddify
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    volumes:
+       - ./hiddify_data/:/hiddify-data/
+    environment:
+      - REDIS_PASSWORD=RedisAdmin
+      - REDIS_URI_MAIN=redis://:RedisAdmin@hiddify-redis:6379/0
+      - REDIS_URI_SSH=redis://:RedisAdmin@hiddify-redis:6379/1
+      - SQLALCHEMY_DATABASE_URI=mysql+mysqldb://hiddify_usr:MySqlPassword@hiddify-mariadb/hiddify_db?charset=utf8mb4
+    depends_on: 
+      - hiddify-mariadb
+      - hiddify-redis
+
+  hiddify-mariadb:
+    image: mariadb:latest
+    container_name: mariadb_container
+    restart: always
+    environment:
+      - MYSQL_PASSWORD=MySqlPassword
+      - MARIADB_RANDOM_ROOT_PASSWORD=1
+      - MYSQL_DATABASE=hiddify_db
+      - MYSQL_USER=hiddify_usr
+    volumes:
+      - ./hiddify_data/mariadb_data:/var/lib/mysql
+
+  hiddify-redis:
+    image: redis:latest
+    container_name: redis_container
+    restart: always
+    command: sh -c "redis-server --requirepass \"$REDIS_PASSWORD\""
+    environment:
+      - REDIS_PASSWORD=RedisAdmin
+      - MYSQL_PASSWORD=MySqlPassword
+    volumes:
+      - ./hiddify_data/redis_data:/data
 ```
 
 ### Fail2Ban
@@ -4639,7 +4750,7 @@ services:
       - /var/log:/var/log:ro
 ```
 
-### Fail2Ban
+### Fail2Ban UI
 
 [Fail2Ban UI](https://github.com/swissmakers/fail2ban-ui) - платформа управления Fail2Ban на локальном или удаленных хостах Linux через сокет или ssh, предоставляя централизованный интерфейс для просмотра блокировок, поиска и разблокировки IP-адресов, управления конфигурациями и фильтрами, а также получения уведомлений.
 
@@ -4686,6 +4797,95 @@ services:
       - SSH_OPTIONS=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GatewayPorts=true
     volumes:
       - /home/lifailon/.ssh/id_rsa:/id_rsa:ro
+```
+
+## Wi-Fi
+
+### RaspAP
+
+[RaspAP](https://github.com/RaspAP/raspap-webgui) - позволяет превратить любой компьютер (например, одноплатник на Raspberry Pi) в роутер.
+
+```yaml
+services:
+  raspap:
+    image: ghcr.io/raspap/raspap-docker:latest
+    container_name: raspap
+    restart: always
+    privileged: true
+    network_mode: host
+    # ports:
+    #   - 8081:8081
+    environment:
+      - RASPAP_SSID=failon.vpn
+      - RASPAP_SSID_PASS=12340987
+      - RASPAP_COUNTRY=RU
+      - RASPAP_WEBGUI_PORT=8081
+      - RASPAP_WEBGUI_USER=admin
+      - RASPAP_WEBGUI_PASS=admin
+      - INTERFACE=uap0
+      - UPSTREAM_INTERFACE=wlan0
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroup: host
+```
+
+### SPR
+
+[SPR](https://github.com/spr-networks/super) (Super) - многофункциональный Wi-Fi роутер ОС, который запускается в контейнере Docker. Поддерживает Multi-PSK (включая WPA3), Wi-Fi 6, доступ к сети на основе политик, блокировку рекламы на основе DNS списков (Ad Block), подключение к VPN (например, Wireguard), многоканальную глобальную сеть с балансировкой нагрузки и другие функции.
+
+🔗 [SPR Demo](https://demo.supernetworks.org) ↗
+
+```bash
+git clone https://github.com/spr-networks/super
+cd super
+
+# flash
+# sudo base/setup.sh
+# sdcard
+# sudo base/setup-sdcard.sh
+
+cp -R base/template_configs configs
+./configs/scripts/gen_coredhcp_yaml.sh > configs/dhcp/coredhcp.yml
+./configs/scripts/gen_watchdog.sh  > configs/watchdog/watchdog.conf
+docker compose up -d
+```
+
+### OpenWRT-Docker
+
+[OpenWRT-Docker](https://github.com/AlbrechtL/openwrt-docker) - 
+
+```yaml
+services:
+  openwrt:
+    image: albrechtloh/openwrt-docker:latest
+    container_name: openwrt
+    restart: always
+    privileged: true
+    environment:
+      WAN_IF: host
+      LAN_IF: veth
+      FORWARD_LUCI: true
+    ports:
+      # TTY Console
+      - 8006:8006
+      # LuCI WebUI
+      - 8007:8000
+      # SSH
+      - 8022:8022
+    stop_grace_period: 2m
+    devices:
+      - /dev/kvm
+    device_cgroup_rules:
+      - 'c *:* rwm'
+    cap_add:
+      - NET_ADMIN
+    pid: host
+    volumes:
+      - /dev:/dev/
+      - ./openwrt_data:/storage/
 ```
 
 ## VRRP
@@ -5742,7 +5942,7 @@ services:
       # https://crazymax.dev/diun/faq/?h=entry#notification-template
       - DIUN_NOTIF_TELEGRAM_TEMPLATEBODY=Image {{ .Entry.Image }} in `{{ .Entry.Status }}` status
       - HTTPS_PROXY=http://192.168.3.105:20171
-      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+      - NO_PROXY=localhost,127.0.0.1,192.168.3.0/24
     labels:
       - diun.enable=true
     healthcheck:
@@ -5779,7 +5979,7 @@ services:
       - WUD_TRIGGER_TELEGRAM_1_BOTTOKEN=<BOT_API_KEY>
       # Прокси для доступа к Telegram API
       - HTTPS_PROXY=http://192.168.3.105:20171
-      - NO_PROXY="localhost,127.0.0.1,192.168.3.0/24"
+      - NO_PROXY=localhost,127.0.0.1,192.168.3.0/24
       # Интеграция с Gotify для отправки уведомлений
       - WUD_TRIGGER_GOTIFY_LOCAL_URL=http://gotify:80
       - WUD_TRIGGER_GOTIFY_LOCAL_TOKEN=<API_KEY>
@@ -6120,6 +6320,7 @@ services:
   k3s-control-plane:
     image: rancher/k3s:latest
     container_name: k3s-control-plane
+    hostname: k3s-control-plane
     restart: always
     command: server # --disable servicelb
     privileged: true
@@ -6134,6 +6335,8 @@ services:
     # Ingress controller
     - 6480:80
     - 6444:443
+    # Node ports
+    - 30000-30100:30000-30100
     volumes:
       - ./k3s_server_data:/var/lib/rancher/k3s
       # Get kubeconfig
@@ -6147,9 +6350,10 @@ services:
         soft: 65535
         hard: 65535
 
-  k3s-worker:
+  k3s-worker-01:
     image: rancher/k3s:latest
-    container_name: k3s-worker
+    container_name: k3s-worker-01
+    hostname: k3s-worker-01
     restart: always
     privileged: true
     environment:
@@ -8234,6 +8438,31 @@ services:
       retries: 30
 ```
 
+### Telescope
+
+[Telescope](https://github.com/iamtelescope/telescope) - интерфейс для анализа логов, который из коробки поддерживает источники логов из ClickHouse, StarRocks, Docker и Kubernetes. 
+
+```yaml
+# mkdir -p ~/docker/telescope/telescope_data/
+# cd ~/docker/telescope
+# wget https://raw.githubusercontent.com/iamtelescope/telescope/refs/heads/main/dev/db.sqlite3 -O ./telescope_data/db.sqlite3
+# wget https://raw.githubusercontent.com/iamtelescope/telescope/refs/heads/main/dev/config.yaml -O ./telescope_data/config.yaml
+
+services:
+  telescope:
+    image: ghcr.io/iamtelescope/telescope:latest
+    container_name: telescope
+    restart: always
+    ports:
+      - 9898:9898
+    environment:
+      - TELESCOPE_CONFIG_FILE=/config.yaml
+    volumes:
+      - ./telescope_data/db.sqlite3:/db.sqlite3
+      - ./telescope_data/config.yaml:/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+```
+
 ### Rsyslog Collector
 
 [Rsyslog Collector](https://github.com/rsyslog/rsyslog) - централизованная система для сбора логов, который поддерживает сбор как системных логов (подключение к серверу через конфигурацию `/etc/rsyslog.conf`), так и контейнеров Docker с помощью драйвера логирования syslog. Контейнер собирает все логи в файл `/var/log/all.log` и не требует настройки конфигурации.
@@ -8640,6 +8869,43 @@ services:
       - ./config:/config
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
+```
+
+### Bluehood
+
+[Bluehood](https://github.com/dannymcc/bluehood) - отслеживает Bluetooth-устройства поблизости, позволяя определять присутствия и отсутствия клиента на основе наличия устройств, например, прихода домой.
+
+```yaml
+services:
+  bluehood:
+    image: ghcr.io/dannymcc/bluehood:latest
+    container_name: bluehood
+    restart: unless-stopped
+    privileged: true
+    # http://localhost:8080
+    network_mode: host
+    volumes:
+      - /var/run/dbus:/var/run/dbus:ro
+      - ./bluehood_data:/data
+    # environment:
+    #   - PUID=1000            # id -u
+    #   - PGID=1000            # id -g
+    #   - TZ=Europe/London     # timezone
+    #   - BLUEHOOD_ADAPTER=hci0
+    #   - BLUEHOOD_CLASSIC_ADAPTER=hci1
+    #   - BLUEHOOD_HEARTBEAT_URL=https://hc-ping.com/your-uuid
+    #   - BLUEHOOD_HEARTBEAT_INTERVAL=300
+    #   - BLUEHOOD_PRUNE_DAYS=90
+    healthcheck:
+      test: >
+        sh -c 'dbus-send --system --dest=org.freedesktop.DBus
+        --type=method_call --print-reply /org/freedesktop/DBus
+        org.freedesktop.DBus.ListNames 2>/dev/null | grep -q org.bluez
+        || (echo "ERROR: BlueZ (org.bluez) not found on host. Install it with: sudo apt install bluez && sudo systemctl enable --now bluetooth" && exit 1)'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 ```
 
 ### Home Page
@@ -9580,7 +9846,7 @@ ARGS=
 
 ### Warracker
 
-[Warracker](https://github.com/sassanix/warracker) - веб-интерфейс для инвентаризации и отслеживания гарантий оборудования и программного обеспечения, позволяет отслеживать срок их действия и хранить чеки или другие связанные с ними документы. Поддерживает быстрый поиск по названию продукта, серийному номеру, производителю, тегам и другим параметрам, а также отправку оповещений через Apprise.
+[Warracker](https://github.com/sassanix/warracker) - веб-интерфейс для инвентаризации и отслеживания гарантий оборудования и программного обеспечения, позволяет отслеживать срок их действия и хранить чеки или другие связанные с ними документы (like [it-invent](https://it-invent.ru)). Поддерживает быстрый поиск по названию продукта, серийному номеру, производителю, тегам и другим параметрам, а также отправку оповещений через Apprise.
 
 ```yaml
 services:
@@ -9623,6 +9889,71 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+```
+
+### IncidentRelay
+
+[IncidentRelay](https://github.com/roxy-wi/IncidentRelay) - система планирования дежурств, маршрутизации и доставки оповещений, напоминаний и эскалации для команд SRE и DevOps с целью контроля и обработки инцидентов от создателей [Roxy-Wi](https://github.com/roxy-wi/roxy-wi).
+
+```yaml
+services:
+  incidentrelay:
+    image: roxywi/incidentrelay:latest
+    container_name: incidentrelay
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      INCEDENTRELAY_CONFIG_FILE: /etc/incidentrelay/incidentrelay.conf
+      INCIDENTRELAY_SERVICE: web
+      INCIDENTRELAY_RUN_MIGRATIONS: "1"
+      INCIDENTRELAY_PORT: "8080"
+      INCIDENTRELAY_WEB_WORKERS: "1"
+      INCIDENTRELAY_WEB_THREADS: "4"
+      INCIDENTRELAY_WEB_TIMEOUT: "120"
+    volumes:
+      - ./incidentrelay_data:/var/lib/incidentrelay
+      - ./incidentrelay_logs:/var/log/incidentrelay
+      - ./custom_voice_providers:/usr/local/lib/incidentrelay/voice_providers:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/api/health || curl -fsS http://127.0.0.1:8080/login >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  incidentrelay-scheduler:
+    image: roxywi/incidentrelay:latest
+    container_name: incidentrelay-scheduler
+    restart: unless-stopped
+    environment:
+      INCEDENTRELAY_CONFIG_FILE: /etc/incidentrelay/incidentrelay.conf
+      INCIDENTRELAY_SERVICE: scheduler
+      INCIDENTRELAY_RUN_MIGRATIONS: "0"
+    volumes:
+      - ./incidentrelay_data:/var/lib/incidentrelay
+      - ./incidentrelay_logs:/var/log/incidentrelay
+      - ./custom_voice_providers:/usr/local/lib/incidentrelay/voice_providers:ro
+    depends_on:
+      incidentrelay:
+        condition: service_healthy
+
+  incidentrelay-telegram:
+    image: roxywi/incidentrelay:latest
+    container_name: incidentrelay-telegram
+    restart: unless-stopped
+    environment:
+      INCEDENTRELAY_CONFIG_FILE: /etc/incidentrelay/incidentrelay.conf
+      INCIDENTRELAY_SERVICE: telegram
+      INCIDENTRELAY_RUN_MIGRATIONS: "0"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./incidentrelay_data:/var/lib/incidentrelay
+      - ./incidentrelay_logs:/var/log/incidentrelay
+      - ./custom_voice_providers:/usr/local/lib/incidentrelay/voice_providers:ro
+    depends_on:
+      incidentrelay:
+        condition: service_healthy
 ```
 
 ## Kanban
@@ -10635,15 +10966,36 @@ services:
 
 ```yaml
 services:
-  nms:
+  navidrome:
     image: deluan/navidrome:latest
-    container_name: nms
+    container_name: navidrome
     restart: unless-stopped
     user: 1000:1000
     ports:
       - 4533:4533
     volumes:
       - ./navidrome_data:/data
+      - ./navidrome_music:/music:ro
+```
+
+### Black Candy
+
+[Black Candy](https://github.com/blackcandy-org/blackcandy) - сервер потоковой передачи музыки, который предоставляет веб-интерфейс и мобильные приложение для воспроизвденеия музыки. Поддерживает использование баз данных SQLite и PostgreSQL, а также интеграцию с API Discogs для получения изображений исполнителей и альбомов.
+
+```yaml
+services:
+  blackcandy:
+    image: blackcandy/blackcandy:latest
+    container_name: blackcandy
+    restart: unless-stopped
+    ports:
+      - 4033:80
+    environment:
+      - MEDIA_PATH=/media_data
+      # - DB_ADAPTER=postgresql
+      # - DB_URL=postgresql://db_url
+    volumes:
+      - ./blackcandy_data:/media_data
       - ./navidrome_music:/music:ro
 ```
 
