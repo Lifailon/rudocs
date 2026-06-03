@@ -1,0 +1,18 @@
+# mkdir -p ~/docker/telescope/telescope_data/
+# cd ~/docker/telescope
+# wget https://raw.githubusercontent.com/iamtelescope/telescope/refs/heads/main/dev/db.sqlite3 -O ./telescope_data/db.sqlite3
+# wget https://raw.githubusercontent.com/iamtelescope/telescope/refs/heads/main/dev/config.yaml -O ./telescope_data/config.yaml
+
+services:
+  telescope:
+    image: ghcr.io/iamtelescope/telescope:latest
+    container_name: telescope
+    restart: always
+    ports:
+      - 9898:9898
+    environment:
+      - TELESCOPE_CONFIG_FILE=/config.yaml
+    volumes:
+      - ./telescope_data/db.sqlite3:/db.sqlite3
+      - ./telescope_data/config.yaml:/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
