@@ -1,0 +1,20 @@
+services:
+  dock-droid:
+    image: sickcodes/dock-droid:latest
+    container_name: dock-droid
+    restart: always
+    privileged: true
+    stdin_open: true
+    tty: true
+    environment:
+      - EXTRA=-display none -vnc 0.0.0.0:99,password=on
+      - VNC_PASSWORD=admin
+      - CPU=qemu64
+      - ENABLE_KVM=
+      - KVM=
+      - CPUID_FLAGS=
+    ports:
+      - 5555:5555 # ADB
+      - 5999:5999 # VNC
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
