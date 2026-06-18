@@ -207,6 +207,7 @@
   - [HttpURLConnection](#httpurlconnection)
   - [httpRequest](#httprequest)
   - [Active Choices Parameter](#active-choices-parameter)
+  - [HTML Parameters](#html-parameters)
   - [Email Extension](#email-extension)
   - [Parallel](#parallel)
   - [SimpleTemplateEngine](#simpletemplateengine)
@@ -8357,6 +8358,47 @@ pipeline {
 }
 ```
 
+### HTML Parameters
+
+[HTML Parameters](https://plugins.jenkins.io/html-parameters) - это плагин, который позволяет создавать формы с помощью параметра `uiHtmlFormParameter` и поддержкой CSS для доступа к выбранным значениями через `env`.
+
+```Groovy
+pipeline {
+    agent any
+    parameters {
+        uiHtmlFormParameter(
+            name: 'UI',
+            description: 'Форма для выбора окружения',
+            templateHtml: '''
+                <div class="html-parameters-container">
+                    <label for="html-parameters-env">Выберите стенд:</label>
+                    <div class="jenkins-select">
+                        <select id="html-parameters-env" class="jenkins-select__input">
+                            <option value="dev" selected>Development</option>
+                            <option value="prod">Production</option>
+                        </select>
+                    </div>
+                </div>
+            ''',
+            customCss: '.html-parameters-container { margin: 10px; }',
+            mappings: [
+                [
+                    sourceId: 'html-parameters-env',
+                    outputName: 'TARGET_ENV'
+                ]
+            ]
+        )
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                echo "Выбран стенд: ${env.TARGET_ENV}"
+            }
+        }
+    }
+}
+```
+
 ### Email Extension
 
 Для отправки на почту и настроить SMTP сервер в настройках Jenkins (`System` => `Extended E-mail Notification`)
@@ -9824,7 +9866,16 @@ vault write -f auth/approle/role/jenkins/secret-id
 
 ```bash
 mkdir -p ./bin
-curl https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl -sSLo ./bin/kubectl
+
+VERSION=v1.36.0
+
+ARCH=$(uname -m)
+case $ARCH in
+    x86_64|amd64) ARCH="amd64" ;;
+    aarch64) ARCH="arm64" ;;
+esac
+
+curl -sSL https://dl.k8s.io/release/$VERSION/bin/linux/$ARCH/kubectl -o ./bin/kubectl
 chmod +x ./bin/kubectl
 ```
 
@@ -9845,7 +9896,7 @@ pipeline {
     environment {
         // KUBECONFIG = "${WORKSPACE}/kubeconfig.yaml"
         KUBECTLPATH = tool(
-            name: 'kubectl-amd64-1.36.0',
+            name: 'kubectl-1.36.0',
             type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
         )
         PATH = "${KUBECTLPATH}:${env.PATH}"
