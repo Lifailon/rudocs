@@ -51,14 +51,12 @@ pipeline {
                             name: 'docker-compose-5.1.0',
                             type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
                         )
-                        binPaths.add(toolPath)
                     }
                     if (params['docker-buildx']) {
                         def toolPath = tool(
                             name: 'docker-buildx-0.34.1',
                             type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
                         )
-                        binPaths.add(toolPath)
                     }
                     if (params.kubectl) {
                         def toolPath = tool(
@@ -91,7 +89,6 @@ pipeline {
                         echo "docker-cli skipped"
                     }
                     if (params['docker-compose']) {
-                        sh "docker-compose version || true"
                         sh "docker compose version || true"
                     } else {
                         echo "docker-compose skipped"
