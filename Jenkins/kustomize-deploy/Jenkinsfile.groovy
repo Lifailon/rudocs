@@ -21,7 +21,7 @@ pipeline {
     environment {
         KUBECONFIG = "${WORKSPACE}/kubeconfig.yaml"
         KUBECTLPATH = tool(
-            name: 'kubectl-amd64-1.36.0',
+            name: 'kubectl-1.36.0',
             type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
         )
         PATH = "${KUBECTLPATH}:${env.PATH}"

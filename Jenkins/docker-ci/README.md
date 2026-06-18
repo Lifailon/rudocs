@@ -7,7 +7,7 @@
 > [!NOTE]
 > Перед первой сборкой необходимо создать сборщика с помощью параметра `recreateBuilder`.
 
-- Настройка Custom Tools для установки Docker cli и плагина `buildx`:
+- Настройка скриптов [Custom Tools](../custom-tools/) для установки Docker cli и плагина `buildx`:
 
 ![](img/tools.jpg)
 

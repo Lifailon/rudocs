@@ -21,11 +21,11 @@ pipeline {
     environment {
         SSH_KEY_FILE = "/tmp/ssh_key_${UUID.randomUUID().toString()}"
         DOCKER_CLI_HOME = tool(
-            name: "docker-cli-amd64-29.5.0",
+            name: "docker-cli-29.5.0",
             type: "com.cloudbees.jenkins.plugins.customtools.CustomTool"
         )
         BUILDX_HOME = tool(
-            name: "docker-buildx-amd64-0.34.1",
+            name: "docker-buildx-0.34.1",
             type: "com.cloudbees.jenkins.plugins.customtools.CustomTool"
         )
         PATH = "${env.DOCKER_CLI_HOME}:${env.BUILDX_HOME}:${env.PATH}"
