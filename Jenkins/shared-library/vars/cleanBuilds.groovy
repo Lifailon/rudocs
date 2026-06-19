@@ -3,18 +3,35 @@ import hudson.model.Job
 
 @NonCPS
 
-def call(int maxBuilds = 3) {
-    def deletedCount = 0
-    def logger = java.util.logging.Logger.getLogger("cleanBuilds") 
-    for (job in Jenkins.get().getAllItems(Job.class)) {
-        if (job.name == hudson.model.Executor.currentExecutor().currentExecutable.parent.name) continue
-        def recent = job.builds.limit(maxBuilds)
-        for (build in job.builds) {
-            if (!recent.contains(build) && !build.isBuilding()) {
+def call(int maxBuilds = 3, String currentJobName = "") {
+    def buildsCount = 0
+    def jobsCount = 0
+    def jobs = Jenkins.get().getAllItems(Job.class).toArray()
+    for (int i = 0; i < jobs.length; i++) {
+        def job = jobs[i]
+        if (currentJobName && job.fullName == currentJobName) {
+            continue
+        }
+        def builds = job.builds.toArray()
+        if (builds.length <= maxBuilds) {
+            continue
+        }
+        def jobWasCleaned = false
+
+        for (int j = maxBuilds; j < builds.length; j++) {
+            def build = builds[j]
+            if (build != null && !build.isBuilding()) {
                 build.delete()
-                deletedCount++
+                buildsCount++
+                jobWasCleaned = true
             }
         }
+        if (jobWasCleaned) {
+            jobsCount++
+        }
     }
-    logger.info("Successfully removed old builds: ${deletedCount}")
+    return [
+        builds: buildsCount,
+        jobs: jobsCount
+    ]
 }
