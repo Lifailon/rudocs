@@ -145,7 +145,7 @@ pipeline {
         label 'built-in' // Jenkins Server Agent
     }
     triggers {
-        cron('30 23 * * 1-5')
+        cron('00 22 * * 1-5')
     }
     options {
         timeout(time: 10, unit: 'MINUTES')
