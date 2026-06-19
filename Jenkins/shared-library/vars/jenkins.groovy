@@ -3,7 +3,7 @@ import hudson.model.Job
 
 @NonCPS
 
-def call(int maxBuilds = 3, String currentJobName = "") {
+def cleanBuilds(int maxBuilds = 3, String currentJobName = "") {
     def buildsCount = 0
     def jobsCount = 0
     def jobs = Jenkins.get().getAllItems(Job.class).toArray()

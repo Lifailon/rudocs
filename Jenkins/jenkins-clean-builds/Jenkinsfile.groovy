@@ -16,7 +16,7 @@ pipeline {
         stage('Clean builds') {
             steps {
                 script {
-                    def result = cleanBuilds(3, env.JOB_NAME)
+                    def result = jenkins.cleanBuilds(3, env.JOB_NAME)
                     log.info("Removed ${result.builds} build in ${result.jobs} jobs")
                 }
             }
