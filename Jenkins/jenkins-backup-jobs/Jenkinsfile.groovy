@@ -29,7 +29,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(
-                        credentialsId: 'ssh-creds',
+                        credentialsId: 'jenkins-api-cred',
                         usernameVariable: 'USERNAME',
                         passwordVariable: 'PASSWORD'
                     )]) {
@@ -70,6 +70,36 @@ pipeline {
                     artifacts: "jenkins-backup-jobs/**/*",
                     allowEmptyArchive: true
                 )
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                env.PROXY_HOST = '192.168.3.110'
+                env.PROXY_PORT = '2080'
+                try {
+                    withCredentials([
+                        string(
+                            credentialsId: "telegram-token",
+                            variable: "TELEGRAM_TOKEN"
+                        ),
+                        string(
+                            credentialsId: "telegram-channel",
+                            variable: "TELEGRAM_CHAT_ID"
+                        ),
+                    ]) {
+                        telegram.sendStatus(
+                            token: env.TELEGRAM_TOKEN, 
+                            chatId: env.TELEGRAM_CHAT_ID, 
+                            status: currentBuild.currentResult,
+                            proxyHost: env.PROXY_HOST,
+                            proxyPort: env.PROXY_PORT
+                        )
+                    }
+                } catch (Exception e) {
+                    echo "Telegram Error: ${e.getMessage()}"
+                }
             }
         }
     }

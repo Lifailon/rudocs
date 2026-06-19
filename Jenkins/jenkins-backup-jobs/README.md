@@ -1,8 +1,12 @@
 # Jenkins Backup Jobs
 
-Универсальный Jenkins Pipeline для резервного копирования всех проектов (jobs) и экспорта в артифакты по расписанию.
+Универсальный Jenkins Pipeline для резервного копирования всех проектов (jobs) на сервере Jenkins с их экспортов в артифакты по расписанию.
 
-Настройка расписания по будням в 22:00:
+- Создайте секрет `jenkins-api-cred` с содержимым авторизационных данных в Jenkins для доступа к Jenkins API и подключите библиотеку `rudocs-shared-library`:
+
+![](../jenkins-clean-builds/img/add-shared-library.jpg)
+
+- Настройка расписания по будням в 22:00:
 
 ```groovy
 triggers {
@@ -12,6 +16,6 @@ triggers {
 
 ![](img/cron.jpg)
 
-Артифакты:
+- Выгрузка артифактов:
 
 ![](img/artifacts.jpg)
