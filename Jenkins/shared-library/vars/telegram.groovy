@@ -3,6 +3,8 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.HttpURLConnection
 
+@NonCPS
+
 def sendMessage(Map config) {
     def token = config.token
     def chatId = config.chatId
@@ -20,7 +22,7 @@ def sendMessage(Map config) {
     def jsonPayload = JsonOutput.toJson(payload)
 
     try {
-        def url = new URL("https://api.telegram.org/bot{token}/sendMessage")
+        def url = new URL("https://api.telegram.org/bot${token}/sendMessage")
         HttpURLConnection connection
 
         if (config.proxyHost && config.proxyPort) {
@@ -45,9 +47,11 @@ def sendMessage(Map config) {
             "application/json; charset=UTF-8"
         )
         connection.setDoOutput(true)
-        connection.getOutputStream().withWriter("UTF-8") { writer ->
-            writer.write(jsonPayload)
-        }
+        
+        def outputStream = connection.getOutputStream()
+        outputStream.write(jsonPayload.getBytes("UTF-8"))
+        outputStream.flush()
+        outputStream.close()
 
         def responseCode = connection.getResponseCode()
         if (responseCode != 200) {
@@ -75,7 +79,6 @@ def sendStatus(Map config) {
     def cause = currentBuild.rawBuild?.getCauses()?.get(0)
     def userName = cause && cause.class.simpleName == 'UserIdCause' ? cause.getUserName() : 'System / SCM'
 
-    // 3. Получаем список авторов изменений (если это сборка по коммиту)
     def changeLogSets = currentBuild.changeSets
     def commitAuthors = []
     for (int i = 0; i < changeLogSets.size(); i++) {
