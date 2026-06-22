@@ -6,12 +6,15 @@ apt update && apt install -y smbclient
 
 # Настройки скрипта
 BACKUP_DIR="/backup/homepage"
+ROTATE_DAY=3
 SMB_PATH=//192.168.3.100/Backup
 SMB_USER=Lifailon
 SMB_PASS=
 TELEGRAM_CHAT_ID=
 TELEGRAM_API_KEY=
-ROTATE_DAY=3
+
+# Настройка системного proxy для доступа к Telegram
+export HTTPS_PROXY=
 
 # Функция для отправки оповещения в Telegram
 function tg-send() {
@@ -23,7 +26,7 @@ function tg-send() {
          -d "parse_mode=markdown"
 }
 
-# Ротация файлов по времени
+# Ротация файлов по количеству дней
 ROTATE_TIMESTAMP=$(date -d "$ROTATE_DAY days ago" +%s)
 smbclient "$SMB_PATH" -U "$SMB_USER%$SMB_PASS" -c "ls" | grep "tar.gz" | while read -r line; do
     FILE_NAME=$(echo "$line" | awk '{print $1}')
