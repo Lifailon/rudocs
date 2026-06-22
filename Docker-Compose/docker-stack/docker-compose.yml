@@ -198,6 +198,26 @@ services:
   #   ports:
   #     - 8866:8866
 
+  # vps-monitor:
+  #   image: hhftechnology/vps-monitor:latest
+  #   container_name: vps-monitor
+  #   restart: always
+  #   ports:
+  #     - 6789:6789
+  #   environment:
+  #     - JWT_SECRET=your-super-secret-key-change-this-to-something-random-min-32-chars
+  #     - ADMIN_USERNAME=admin
+  #     - ADMIN_PASSWORD=admin
+  #     - ADMIN_PASSWORD_SALT=admin
+  #     - DOCKER_HOST=unix:///var/run/docker.sock
+  #     # - DOCKER_HOSTS=local|unix:///var/run/docker.sock,remote|ssh://root@10.0.0.1
+  #     - READONLY_MODE=false
+  #   volumes:
+  #     - ./vps_monitor_data:/data
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     # - /root/.ssh:/root/.ssh:ro
+  #     - /proc:/host/proc:ro
+
 ################################################### Logs ###################################################
 
   # Web interface for docker logs
@@ -265,6 +285,11 @@ services:
       - tail
       - -f
       - /var/log/custom.log
+    logging:
+      driver: json-file
+      options:
+        max-size: 100m
+        max-file: 3
 
   # Container for monitoring files from /var/log on host
   # dozzle-varlog:

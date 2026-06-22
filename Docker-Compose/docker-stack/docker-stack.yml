@@ -1,7 +1,9 @@
 services:
   dockge:
-    image: louislam/dockge:1
-    # image: containrrr/watchtower
+    # image: louislam/dockge:1    # Original (final latest from 30.05.2025)
+    # image: cmcooper1980/dockge  # PR merge (https://github.com/cmcooper1980/dockge)
+    # image: hamphh/dockge        # Fork (https://github.com/hamphh/dockge)
+    image: lifailon/dockge:2      # Added filtering logs (https://github.com/louislam/dockge/pull/966)
     container_name: dockge
     restart: always
     volumes:

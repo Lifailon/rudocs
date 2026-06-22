@@ -550,21 +550,27 @@
     - IT Tools:
         icon: it-tools.png
         href: https://it-tools.tech
+    - Browsery Tools:
+        icon: https://browserytools.com/icon.svg
+        href: https://browserytools.com
     - Transform Tools:
         icon: https://transform.tools/static/favicon.png
         href: https://transform.tools
     - CyberChef:
         icon: cyberchef.png
         href: https://gchq.github.io/CyberChef
-    - Markmap (Markdown Crack):
-        icon: https://markmap.js.org/favicon.png
-        href: https://markmap.js.org/repl
-    - JSON Crack:
-        icon: https://jsoncrack.com/favicon.ico
-        href: https://jsoncrack.com/editor
     - JSON Viewer:
         icon: https://codebeautify.org/img/cb.png
         href: https://codebeautify.org/jsonviewer
+    - JSON Crack:
+        icon: https://jsoncrack.com/favicon.ico
+        href: https://jsoncrack.com/editor
+    - Markmap (Markdown Crack):
+        icon: https://markmap.js.org/favicon.png
+        href: https://markmap.js.org/repl
+    - Netviz (Network Map):
+        icon: https://netviz.shadowarcanist.com/favicon.ico
+        href: https://netviz.shadowarcanist.com
     - QuickType (JSON to Code):
         icon: https://app.quicktype.io/favicon.ico
         href: https://app.quicktype.io
