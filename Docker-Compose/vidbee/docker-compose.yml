@@ -1,0 +1,24 @@
+services:
+  vidbee-api:
+    image: ghcr.io/nexmoe/vidbee-api:latest
+    container_name: vidbee-api
+    restart: unless-stopped
+    environment:
+      VIDBEE_API_HOST: 0.0.0.0
+      VIDBEE_API_PORT: 3100
+      VIDBEE_DOWNLOAD_DIR: /data/downloads
+      VIDBEE_HISTORY_STORE_PATH: /data/vidbee/vidbee.db
+    ports:
+      - 3100:3100
+    volumes:
+      - ./vidbee_downloads:/data/downloads
+      - ./vidbee_data:/data/vidbee
+
+  vidbee-web:
+    image: ghcr.io/nexmoe/vidbee-web:latest
+    container_name: vidbee-web
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    depends_on:
+      - vidbee-api
