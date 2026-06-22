@@ -1,0 +1,24 @@
+services:
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v2
+    container_name: pocket-id
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 1411:1411
+    environment:
+      - APP_URL=https://your-pocket-id-domain.com
+      # openssl rand -base64 32
+      - ENCRYPTION_KEY=
+      - TRUST_PROXY=false
+      - MAXMIND_LICENSE_KEY=
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./pocket_id_data:/app/data
+    healthcheck:
+      test: [ "CMD", "/app/pocket-id", "healthcheck" ]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s

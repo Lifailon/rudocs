@@ -1,0 +1,25 @@
+services:
+  cloud-paste-backend:
+    image: dragon730/cloudpaste-backend:latest
+    container_name: cloud-paste-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8787
+      - ENCRYPTION_SECRET=custom-security-key
+      - TASK_WORKER_POOL_SIZE=2
+    volumes:
+      - ./cloud_paste_sql_data:/data
+    ports:
+      - 8787:8787
+
+  cloud-paste-frontend:
+    image: dragon730/cloudpaste-frontend:latest
+    container_name: cloud-paste-frontend
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=http://cloud-paste-backend:8787
+    ports:
+      - 8080:80
+    depends_on:
+      - cloud-paste-backend
