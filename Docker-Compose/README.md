@@ -76,6 +76,8 @@ services:
 
 ### Android
 
+#### DockDroid
+
 [DockDroid](https://github.com/sickcodes/dock-droid) - позволяет запускать Android x86 и ARM в контейнере Docker с использованием `QEMU` и `KVM`. Поддерживает X11 Forwarding, что позволяет отображать графический интерфейс Android, ADB на порту 5555, ssh-доступ через порт 50922, проброс веб-камеры (`/dev/video0`), аудио (`/dev/snd`) и GPU (`/dev/dri`) в контейнер.
 
 ```yaml
@@ -99,6 +101,38 @@ services:
       - 5999:5999 # VNC
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+```
+
+#### Android Emulator
+
+[Docker Android](https://github.com/HQarroum/docker-android) (Android Emulator) - минимальный и настраиваемый Docker-образ на базе Alpine (включает поддержку KVM, а также Java Runtime Environment 11), запускающий эмулятор Android в качестве сервиса.
+
+```yaml
+services:
+  android-emulator:
+    image: halimqarroum/docker-android:api-33
+    container_name: android-emulator
+    ports:
+      - 5554:5554
+      - 127.0.0.1:5555:5555
+    privileged: true
+    tty: true
+    stdin_open: true
+    environment:
+      - DISABLE_ANIMATION=false
+      - DISABLE_HIDDEN_POLICY=true
+      - SKIP_AUTH=false
+      #- ANDROID_ADB_SERVER_ADDRESS=host.docker.internal
+      - MEMORY=16384
+      - CORES=16
+    volumes:
+      - ./keys/adbkey:/root/.android/adbkey:ro
+      - ./keys/adbkey.pub:/root/.android/adbkey.pub:ro
+      - ./android_avd:/data
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    devices:
+      - /dev/kvm:/dev/kvm
 ```
 
 ## Bot Stack
@@ -3302,7 +3336,60 @@ ADMIN_PASSWORD=admin
 HTTP_PORT=8080
 ```
 
-### localstack
+### Cloud Paste
+
+[Cloud Paste](https://github.com/ling-drag0n/CloudPaste) - сервис для онлайн-обмена текстом и файлами, основанный на Cloudflare, который поддерживает Markdown-редактирование с возможностью рендеринга, интеграцию с различными облачными хранилищами, самоуничтожающиеся сообщения, агрегацию хранилищ S3, защиту паролем и возможность монтирования в качестве WebDAV.
+
+```yaml
+services:
+  cloud-paste-backend:
+    image: dragon730/cloudpaste-backend:latest
+    container_name: cloud-paste-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8787
+      - ENCRYPTION_SECRET=custom-security-key
+      - TASK_WORKER_POOL_SIZE=2
+    volumes:
+      - ./cloud_paste_sql_data:/data
+    ports:
+      - 8787:8787
+
+  cloud-paste-frontend:
+    image: dragon730/cloudpaste-frontend:latest
+    container_name: cloud-paste-frontend
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=http://cloud-paste-backend:8787
+    ports:
+      - 8080:80
+    depends_on:
+      - cloud-paste-backend
+```
+
+### Pingvin Share
+
+🐧 [Pingvin Share](https://github.com/stonith404/pingvin-share) и форк [Pingvin Share X](https://github.com/smp46/pingvin-share-x) - платформа для обмена файлами с самостоятельным размещением, являющаяся альтернативой [WeTransfer](https://wetransfer.com).
+
+```yaml
+services:
+  pingvin-share:
+    image: smp46/pingvin-share-x
+    # image: stonith404/pingvin-share
+    # image: ghcr.io/stonith404/pingvin-share
+    container_name: pingvin-share
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - TRUST_PROXY=false
+    volumes:
+      - ./pingvin_share_data:/opt/app/backend/data
+      - ./pingvin_share_data/images:/opt/app/frontend/public/img
+```
+
+### Localstack
 
 [Local Stack](https://github.com/localstack/localstack) - эмулятор облачных сервисов, работающий в одном контейнере на ноутбуке или в среде CI. Позволяет запускать свои приложения AWS (Amazon Web Services, например, S3 хранилище, CloudWatch Log Events или Lambda-функции) полностью на локальном компьютере, не подключаясь к удаленному облачному провайдеру.
 
@@ -3931,6 +4018,126 @@ services:
         condition: service_healthy
 ```
 
+### Crowdsec Manager
+
+[Crowdsec Manager](https://github.com/hhftechnology/crowdsec_manager) - веб-интерфейс и мобильная панель управления от создателей [Traefik Log Dashboard](https://github.com/hhftechnology/traefik-log-dashboard) для стека безопасности [CrowdSec](https://github.com/crowdsecurity/crowdsec) с интеграцией Pangolin и поддержкой нескольких прокси (Caddy, NPM и др). В проекте bash скрипт заменен современным интерфейсом [Shadcn UI](https://github.com/shadcn-ui/ui).
+
+```yaml
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    ports:
+      - 6060:6060
+    environment:
+      - COLLECTIONS=crowdsecurity/linux
+    volumes:
+      - ./config/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+      - ./crowdsec_db:/var/lib/crowdsec/data/
+      - ./crowdsec_config:/etc/crowdsec/
+
+  crowdsec-manager:
+    image: hhftechnology/crowdsec-manager:independent
+    container_name: crowdsec-manager
+    restart: unless-stopped
+    ports:
+      - 8088:8080
+    environment:
+      - PORT=8080
+      - ENVIRONMENT=production
+      - CONFIG_DIR=/app/config
+      - DATABASE_PATH=/app/data/settings.db
+      - INCLUDE_CROWDSEC=true
+      # Pangolin
+      - TRAEFIK_CONTAINER_NAME=traefik
+      - TRAEFIK_DYNAMIC_CONFIG=/etc/traefik/dynamic_config.yml
+      - TRAEFIK_STATIC_CONFIG=/etc/traefik/traefik_config.yml
+      - CROWDSEC_METRICS_URL=http://crowdsec:6060/metrics
+      - ALERT_LIST_LIMIT=5000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config:/app/config
+      - ./logs/app:/app/logs
+      - ./data:/app/data
+    depends_on:
+      - crowdsec
+
+  pangolin:
+    image: fosrl/pangolin:latest
+    container_name: pangolin
+    restart: unless-stopped
+    networks:
+      - crowdsec-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pangolin.rule=Host(`pangolin.localhost`)"
+      - "traefik.http.routers.pangolin.entrypoints=web"
+```
+
+### Pangolin
+
+[Pangolin](https://github.com/fosrl/pangolin) — это обратный прокси-сервер с туннелированием, размещаемый на собственном сервере, с контролем доступа на основе личности и контекста, разработанный для легкого раскрытия и защиты приложений, работающих где угодно. Pangolin выступает в роли центрального узла и соединяет изолированные сети, даже находящиеся за строгими брандмауэрами, через зашифрованные туннели, обеспечивая легкий доступ к удаленным сервисам без открытия портов и использования VPN.
+
+```yaml
+services:
+  pangolin:
+    image: fosrl/pangolin:1.4.0
+    container_name: pangolin
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
+      interval: "3s"
+      timeout: "3s"
+      retries: 15
+ 
+  gerbil:
+    image: fosrl/gerbil:1.0.0
+    container_name: gerbil
+    restart: unless-stopped
+    command:
+      - --reachableAt=http://gerbil:3003
+      - --generateAndSaveKeyTo=/var/config/key
+      - --remoteConfig=http://pangolin:3001/api/v1/gerbil/get-config
+      - --reportBandwidthTo=http://pangolin:3001/api/v1/gerbil/receive-bandwidth
+    volumes:
+      - ./config/:/var/config
+    ports:
+      - 51820:51820/udp
+      # Порты из traefik через network_mode
+      - 443:443
+      - 80:80
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    depends_on:
+      pangolin:
+        condition: service_healthy
+ 
+  traefik:
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
+    # Порты для сервиса gerbil
+    network_mode: service:gerbil
+    command:
+      - --configFile=/etc/traefik/traefik_config.yml
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./letsencrypt:/letsencrypt
+    depends_on:
+      pangolin:
+        condition: service_healthy
+
+networks:
+  default:
+    driver: bridge
+    name: pangolin
+```
+
 ### Nginx Proxy & Docker Gen
 
 [Nginx Proxy](https://github.com/nginx-proxy/nginx-proxy) - настраивает контейнер, работающий под управлением nginx и docker-gen (docker-gen генерирует конфигурации обратного прокси-сервера для nginx и перезагружает nginx при запуске и остановке контейнеров).
@@ -4195,69 +4402,6 @@ services:
       - --config=/cmd/promxy/config.yaml
       - --log-level=info
       - --web.enable-lifecycle
-```
-
-### Pangolin
-
-[Pangolin](https://github.com/fosrl/pangolin) — это обратный прокси-сервер с туннелированием, размещаемый на собственном сервере, с контролем доступа на основе личности и контекста, разработанный для легкого раскрытия и защиты приложений, работающих где угодно. Pangolin выступает в роли центрального узла и соединяет изолированные сети, даже находящиеся за строгими брандмауэрами, через зашифрованные туннели, обеспечивая легкий доступ к удаленным сервисам без открытия портов и использования VPN.
-
-```yaml
-services:
-  pangolin:
-    image: fosrl/pangolin:1.4.0
-    container_name: pangolin
-    restart: unless-stopped
-    volumes:
-      - ./config:/app/config
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
-      interval: "3s"
-      timeout: "3s"
-      retries: 15
- 
-  gerbil:
-    image: fosrl/gerbil:1.0.0
-    container_name: gerbil
-    restart: unless-stopped
-    command:
-      - --reachableAt=http://gerbil:3003
-      - --generateAndSaveKeyTo=/var/config/key
-      - --remoteConfig=http://pangolin:3001/api/v1/gerbil/get-config
-      - --reportBandwidthTo=http://pangolin:3001/api/v1/gerbil/receive-bandwidth
-    volumes:
-      - ./config/:/var/config
-    ports:
-      - 51820:51820/udp
-      # Порты из traefik через network_mode
-      - 443:443
-      - 80:80
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    depends_on:
-      pangolin:
-        condition: service_healthy
- 
-  traefik:
-    image: traefik:v3.3.3
-    container_name: traefik
-    restart: unless-stopped
-    # Порты для сервиса gerbil
-    network_mode: service:gerbil
-    command:
-      - --configFile=/etc/traefik/traefik_config.yml
-    volumes:
-      - ./traefik.yml:/etc/traefik/traefik.yml
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      # - ./letsencrypt:/letsencrypt
-    depends_on:
-      pangolin:
-        condition: service_healthy
-
-networks:
-  default:
-    driver: bridge
-    name: pangolin
 ```
 
 ### Tiny Proxy
@@ -4674,6 +4818,20 @@ services:
       - ./service:/service:ro
 ```
 
+### YACD
+
+[YACD](https://github.com/haishanh/yacd) (Yet Another Clash Dashboard) - веб-интерфейс для графического мониторинга и настройки прокси-клиентов, работающих на ядрах Clash или sing-box.
+
+```yaml
+services:
+  yacd:
+    image: ghcr.io/haishanh/yacd:master
+    container_name: yacd
+    restart: always
+    ports:
+      - 1234:80
+```
+
 ### Hiddify
 
 [Hiddify Manager](https://github.com/hiddify/Hiddify-Manager) - инструмент для борьбы с цензурой, представляющий собой многопользовательскую панель с простой установкой и поддержкой более 20 протоколов, включая Reality и Telegram Proxy, для обхода фильтрации, который оптимизирован для обхода цензуры в Китае, России и Иране, а также включен в список Xray.
@@ -5055,6 +5213,37 @@ services:
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
     ports:
       - 8080:8080
+```
+
+### Pocket ID
+
+[Pocket ID](https://github.com/pocket-id/pocket-id) - OIDC-провайдер (как Keycloak или [ORY Hydra](https://github.com/ory/hydra), но проще) от создателей [Pingvin Share](https://github.com/stonith404/pingvin-share), позволяющий пользователям аутентифицироваться в ваших сервисах с помощью своих паролей.
+
+```yaml
+services:
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v2
+    container_name: pocket-id
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 1411:1411
+    environment:
+      - APP_URL=https://your-pocket-id-domain.com
+      # openssl rand -base64 32
+      - ENCRYPTION_KEY=
+      - TRUST_PROXY=false
+      - MAXMIND_LICENSE_KEY=
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./pocket_id_data:/app/data
+    healthcheck:
+      test: [ "CMD", "/app/pocket-id", "healthcheck" ]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
 ```
 
 ### Zitadel
@@ -5804,6 +5993,33 @@ services:
       - ./dockman_config:/config
     ports:
       - 8866:8866
+```
+
+### VPS Monitor
+
+[VPS Monitor](https://github.com/hhftechnology/vps-monitor) - инструмент управления контейнерами Docker и сервисами Compose, с поддержкой анализа логов, мониторинга статистики контейнеров, управления образами, визуализации сети и поддержки нескольких удаленных хостов.
+
+```yaml
+services:
+  vps-monitor:
+    image: hhftechnology/vps-monitor:latest
+    container_name: vps-monitor
+    restart: always
+    ports:
+      - 6789:6789
+    environment:
+      - JWT_SECRET=your-super-secret-key-change-this-to-something-random-min-32-chars
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - ADMIN_PASSWORD_SALT=admin
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      # - DOCKER_HOSTS=local|unix:///var/run/docker.sock,remote|ssh://root@10.0.0.1
+      - READONLY_MODE=false
+    volumes:
+      - ./vps_monitor_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - /root/.ssh:/root/.ssh:ro
+      - /proc:/host/proc:ro
 ```
 
 ### Arcan
@@ -7349,6 +7565,12 @@ services:
 
 [HashiCorp Consul](https://github.com/hashicorp/consul) - распределенное и высокодоступное (HA) решение для подключения и настройки приложений в динамической распределенной инфраструктуре, например, для отказоустойчивости `Vault` в качестве backend хранилища.
 
+[VaultUI](https://github.com/miladbeigi/vaultui) - интерфейс терминала (TUI) для HashiCorp Vault, вдохновленный k9s. Позволяет получить доступ к секретам, методам аутентификации и политикам.
+
+```bash
+docker run --rm -it -e VAULT_ADDR -e VAULT_TOKEN ghcr.io/miladbeigi/vaultui:latest
+```
+
 ```yaml
 services:
   consul-master:
@@ -8002,6 +8224,37 @@ services:
       - 8001:8080
     volumes:
       - ./statping_data:/app
+```
+
+### Checkmate
+
+[Checkmate](https://github.com/bluewave-labs/Checkmate) - инструмент для мониторинга серверного оборудования, времени безотказной работы и времени отклика в реальном времени. Поддерживает мониторинг веб-сайтов, памяти, диска, процессора, температуры, пинга, Docker-контейнеров, скорости загрузки страниц и отслеживание инцидентов.
+
+```yaml
+services:
+  checkmate:
+    image: ghcr.io/bluewave-labs/checkmate-backend-mono-multiarch:latest
+    container_name: checkmate
+    restart: unless-stopped
+    ports:
+      - 52345:52345
+    environment:
+      - UPTIME_APP_CLIENT_HOST=http://localhost:52345
+      - UPTIME_APP_API_BASE_URL=http://localhost:52345/api/v1
+      - CLIENT_HOST=http://localhost:52345
+      - DB_CONNECTION_STRING=mongodb://checkmate-db:27017/uptime_db
+      - JWT_SECRET=ChangeThisToAStrongRandomSecretKey123!
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - checkmate-db
+
+  checkmate-db:
+    image: mongo:6.0
+    container_name: checkmate-db
+    restart: unless-stopped
+    volumes:
+      - ./mongo_data:/data/db
 ```
 
 ### Change Detection
@@ -9718,6 +9971,37 @@ services:
       - 8899:8899
 ```
 
+### VidBee
+
+[VidBee](https://github.com/nexmoe/VidBee) - открытый видеозагрузчик, позволяющий скачивать видео и аудио с более чем 1000 платформ по всему миру, например, YouTube, TikTok, Twitter и другие.
+
+```yaml
+services:
+  vidbee-api:
+    image: ghcr.io/nexmoe/vidbee-api:latest
+    container_name: vidbee-api
+    restart: unless-stopped
+    environment:
+      VIDBEE_API_HOST: 0.0.0.0
+      VIDBEE_API_PORT: 3100
+      VIDBEE_DOWNLOAD_DIR: /data/downloads
+      VIDBEE_HISTORY_STORE_PATH: /data/vidbee/vidbee.db
+    ports:
+      - 3100:3100
+    volumes:
+      - ./vidbee_downloads:/data/downloads
+      - ./vidbee_data:/data/vidbee
+
+  vidbee-web:
+    image: ghcr.io/nexmoe/vidbee-web:latest
+    container_name: vidbee-web
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    depends_on:
+      - vidbee-api
+```
+
 ### EternalVows
 
 [EternalVows](https://github.com/jacoknapp/EternalVows) - легковесный шаблон свадебного сайта для самостоятельного размещений. Позволяет настроить имена, дату, место проведения, историю, расписание, детали площадки (с картой), ссылки на подарочные реестры, часто задаваемые вопросы и опциональные ссылки для обмена фотографиями через YAML файл без необходимости пересборки.
@@ -10482,6 +10766,29 @@ services:
 
 # Username: admin
 # Password: motionui
+```
+
+### Kerberos Agent
+
+[Kerberos Agent](https://github.com/kerberos-io/agent) - изолированный и масштабируемый агент видеонаблюдения, который поддерживает многопотоковую обработку, потоковую передачу и детекцию движения, а также работу с различными типами камер.
+
+```yaml
+x-common-variables: &common-variables
+  AGENT_HUB_KEY: "xxxxx"
+  AGENT_HUB_PRIVATE_KEY: "xxxxx"
+
+services:
+  kerberos-agent-01:
+    image: "kerberos/agent:latest"
+    container_name: kerberos-agent-01
+    restart: unless-stopped
+    ports:
+      - 8181:80
+    environment:
+      <<: *common-variables
+      AGENT_NAME: agent1
+      AGENT_CAPTURE_IPCAMERA_RTSP: rtsp://username:password@x.x.x.x/Streaming/Channels/101
+      AGENT_KEY: "1"
 ```
 
 ## Torrent Stack
