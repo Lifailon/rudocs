@@ -1,16 +1,9 @@
+@Library([
+    'rudocs-shared-library@main'
+]) _
+
 def remote = [:]
 def composeContent = ""
-
-def log = {
-    def m = [:]
-    m.stage = { echo "\n\u001B[35m=== [STAGE: ${STAGE_NAME}] ===\u001B[0m\n" }
-    m.info = { text -> echo "\u001B[34m${text}\u001B[0m" }
-    m.warn = { text -> echo "\u001B[33m${text}\u001B[0m" }
-    m.success = { text -> echo "\u001B[32m${text}\u001B[0m" }
-    m.error = { text -> echo "\u001B[31m${text}\u001B[0m" }
-    m.uncolor = { text -> echo "${text}" }
-    return m
-}()
 
 pipeline {
     agent any
@@ -46,14 +39,19 @@ pipeline {
             description: 'Container restart policy.'
         )
         string(
-            name: 'uid',
-            defaultValue: '1000:1000',
-            description: 'UID:GID.'
-        )
-        string(
             name: 'command',
             defaultValue: '',
             description: 'Launch command.'
+        )
+        string(
+            name: 'user',
+            defaultValue: '1000:1000',
+            description: 'UID:GID.'
+        )
+        text(
+            name: 'groups',
+            defaultValue: '110',
+            description: 'GID.'
         )
         text(
             name: 'ports',
@@ -119,43 +117,18 @@ pipeline {
                 script {
                     log.stage()
                     currentBuild.displayName = "#${BUILD_NUMBER} ${params.stackName}"
-                    composeContent = "services:\n"
-                    composeContent += "  ${params.stackName.trim()}:\n"
-                    composeContent += "    image: ${params.image.trim()}\n"
-                    composeContent += "    container_name: ${params.stackName.trim()}\n"
-                    composeContent += "    restart: ${params.restartMode}\n"
-                    if (params.uid?.trim()) {
-                        composeContent += "    user: ${params.uid.trim()}\n"
-                    }
-                    if (params.command?.trim()) {
-                        composeContent += "    command: ${params.command.trim()}\n"
-                    }
-                    if (params.ports?.trim()) {
-                        composeContent += "    ports:\n"
-                        params.ports.stripIndent().tokenize('\n').each { port ->
-                            if (port.trim()) {
-                                composeContent += "      - \"${port.trim()}\"\n"
-                            }
-                        }
-                    }
-                    if (params.environment?.trim()) {
-                        composeContent += "    environment:\n"
-                        params.environment.stripIndent().tokenize('\n').each { env ->
-                            if (env.trim()) {
-                                composeContent += "      - ${env.trim()}\n"
-                            }
-                        }
-                    }
-                    if (params.volumes?.trim()) {
-                        composeContent += "    volumes:\n"
-                        params.volumes.stripIndent().tokenize('\n').each { volume ->
-                            if (volume.trim()) {
-                                composeContent += "      - ${volume.trim()}\n"
-                            }
-                        }
-                    }
-                    log.success(composeContent)
-                    currentBuild.description = composeContent
+                    def composeFile = compose.generate(
+                        serviceName: params.stackName,
+                        image: params.image,
+                        restartMode: params.restartMode,
+                        command: params.command,
+                        user: params.user,
+                        groups: params.groups,
+                        environment: params.environment,
+                        volumes: params.volumes,
+                    )
+                    log.success(composeFile)
+                    currentBuild.description = composeFile
                 }
             }
         }

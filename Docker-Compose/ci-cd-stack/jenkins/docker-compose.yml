@@ -23,7 +23,7 @@ services:
     restart: always
     user: 1000:1000
     environment:
-      # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
+      # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins
       - JENKINS_URL=${JENKINS_SERVER_URL}
       - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
       # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
@@ -32,9 +32,8 @@ services:
       - ./jenkins_agent:/home/jenkins
       # Пробрасываем сокет для доступа к Docker на агенте
       - /var/run/docker.sock:/var/run/docker.sock
-    # Добавить в группу Docker на хосте
-    # getent group docker | cut -d: -f3
+    # Добавить в группу Docker на хосте для доступа к сокету: getent group docker | cut -d: -f3
     group_add:
-        - 109
+        - 110
     depends_on:
       - jenkins-server
