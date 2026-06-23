@@ -1,0 +1,28 @@
+services:
+  jenkins-server:
+    image: jenkins/jenkins:latest
+    container_name: jenkins-server
+    restart: always
+    user: 1000:1000
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+    ports:
+      - 8010:8080
+      - 50000:50000
+
+  jenkins-agent:
+    image: lifailon/jenkins-agent:latest
+    container_name: jenkins-agent
+    restart: always
+    user: 1000:1000
+    environment:
+      - JENKINS_URL=${JENKINS_SERVER_URL}
+      - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
+      - JENKINS_SECRET=${JENKINS_SECRET}
+    volumes:
+      - ./jenkins_agent:/home/jenkins
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+        - 109
+    depends_on:
+      - jenkins-server
