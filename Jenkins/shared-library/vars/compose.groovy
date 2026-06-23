@@ -3,14 +3,25 @@ def generate(Map params = [:]) {
     def containerName = (params.containerName ?: "").trim()
     def image         = (params.image ?: "").trim()
     def restartMode   = (params.restartMode ?: "").trim()
-    def user          = (params.user ?: "").trim()
     def command       = (params.command ?: "").trim()
+    def user          = (params.user ?: "").trim()
+    def groups        = (params.groups ?: "")
     def ports         = (params.ports ?: "")
     def environment   = (params.environment ?: "")
     def volumes       = (params.volumes ?: "")
 
     if (!serviceName || !image) {
         error "Required parameters were not passed: serviceName or image"
+    }
+
+    def groupsArr = ""
+    if (groups.trim()) {
+        groupsArr += "    group_add:\n"
+        for (line in groups.stripIndent().readLines()) {
+            if (line.trim()) {
+                groupsArr += "      - ${line.trim()}\n"
+            }
+        }
     }
 
     def portsArr = ""
@@ -53,13 +64,15 @@ def generate(Map params = [:]) {
     composeContent += "    container_name: ${cn}\n"
     composeContent += "    restart: ${rm}\n"
 
-    if (user) {
-        composeContent += "    user: ${user}\n"
-    }
     if (command) {
         composeContent += "    command: ${command}\n"
     }
+
+    if (user) {
+        composeContent += "    user: ${user}\n"
+    }
     
+    composeContent += groupsArr
     composeContent += portsArr
     composeContent += envArr
     composeContent += volumesArr
@@ -97,6 +110,25 @@ def down(
     }
     if (rmi == "local" || rmi == "all") {
         command += " --rmi ${rmi}"
+    }
+    sh command
+}
+
+def logs(
+    String tail = "all",
+    boolean color = true,
+    boolean prefix = true,
+    boolean timestamps = true
+) {
+    def command = "docker compose logs -n ${tail}"
+    if (!color) {
+        command += " --no-color"
+    }
+    if (!prefix) {
+        command += " --no-log-prefix"
+    }
+    if (timestamps) {
+        command += " -t"
     }
     sh command
 }
