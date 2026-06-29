@@ -1,0 +1,55 @@
+; Ctrl + Alt + R
+^!r::Reload
+
+; Управление яркостью дисплея на мониторе
+; Mouse scroll + Win + UP/DOWN on Try
+#HotIf MouseIsOver("ahk_class Shell_TrayWnd")
+#WheelUp::AdjustBrightness(1)
+#WheelDown::AdjustBrightness(-1)
+
+AdjustBrightness(direction) {
+    static step := 5
+    static MyGui := ""
+    static MyProgress := ""
+    static MyText := ""
+    hwnd := WinExist("A")
+    if !hwnd
+        hwnd := WinExist("ahk_class Shell_TrayWnd")
+    hMonitor := DllCall("MonitorFromWindow", "ptr", hwnd, "uint", 2, "ptr")
+    if !hMonitor
+        return
+    if DllCall("dxva2\GetNumberOfPhysicalMonitorsFromHMONITOR", "ptr", hMonitor, "uint*", &numDevices:=0) {
+        physMonitors := Buffer(numDevices * (A_PtrSize + 256))
+        if DllCall("dxva2\GetPhysicalMonitorsFromHMONITOR", "ptr", hMonitor, "uint", numDevices, "ptr", physMonitors) {
+            hPhysMonitor := NumGet(physMonitors, 0, "ptr")
+            minBr := 0, curBr := 0, maxBr := 0
+            if DllCall("dxva2\GetMonitorBrightness", "ptr", hPhysMonitor, "uint*", &minBr, "uint*", &curBr, "uint*", &maxBr) {
+                newBr := curBr + (direction * step)
+                if (newBr > maxBr)
+                    newBr := maxBr
+                if (newBr < minBr)
+                    newBr := minBr
+                DllCall("dxva2\SetMonitorBrightness", "ptr", hPhysMonitor, "uint", newBr)
+                if (!MyGui) {
+                    MyGui := Gui("-Caption +ToolWindow +AlwaysOnTop -DPIScale +E0x08000000") 
+                    MyGui.BackColor := "1F1F1F" 
+                    MyGui.SetFont("s10 cWhite q5", "Segoe UI") 
+                    MyGui.MarginX := 15
+                    MyGui.MarginY := 10
+                    MyText := MyGui.Add("Text", "w160 Center", "Яркость: " newBr "%")
+                    MyProgress := MyGui.Add("Progress", "w160 h5 c0078D4 Background333333", newBr) 
+                }
+                MyText.Value := "Яркость: " newBr "%"
+                MyProgress.Value := newBr
+                guiWidth := 190   
+                guiHeight := 55   
+                MouseGetPos(&mouseX, &mouseY)
+                posX := mouseX - (guiWidth / 2)
+                posY := mouseY - guiHeight - 15
+                MyGui.Show("X" posX " Y" posY " W" guiWidth " H" guiHeight " NoActivate")
+                SetTimer(() => MyGui.Hide(), -1500)
+            }
+            DllCall("dxva2\DestroyPhysicalMonitors", "uint", numDevices, "ptr", physMonitors)
+        }
+    }
+}
