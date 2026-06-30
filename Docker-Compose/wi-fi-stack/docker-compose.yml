@@ -21,13 +21,34 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     cgroup: host
 
-  v2raya:
-    image: ghcr.io/v2raya/v2raya:latest
-    container_name: v2raya
+  # Клиент Vless (а также прокси-сервер) для подключения и маршрутизации трафика через VPN-сервер
+  # v2raya:
+  #   image: ghcr.io/v2raya/v2raya:latest
+  #   container_name: v2raya
+  #   restart: always
+  #   privileged: true
+  #   network_mode: host # WebUI 2017 port
+  #   volumes:
+  #     - /lib/modules:/lib/modules:ro
+  #     - /etc/resolv.conf:/etc/resolv.conf
+  #     - ./service:/service:ro
+
+  # Шлюз для маршрутизации трафика через прокси-сервер NekoBox 
+  raspap-gateway:
+    image: ghcr.io/xjasonlyu/tun2socks:latest
+    container_name: raspap-gateway
     restart: always
     privileged: true
-    network_mode: host # WebUI 2017 port
-    volumes:
-      - /lib/modules:/lib/modules:ro
-      - /etc/resolv.conf:/etc/resolv.conf
-      - ./service:/service:ro
+    network_mode: host
+    environment:
+      - PROXY=socks5://192.168.3.100:2080
+    entrypoint: tun2socks -device tun0 -proxy socks5://192.168.3.100:2080
+
+# Проверка маршрутизации через указанный интерфейс  
+# curl --interface tun0 https://ifconfig.me
+
+# Настройка маршрутизации трафика для интерфейса wlan0 через интерфейс tun0
+# sudo ip rule add iif wlan0 table 200
+# sudo ip route add default dev tun0 table 200
+# sudo iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
+# sudo ip route flush cache
