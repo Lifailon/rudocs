@@ -55,7 +55,9 @@ services:
 
   # echo K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} > .env
   # docker-compose up -d
-  # export KUBECONFIG=/home/lifailon/docker/k3s/kubeconfig.yaml
+  # docker exec -it k3s-control-plane kubectl get nodes
+  # echo 'export KUBECONFIG=/home/lifailon/docker/k3s-stack/kubeconfig.yaml' >> ~/.bashrc && source ~/.bashrc
+  # sudo docker cp k3s-control-plane:/bin/k3s /bin/kubectl
   # kubectl get nodes
   # kubectl create serviceaccount devops -n kube-system
   # kubectl create clusterrolebinding devops-role --clusterrole=cluster-admin --serviceaccount=kube-system:devops

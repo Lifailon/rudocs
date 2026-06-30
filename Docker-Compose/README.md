@@ -4610,6 +4610,50 @@ services:
       # command: --interface terminal --addr 0.0.0.0
 ```
 
+### tun2socks
+
+[tun2socks](https://github.com/xjasonlyu/tun2socks) - инструмент для создания и настройки перенаправления сетевого трафика с использованием виртуального сетевого интерфейса (создает интерфейс tun0) через любой внешний SOCKS прокси-сервер.
+
+```yaml
+services:
+  raspap-gateway:
+    image: ghcr.io/xjasonlyu/tun2socks:latest
+    container_name: raspap-gateway
+    restart: always
+    privileged: true
+    network_mode: host
+    environment:
+      - PROXY=socks5://192.168.3.100:2080
+    entrypoint: tun2socks -device tun0 -proxy socks5://192.168.3.100:2080
+
+# Проверка маршрутизации через указанный интерфейс  
+# curl --interface tun0 https://ifconfig.me
+
+# Настройка маршрутизации трафика для интерфейса wlan0 через интерфейс tun0
+# sudo ip rule add iif wlan0 table 200
+# sudo ip route add default dev tun0 table 200
+# sudo iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
+# sudo ip route flush cache
+```
+
+### Redsocks
+
+[Redsocks](https://github.com/darkk/redsocks) - инструмент для перенаправления любого TCP-соединение на SOCKS или HTTPS-прокси на уровне системы и сети с помощью Firewall.
+
+```yaml
+services:
+  redsocks:
+    image: alpine:latest
+    container_name: redsocks
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - ./redsocks.conf:/etc/redsocks.conf:ro
+    command: >
+      sh -c "apk add --no-cache redsocks iptables && redsocks -c /etc/redsocks.conf"
+```
+
 ## VPN
 
 ### WG UI

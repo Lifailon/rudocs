@@ -1,0 +1,11 @@
+services:
+  redsocks:
+    image: alpine:latest
+    container_name: redsocks
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - ./redsocks.conf:/etc/redsocks.conf:ro
+    command: >
+      sh -c "apk add --no-cache redsocks iptables && redsocks -c /etc/redsocks.conf"
