@@ -18,6 +18,48 @@ pipeline {
         PATH = "${HELM_PATH}:${env.PATH}"
     }
     parameters {
+        separator(
+            name: "gitParams",
+            sectionHeader: "Git repository settings",
+            separatorStyle: "border-color: blue",
+            sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
+        )
+        string(
+            name: "gitUrl",
+            defaultValue: "https://github.com/Lifailon/rudocs"
+        )
+        reactiveChoice(
+            name: 'branch',
+            choiceType: "PT_SINGLE_SELECT",
+            filterable: true,
+            script: [
+                $class: "GroovyScript",
+                script: [
+                    sandbox: true,
+                    script: '''
+                        import groovy.json.JsonSlurper
+                        def comIndex = gitUrl.indexOf(".com")
+                        def repoPath = gitUrl.substring(comIndex + 5).replace(".git", "")
+                        def apiUrl = "https://api.github.com/repos/${repoPath}/branches"
+                        def URL = new URL(apiUrl)
+                        def connection = URL.openConnection()
+                        connection.requestMethod = 'GET'
+                        connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
+                        def response = connection.inputStream.text
+                        def json = new JsonSlurper().parseText(response)
+                        def branches = json.collect { it.name }
+                        return branches as List
+                    '''
+                ]
+            ],
+            referencedParameters: "gitUrl"
+        )
+        separator(
+            name: "helmChartParams",
+            sectionHeader: "Helm chart settings",
+            separatorStyle: "border-color: blue",
+            sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
+        )
         choice(
             name: "mode",
             description: "Режим работы: развертвывание или обновление (Deploy), откат (Rollback) или удаление (Uninstall)",
@@ -32,35 +74,56 @@ pipeline {
             defaultValue: "",
             description: "Указать номер ревизии или оставить пустым для отката на предыдущую установку в режиме Rollback. Историю ревизий можно получить из лога сборки в режиме dryRun."
         )
-        separator(
-            name: "gitParams",
-            sectionHeader: "Git settings",
-            separatorStyle: "border-color: blue",
-            sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
-        )
-        string(
-            name: "gitUrl",
-            defaultValue: "https://github.com/Lifailon/rudocs"
-        )
-        string(
-            name: "branch",
-            defaultValue: "main"
-        )
-        separator(
-            name: "helmChartParams",
-            sectionHeader: "Helm chart settings",
-            separatorStyle: "border-color: blue",
-            sectionHeaderStyle: "font-size: 1.5em; font-weight: bold;"
-        )
         string(
             name: "chartPath",
             defaultValue: "Kubernetes/dozzle",
             description: "Путь к директории с Helm Chart относительно корня репозитория"
         )
-        string(
-            name: "valuesPath",
-            defaultValue: "",
-            description: "Путь к специфическому для стенда файлу с параметрами Helm Chart. По умолчанию, будет использоваться файл values.yaml из директории чарта."
+        activeChoiceHtml(
+            name: 'chartValues',
+            description: "Содержимое файла values.yaml по умолчанию выбранного Helm Chart для изменения параметров перед запуском.",
+            choiceType: 'ET_FORMATTED_HTML',
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    sandbox: true,
+                    script: '''
+                        try {
+                            def comIndex = gitUrl.indexOf(".com")
+                            def repoPath = gitUrl.substring(comIndex + 5).replace(".git", "")
+                            def repoBranch = (binding.hasVariable('branch') && branch) ? branch : "main"
+                            def cleanSlashChartPath = chartPath.replaceAll("^/+", "").replaceAll("/+\\$", "")
+                            def rawUrl = "https://raw.githubusercontent.com/${repoPath}/refs/heads/${repoBranch}/${cleanSlashChartPath}/values.yaml"
+                            def connection = new URL(rawUrl).openConnection()
+                            connection.requestMethod = "GET"
+                            connection.connectTimeout = 5000
+                            connection.readTimeout = 5000
+                            def fileText = ""
+                            if (connection.responseCode == 200) {
+                                fileText = connection.inputStream.text
+                            } else {
+                                return "Файл values.yaml не найден. Ошибка ${connection.responseCode}: ${connection.responseMessage}"
+                            }
+                            def content = fileText.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+                            return """
+                            <textarea
+                                name="value"
+                                id="yaml_editor"
+                                style="width: 100%; height: 300px; font-family: monospace; font-size: 13px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                                onchange="this.innerText = this.value">${content}
+                            </textarea>
+                            """
+                        } catch (Exception e) {
+                            return "Ошибка загрузки параметров: <b style='color:red;'>${e.message}</b>"
+                        }
+                    '''
+                ],
+                fallbackScript: [
+                    sandbox: true,
+                    script: "return ['Ошибка загрузки формы']"
+                ]
+            ],
+            referencedParameters: 'gitUrl,branch,chartPath'
         )
         booleanParam(
             name: "helmTemplate",
@@ -170,6 +233,35 @@ pipeline {
                 }
             }
         }
+        stage("Update values") {
+            when {
+                expression { params.chartValues }
+            }
+            steps {
+                script {
+                    log.stage()
+                    def valuesPath = "${params.chartPath}/values.yaml"
+                    env.VALUES_PATH = "${params.chartPath}/values-from-jenkins.yaml"
+                    // Удаляем лишние пробелы и переносы строк в исходном файле values.yaml
+                    writeFile(
+                        file: valuesPath,
+                        text: readFile(valuesPath).trim()
+                    )
+                    log.info("Создаем файл ${env.VALUES_PATH} с обновленными параметрами для Helm Chart")
+                    def valuesContent = params.chartValues.toString().trim()
+                    // Заменяем экранированные символы переноса строки и кавычек
+                    valuesContent = valuesContent.replace('\\n', '\n')
+                    valuesContent = valuesContent.replace('\\"', '"')
+                    writeFile(
+                        file: env.VALUES_PATH,
+                        text: valuesContent
+                    )
+                    sh "ls -lh ${params.chartPath}/values*"
+                    log.info("Проверяем изменения (diff) с исходным values.yaml")
+                    sh "diff --color=always -u ${valuesPath} ${env.VALUES_PATH} || true"
+                }
+            }
+        }
         stage("Check render template") {
             when {
                 expression { params.helmTemplate }
@@ -177,9 +269,7 @@ pipeline {
             steps {
                 script {
                     log.stage()
-                    // Проверяем параметр с кастомными переменными или передаем дефолтный
-                    def valuesPath = params.valuesPath?.trim() ?: "${params.chartPath}/values.yaml"
-                    def cmd = "helm template ${params.chartPath} --values ${valuesPath}"
+                    def cmd = "helm template ${params.chartPath} --values ${env.VALUES_PATH}"
                     // Логируем команду
                     log.warn(cmd)
                     // Подавляем вывод и извлекаем код возврата
@@ -214,7 +304,6 @@ pipeline {
                     )]) {
                         def contextName = "jenkins"
                         def chartName = params.chartPath.tokenize('/')[-1]
-                        def valuesPath = params.valuesPath?.trim() ?: "${params.chartPath}/values.yaml"
                         def K8S_URL = params.clusterUrl
                         def K8S_NS = params.namespace
                         // Генерируем и логируем kubeconfig
@@ -269,7 +358,7 @@ pipeline {
                             def cmd = helm.upgradeCommandGenerate(
                                 chartName,
                                 params.chartPath,
-                                valuesPath,
+                                env.VALUES_PATH,
                                 contextName,
                                 K8S_NS,
                                 params.timeout,
