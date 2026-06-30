@@ -14,6 +14,7 @@ clusters:
 - name: ${contextName}-ctx
   cluster:
     server: ${clusterUrl}
+    insecure-skip-tls-verify: true
 
 users:
 - name: ${contextName}-usr
@@ -57,6 +58,7 @@ def upgradeCommandGenerate(
         "--kube-context ${contextName}",
         "--insecure-skip-tls-verify",
         "--cleanup-on-fail",
+        "--create-namespace"
     ]
     if (namespace?.trim()) {
         args << "--namespace ${namespace.trim()}"

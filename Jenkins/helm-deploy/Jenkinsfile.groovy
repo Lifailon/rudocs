@@ -2,8 +2,6 @@
     'rudocs-shared-library@main'
 ]) _
 
-def K8S_TOKEN_CREDENTIALS = "k3s-token"
-
 pipeline {
     agent any
     options {
@@ -13,7 +11,6 @@ pipeline {
     }
     environment {
         KUBECONFIG = "${WORKSPACE}/kubeconfig"
-        GITOPS_PATH = "${WORKSPACE}/gitops"
         HELM_PATH = tool(
             name: 'helm-4.2.0',
             type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
@@ -57,16 +54,23 @@ pipeline {
         )
         string(
             name: "chartPath",
-            defaultValue: "Kubernetes/dozzle"
+            defaultValue: "Kubernetes/dozzle",
+            description: "Путь к директории с Helm Chart относительно корня репозитория"
         )
         string(
             name: "valuesPath",
-            defaultValue: ""
+            defaultValue: "",
+            description: "Путь к специфическому для стенда файлу с параметрами Helm Chart. По умолчанию, будет использоваться файл values.yaml из директории чарта."
         )
         booleanParam(
             name: "helmTemplate",
             defaultValue: true,
             description: 'Проверить рендеринг манифестов перед установкой'
+        )
+        booleanParam(
+            name: "outputTemplate",
+            defaultValue: false,
+            description: 'Вывести содержимое манифестов после рендеринга в лог сборки'
         )
         separator(
             name: "kubernetesClusterParams",
@@ -76,15 +80,22 @@ pipeline {
         )
         string(
             name: "clusterUrl",
-            defaultValue: ""
+            defaultValue: "https://192.168.3.101:6443"
         )
         string(
             name: "namespace",
-            defaultValue: ""
+            defaultValue: "monitoring",
+        )
+        credentials(
+            name: 'token',
+            credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
+            defaultValue: 'k3s-token',
+            description: 'Токен для доступа к Kubernetes API'
         )
         string(
             name: "timeout",
-            defaultValue: "900s"
+            defaultValue: "900s",
+            description: 'Время ожидания успешного выполнения команды helm (формат: 1h, 30m, 900s)'
         )
         booleanParam(
             name: "dryRun",
@@ -129,27 +140,33 @@ pipeline {
                 script {
                     log.stage()
                     branchName = params.branch ? params.branch : "main"
-                    dir(env.GITOPS_PATH) {
-                        checkout([
-                            $class: 'GitSCM', 
-                            userRemoteConfigs: [[
-                                url: params.gitUrl
-                            ]],
-                            branches: [[
-                                name: branchName
-                            ]], 
-                            extensions: [
-                                [$class: 'CloneOption', depth: 1, shallow: true],
-                                [$class: 'WipeWorkspace']
-                            ]
-                        ])
-                        def lsGit = sh(
-                            script: "ls -lh",
-                            returnStatus: false,
-                            returnStdout: true
-                        )
-                        log.success(lsGit)
-                    }
+                    checkout([
+                        $class: 'GitSCM', 
+                        userRemoteConfigs: [[
+                            url: params.gitUrl
+                        ]],
+                        branches: [[
+                            name: branchName
+                        ]], 
+                        extensions: [
+                            [$class: 'CloneOption', depth: 1, shallow: true],
+                            [$class: 'WipeWorkspace']
+                        ]
+                    ])
+                    log.info("Содержимое репозитория:")
+                    def lsGit = sh(
+                        script: "ls -lh",
+                        returnStatus: false,
+                        returnStdout: true
+                    )
+                    log.success(lsGit)
+                    log.info("Содержимое чарта:")
+                    def lsChart = sh(
+                        script: "ls -lhR ${params.chartPath}",
+                        returnStatus: false,
+                        returnStdout: true
+                    )
+                    log.success(lsChart)
                 }
             }
         }
@@ -174,10 +191,13 @@ pipeline {
                     // Проверяем код возврата и логируем ошибку
                     if (renderManifestsResult == 0) {
                         log.success("Рендеринг манифестов прошел успешно")
-                        successCount++
+                        if (params.outputTemplate) {
+                            log.success(
+                                readFile("result.temp").trim()
+                            )
+                        }
                     } else {
                         log.error("Ошибка рендеринга манифестов")
-                        failCount++
                         def err = readFile("result.temp").trim()
                         log.error("\n${err}\n")
                     }
@@ -189,7 +209,7 @@ pipeline {
                 script {
                     log.stage()
                     withCredentials([string(
-                        credentialsId: K8S_TOKEN_CREDENTIALS,
+                        credentialsId: params.token,
                         variable: "K8S_TOKEN"
                     )]) {
                         def contextName = "jenkins"
@@ -210,7 +230,7 @@ pipeline {
                             file: "${WORKSPACE}/kubeconfig",
                             text: kubeConfig
                         )
-                        // Проверяем код возврата и логируем историю релизов перед установкой или откатом
+                        // Проверяем код возврата и логируем историю версий (ревизий) перед установкой или откатом
                         def cmdHistory = "helm history ${chartName} --kube-context ${contextName}"
                         def checkHistory = sh(
                             script: cmdHistory,
@@ -223,10 +243,10 @@ pipeline {
                                 returnStatus: false,
                                 returnStdout: true
                             )
-                            log.success("\nИстория релизов (ревизий) для ${chartName} в кластере ${K8S_URL}")
+                            log.success("\nИстория версий для ${chartName} в кластере ${K8S_URL}")
                             log.success("\n${helmHistory}\n")
                         } else {
-                            log.error("\nИстория релизов (ревизий) для ${chartName} в кластере ${K8S_URL} не получена\n")
+                            log.error("\nИстория версий для ${chartName} в кластере ${K8S_URL} не получена\n")
                             // Останавливаем сборку в режиме отката, если история не получена
                             if (params.mode == "Rollback") {
                                 error("Невозможно произвести Rollback")
@@ -235,12 +255,12 @@ pipeline {
                         // Откатываем релиз до указанной или предыдущей версии
                         if (params.mode  == "Rollback") {
                             log.warn("Откат ${chartName} в кластере ${K8S_URL}")
-                            def cmd = "helm rollback ${chartName} ${params.revision} --kube-context ${contextName}"
+                            def cmd = "helm rollback ${chartName} ${params.revision} --kube-context ${contextName} --insecure-skip-tls-verify"
                             log.warn(cmd)
                             sh(cmd)
                         } else if (params.mode  == "Uninstall") {
                             log.warn("Удаление ${chartName} в кластере ${K8S_URL}")
-                            def cmd = "helm uninstall ${chartName} --kube-context ${contextName}"
+                            def cmd = "helm uninstall ${chartName} --kube-context ${contextName} --insecure-skip-tls-verify"
                             log.warn(cmd)
                             sh(cmd)
                         } else {
@@ -261,7 +281,7 @@ pipeline {
                             log.warn(cmd)
                             sh(cmd)
                         }
-                        // Логируем историю релизов после установки (если не пробный запуск) или отката
+                        // Логируем историю версий после установки (если не пробный запуск) или отката
                         if ((params.mode == "Deploy" && !params.dryRun) || params.mode  == "Rollback") {
                             def helmHistoryAfterRollback = sh(
                                 script: cmdHistory,
@@ -269,9 +289,9 @@ pipeline {
                                 returnStdout: true
                             )
                             if (params.mode  == "Rollback") {
-                                log.success("\nИстория релизов после отката для ${chartName} в кластере ${K8S_URL}")
+                                log.success("\nИстория версий после отката для ${chartName} в кластере ${K8S_URL}")
                             } else {
-                                log.success("\nИстория релизов после установки для ${chartName} в кластере ${K8S_URL}")
+                                log.success("\nИстория версий после установки для ${chartName} в кластере ${K8S_URL}")
                             }
                             log.success("\n${helmHistoryAfterRollback}\n")
                         }
