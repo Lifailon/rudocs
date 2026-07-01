@@ -74,14 +74,59 @@ pipeline {
             defaultValue: "",
             description: "Указать номер ревизии или оставить пустым для отката на предыдущую установку в режиме Rollback. Историю ревизий можно получить из лога сборки в режиме dryRun."
         )
-        string(
+        // string(
+        //     name: "chartPath",
+        //     defaultValue: "Kubernetes/dozzle",
+        //     description: "Путь к директории с Helm Chart относительно корня репозитория"
+        // )
+        reactiveChoice (
             name: "chartPath",
-            defaultValue: "Kubernetes/dozzle",
-            description: "Путь к директории с Helm Chart относительно корня репозитория"
+            choiceType: "PT_SINGLE_SELECT",
+            filterable: true,
+            script: [
+                $class: "GroovyScript",
+                script: [
+                    sandbox: true,
+                    script: '''
+                        try {
+                            def comIndex = gitUrl.indexOf(".com")
+                            if (comIndex == -1) {
+                                return ['Ошибка: Неверный формат gitUrl']
+                            }
+                            def repoPath = gitUrl.substring(comIndex + 5).replace(".git", "")
+                            def repoBranch = (binding.hasVariable('branch') && branch) ? branch : "main"
+                            def apiUrl = "https://api.github.com/repos/${repoPath}/git/trees/${repoBranch}?recursive=1"
+                            def connection = new URL(apiUrl).openConnection()
+                            connection.requestMethod = "GET"
+                            connection.setRequestProperty("User-Agent", "Jenkins-Active-Choices")
+                            connection.setRequestProperty("Accept", "application/vnd.github+json")
+                            connection.connectTimeout = 5000
+                            connection.readTimeout = 5000
+                            if (connection.responseCode != 200) {
+                                return ["Ошибка ${connection.responseCode} от GitHub API: ${connection.responseMessage}"]
+                            }
+                            def json = new groovy.json.JsonSlurper().parseText(connection.inputStream.text)
+                            def paths = []
+                            json.tree.each { item ->
+                                if (item.type == "blob" && item.path.endsWith("Chart.yaml")) {
+                                    def filePath = item.path
+                                    def dirPath = filePath.substring(0, filePath.lastIndexOf("Chart.yaml")).replaceAll("/+\\$", "")
+                                    paths.add(dirPath.isEmpty() ? "." : dirPath)
+                                }
+                            }
+                            paths.sort()
+                            return paths.isEmpty() ? ['В репозитории не найдено Helm-чартов'] : paths
+                        } catch (Exception e) {
+                            return ["Ошибка поиска чартов: ${e.message}"]
+                        }
+                    '''
+                ]
+            ],
+            referencedParameters: "gitUrl,branch"
         )
         activeChoiceHtml(
             name: 'chartValues',
-            description: "Содержимое файла values.yaml по умолчанию выбранного Helm Chart для изменения параметров перед запуском.",
+            description: "Содержимое файла values.yaml по умолчанию для изменения параметров выбранного Helm Chart перед запуском.",
             choiceType: 'ET_FORMATTED_HTML',
             script: [
                 $class: 'GroovyScript',
@@ -344,12 +389,12 @@ pipeline {
                         // Откатываем релиз до указанной или предыдущей версии
                         if (params.mode  == "Rollback") {
                             log.warn("Откат ${chartName} в кластере ${K8S_URL}")
-                            def cmd = "helm rollback ${chartName} ${params.revision} --kube-context ${contextName} --insecure-skip-tls-verify"
+                            def cmd = "helm rollback ${chartName} ${params.revision} --kube-context ${contextName}"
                             log.warn(cmd)
                             sh(cmd)
                         } else if (params.mode  == "Uninstall") {
                             log.warn("Удаление ${chartName} в кластере ${K8S_URL}")
-                            def cmd = "helm uninstall ${chartName} --kube-context ${contextName} --insecure-skip-tls-verify"
+                            def cmd = "helm uninstall ${chartName} --kube-context ${contextName}"
                             log.warn(cmd)
                             sh(cmd)
                         } else {
