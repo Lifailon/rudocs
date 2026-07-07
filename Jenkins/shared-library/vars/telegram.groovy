@@ -92,13 +92,13 @@ def sendStatus(Map config) {
     def duration = currentBuild.durationString.replace(' and no more', '')
 
     def text = """
-${icon} *Build:* [${env.JOB_NAME}](${env.BUILD_URL})
-*Number:* #${env.BUILD_ID}
-*Status:* ${status}
-*Started By:* ${userName}
-*Commit Authors:* ${authorsText}
-*Duration:* ${duration}
-""".stripIndent().trim()
+        ${icon} *Build:* [${env.JOB_NAME}](${env.BUILD_URL})
+        *Number:* #${env.BUILD_ID}
+        *Status:* ${status}
+        *Started By:* ${userName}
+        *Commit Authors:* ${authorsText}
+        *Duration:* ${duration}
+    """.stripIndent().trim()
 
     sendMessage(
         token: token, 
