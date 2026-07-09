@@ -1,0 +1,1069 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  annotations:
+    endpoints.kubernetes.io/last-change-trigger-time: "2026-07-02T08:09:18Z"
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    endpoints.kubernetes.io/managed-by: endpoint-controller
+  name: dozzle-service
+  namespace: monitoring
+  resourceVersion: "99748"
+  uid: b43084bd-ec0a-4f4c-a6e6-539f8bbd504e
+subsets:
+- addresses:
+  - ip: 10.42.1.9
+    nodeName: k3s-worker-01
+    targetRef:
+      kind: Pod
+      name: dozzle-6f6b78b7bd-c2b75
+      namespace: monitoring
+      uid: c51aa6e9-5a1e-4084-b2f3-9599dd7042b0
+  ports:
+  - port: 8080
+    protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generateName: svclb-dozzle-service-d3caf483-
+  generation: 1
+  labels:
+    app: svclb-dozzle-service-d3caf483
+    controller-revision-hash: 574cb89f84
+    pod-template-generation: "1"
+    svccontroller.k3s.cattle.io/svcname: dozzle-service
+    svccontroller.k3s.cattle.io/svcnamespace: monitoring
+  name: svclb-dozzle-service-d3caf483-54ltk
+  namespace: kube-system
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: DaemonSet
+    name: svclb-dozzle-service-d3caf483
+    uid: 843a8601-1a2c-4040-989f-a2a1e519c72b
+  resourceVersion: "99738"
+  uid: 9ef11bc1-a507-48d2-b405-aa262b501a12
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchFields:
+          - key: metadata.name
+            operator: In
+            values:
+            - k3s-worker-01
+  automountServiceAccountToken: false
+  containers:
+  - env:
+    - name: SRC_PORT
+      value: "80"
+    - name: SRC_RANGES
+      value: 0.0.0.0/0
+    - name: DEST_PROTO
+      value: TCP
+    - name: DEST_PORT
+      value: "80"
+    - name: DEST_IPS
+      value: 10.43.196.165
+    image: rancher/klipper-lb:v0.4.13
+    imagePullPolicy: IfNotPresent
+    name: lb-tcp-80
+    ports:
+    - containerPort: 80
+      hostPort: 80
+      name: lb-tcp-80
+      protocol: TCP
+    resources: {}
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  preemptionPolicy: PreemptLowerPriority
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    sysctls:
+    - name: net.ipv4.ip_forward
+      value: "1"
+  serviceAccount: svclb
+  serviceAccountName: svclb
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/control-plane
+    operator: Exists
+  - key: CriticalAddonsOnly
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/disk-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/pid-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/unschedulable
+    operator: Exists
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-07-02T08:09:15Z"
+    message: '0/2 nodes are available: 1 node(s) didn''t have free ports for the requested
+      pod ports, 1 node(s) didn''t satisfy plugin(s) [NodeAffinity]. no new claims
+      to deallocate, preemption: 0/2 nodes are available: 1 Preemption is not helpful
+      for scheduling, 1 node(s) didn''t have free ports for the requested pod ports.'
+    observedGeneration: 1
+    reason: Unschedulable
+    status: "False"
+    type: PodScheduled
+  phase: Pending
+  qosClass: BestEffort
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generateName: svclb-dozzle-service-d3caf483-
+  generation: 1
+  labels:
+    app: svclb-dozzle-service-d3caf483
+    controller-revision-hash: 574cb89f84
+    pod-template-generation: "1"
+    svccontroller.k3s.cattle.io/svcname: dozzle-service
+    svccontroller.k3s.cattle.io/svcnamespace: monitoring
+  name: svclb-dozzle-service-d3caf483-mhm2r
+  namespace: kube-system
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: DaemonSet
+    name: svclb-dozzle-service-d3caf483
+    uid: 843a8601-1a2c-4040-989f-a2a1e519c72b
+  resourceVersion: "99727"
+  uid: 646622fb-5e68-47c7-8070-c7e8feaafb41
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchFields:
+          - key: metadata.name
+            operator: In
+            values:
+            - k3s-control-plane
+  automountServiceAccountToken: false
+  containers:
+  - env:
+    - name: SRC_PORT
+      value: "80"
+    - name: SRC_RANGES
+      value: 0.0.0.0/0
+    - name: DEST_PROTO
+      value: TCP
+    - name: DEST_PORT
+      value: "80"
+    - name: DEST_IPS
+      value: 10.43.196.165
+    image: rancher/klipper-lb:v0.4.13
+    imagePullPolicy: IfNotPresent
+    name: lb-tcp-80
+    ports:
+    - containerPort: 80
+      hostPort: 80
+      name: lb-tcp-80
+      protocol: TCP
+    resources: {}
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  preemptionPolicy: PreemptLowerPriority
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    sysctls:
+    - name: net.ipv4.ip_forward
+      value: "1"
+  serviceAccount: svclb
+  serviceAccountName: svclb
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/control-plane
+    operator: Exists
+  - key: CriticalAddonsOnly
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/disk-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/pid-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/unschedulable
+    operator: Exists
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-07-02T08:09:15Z"
+    message: '0/2 nodes are available: 1 node(s) didn''t have free ports for the requested
+      pod ports, 1 node(s) didn''t satisfy plugin(s) [NodeAffinity]. no new claims
+      to deallocate, preemption: 0/2 nodes are available: 1 Preemption is not helpful
+      for scheduling, 1 node(s) didn''t have free ports for the requested pod ports.'
+    observedGeneration: 1
+    reason: Unschedulable
+    status: "False"
+    type: PodScheduled
+  phase: Pending
+  qosClass: BestEffort
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generateName: dozzle-6f6b78b7bd-
+  generation: 1
+  labels:
+    app: dozzle
+    pod-template-hash: 6f6b78b7bd
+  name: dozzle-6f6b78b7bd-c2b75
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: dozzle-6f6b78b7bd
+    uid: a17fd837-39ce-4dd3-8ee0-7b730a491842
+  resourceVersion: "99747"
+  uid: c51aa6e9-5a1e-4084-b2f3-9599dd7042b0
+spec:
+  containers:
+  - env:
+    - name: DOZZLE_AUTH_PROVIDER
+      value: simple
+    - name: DOZZLE_MODE
+      value: k8s
+    image: amir20/dozzle:v10.4
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - /dozzle
+        - healthcheck
+      failureThreshold: 3
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    name: dozzle
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /data/users.yml
+      name: auth-config
+      readOnly: true
+      subPath: users.yml
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-lwzkk
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: k3s-worker-01
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: dozzle-pod-viewer-sa
+  serviceAccountName: dozzle-pod-viewer-sa
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: auth-config
+    secret:
+      defaultMode: 420
+      secretName: dozzle-secrets
+  - name: kube-api-access-lwzkk
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-07-02T08:09:18Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2026-07-02T08:09:15Z"
+    observedGeneration: 1
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2026-07-02T08:09:18Z"
+    observedGeneration: 1
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2026-07-02T08:09:18Z"
+    observedGeneration: 1
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2026-07-02T08:09:15Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - allocatedResources:
+      cpu: 100m
+      memory: 64Mi
+    containerID: containerd://ff97b60f2f06203d143bb0cf94eb64182f3c5aa7dc27bb237de41adebdb4b93b
+    image: docker.io/amir20/dozzle:v10.4
+    imageID: docker.io/amir20/dozzle@sha256:03ac4280eec733d004de0a46a3944e8ef0d3fbd9c317027b19492d4ed360aa89
+    lastState: {}
+    name: dozzle
+    ready: true
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2026-07-02T08:09:18Z"
+    user:
+      linux:
+        gid: 0
+        supplementalGroups:
+        - 0
+        uid: 0
+    volumeMounts:
+    - mountPath: /data/users.yml
+      name: auth-config
+      readOnly: true
+      recursiveReadOnly: Disabled
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-lwzkk
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 172.19.0.2
+  hostIPs:
+  - ip: 172.19.0.2
+  observedGeneration: 1
+  phase: Running
+  podIP: 10.42.1.9
+  podIPs:
+  - ip: 10.42.1.9
+  qosClass: Burstable
+  startTime: "2026-07-02T08:09:15Z"
+---
+apiVersion: v1
+data:
+  users.yml: IyBodHBhc3N3ZCAtbmJCIGFkbWluIERvenpsZUFkbWluCiMgaHRwYXNzd2QgLW5iQiBndWVzdCBndWVzdAp1c2VyczoKICBhZG1pbjoKICAgIG5hbWU6ICJhZG1pbiIKICAgIHBhc3N3b3JkOiAiJDJ5JDA1JFpwbmpFb2xmWFZjRzUzVnJVdG9FTGV1MXpTOWpEY1NydG5rNEozaXVjRWJZWTNmT2ZUS091IgogIGd1ZXN0OgogICAgbmFtZTogImd1ZXN0IgogICAgcGFzc3dvcmQ6ICIkMnkkMDUkalNLZjZ2LlpodEtRRXl1RWd3czBpdVBodHZpV2prRGZFWUs4eVo2OHdEZXF2SHpXcEZ1b0ciCg==
+kind: Secret
+metadata:
+  annotations:
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: dozzle-secrets
+  namespace: monitoring
+  resourceVersion: "99703"
+  uid: 4038c141-2097-4940-9880-e6446272cf7c
+type: Opaque
+---
+apiVersion: v1
+data:
+  release: SDRzSUFBQUFBQUFDLyt4NzZYZnFPTGJ2djhKeTk3ZVg1SGdJT1RGcjlRY01lQ0JBZ2dGUGZXclZzbVRITnNoRDRRRk12L3JmMzVKc2d4bVNuRHI5Ym4rNDk5WTZLYkFzYlcxdDdlRzN0OFMvcU1nT1hhcEhPZkhoZ0Z6cWpncWk5NWpxL1l0NkQ3WnA5cnZqSmlndVhZZnFVU3pOUHQzVDMrOXBka2svOTJpK3gzUWZhSnA3NUZtT1p5M3Fqa0wyWHh6Z3VDbmNCa2tXeEJIVm81UW96V3lFT2pBT0UrUm1tSmMwczdNOHhkdzFWUCs4bzZCdmJ6UE1ZZWhtdG1Obk52NSt1WXJDM2FZVldmcUJlYUN2SmxOZEcyVkI2SFpRN0hXS3dOMjUyODU3dk8wTVk3aHh0eDBZUjVrZFJPNDI3ZGlSMDNsNVRqdEo3S1RVSFdVbmdYYWtYYkNrSlRtMU1QVEQ0d09OMlVReDNGQzlLRWZvanNyY01FRjI1cVpVNzU5SFhvK04zNnJWaFc2VVBaUjJpREN6WkZtVWFRaUpGbW9sWkZFQjFyRm5Hc0lPbGp3N25TZGJXKzl1WGdOaFpCbENDamlVV1hxWEhvUU1jaVJ4WXhxcS8rckZuaUoxZmFDdm5oUTUrNjRNdXJxcDd4bkxtT2FZemlRazc3eDNnMzVSQmtKdTZneUNuT0NiN0dmOXRRT1V4TFcxRVBqM2VYS0FrclltODhoakJLVjlZckxpNFRVUXZydGxQOWRDTVhWMDdUQUp4UjBjZEV2TXA2M1BmRmppc2RVWUowUUhXK2Z6aFlRT2pzU1g3bXFmQUIzUkg5T3dFaUtMemF4dzlDNnR5QXcvQ1BvZVpMWFUwbWMwNEpRbi9Ld01oTXcwMUxVOTJ2dG1xS1h3RUw4b0E5emVKekw4Z0Q2UlFVUFRrYlFNU252ZmtWWkhtcGFoK3BZazB1YnlSQTlJWW1EcCt3T1JROTJtU09JT0RtUFA1Vkp2Z2l3ZnlCcUNaZGVIY2o4SG9aaFY4cXY2UTA1QVpvcy95R3FsRTZLMXRSTFhKc3N6SUZKZk1WOVhQRWZqd05Tbk9XUkg5UjdXNjJQNTNKSEVCR0M5YWRGVkJ2M3M1L1doMzFvTHlremRRUi9JTEFHNkdKSDFMSk5iNzFuTEdKTTlidVI2b2kxVVl6V0JBZEorRHRoOVluS2JEM2lyZUZqSldncEVvUUFTV3JzdEdSNWxKL0dsSTArZnp1ZkJmL1NaWEZhNDMvWCtIQ3hqek5yNkRFMGkxWWVoZ3h4UktHQTA5OTRId3NiU0xkL1I5N1F5OUhhdncvNjFuT1RzKzJRaGNMYWh4bGY4UjJNRVdaNkI0UXdkOWIvTmQ2Z2RBS2VWSnF1ZDYxRWxwKzl1U1h1T3hGdW16cVRLNEJIemsyUDd4emF2REVmbERkbVNNWmJlM1h6MHptRVJiUSt1OW1zSFF6N0FmQU1Kc1piZVJaQ2IzdENKZmVLRVdtNFpzOE5LSGhkbXVMcVdlU1VQR2pESUIvck9td1RDc3lKMUV4Q3FDRVJ6YjdwVVBwSWhBdUg4TDhwWEtBRTd4bnRZV3JxNHNUL2lXeDRqVTFleERod2dVNDM1RDhnYmdjajhTRDZscVhjamE5SGYyS3pXblF6Nkd5Y1VVMlVZODljMm9PVk9jSzA3MTNhdGJpMWpjNzMyaWhlVzBGeFd1aitXTFI4TWhHZEZGaG5BcWVpYTk2LzJ4Q3FBckdYV2lpSCsrTUxma0wvSm9vb3RyNEhnTzRZYVQvUlpBVUlyc1haWDYvQVVxYUt6a2tUYUhzYmVoRlY5UnhvVmpqRkRNSnJtcnM2azE3YU5mYWdXTkdPKzdCdHF2alhpY3lCalg2T1dqcjQ2OHV5RWZPcmdPUGlSMzVSRXhwRzhEUHNTSzBUUnhUNGZMSDFXV3NiOHhsN1BrTW1Oa1RQNktmK2JRVlpidzFDajRlNGYvNkR1cURCMk1GYTVCYWxvL3FIN25mN09zVjJPc2FnLzcyNmdpeUR5dG02YVhrQUxsMHN6UlVKaG13MWI3MGJZRmNHeWkwQW9Ca0RTS25VT3haMnRXUWhHc3dTd2owK0sxRVdPN0JRd3pCSVF3dHcrK0lkSmlJb0paKzRIcEczK3BJeFFibkZqYklZdlFOZG9VeWRiU1VSRFF1RHlpL0M0WUJJUU9pVjJNY2N4eG14bjZqUDBXZml1SVF4UjFWTm9GWTYwNXV6ZWg5enNka2dOanp6blpxdmZFV1pFV21vWlZYaVpMSVFZY0RQNk14cTJ4Qitjd2Nsa2JWbWw0YkFWNnJIS25vVXJ1bXJEcXQ4MkQxbndIY2xmdVlhQWVaN0RVQXR0dzJ1cHFCQ1krbXlMM2MrbE96dkNpZVcxYWY3a1BoekQ0clZhay9ENGRNdk1RS1JsWnFpVjE3QUZtNmVWbU93cUorRWF1eDlKUlZZb01rQ2VlMDFvcmZSVHl5MGl2NTh5QTRibW5wL3A1dy9NWUF0cytCTTJBTU94YjVaZGJINFkraEZlTG1HNHN4NjkyQ3pLcldIc3JhN2cydnhuOWIwMFEzRTlpV1orbzErL291T1RCWjFkMmFkY1FVUFQwR2hiNGt2YlNIeEhRZ1VJdXR0WEdkdjVjOUZldzV6ZE01QlRFVVRqQWtpclg3WFhIV0RubVJNaTVMQmFPVEVxV2hjMjQwTUp5VERrR1NoUG54UXhEUlJVaHhTNUJaRU9zYWVYNHgxZzFZTVM3RHdsRWdwTG5oWkE0aVB5SEhZTFM5SU9wN0VXZ3VFWXB4NUF3YkJ0b0tUS1lKemF4b3l1eGp1K0k4M2l1bitHNGJtOWNrckFhYnQ2TGd6dFMxdWZIU1poK2dqTGJnTEtzVlBEZnV3M0NzY1lyL0U2TU05UTRqZnc5QjVEM0tDbUUxbkdQSmdNK2dIQUtjMEE5Nkd6eVR6QjY5WWJLUHdhQ05YZWh6aWMrQVVNMFpOcHFIanZQdkNsczlReFpyUmxqQmVBM2FNNTlqRVN5cTFkY3BHU0hFUHRwK25OeEJBS2E4Q3d0cTV4bHFGazVvbmV3ZEhIZitCVXFnNkJtU0xWUElpTjNXcUN5VmJwVjczKy9LZlRFNm1WUW42bVQ3VU5FTHVJc0I1cEMwdXZJTlJIT3Z1cmE0Y2huMXJZUDdkMDRtZjJaeENkd2FKLzN6K2xMdHk2V2ZwRkJlREM5UkNVOEl0WmZ3dGx4TCs0TldvWFNxc25aY1R2VEVOa3JIbHljT1F4RHJXakl5K3loc1BIWVJLaERBeGo3NzJmRUtRODJWZ0prTFREWklQTnRSODBpQXFXUElOREZpeTdYYUR2QWtYZWVZQ29wNVk3Z3o3SitQOC9pSHBiQk5EOWE2S3V2UHo4VnkzdUdQVitzZGhDTkRRSElVOVhtdGc5Sm9vM28xakQ3NkxyZzdCYk9CaFY2SHplVGo3Sk9Ga3RkRjNNd09CMmhEYjFiZzQ0dFlvZTBmUWlFV29sQkJkSlFndDUwVFZxK1JBRk9ETGFIZGNvenhDUXRMVWo4V1d6dnA4dDJGd2svMW1EVGk3bDI1TE5EbkJqR3F1WUpXbWhhV2lwTStnL1RnZnRKRXVnVFFON2RYV08rMzY2RGtrc0xWYWpWN2RSelNWZFlnYTJidDR1UUZRUmJsN3gxMHJLcEZQN1o3eUFrTjlZMnEzaXhYUTNIWHE3TTVyeXYrSEpmcnVqQ2h2bGJrcjEva1haU1lJLzNLakFIOE5YeTVxTWZ1K3Zsdkx2YitxcnBneEhLdFdqMGlCTVNJbTJmajk5SFk2b0hyVjVUcWsvNzZnZ3REMDhyeDBHVzViK2RxcEs0L2EzSEtHM0dBV3dwSHBVSCszc01xWHVya3EvK0RsTmJJZ2J3emdLc25nYlJCNTFSeVhiR0ZTTW9xQndJemNsMzkyOUMvRW5qTVBRamh5cTkwL3FOSzN2Mmlqem9lL0NEZlhibjNmVXV4MmdmT3N1L2EyYitqRnlxQjUzUndWUmtBVTJHcnJJTGhjdWpDTW5wWG9jZlVjbDdqYUluV01UUTk5UldLeHhuaDNidW4vK2VVZHQzUVFGME1aZDhFTWE1MXZZTUJvR0dma0drNXhzQngzaS9YSERlSXVGd0xEUDA0QWlKUDdJM2JUZGxibm8rdlNJZTVLdVJaQUdjVFNJOHlnalU1Nks1UVZEUHp5U2ZhaVNSa0lPMldrNnEzM28xbmJmZ3cxMVI3bVJEWkRyVUwxc203dDNsQituMlhFVEhqYlA2UU9Lb1kwSWE4Q3VCTHgxN2N4dEJxVDJzZnQ5RWp2M1ZRMytQclh4a05wQkU1Mktvaml6c3lDTzBxYm1qeEI0eUtNQWMrMCtaTy9mYk1mQnZONG5jWXpJV2NHN25hT3Nlcnk3T1FMRnRpUFl5STZndTFYZVVpd3RubjFnbnA0ZnVBZVdaakVMVWV5NGIvRTJ3enRKUCtQTkpBLzRXMlp2UFRkN3E1OUpTNWxnNlV4YVpJbW9VK2k3b2QyY0FsUlBKOXVpYVpxNUovK1dOTjBqL3l6cWpub1AwUGxCZ1RycUQ2ZWpoOUE1eFNxbEZEYUFTNTR3OGhrRUltakhyZW5nY1Q5WkM4Nkw1Tk9PTEJ4ZWcrZkMxcGxvRXMxaVc5ZFNxODRBekZEY1dPeXFPSTRONk4xa1BjcW5BNXg1V3dVTW1jcnZoMkw2eHMxb1Y5K2pOOTFLVFdPZVFVNWtUR09NWGhaOVg2ZkZIUlJiMmNkd3RKdXM1L2xVcEdPUzhjclRwMG5KSjBDSE9XVDl4TkwzbXdwaDg0R3BxNUcxNEFVb0MwZDBQRm5XNC84S0gvUDRaUlZxUHBEVkJNTWJraW5JVm1JWkRvS0JFQUpPOFZTSlg5dXNWaXJTckFDUjZwTWlZVFQxVEwyN1VVWVk5UXNrNHhoNDhWb3BoU1pldkF5aW5iZGd0UzZPRTFvVnE1NlYwY20zdncrRWtXWE0xakJFdXlyTEVwNEgwUzdEbWRuRXFEOFh6SFAxV2YyOUQwN2ZtL2Q0bmxhaDcxbVIrTUFPdFhVVlM0VHZ5a1o5MDFFeVZUVmUwRFJWTVJoaHNXU3NzVHJTRnNvNkRpQ0xNaWp0a1JMc0FuWEUyL3BtTHhvMDg2YU9Wc0ZyTU1hWlgvQ3U5ekcvUThCMmFWTkh1V1VvbnFWM1dSdG5heUZEQ3JOT0tKYTJUcW8vQjBYZXZid1BCQUwvYkozeExaeDFEb1FhNWtIODNWTkNNYk1OcFp3TytFWW5BeFB6TEFxK0kzbWVJejE3anVTajVpQkJrVkN1eUdwc0xmQytqRFBUbUQ4cHczMXA2VTRDT2JWME5hMEVnd29HTGtsMnlmdFFGa2dsNXEyU3JmZkpvY0N6SXM5b2lDRmppZVhXRCtiNm5qTU5kRkJDc25ZQnlJN3ZHbFBQa25nT2hQdkMxT2MxZjN2ZmtiU0QweHhNTElRUWhueFc4M3JpYjlIbW9ZYlRWekpSQ3pkS1Vtc3g5ckRlekExaGgvbXJzd2l2enBvdjZCengzdFVhZ003bnRxRVdWVnRGYzNrR3g3V0RwYzh4dkg0bWgwK25RajdtcHpEREJKa2MwVlhQTFhGbWJDRlNCQytWSjdjY0kxZlMxc282K2E2RXN3TG9qQS9DZWZDSzBtRENOdXRRVWlYMGthbnZhVnVheFpZKzJ5cUk0U2VEY1dqcUtIV01NZElrSDJmS01XRDNHMlVkSHlZRExBOUUyN3FZcXBLV21nWmFXcVQ0cXg3dysrbGdGMEJKSzIyZDMrQlVCckRkRGVabnV1eW5Tb1R0V0NzY1EyMlBZZDROcHBKbm5TNDR4cml1YkFpeHBZc3AxamVUOVpISlptZTZDME90bGorUlJ3SXFYT1JOSzN0NGRYUW13TFlBV05NejlSbU41ZE0rMUx5Z2RUeXNJZWtKVzJYTStMc3Bwemp6ejJ3RDgwdmt1WE1XeXBPeVZuWlRpUTRtZzNGbTZVd0JvMDN3R2lqNzZkcWYyWXN4bG1OcDRSVEttTkgxbnF5aHZLcjZESVVNMnpUUXRReHc0eTYyOWRsYUplTnFlMTRjS3hRTEFjc3h0SFdIZ1dHRitTOTRaMjBEKytudUVIQTRwY0w2aGVyUC9wN1k3YWpMQUgyTS9XWmhCWmgyZFhDN1lqVWFsZ0lOU3FFRTdEN0ZHYkpkdG5RNE9zYUFhM3VJelAxMDhFalhOaml1N1lzMmRWanI3RWVWMTUySGJjN1d1eEdSNzJCTXcxQkVWb2kyUjFwMVpiZjI2NFEzdkplWGRDMjk2NXZoSGxsa3JlTUNzRHZDbXlPUEdVcy8waUlIUisyK2VIMnR5amlwK3Q3Z3EvRjlkWVZnWDVpc21OWThpcTZzSW9odHZNNzk2ajJwcXd5ejB0SkZtdGo5YmI2R1RUWFNYQWk1WlVCdlJZK3E5Y210S3N1SFB1aXlNamZ6YTc0MHlLNHEzeWZQZHBZK1M2d1E0VFV2NXdzaEFZR3dhVjh1VUNTK1ZHUW50dlJIeitUR2lQaXlFSjU0Mm95RmVhMFBuK1NmMTNHdEtsK2tRRkp5Uis4bURzRWpPSjh5QzFOWE41WGM4UnI0Rk92K0tWZXIyeXJib0UxOW41cEJsd0VoSW9mTzFxSkxXd0dmQWxiY3pFTXhOZlh1MmpMRzQ1VThKWGIxdWxUeTZkSjhuS3luK1hUZEw1V284aTBhdG84UWVzdUs1blFlOUdQQUNZUi9VOThsOWQ1OWtLc1JYYWw4UVoxclZUYkY3N0RjNm9vMzlsYzVZRlVFcitXMXU2WlQwemhXNEZZTm5jdXhaN25xSlkzWG9YRDBuYzFCZUowamU5aG1vY1J2cnRaV2xYaXVkV3VENDZZNk1QVzlEOElaZ2tFVms0NTFrb1dRNGZWaGVnUHZsdyt4WUJ5OUIxNzZMVS9kYmZwUXRxczFTaW5Faml4Z1Q4RlpnMzRHd3ZGQWtjUU4wRkd1akdyTlgxWFBnMkRxMmJLNk00M1p3V0huM2tUdkJ2TkFpSERXN0F6cXozNVNGWjZxcW9WdlNVd0MxbkdyYnJsNlVnYmpxajFRWHBwekdUdy80TWFiMTZBZmpJZmo3bmpZWjhaaXNnTmhJZ0oySCtxaXRWWVBxNE1XalRWSDRzV2xwREZUSTFtKzZzbklaR2FsSTNXM3MxRjhzQTF0cmVwalMxL093aVZyclJZMHp5aWttT2VRcU5CVVE1cGF2QkpXN1VyZERpWHhBRG1uZ09IOFNSa29tMm0wMlV5SHE0Mk5aaE5yYmJFVGxNVE9LRk5WQXpHcTduRHdJQ1NPaG1Wb0pScWJiRlhKRXZWVit1aHFNZnNxT3lQTEVObUZuQmh3WkRHQWhzRXY3bUJWSExoLzM4YmgvZHFOTmtGMG84SzVxeFkzOVNZTCtqWlVtcmVxbWxLOXVmUFRtQnRRNkxyTUpqRUZoaU9BSTJxTU4zQ3RET2pzSXR6NUpxY21Ucmp5V3BEaHBUb0VxTzh2SFdKdjJwNjdQdWhTSkQ1VXhDTmtXRm9ZQXNocW9jampBa2g3Y2tCSHlsU1hJWGg0VHU4SVZ5VzFjTmd1Y1Y4MUJFMU5RMFdRbTNzTkZMZWljUUVXQW0xTGhOL0l4dkFoMnJ4OGVMZG1KS1lPSzNaSnhiZWVqNXliRDBoWUozUWEycmIrV01QaU9nVWJ4dDZiUEVZV2k3QXI2R3JHT0oxd3BMcExRdldFRlhld090LytQNlJRWDlGNVVxU3I5S0FsK3pvbGtGV2YzQWVRMjRkWUZXUWdaYXF5bjAwV244T2NXclpYOTJoZ3FPMkpnYmNQV3FYWnpsbkczblRaMzRGVFNhNkJaay9LMEtTWCt1YWx1ZXNDZEhSMnQ4SGtCT1kxNkpjWW1wMW9NZ2pvZk9rU3VzcGpQYjVlWjMzbkFmTlc2N1V0a1hRMVZtbzRUZlpFcnUreE5ITzE3dG1jRG5ZRkF0ZlA3NXNkWVRzNW9EcUQ3WU54RFkzOXRTMXBhL3Q0Y0VYdWR1RzBJakgxL2NqUzk3NnJ6UkNweE12VEoyVTQzWjFLaEFLQ0lTb3NzZjErMUhwL0RkZGZnejV6bXNmeWJYM1B3RkJiMmVTZ3p5K0FoTk8rNmJtTW1yUThFQkNJckFTR2ZBNTBBbE5aMHhnbnBqNU9yY29lVzNkcWhOR1NTZXpsU0h0ZnJ2aVJ1b3c5RE1FdTM4MDFiYlVRK2ZscXcrdUxsU3F1MXJIWHBNd0RMem1HdkxZdnVneG41RjZnakhiWUFTOGwzcmRHWXg5SVltNnlXdG5TMDJWRHF3NnZtTjlkVmJMdFAwNzdMVnYvSkJSWGR4QmJKZVZoWEpXUlcrT1huSUJBVU5GV0pENnZ5OFAxaFlsakNmaXBLZnUyZU5RZ1M5TExtV1dvUGhqdEI4ckFMNkJNamhaOE1DQSs1Qnk2SFhYeTUrRWFEb3BYY0swSlpIOE5zdUdnZGczWnZQamxDTTByL2hxL2tsc3M1a000WG1UQmF6L0MrbUZjd2V1VzMxMGNJVDd4TFRRTStSUkkxYjZhNTVkR2ppbElTNTVYRUovNFFJay80SDJ6SlA3SkRmZW9QbHhPQVR2elFUOStJWmNOMm55TDJzRnEvRGtuSUpORm9hMXJHMFdjQ2FSc0lxazR2aFN1WHBWcUFLZDREdXRqSGFndkxKQTk5Y2tGblZKWXpEZmlzTG9mT3pyRnpSdnBRR3NkdDFJTnJBdk5oWWlyTzFPZi8rMitnSDRNODhCeEhQL1k3VmFIQ1Y5aURPN3greU5IRHZacWRQaS9Cdy8vclE0ZTdDU1pYZjBpNGIvc0xJTENJenAzMVArUTg0alFqb0ozbDBqbi92NytSL1Mzem9Kc2VhOVRyZnpiamV0U1A2TFRUeDU2bllMNWdVRzgwK3NzS3BuMEljVGIrU05xZm8zUit4RjFPdGdVR3FMbjRtemVFa1BwZFU1MjhpUDZpcVgyRFltUHVjSjlQdU9tcHZJSkgxaDZ2YzVyWXYrUnV6K2lOTU90dzRiV01SWHRkZjR2ZnU1MC90YnhzOFJPMDUzVHVZK0EwTEdkTUlnNlF6SmJIMysvM2MzRFpsUDl2K3BBS1BlcTc1Mkt5dkdwV2NNUGlyVC9vRTR2Q00xNDYrQ1hmMmZMdjlQZHYxdEp0QjdGNk4zUW9OVGx0TzBxaTBjVE4yY09DMzQ5aEl0dEZtMGV4MXlRd3hFd1RlNzk5WDM1OHBxZmFCS2Via3hkOGZyNTFPdkZ5L3RUOFdENTJjdDhWT1lqYjVmU1FmN21aMFdncnpmRDk1SDU4bHhhVDgrN29mdEhJUi8wUk14akNkUDhSWDBrelhhZStmRTJPQkN6SkFZZnhOOU9PakZBZVpxNVd6Vkc3aytxNlpaMDNlYklyVGJrdm1NbmdiU044eVR0ZGY3NWcvcEIvVlpKNGVnelNYTVNPK2tQNnE1VGZmdUdZcTk2d3JhYkhzY1U3aFpVL1QwM3F6cWdJSzIvN2V3TStuWFh5MWxETjlzR01LMFgrQ2tQWDAzMTIzOUs0RUlRT2NTb2ZrcnVvT21kNW1EdHdxeVIvbTJQYzlMTmp4ek5oeWFPTjFoMTN3bjVHMHJ5bFdaMGpqdnppVUIreHFHZDdpRjk0V1kvOTJoMWx3K1gyK20wd2xadDJWOUZybDZuSGJnK0huTVJ1M3FkczlEMUkwb1RGNUlwSzdmYWprbTROWFdSQzdONFczTmxKMG16THR5QWcxekQ4RDE1Nm5XZTZjWURuUUlmYmoyMU43R3kxeUd4OHV1TnVQZ0IzdmxlMkVtU3RwUjdlT3o3eVo1OHNoZEhlVFRncTlkaHFzY0tIY2xCbXNYYmNvSUJXUDNxUWtZaDloRVRHN2lvRlM3TzVkWXNyYlhYUno3eGYraDg5Tlg0VHVmSUpuazRzN3paRnpiWGFmMThzalhGL1pXRW12OEl4dTUxenFCM2p5RENxMTRuSk43clZFQzgzYVd0THFkcGo5eGNhOHE1L3p3ZldFSGdpOFpPQnlaNXI0UGg4T1dMQ3ZEMk9nUWFuNzlzUVBKdFlzd254REI0YnI5ckVvZzNuRkpja01NSnhmVU1WWFp4MVg3ZitYYTlFZFdMVnU1eC92SXlDZWwxdVBNT054SVNiSVBubmM2U0U3ejY4OWZuaVVxdjAyMi9kcVBpYW5zcnJicVY5RjB1alJTak1WaXBVc0UybExsQkN1ZUhIMUxZUEtmbnc0c1k1YUU3eGZhUmZzQWlEaEwzVmRKNnRkMTQzSnVkK2IzT04yeW9weE9QeTU1cERxcCtIL2JZdXJiekdxR3kxOEhKVGZPMjR1K1dQWDdBVm9XVEw1WlNOYzV1NHVtdm5HejdkMGpuSGpaeXMxMjgzUVNSZDQwbGxHclVaL0V2YUxwODdYUHJyb01tamNReUlsa2s4Y0F0dklkenlHYUNVd3BaQ2NQUHN1UW9sOFRPL0pOVTc4bHpyL090RFpJemYwbEMzOXZXZlEvMnB6ZkFoaHYzd2pSclQzc2g5by9DL2JubnU3THhLQStCdTYwaVp2czM4Y3dudFFvN1NWRDVlK2htZnV4UVBTckZDZkQvQ3dBQS8vK0pCdmhPSlVBQUFBPT0=
+kind: Secret
+metadata:
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    modifiedAt: "1782979758"
+    name: dozzle
+    owner: helm
+    status: deployed
+    version: "1"
+  name: sh.helm.release.v1.dozzle.v1
+  namespace: monitoring
+  resourceVersion: "99752"
+  uid: b6b9a949-3de6-422e-9efd-c834c25d179b
+type: helm.sh/release.v1
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: dozzle-pod-viewer-sa
+  namespace: monitoring
+  resourceVersion: "99702"
+  uid: 6462994e-0469-4407-9b61-b27f4ab7b142
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+    metallb.universe.tf/address-pool: default-pool
+    metallb.universe.tf/loadBalancerIPs: 192.168.3.202
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: dozzle-service
+  namespace: monitoring
+  resourceVersion: "99709"
+  uid: d3caf483-f289-43d1-9694-900c4753d750
+spec:
+  allocateLoadBalancerNodePorts: true
+  clusterIP: 10.43.196.165
+  clusterIPs:
+  - 10.43.196.165
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - nodePort: 30080
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: dozzle
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: ControllerRevision
+data:
+  spec:
+    template:
+      $patch: replace
+      metadata:
+        labels:
+          app: svclb-dozzle-service-d3caf483
+          svccontroller.k3s.cattle.io/svcname: dozzle-service
+          svccontroller.k3s.cattle.io/svcnamespace: monitoring
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: SRC_PORT
+            value: "80"
+          - name: SRC_RANGES
+            value: 0.0.0.0/0
+          - name: DEST_PROTO
+            value: TCP
+          - name: DEST_PORT
+            value: "80"
+          - name: DEST_IPS
+            value: 10.43.196.165
+          image: rancher/klipper-lb:v0.4.13
+          imagePullPolicy: IfNotPresent
+          name: lb-tcp-80
+          ports:
+          - containerPort: 80
+            hostPort: 80
+            name: lb-tcp-80
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        priorityClassName: system-node-critical
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          sysctls:
+          - name: net.ipv4.ip_forward
+            value: "1"
+        serviceAccount: svclb
+        serviceAccountName: svclb
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+        - key: CriticalAddonsOnly
+          operator: Exists
+metadata:
+  annotations:
+    deprecated.daemonset.template.generation: "1"
+    objectset.rio.cattle.io/applied: H4sIAAAAAAAA/7xUTW/jNhD9K8WcJVmK7XwI6CFIgiJo1zFsby8LIxhRI5s1RRLkSBtvoP9eUHayCurdNJeFD4bImTecN+/NM6CVf5Pz0mjIAa31ozaDCHZSl5DDLVJt9JIYIqiJsURGyJ8BtTaMLI324dMU/5BgT5w4aRKBzIoSaUYyYED0w3vzVZOLN+0Ochi1WfTbn1KXvy/JtVLQu3kaa4IcSvPtm6LYfyDLWxQhtTZasnFSb6CLQGFB6qf9bNFvIQea0pW4yNIzkeL55CIbn02yyfRsUomL6aScjq+qIsVqjBCBb4Uwmp1RilyyG/sBmjYleVIk2DjIoULl6Z0U34ofdf0/0k63fQT0rVBF/BY2LscCq8nlGA5hLwC7pqDY7z1THRC8JRFo+97MM9TIYvvXK6No7bs1ui4CptoqZOohBoJTH0L61SQOOMCGTW0azUcVXwsRvlZmRxryfsYRhBooNTkP+ZdnIN32/8dXLRc3j/OHxQoiaFE14egyhS56E7C4nv1xtxyEpEn/G72JvL1brh7ni4fVwyBydTP/b8zP6vUR9/NhtSxNJuMkuzpPsvMpdOsIZI2bcONQiy250U5Ja8nFqsjbNJkkWRhLHzRvlJobJcUecrivZobnjjxphlcxqiJmYePLFCKwxvGBp1fa5sYx5JdpBFvj+fvXqWxn2AijXvpeR+DIm8YJCnIKkyPROMn7G6OZnjgMUaDFQirJkg6aK0vIv8DsbvV4ffvpfgbrrgtI1knTpyr0fnb0UW+LOJg7Fk6yFKjgZBW/94KVH45eEyfStpNE2sfKuK/oyiHp0K37Bw+VNRvYFyJgo8i9bOagraoiwZDDzCzFlspGBZ3vKHDfv9EZRUkwtNPE5IPSjxaIrULdL1QbIPsldfckPfteHAeMm2OL12VptH/Qan86YR1M0tgSmZbskGmzDxwEp0m9+dxfHPbG02eNLUqFhSLIs7AU9ja0uHgT25uOkZt+QqJxjjTPmrog99JoCXkaQUleOipPXen+7JP0/sTxgrDcQ5523b8BAAD///h76fQmBwAA
+    objectset.rio.cattle.io/id: ""
+    objectset.rio.cattle.io/owner-gvk: /v1, Kind=Service
+    objectset.rio.cattle.io/owner-name: dozzle-service
+    objectset.rio.cattle.io/owner-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    app: svclb-dozzle-service-d3caf483
+    controller-revision-hash: 574cb89f84
+    svccontroller.k3s.cattle.io/svcname: dozzle-service
+    svccontroller.k3s.cattle.io/svcnamespace: monitoring
+  name: svclb-dozzle-service-d3caf483-574cb89f84
+  namespace: kube-system
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: DaemonSet
+    name: svclb-dozzle-service-d3caf483
+    uid: 843a8601-1a2c-4040-989f-a2a1e519c72b
+  resourceVersion: "99721"
+  uid: b6e410f5-c69d-4a7d-bdde-4b238610ec10
+revision: 1
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    deprecated.daemonset.template.generation: "1"
+    objectset.rio.cattle.io/applied: H4sIAAAAAAAA/7xUTW/jNhD9K8WcJVmK7XwI6CFIgiJo1zFsby8LIxhRI5s1RRLkSBtvoP9eUHayCurdNJeFD4bImTecN+/NM6CVf5Pz0mjIAa31ozaDCHZSl5DDLVJt9JIYIqiJsURGyJ8BtTaMLI324dMU/5BgT5w4aRKBzIoSaUYyYED0w3vzVZOLN+0Ochi1WfTbn1KXvy/JtVLQu3kaa4IcSvPtm6LYfyDLWxQhtTZasnFSb6CLQGFB6qf9bNFvIQea0pW4yNIzkeL55CIbn02yyfRsUomL6aScjq+qIsVqjBCBb4Uwmp1RilyyG/sBmjYleVIk2DjIoULl6Z0U34ofdf0/0k63fQT0rVBF/BY2LscCq8nlGA5hLwC7pqDY7z1THRC8JRFo+97MM9TIYvvXK6No7bs1ui4CptoqZOohBoJTH0L61SQOOMCGTW0azUcVXwsRvlZmRxryfsYRhBooNTkP+ZdnIN32/8dXLRc3j/OHxQoiaFE14egyhS56E7C4nv1xtxyEpEn/G72JvL1brh7ni4fVwyBydTP/b8zP6vUR9/NhtSxNJuMkuzpPsvMpdOsIZI2bcONQiy250U5Ja8nFqsjbNJkkWRhLHzRvlJobJcUecrivZobnjjxphlcxqiJmYePLFCKwxvGBp1fa5sYx5JdpBFvj+fvXqWxn2AijXvpeR+DIm8YJCnIKkyPROMn7G6OZnjgMUaDFQirJkg6aK0vIv8DsbvV4ffvpfgbrrgtI1knTpyr0fnb0UW+LOJg7Fk6yFKjgZBW/94KVH45eEyfStpNE2sfKuK/oyiHp0K37Bw+VNRvYFyJgo8i9bOagraoiwZDDzCzFlspGBZ3vKHDfv9EZRUkwtNPE5IPSjxaIrULdL1QbIPsldfckPfteHAeMm2OL12VptH/Qan86YR1M0tgSmZbskGmzDxwEp0m9+dxfHPbG02eNLUqFhSLIs7AU9ja0uHgT25uOkZt+QqJxjjTPmrog99JoCXkaQUleOipPXen+7JP0/sTxgrDcQ5523b8BAAD///h76fQmBwAA
+    objectset.rio.cattle.io/id: ""
+    objectset.rio.cattle.io/owner-gvk: /v1, Kind=Service
+    objectset.rio.cattle.io/owner-name: dozzle-service
+    objectset.rio.cattle.io/owner-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generation: 1
+  labels:
+    objectset.rio.cattle.io/hash: e5e9c7102c0a647132414524fc754d539fb0af3a
+    svccontroller.k3s.cattle.io/nodeselector: "false"
+    svccontroller.k3s.cattle.io/svcname: dozzle-service
+    svccontroller.k3s.cattle.io/svcnamespace: monitoring
+  name: svclb-dozzle-service-d3caf483
+  namespace: kube-system
+  resourceVersion: "99741"
+  uid: 843a8601-1a2c-4040-989f-a2a1e519c72b
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: svclb-dozzle-service-d3caf483
+  template:
+    metadata:
+      labels:
+        app: svclb-dozzle-service-d3caf483
+        svccontroller.k3s.cattle.io/svcname: dozzle-service
+        svccontroller.k3s.cattle.io/svcnamespace: monitoring
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: SRC_PORT
+          value: "80"
+        - name: SRC_RANGES
+          value: 0.0.0.0/0
+        - name: DEST_PROTO
+          value: TCP
+        - name: DEST_PORT
+          value: "80"
+        - name: DEST_IPS
+          value: 10.43.196.165
+        image: rancher/klipper-lb:v0.4.13
+        imagePullPolicy: IfNotPresent
+        name: lb-tcp-80
+        ports:
+        - containerPort: 80
+          hostPort: 80
+          name: lb-tcp-80
+          protocol: TCP
+        resources: {}
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      priorityClassName: system-node-critical
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        sysctls:
+        - name: net.ipv4.ip_forward
+          value: "1"
+      serviceAccount: svclb
+      serviceAccountName: svclb
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      - key: CriticalAddonsOnly
+        operator: Exists
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  currentNumberScheduled: 2
+  desiredNumberScheduled: 2
+  numberMisscheduled: 0
+  numberReady: 0
+  numberUnavailable: 2
+  observedGeneration: 1
+  updatedNumberScheduled: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: dozzle
+  namespace: monitoring
+  resourceVersion: "99751"
+  uid: 85eb263b-11e5-485d-a86b-3f0acbfc9fb2
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: dozzle
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: dozzle
+    spec:
+      containers:
+      - env:
+        - name: DOZZLE_AUTH_PROVIDER
+          value: simple
+        - name: DOZZLE_MODE
+          value: k8s
+        image: amir20/dozzle:v10.4
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - /dozzle
+            - healthcheck
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: dozzle
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data/users.yml
+          name: auth-config
+          readOnly: true
+          subPath: users.yml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: dozzle-pod-viewer-sa
+      serviceAccountName: dozzle-pod-viewer-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: auth-config
+        secret:
+          defaultMode: 420
+          secretName: dozzle-secrets
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2026-07-02T08:09:18Z"
+    lastUpdateTime: "2026-07-02T08:09:18Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2026-07-02T08:09:15Z"
+    lastUpdateTime: "2026-07-02T08:09:18Z"
+    message: ReplicaSet "dozzle-6f6b78b7bd" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 1
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  annotations:
+    deployment.kubernetes.io/desired-replicas: "1"
+    deployment.kubernetes.io/max-replicas: "2"
+    deployment.kubernetes.io/revision: "1"
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generation: 1
+  labels:
+    app: dozzle
+    pod-template-hash: 6f6b78b7bd
+  name: dozzle-6f6b78b7bd
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Deployment
+    name: dozzle
+    uid: 85eb263b-11e5-485d-a86b-3f0acbfc9fb2
+  resourceVersion: "99750"
+  uid: a17fd837-39ce-4dd3-8ee0-7b730a491842
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dozzle
+      pod-template-hash: 6f6b78b7bd
+  template:
+    metadata:
+      labels:
+        app: dozzle
+        pod-template-hash: 6f6b78b7bd
+    spec:
+      containers:
+      - env:
+        - name: DOZZLE_AUTH_PROVIDER
+          value: simple
+        - name: DOZZLE_MODE
+          value: k8s
+        image: amir20/dozzle:v10.4
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - /dozzle
+            - healthcheck
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: dozzle
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data/users.yml
+          name: auth-config
+          readOnly: true
+          subPath: users.yml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: dozzle-pod-viewer-sa
+      serviceAccountName: dozzle-pod-viewer-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: auth-config
+        secret:
+          defaultMode: 420
+          secretName: dozzle-secrets
+status:
+  availableReplicas: 1
+  fullyLabeledReplicas: 1
+  observedGeneration: 1
+  readyReplicas: 1
+  replicas: 1
+---
+addressType: IPv4
+apiVersion: discovery.k8s.io/v1
+endpoints:
+- addresses:
+  - 10.42.1.9
+  conditions:
+    ready: true
+    serving: true
+    terminating: false
+  nodeName: k3s-worker-01
+  targetRef:
+    kind: Pod
+    name: dozzle-6f6b78b7bd-c2b75
+    namespace: monitoring
+    uid: c51aa6e9-5a1e-4084-b2f3-9599dd7042b0
+kind: EndpointSlice
+metadata:
+  annotations:
+    endpoints.kubernetes.io/last-change-trigger-time: "2026-07-02T08:09:18Z"
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generateName: dozzle-service-
+  generation: 2
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    endpointslice.kubernetes.io/managed-by: endpointslice-controller.k8s.io
+    kubernetes.io/service-name: dozzle-service
+  name: dozzle-service-4ffs8
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Service
+    name: dozzle-service
+    uid: d3caf483-f289-43d1-9694-900c4753d750
+  resourceVersion: "99749"
+  uid: 33d561a4-7330-4f02-be3c-bcbaa63d6606
+ports:
+- name: ""
+  port: 8080
+  protocol: TCP
+---
+apiVersion: metrics.k8s.io/v1beta1
+kind: NodeMetrics
+metadata:
+  creationTimestamp: "2026-07-02T13:17:46Z"
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/instance-type: k3s
+    beta.kubernetes.io/os: linux
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: k3s-control-plane
+    kubernetes.io/os: linux
+    node-role.kubernetes.io/control-plane: "true"
+    node.kubernetes.io/instance-type: k3s
+  name: k3s-control-plane
+timestamp: "2026-07-02T13:17:30Z"
+usage:
+  cpu: 63904245n
+  memory: 875728Ki
+window: 20.02s
+---
+apiVersion: metrics.k8s.io/v1beta1
+kind: NodeMetrics
+metadata:
+  creationTimestamp: "2026-07-02T13:17:46Z"
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/instance-type: k3s
+    beta.kubernetes.io/os: linux
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: k3s-worker-01
+    kubernetes.io/os: linux
+    node.kubernetes.io/instance-type: k3s
+  name: k3s-worker-01
+timestamp: "2026-07-02T13:17:27Z"
+usage:
+  cpu: 24139318n
+  memory: 523508Ki
+window: 10.013s
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: dozzle-ingress
+  namespace: monitoring
+  resourceVersion: "99718"
+  uid: 99a6afcf-836c-4ba0-8206-0f4ec16488f3
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: dozzle.k8s.local
+    http:
+      paths:
+      - backend:
+          service:
+            name: dozzle-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+status:
+  loadBalancer:
+    ingress:
+    - ip: 172.19.0.2
+    - ip: 172.19.0.3
+---
+apiVersion: networking.k8s.io/v1
+kind: IPAddress
+metadata:
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    ipaddress.kubernetes.io/ip-family: IPv4
+    ipaddress.kubernetes.io/managed-by: ipallocator.k8s.io
+  name: 10.43.196.165
+  resourceVersion: "99706"
+  uid: 2b1b459a-40fa-44b9-b7e5-a1a8e1ea391d
+spec:
+  parentRef:
+    name: dozzle-service
+    namespace: monitoring
+    resource: services
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: dozzle-pod-viewer-binding
+  resourceVersion: "99705"
+  uid: 4987651a-10e1-40c3-bf7c-663dbddbd3d7
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: dozzle-pod-viewer-role
+subjects:
+- kind: ServiceAccount
+  name: dozzle-pod-viewer-sa
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    meta.helm.sh/release-name: dozzle
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: "2026-07-02T08:09:15Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: dozzle-pod-viewer-role
+  resourceVersion: "99704"
+  uid: cac0fd34-479d-454a-903a-8b6d50c1fe8a
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
