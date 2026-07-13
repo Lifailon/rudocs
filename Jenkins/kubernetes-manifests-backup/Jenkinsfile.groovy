@@ -104,32 +104,15 @@ pipeline {
                 script {
                     log.stage()
                     log.info("Проверяем версию kubectl")
-                    def results = sh(
-                        script: "kubectl version --output=json || true",
-                        returnStdout: true
-                    )
-                    log.success(results)
+                    log.cmd("kubectl version --output=json || true")
                     log.info("Проверяем версию krew")
-                    results = sh(
-                        script: "krew version",
-                        returnStdout: true
-                    )
-                    log.success(results)
+                    log.cmd("krew version")
                     log.info("Устанавливаем плагины")
-                    results = sh(
-                        script: """
-                            krew install get-all neat
-                            krew list
-                        """,
-                        returnStdout: true
-                    )
-                    log.success(results)
+                    log.cmd("krew install get-all neat")
+                    log.info("Проверяем список установленных плагинов")
+                    log.cmd("krew list")
                     log.info("Проверяем версию плагина neat")
-                    results = sh(
-                        script: "kubectl neat version",
-                        returnStdout: true
-                    )
-                    log.success(results)
+                    log.cmd("kubectl neat version")
                 }
             }
         }
@@ -137,11 +120,7 @@ pipeline {
             steps {
                 script {
                     log.stage()
-                    def resources = sh(
-                        script: "kubectl get-all --insecure-skip-tls-verify=true --since ${params.since}",
-                        returnStdout: true
-                    )
-                    log.success(resources)
+                    log.cmd("kubectl get-all --insecure-skip-tls-verify=true --since ${params.since}")
                 }
             }
         }

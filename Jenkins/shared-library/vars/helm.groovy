@@ -68,6 +68,6 @@ def upgradeCommandGenerate(
     }
     if (dryRun)     args << "--dry-run"
     if (atomic)     args << "--atomic"
-    if (force)      args << "--force"
+    if (force)      args << "--force-conflicts"
     return args.join(" ")
 }

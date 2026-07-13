@@ -1,13 +1,6 @@
-def log = {
-    def m = [:]
-    m.stage = { echo "\n\u001B[35m=== [STAGE: ${STAGE_NAME}] ===\u001B[0m\n" }
-    m.info = { text -> echo "\u001B[34m${text}\u001B[0m" }
-    m.warn = { text -> echo "\u001B[33m${text}\u001B[0m" }
-    m.success = { text -> echo "\u001B[32m${text}\u001B[0m" }
-    m.error = { text -> echo "\u001B[31m${text}\u001B[0m" }
-    m.uncolor = { text -> echo "${text}" }
-    return m
-}()
+@Library([
+    'rudocs-shared-library@main'
+]) _
 
 def NAMESPACE = "--all-namespaces"
 
@@ -131,11 +124,7 @@ pipeline {
                 script {
                     log.stage()
                     log.info("Проверяем версию kubectl")
-                    def results = sh(
-                        script: "kubectl version --output=json || true",
-                        returnStdout: true
-                    )
-                    log.success(results)
+                    log.cmd("kubectl version --output=json || true")
                 }
             }
         }
@@ -148,21 +137,13 @@ pipeline {
                     log.stage()
                     if (params.nodes) {
                         log.info("Получаем информацию о состояние нод в кластере (статус, роли, время работы и версию)")
-                        def nodes = sh(
-                            script: "kubectl get nodes --insecure-skip-tls-verify=true ${NAMESPACE}",
-                            returnStdout: true
-                        )
-                        log.success(nodes)
+                        log.cmd("kubectl get nodes --insecure-skip-tls-verify=true ${NAMESPACE}")
                     }
                     if (params.components) {
                         log.info("Получаем информацию о состояние компонентов кластера (etcd, scheduler, controller-manager и другие)")
-                        def components = sh(
-                            script: "kubectl get componentstatuses --insecure-skip-tls-verify=true ${NAMESPACE}",
-                            returnStdout: true
-                        )
-                        log.success(components)
+                        log.cmd("kubectl get componentstatuses --insecure-skip-tls-verify=true ${NAMESPACE}")
                         log.info("Получаем информацию о состояние готовности всех компонентов в кластере")
-                        components = sh(
+                        def components = sh(
                             script: "kubectl get --raw '/readyz?verbose' --insecure-skip-tls-verify=true ${NAMESPACE}",
                             returnStdout: true
                         ).trim()
@@ -176,43 +157,19 @@ pipeline {
                     }
                     if (params.top) {
                         log.info("Получаем текущую утилизацию ресурсов на нодах")
-                        def topNodes = sh(
-                            script: "kubectl top nodes --insecure-skip-tls-verify=true || true",
-                            returnStdout: true
-                        )
-                        log.success(topNodes)
+                        log.cmd("kubectl top nodes --insecure-skip-tls-verify=true || true")
                         log.info("Получаем текущую утилизацию ресурсов на подах")
-                        def topPods = sh(
-                            script: "kubectl top pods --insecure-skip-tls-verify=true ${NAMESPACE} || true",
-                            returnStdout: true
-                        )
-                        log.success(topPods)
+                        log.cmd("kubectl top pods --insecure-skip-tls-verify=true ${NAMESPACE} || true")
                     }
                     if (params.resources) {
                         log.info("Получаем состояние всех ресурсов в кластере (поды, сервисы, задания и другие)")
-                        def resources = sh(
-                            script: "kubectl get all --insecure-skip-tls-verify=true ${NAMESPACE}",
-                            returnStdout: true
-                        )
-                        log.success(resources)
+                        log.cmd("kubectl get all --insecure-skip-tls-verify=true ${NAMESPACE}")
                         log.info("Получаем состояние всех хранилищ в кластере")
-                        def volumes = sh(
-                            script: "kubectl get pv,pvc,storageclasses --insecure-skip-tls-verify=true ${NAMESPACE}",
-                            returnStdout: true
-                        )
-                        log.success(volumes)
+                        log.cmd("kubectl get pv,pvc,storageclasses --insecure-skip-tls-verify=true ${NAMESPACE}")
                         log.info("Получаем состояние сетевых контроллеров")
-                        def network = sh(
-                            script: "kubectl get ingress,ingressclasses,networkpolicies --insecure-skip-tls-verify=true ${NAMESPACE}",
-                            returnStdout: true
-                        )
-                        log.success(network)
+                        log.cmd("kubectl get ingress,ingressclasses,networkpolicies --insecure-skip-tls-verify=true ${NAMESPACE}")
                         log.info("Получаем список всех конфигураций и секретов")
-                        def configs = sh(
-                            script: "kubectl get configmaps,secrets --insecure-skip-tls-verify=true ${NAMESPACE}",
-                            returnStdout: true
-                        )
-                        log.success(configs)
+                        log.cmd("kubectl get configmaps,secrets --insecure-skip-tls-verify=true ${NAMESPACE}")
                     }
                     if (params.events) {
                         log.info("Получаем информацию обо всех событиях для всех ресурсов в кластере")

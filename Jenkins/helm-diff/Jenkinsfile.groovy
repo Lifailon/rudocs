@@ -1,13 +1,6 @@
-def log = {
-    def m = [:]
-    m.stage = { echo "\n\u001B[35m=== [STAGE: ${STAGE_NAME}] ===\u001B[0m\n" }
-    m.info = { text -> echo "\u001B[34m${text}\u001B[0m" }
-    m.warn = { text -> echo "\u001B[33m${text}\u001B[0m" }
-    m.success = { text -> echo "\u001B[32m${text}\u001B[0m" }
-    m.error = { text -> echo "\u001B[31m${text}\u001B[0m" }
-    m.uncolor = { text -> echo "${text}" }
-    return m
-}()
+@Library([
+    'rudocs-shared-library@main'
+]) _
 
 pipeline {
     agent any
@@ -86,32 +79,11 @@ pipeline {
                 script {
                     log.stage()
                     log.info("Проверка версии helm")
-                    def helmVersion = sh(
-                        script: """
-                            helm version || true
-                        """,
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(helmVersion)
+                    log.cmd("helm version || true")
                     log.info("Проверка версии kubectl")
-                    def kubectlVersion = sh(
-                        script: """
-                            kubectl version --output=json || true
-                        """,
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(kubectlVersion)
+                    log.cmd("kubectl version --output=json || true")
                     log.info("Проверка версии linux diff")
-                    def diffVersion = sh(
-                        script: """
-                            diff --version || true
-                        """,
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(diffVersion)
+                    log.cmd("diff --version || true")
                 }
             }
         }
@@ -135,19 +107,9 @@ pipeline {
                         ]]
                     ])
                     log.info("Содержимое репозитория:")
-                    def lsGit = sh(
-                        script: "ls -lh",
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(lsGit)
+                    log.cmd("ls -lh")
                     log.info("Содержимое чарта:")
-                    def lsChart = sh(
-                        script: "ls -lhR ${params.chartPath}",
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(lsChart)
+                    log.cmd("ls -lhR ${params.chartPath}")
                 }
             }
         }

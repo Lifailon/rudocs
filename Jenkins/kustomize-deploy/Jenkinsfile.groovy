@@ -1,13 +1,6 @@
-def log = {
-    def m = [:]
-    m.stage = { echo "\n\u001B[35m=== [STAGE: ${STAGE_NAME}] ===\u001B[0m\n" }
-    m.info = { text -> echo "\u001B[34m${text}\u001B[0m" }
-    m.warn = { text -> echo "\u001B[33m${text}\u001B[0m" }
-    m.success = { text -> echo "\u001B[32m${text}\u001B[0m" }
-    m.error = { text -> echo "\u001B[31m${text}\u001B[0m" }
-    m.uncolor = { text -> echo "${text}" }
-    return m
-}()
+@Library([
+    'rudocs-shared-library@main'
+]) _
 
 pipeline {
     agent {
@@ -188,12 +181,7 @@ try {
             steps {
                 script {
                     log.stage()
-                    def results = sh(
-                        script: "kubectl version --output=json || true",
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.info(results)
+                    log.cmd("kubectl version --output=json || true")
                 }
             }
         }
@@ -205,18 +193,8 @@ try {
                 script {
                     log.stage()
                     try {
-                        def template = sh(
-                            script: "kubectl kustomize ${params.project}",
-                            returnStatus: false,
-                            returnStdout: true
-                        )
-                        log.info(template)
-                        def render = sh(
-                            script: "kubectl kustomize Kubernetes/${params.project} | kubectl replace --dry-run=client --insecure-skip-tls-verify --validate=false -f -",
-                            returnStatus: false,
-                            returnStdout: true
-                        ).trim()
-                        log.success(render)
+                        log.cmd("kubectl kustomize ${params.project}")
+                        log.cmd("kubectl kustomize Kubernetes/${params.project} | kubectl replace --dry-run=client --insecure-skip-tls-verify --validate=false -f -")
                     } catch (Exception e) {
                         log.error(e.message)
                     }
@@ -274,12 +252,7 @@ try {
             steps {
                 script {
                     log.stage()
-                    def results = sh(
-                        script: "kubectl cluster-info --insecure-skip-tls-verify",
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.info(results)
+                    log.cmd("kubectl cluster-info --insecure-skip-tls-verify")
                 }
             }
         }

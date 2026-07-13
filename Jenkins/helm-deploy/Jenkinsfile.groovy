@@ -227,14 +227,7 @@ pipeline {
                 script {
                     log.stage()
                     sh "ls -lhR $HELM_PATH || true"
-                    def helmVersion = sh(
-                        script: """
-                            helm version || true
-                        """,
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(helmVersion)
+                    log.cmd("helm version || true")
                     if (currentBuild.description == null) { currentBuild.description = "" }
                     currentBuild.description += "<b>Mode</b>: ${params.mode}<br/>"
                     currentBuild.description += "<b>Dry-run</b>: ${params.dryRun}<br/>"
@@ -262,19 +255,9 @@ pipeline {
                         ]
                     ])
                     log.info("Содержимое репозитория:")
-                    def lsGit = sh(
-                        script: "ls -lh",
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(lsGit)
+                    log.cmd("ls -lh")
                     log.info("Содержимое чарта:")
-                    def lsChart = sh(
-                        script: "ls -lhR ${params.chartPath}",
-                        returnStatus: false,
-                        returnStdout: true
-                    )
-                    log.success(lsChart)
+                    log.cmd("ls -lhR ${params.chartPath}")
                 }
             }
         }
@@ -368,17 +351,11 @@ pipeline {
                         def cmdHistory = "helm history ${chartName} --kube-context ${contextName}"
                         def checkHistory = sh(
                             script: cmdHistory,
-                            returnStatus: true,
-                            returnStdout: false
+                            returnStatus: true
                         )
                         if (checkHistory == 0) {
-                            def helmHistory = sh(
-                                script: cmdHistory,
-                                returnStatus: false,
-                                returnStdout: true
-                            )
                             log.success("\nИстория версий для ${chartName} в кластере ${K8S_URL}")
-                            log.success("\n${helmHistory}\n")
+                            log.cmd(cmdHistory)
                         } else {
                             log.error("\nИстория версий для ${chartName} в кластере ${K8S_URL} не получена\n")
                             // Останавливаем сборку в режиме отката, если история не получена
@@ -417,17 +394,12 @@ pipeline {
                         }
                         // Логируем историю версий после установки (если не пробный запуск) или отката
                         if ((params.mode == "Deploy" && !params.dryRun) || params.mode  == "Rollback") {
-                            def helmHistoryAfterRollback = sh(
-                                script: cmdHistory,
-                                returnStatus: false,
-                                returnStdout: true
-                            )
                             if (params.mode  == "Rollback") {
                                 log.success("\nИстория версий после отката для ${chartName} в кластере ${K8S_URL}")
                             } else {
                                 log.success("\nИстория версий после установки для ${chartName} в кластере ${K8S_URL}")
                             }
-                            log.success("\n${helmHistoryAfterRollback}\n")
+                            log.cmd(cmdHistory)
                         }
                     }
                 }
