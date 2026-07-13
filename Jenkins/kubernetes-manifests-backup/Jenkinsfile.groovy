@@ -1,13 +1,6 @@
-def log = {
-    def m = [:]
-    m.stage = { echo "\n\u001B[35m=== [STAGE: ${STAGE_NAME}] ===\u001B[0m\n" }
-    m.info = { text -> echo "\u001B[34m${text}\u001B[0m" }
-    m.warn = { text -> echo "\u001B[33m${text}\u001B[0m" }
-    m.success = { text -> echo "\u001B[32m${text}\u001B[0m" }
-    m.error = { text -> echo "\u001B[31m${text}\u001B[0m" }
-    m.uncolor = { text -> echo "${text}" }
-    return m
-}()
+@Library([
+    'rudocs-shared-library@main'
+]) _
 
 pipeline {
     agent any
@@ -57,6 +50,11 @@ pipeline {
             name: 'clean',
             defaultValue: true,
             description: 'Clean system resources from manifests'
+        )
+        booleanParam(
+            name: 'split',
+            defaultValue: true,
+            description: 'Split manifests into files'
         )
     }
     stages {
@@ -173,6 +171,9 @@ pipeline {
                         int backupCount = 0
                         int skipCount = 0
                         int failCount = 0
+                        if (params.split) {
+                            sh "mkdir -p manifests-backup"
+                        }
                         for (manifest in manifests) {
                             def trimManifest = manifest.trim()
                             if (!trimManifest) {
@@ -194,6 +195,24 @@ pipeline {
                                 if (yamlFromNeat) {
                                     cleanYaml += "---\n" + yamlFromNeat + "\n"
                                     backupCount++
+                                    if (params.split) {
+                                        try {
+                                            def parsedYaml = new org.yaml.snakeyaml.Yaml().load(yamlFromNeat)
+                                            if (parsedYaml && parsedYaml instanceof Map) {
+                                                def kind = parsedYaml.get('kind') ?: "unknown"
+                                                def metaMap = parsedYaml.get('metadata') ?: [:]
+                                                def name = metaMap.get('name') ?: "unknown"
+                                                def namespace = metaMap.get('namespace') ?: "unknown"
+                                                def fileName = "${namespace}-${kind}-${name}".toLowerCase().replaceAll(/[^a-z0-9\._\-]/, "") + ".yaml"
+                                                writeFile(
+                                                    file: "manifests-backup/${fileName}",
+                                                    text: yamlFromNeat
+                                                )
+                                            }
+                                        } catch (Exception yamlEx) {
+                                            log.warn(yamlEx.message)
+                                        }
+                                    }
                                 }
                             } catch (Exception e) {
                                 log.error("Ошибка обработки манифеста через neat: ${e.message}")
@@ -212,6 +231,11 @@ pipeline {
                         )
                         archiveArtifacts(
                             artifacts: "manifests-clean.yaml",
+                            allowEmptyArchive: true
+                        )
+                        sh "tar -czf manifests-backup.tar.gz manifests-backup/"
+                        archiveArtifacts(
+                            artifacts: "manifests-backup.tar.gz",
                             allowEmptyArchive: true
                         )
                     }
