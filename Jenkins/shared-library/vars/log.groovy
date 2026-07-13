@@ -21,3 +21,55 @@ def error(Object text) {
 def uncolor(Object text) {
     echo "${text}"
 }
+
+def cmd(String script) {
+    def result = sh(
+        script: script,
+        returnStdout: true
+    ).trim()
+    success(result)
+    return result
+}
+
+def objectYaml(Object object) {
+    def result = writeYaml(
+        data: object,
+        returnText: true 
+    )
+    success(result)
+    return result
+}
+
+def objectJson(Object object) {
+    def result = writeJSON(
+        json: object,
+        returnText: true,
+        pretty: 4
+    )
+    success(result)
+    return result
+}
+
+def rawJson(String text) {
+    def result = readJSON(text: text)
+    success(result)
+    return result
+}
+
+def rawYaml(String text) {
+    def result = readYaml(text: text)
+    success(result)
+    return result
+}
+
+def fileJson(String path) {
+    def result = readJSON(file: path)
+    success(result)
+    return result
+}
+
+def fileYaml(String path) {
+    def result = readYaml(file: path)
+    success(result)
+    return result
+}
