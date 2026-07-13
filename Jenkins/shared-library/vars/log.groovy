@@ -6,12 +6,12 @@ def info(Object text) {
     echo "\u001B[34m${text}\u001B[0m"
 }
 
-def warn(Object text) {
-    echo "\u001B[33m${text}\u001B[0m"
-}
-
 def success(Object text) {
     echo "\u001B[32m${text}\u001B[0m"
+}
+
+def warn(Object text) {
+    echo "\u001B[33m${text}\u001B[0m"
 }
 
 def error(Object text) {

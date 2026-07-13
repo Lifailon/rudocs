@@ -4,9 +4,11 @@
 
 Каждый проект имеет краткое описание и скриншоты с примерами работы.
 
+Для запуска сервера и сборщика Jenkins используется стек [docker-compose](../Docker-Compose/ci-cd-stack/jenkins/docker-compose.yml).
+
 ## Plugins
 
-Список используемых плагинов.
+Список используемых плагинов:
 
 | Плагин                                                                                            | Описание                                                                                                                        |
 | -                                                                                                 | -                                                                                                                               |
@@ -46,3 +48,101 @@
 | [Prometheus Metrics](https://plugins.jenkins.io/prometheus)                                       | Предоставляет конечную точку `/prometheus` с метриками, которые используются для сбора данных                                   |
 | [Web Monitoring](https://plugins.jenkins.io/monitoring)                                           | Добавляет конечную точку `/monitoring` для отображения графиков мониторинга в веб-интерфейсе                                    |
 | [CloudBees Disk Usage](https://plugins.jenkins.io/cloudbees-disk-usage-simple)                    | Отображает использование диска всеми заданиями во вкладке `Manage-> Disk usage` для анализа                                     |
+
+## Node Tools
+
+Агент Jenkins опубликован на [Docker Hub](https://hub.docker.com/r/lifailon/jenkins-agent), в [образе](../Docker-Compose/ci-cd-stack/jenkins/Dockerfile) которого предусмотрена установка DevOps инструментов:
+
+- [ansible](https://github.com/ansible/ansible)
+- [golang](https://github.com/golang/go)
+- git
+- curl
+- ping
+- netcat
+- make
+- tmux
+
+Параметры подключения агента на сервере Jenkins:
+
+- name: `local-agent-01`
+- remote root dir: `/home/jenkins`
+- label: `linux amd64`
+
+## Custom Tools
+
+Список используемых пользовательских утилит, которые устанавливаются с помощью [скриптов](./custom-tools/), используя плагин [Custom Tools](https://plugins.jenkins.io/custom-tools-plugin):
+
+| Tool                                                  | Version   |
+| -                                                     | -         |
+| [docker cli](https://github.com/docker/cli)           | 29.5.0    |
+| [docker buildx](https://github.com/docker/buildx)     | 0.34.1    |
+| [docker compose](https://github.com/docker/compose)   | 5.1.0     |
+| [kubectl](https://github.com/kubernetes/kubectl)      | 1.36.0    |
+| [helm](https://github.com/helm/helm)                  | 4.2.0     |
+| [krew](https://github.com/kubernetes-sigs/krew)       | 0.5.0     |
+| [node-js](https://github.com/nodejs/node)             | 24.17.0   |
+
+## Shared library
+
+Для работы некоторых Pipeline, требуется добавить [rudocs-shared-library](./shared-library/vars/) с пользовательскими функциями в настройках проектной области:
+
+![](jenkins-clean-builds/img/add-shared-library.jpg)
+
+Подключение библиотеки в Pipeline:
+
+```groovy
+@Library([
+    'rudocs-shared-library@main'
+]) _
+```
+
+Использование методов, на примере логера:
+
+```groovy
+// Логируем текущий шаг (в начале каждого steps внутри stage)
+log.stage()
+def version = ""
+try {
+    // Логируем произвольный текст синим цветом
+    log.info("Проверяем версию helm")
+    // Логируем вывод команды зеленым цветом и извлекаем вывод в переменную
+    version = log.cmd("helm version")
+} catch (Exception e) {
+    // Логируем предупреждения желтым цветом
+    log.warn("Ошибка получения версии")
+    // Логируем текст ошибки красным цветом
+    log.error(e.getMessage())
+}
+
+def text = '{"name": "dozzle", "enabled": true, "replicas": 2}'
+// Преобразовываем вывод в объект и логируем содержимое зеленым цветом в формате json
+def object = log.rawJson(text)
+if (object.enabled) {
+    log.success("${object.name}: ${object.enabled}")
+}
+// Преобразуем и выводим содержимое объекта в отформатированном json формате
+def data = log.objectJson(object)
+
+// Записываем содержимое в файл и выводим содержимое файла в json формате
+writeFile(
+    text: data,
+    file: "data.json"
+)
+log.fileJson("data.json")
+```
+
+## Credentials
+
+Список используемых секретов, которые используются в проектах:
+
+| ID                    | Pipeline                                                                          |
+| -                     | -                                                                                 |
+| `jenkins-api-cred`    | Jenkins Buckup Jobs                                                               |
+| `ssh-creds`           | Update authorized_keys                                                            |
+| `ssh-key`             | Docker CD, Parallel SSH Pipeline                                                  |
+| `docker-hub`          | Docker CI                                                                         |
+| `k3s-approle`         | Kubectl Commands Run                                                              |
+| `k3s-token`           | Helm Deploy                                                                       |
+| `kubeconfig-file`     | Helm Diff, Kustomize Deploy, Kubernetes Cluster Info, Kubernetes Manifests Backup |
+| `telegram-token`      | Jenkins Buckup Jobs, Jenkins Clean Builds, Telegram Notify                        |
+| `telegram-channel`    | Jenkins Buckup Jobs, Jenkins Clean Builds, Telegram Notify                        |
