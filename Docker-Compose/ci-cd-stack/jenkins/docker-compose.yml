@@ -8,6 +8,9 @@ services:
     container_name: jenkins-server
     restart: always
     user: 1000:1000
+    environment:
+      # Отключаем Content Security Policy (CSP) для отображения CSS стилей в отчетах HTML Publisher
+      - JAVA_OPTS=-Dhudson.model.DirectoryBrowserSupport.CSP=""
     volumes:
       - ./jenkins_home:/var/jenkins_home
     ports:
