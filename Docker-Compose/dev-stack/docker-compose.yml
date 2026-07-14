@@ -1,3 +1,5 @@
+############################################################ SSH/SFTP ############################################################
+
 services:
   # Платформа для управлени SSH-подключениями с доступом к файлам и мониторингом ресурсов
   termix:
@@ -37,32 +39,6 @@ services:
   #     - 6989:6989
   #   volumes:
   #     - ./nexterm_data:/app/data
-
-############################################################ Licensing system ############################################################
-
-  licenseapi:
-    image: germannewsmaker/licenseapi:development
-    container_name: licenseapi
-    restart: unless-stopped
-    environment:
-      - MONGOOSE_STRING=mongodb://licenseapi-mongo:27017/licenseapi
-      - MAIL_SERVER=smtp.gmail.com
-      - MAIL_PORT=587
-      - MAIL_USER=noreply@gmail.com
-      - MAIL_PASS=password
-      - APP_URL=http://localhost:8025
-      - DISABLE_SIGNUPS=false
-    ports:
-      - 8025:8025
-    depends_on:
-      - licenseapi-mongo
-
-  licenseapi-mongo:
-    image: mongo:latest
-    container_name: licenseapi-mongo
-    restart: unless-stopped
-    volumes:
-      - ./licenseapi_mongo_data:/data/db
 
 ############################################################ Playground ############################################################
 
@@ -120,7 +96,7 @@ services:
   #   ports:
   #     - 8888:8080
 
-############################################################ VSCode/IDE ############################################################
+############################################################ IDE ############################################################
 
   code-server:
     image: linuxserver/code-server:latest
@@ -174,7 +150,7 @@ services:
   #   ]
   #   env_file: judge0.conf
 
-############################################################ Tools ############################################################
+############################################################ DevOps Tools ############################################################
 
   # Большая коллекция утилит для разработчиков (криптография, конверторы, веб инструменты и многое другое).
   # Playground: https://it-tools.tech
@@ -184,6 +160,20 @@ services:
     restart: unless-stopped
     ports:
       - 6990:80
+
+  # Формирует скрипты для автоматической установки приложений для разных дистрибутивов Linux
+  tuxmate:
+    image: ghcr.io/abusoww/tuxmate:latest
+    container_name: tuxmate
+    restart: unless-stopped
+    ports:
+      - 3080:80
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   # Универсальный инструмент для шифрования, кодирования, сжатия и анализа данных
   # Playground: https://gchq.github.io/CyberChef
@@ -238,3 +228,29 @@ services:
   #   environment:
   #     - DISABLE_LOGO=false
   #     - DISABLE_STORAGE_MANAGEMENT=false
+
+############################################################ Licensing system ############################################################
+
+  licenseapi:
+    image: germannewsmaker/licenseapi:development
+    container_name: licenseapi
+    restart: unless-stopped
+    environment:
+      - MONGOOSE_STRING=mongodb://licenseapi-mongo:27017/licenseapi
+      - MAIL_SERVER=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USER=noreply@gmail.com
+      - MAIL_PASS=password
+      - APP_URL=http://localhost:8025
+      - DISABLE_SIGNUPS=false
+    ports:
+      - 8025:8025
+    depends_on:
+      - licenseapi-mongo
+
+  licenseapi-mongo:
+    image: mongo:latest
+    container_name: licenseapi-mongo
+    restart: unless-stopped
+    volumes:
+      - ./licenseapi_mongo_data:/data/db

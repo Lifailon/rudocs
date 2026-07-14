@@ -1,0 +1,14 @@
+services:
+  go-playground:
+    image: x1unix/go-playground:latest
+    container_name: go-playground
+    restart: unless-stopped
+    ports:
+      - 4001:8000
+
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    restart: unless-stopped
+    ports:
+      - 4002:80
