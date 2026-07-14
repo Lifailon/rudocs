@@ -1,31 +1,63 @@
 services:
-  # CIFS/SMB Server (smbd 4.22.6)
   samba:
-    image: dockurr/samba
+    image: dperson/samba
     container_name: samba
     restart: always
+    user: root
     ports:
       - 445:445
     environment:
-      - NAME=docker
-      - USER=admin
-      - PASS=admin
+      - USER=admin;admin
+      - SHARE=docker;/storage;yes;no;no;admin
+      - FORCE_USER=root
+      - FORCE_GROUP=root
+      - PERMISSIONS=true
     volumes:
-      - /home/lifailon:/storage
+      - /home/lifailon/docker:/storage
 
-  # Backup (sync mode) to remote SMB server (Windows Share)
+  # file-browser:
+  #   image: filebrowser/filebrowser
+  #   container_name: file-browser
+  #   restart: always
+  #   user: 0:0
+  #   ports:
+  #     - 8300:80
+  #   volumes:
+  #     - $HOME:/srv
+  #     - ./filebrowser_data:/database
+  #     - ./filebrowser_conf:/config
+
   rclone:
-    image: pfidr/rclone
+    image: mirror.gcr.io/rclone/rclone:latest
     container_name: rclone
     restart: always
     volumes:
-      - ./rclone.conf:/config/rclone.conf:ro
+      - ./rclone.conf:/config/rclone/rclone.conf:ro
       - /home/lifailon/docker:/backup:ro
     environment:
-      - MODE=sync
-      - SYNC_SRC=/backup/homepage
-      - SYNC_DEST=backup_to_smb:/backup
-      - SYNC_OPTS=-vv --create-empty-src-dirs
-      - FORCE_SYNC=1
-      - CRON=0 9,19 * * *
-      - TZ=Etc/GMT-3
+      - TZ=Etc/UTC+3
+    entrypoint: /bin/sh
+    command: >
+      -c "
+        echo '0 9,21 * * * rclone sync /backup plex-01:/backup -vv --create-empty-src-dirs' > /tmp/crontab &&
+        crond -f -c /tmp &&
+        rm /tmp/crontab
+      "
+
+  # zerobyte:
+  #   image: ghcr.io/nicotsx/zerobyte:v0.19
+  #   container_name: zerobyte
+  #   restart: always
+  #   user: 0:0
+  #   ports:
+  #     - 4096:4096
+  #   cap_add:
+  #     - SYS_ADMIN
+  #   devices:
+  #     - /dev/fuse:/dev/fuse
+  #   environment:
+  #     - TZ=Etc/UTC+3
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - /var/lib/zerobyte:/var/lib/zerobyte
+  #     - /home/lifailon/docker:/backup_data
