@@ -1,4 +1,27 @@
 services:
+  # Web dBeaver (Cloud Database Manager)
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    ports:
+      - 8978:8978
+    volumes:
+      - ./cbeaver_data:/opt/cloudbeaver/workspace
+
+  # DevOps web tool for databases manage
+  bytebase:
+    image: bytebase/bytebase:latest
+    container_name: bytebase
+    restart: unless-stopped
+    init: true
+    ports:
+      - 8980:8080
+    volumes:
+      - ./bytebase_data:/var/opt/bytebase
+
   # Desktop or Web Database manager for MySQL, PostgreSQL, SQL Server, MongoDB, SQLite and others
   dbgate:
     image: dbgate/dbgate
