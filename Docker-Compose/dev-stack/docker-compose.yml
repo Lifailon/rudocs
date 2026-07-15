@@ -43,7 +43,8 @@ services:
 ############################################################ Playground ############################################################
 
   # Улучшенная игровая площадка для запуска кода на Go
-  # Playground: https://goplay.tools
+  # Official Go Playground: https://go.dev/play
+  # Better Go Playground: https://goplay.tools
   go-playground:
     image: x1unix/go-playground:latest
     container_name: go-playground
@@ -54,7 +55,7 @@ services:
       - 9444:8000
 
   # Игровая площадка для тестирования шаблонизатора Go
-  # Playground: https://repeatit.io
+  # Go Template Playground: https://repeatit.io
   go-template-playground:
     image: ghcr.io/rytsh/repeatit:latest
     # image: lifailon/go-template-playground:latest # 0.5.5-amd64
@@ -65,8 +66,14 @@ services:
     ports:
       - 9445:8080
 
-  # Helm Playground: https://github.com/shipmight/helm-playground
-  # Playground: https://helm-playground.com
+  # Отладчик шаблонизации Helm: https://github.com/shipmight/helm-playground
+  # Helm Playground: https://helm-playground.com
+  helm-playground:
+    image: lifailon/helm-playground:latest
+    container_name: helm-playground
+    restart: always
+    ports:
+      - 9446:80
 
 ############################################################ REST API Client ############################################################
 

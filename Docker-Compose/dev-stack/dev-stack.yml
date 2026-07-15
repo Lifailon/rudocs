@@ -1,14 +1,29 @@
 services:
-  go-playground:
-    image: x1unix/go-playground:latest
-    container_name: go-playground
-    restart: unless-stopped
-    ports:
-      - 4001:8000
-
   it-tools:
     image: corentinth/it-tools:latest
     container_name: it-tools
+    restart: always
+    ports:
+      - 4001:80
+
+  go-playground:
+    image: x1unix/go-playground:latest
+    container_name: go-playground
+    restart: always
+    ports:
+      - 4002:8000
+
+  go-template-playground:
+    image: ghcr.io/rytsh/repeatit:latest
+    # image: lifailon/go-template-playground:latest # 0.5.5-amd64
+    container_name: go-template-playground
     restart: unless-stopped
     ports:
-      - 4002:80
+      - 4003:8080
+
+  helm-playground:
+    image: lifailon/helm-playground:latest
+    container_name: helm-playground
+    restart: always
+    ports:
+      - 4004:80

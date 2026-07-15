@@ -1,0 +1,10 @@
+services:
+  helm-playground:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: lifailon/helm-playground:latest
+    container_name: helm-playground
+    restart: always
+    ports:
+      - 8080:80
