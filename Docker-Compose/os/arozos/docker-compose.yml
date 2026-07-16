@@ -1,0 +1,12 @@
+services:
+  arozos:
+    build: .
+    image: lifailon/arozos:3
+    container_name: arozos
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./arozos_data/files:/arozos/files
+      - ./arozos_data/web:/arozos/web
+      - ./arozos_data/system:/arozos/system
