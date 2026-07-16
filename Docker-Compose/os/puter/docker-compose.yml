@@ -1,0 +1,10 @@
+services:
+  puter:
+    image: heyputer/puter:latest
+    container_name: puter
+    restart: always
+    user: root
+    ports:
+      - 4100:4100
+    volumes:
+      - ./puter_data:/var/puter
