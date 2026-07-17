@@ -74,6 +74,45 @@ services:
       - ./macos_data:/storage
 ```
 
+### Puter
+
+[Puter](https://github.com/heyputer/puter) - операционная система работающая в браузере (WebOS), которая организует персональное облако для рабочего окружения, хранения файлов (альтернатива Dropbox, Google Drive, Microsoft OneDrive и других), запуска приложений и игр в одном месте.
+
+```yaml
+services:
+  puter:
+    image: heyputer/puter:latest
+    container_name: puter
+    restart: always
+    user: root
+    ports:
+      - 4100:4100
+    volumes:
+      - ./puter_data:/var/puter
+```
+
+### ArozOS
+
+[ArozOS](https://github.com/tobychui/arozos) - операционная система работающая в браузере (WebOS) для запуска в облаке.
+
+> [!NOTE]
+> Используется неофициальный образ [lifailon/arozos](https://hub.docker.com/r/lifailon/arozos), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
+
+```yaml
+services:
+  arozos:
+    # build: .
+    image: lifailon/arozos:3
+    container_name: arozos
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./arozos_data/files:/arozos/files
+      - ./arozos_data/web:/arozos/web
+      - ./arozos_data/system:/arozos/system
+```
+
 ### Android
 
 #### DockDroid
@@ -265,6 +304,9 @@ services:
 ### yt-dlp Telegram Bot
 
 [yt-dlp Telegram Bot](https://github.com/nonoo/yt-dlp-telegram-bot) - Telegram бот для загрузки видео из YouTube с помощью [yt-dlp](https://github.com/yt-dlp/yt-dlp) (like [Gozilla Bot](https://t.me/Gozilla_bot)).
+
+> [!NOTE]
+> Используется неофициальный мультиплатформенный образ [lifailon/yt-dlp-telegram-bot](https://hub.docker.com/r/lifailon/yt-dlp-telegram-bot), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
 
 ```yaml
 services:
@@ -783,6 +825,29 @@ services:
     volumes:
       - ./step-ci-tests:/tests
     command: tests/httpbin.yml
+```
+
+### OpenSERP
+
+[OpenSERP](https://github.com/karust/openserp) - бесплатный API и интерфейс командной строки для работы с поисковыми запросами из Google, Yandex, Baidu, Bing, DuckDuckGo и Ecosia .
+
+```yaml
+services:
+  openserp:
+    image: karust/openserp:latest
+    container_name: serp
+    restart: unless-stopped
+    shm_size: 2gb
+    command: serve -l
+    ports:
+      - 7000:7000
+    environment:
+      OPENSERP_SERVER_HOST: "0.0.0.0"
+      OPENSERP_SERVER_PORT: 7000
+      OPENSERP_BAIDU_RATE_REQUESTS: 6
+      OPENSERP_BAIDU_RATE_BURST: 2
+    volumes:
+      - ./config.yaml:/usr/src/app/config.yaml:ro
 ```
 
 ## Network Stack
@@ -1510,6 +1575,9 @@ services:
 
 🔗 [Transforms Playground](https://transform.tools) ↗
 
+> [!NOTE]
+> Используется неофициальный образ [lifailon/transform](https://hub.docker.com/r/lifailon/transform), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
+
 ```yaml
 services:
   transform:
@@ -1816,9 +1884,10 @@ services:
 
 🔗 [Go Template Playground](https://repeatit.io) ↗
 
-🔗 [Helm Playground](https://helm-playground.com) ↗
-
 🔗 [Jinja2 Playground](https://www.dainiak.com/jinja2-playground) ↗
+
+> [!NOTE]
+> Используется неофициальный образ [lifailon/go-template-playground](https://hub.docker.com/r/lifailon/go-template-playground), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования. Официальный образ `ghcr.io/rytsh/repeatit` был добавлен для Issue [#9](https://github.com/rytsh/repeatit/issues/9).
 
 ```yaml
 services:
@@ -1833,6 +1902,46 @@ services:
       - 9445:8080
 ```
 
+### Helm Playground
+
+[Helm Playground](https://github.com/shipmight/helm-playground) - интерактивное веб-приложение для отладки шаблонизации Helm, включающий в себя шпаргалка по синтаксису.
+
+🔗 [Helm Playground](https://helm-playground.com) ↗
+
+> [!NOTE]
+> Используется неофициальный мультиплатформенный образ [lifailon/helm-playground](https://hub.docker.com/r/lifailon/helm-playground), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
+
+```yaml
+  helm-playground:
+    image: lifailon/helm-playground:latest
+    container_name: helm-playground
+    restart: always
+    ports:
+      - 8080:80
+```
+
+### TuxMate
+
+[TuxMate](https://github.com/abusoww/tuxmate) - формирует скрипты для автоматической установки приложений для разных дистрибутивов Linux.
+
+🔗 [TuxMate Playground](https://tuxmate.com) ↗
+
+```yaml
+services:
+  tuxmate:
+    image: ghcr.io/abusoww/tuxmate:latest
+    container_name: tuxmate
+    restart: unless-stopped
+    ports:
+      - 3080:80
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+```
+
 ### D2 Playground
 
 [D2 Playground](https://github.com/terrastruct/d2-playground) - игровая площадка для современного языка сценариев диаграмм, преобразующий текст в диаграммы.
@@ -1840,6 +1949,9 @@ services:
 🔗 [D2 Playground](https://play.d2lang.com) ↗
 
 🔗 [D2 VSCode Extension](https://github.com/terrastruct/d2-vscode) ↗
+
+> [!NOTE]
+> Используется неофициальный образ [lifailon/d2-playground](https://hub.docker.com/r/lifailon/d2-playground), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
 
 ```yaml
 services:
@@ -1880,6 +1992,8 @@ services:
 
 - [Outerbase Studio SQLite Playground](https://studio.outerbase.com/local) - веб-интерфейс для управления базами данных.
 
+- [SQLite Viewer Playground](https://sqliteviewer.app) - веб-интерфейс для управления файловыми базами данных SQLite.
+
 - [DBeaver](https://github.com/dbeaver/dbeaver)  - кросплатформенный и универсальный SQL-клиент и инструмент для работы с базами данных.
 
 - [Beekeeper Studio](https://github.com/beekeeper-studio/beekeeper-studio) - современный и простой в использовании SQL-клиент для MySQL, Postgres, SQLite, SQL Server и других баз данных для систем Linux, MacOS и Windows.
@@ -1897,6 +2011,40 @@ services:
 - [usql](https://github.com/xo/usql) - универсальный интерфейс командной строки для PostgreSQL, MySQL, Oracle Database, SQLite3, Microsoft SQL Server и многих других баз данных, включая NoSQL и нереляционные базы данных.
 
 - [sq](https://github.com/neilotoole/sq) - инструмент командной строки, обеспечивающий доступ в стиле `jq` из баз данных, а также CSV или Excel.
+
+### CloudBeaver
+
+[CloudBeaver](https://github.com/dbeaver/cloudbeaver) - веб-версий [DBeaver](https://github.com/dbeaver/dbeaver) для управления базами данных из браузера.
+
+```yaml
+services:
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    tty: true
+    stdin_open: true
+    ports:
+      - 8978:8978
+    volumes:
+      - ./cbeaver_data:/opt/cloudbeaver/workspace
+```
+
+### Bytebase
+
+[Bytebase](https://github.com/bytebase/bytebase) - инструмент DevOps и GitOps для управления базами данных и интеграцией в CI/CD - встроенная интеграция с GitHub/GitLab для рабочих процессов база данных как код и управления миграцией автоматическая миграция схем с поддержкой отката.
+
+```yaml
+services:
+  bytebase:
+    image: bytebase/bytebase:latest
+    container_name: bytebase
+    restart: unless-stopped
+    init: true
+    ports:
+      - 8980:8080
+    volumes:
+      - ./bytebase_data:/var/opt/bytebase
+```
 
 ### DBGate
 
@@ -2739,19 +2887,17 @@ services:
     image: dperson/samba
     container_name: samba
     restart: always
-    volumes:
-      - /home/lifailon:/share
+    user: root
     ports:
       - 445:445
     environment:
-      - USERID=1000
-      - GROUPID=1000
-      - SAMBA_USER=admin
-      - SAMBA_PASS=admin
-    command: |
-      -u "$${SAMBA_USER};$${SAMBA_PASS}"
-      -s "docker;/share;yes;no;no;$${SAMBA_USER};$${SAMBA_USER}"
-      -p
+      - USER=admin;admin
+      - SHARE=docker;/storage;yes;no;no;admin
+      - FORCE_USER=root
+      - FORCE_GROUP=root
+      - PERMISSIONS=true
+    volumes:
+      - /home/lifailon/docker:/storage
 ```
 
 [Samba](https://github.com/dockur/samba) - еще одна реализация запуска сервера Samba в контейнере Docker, от создателя [Windows](https://github.com/dockur/windows) и [macOS](https://github.com/dockur/macos) в Docker.
@@ -2787,12 +2933,12 @@ services:
       - /home/lifailon/docker:/backup:ro
     environment:
       - MODE=sync
-      - SYNC_SRC=/backup/homepage
-      - SYNC_DEST=backup_to_smb:/backup
+      - SYNC_SRC=/backup
+      - SYNC_DEST=plex-01:/backup
       - SYNC_OPTS=-vv --create-empty-src-dirs
       - FORCE_SYNC=1
-      - CRON=0 9,19 * * *
-      - TZ=Etc/GMT-3
+      - CRON=0 9,21 * * *
+      - TZ=Etc/UTC+3
 ```
 
 Шифруем пароль:
@@ -2802,12 +2948,43 @@ services:
 Пример конфигурации для подключения к SMB серверу:
 
 ```conf
-[backup_to_smb]
+[plex-01]
 type = smb
+domain = WORKGROUP
 host = 192.168.3.100
 user = Lifailon
 pass = PASSWORD
-domain = WORKGROUP
+```
+
+Официальный образ:
+
+```yaml
+services:
+  rclone:
+    image: mirror.gcr.io/rclone/rclone:latest
+    container_name: rclone
+    restart: always
+    volumes:
+      - ./rclone.conf:/config/rclone/rclone.conf:ro
+      - /home/lifailon/docker:/backup:ro
+    environment:
+      - TZ=Etc/UTC+3
+    entrypoint: /bin/sh
+    command: >
+      -c "
+        echo '0 9,21 * * * rclone sync /backup plex-01:/backup -vv --create-empty-src-dirs' > /tmp/crontab &&
+        crond -f -l 2 -c /tmp
+      "
+```
+
+Ручной запуск:
+
+```bash
+docker run --rm -it \
+  -v ./rclone.conf:/config/rclone/rclone.conf:ro \
+  -v /home/lifailon/docker:/backup:ro \
+  mirror.gcr.io/rclone/rclone:latest \
+  sync /backup plex-01:/backup -vv --create-empty-src-dirs
 ```
 
 ### SFTPGo
@@ -3632,6 +3809,9 @@ services:
 ### CoreDNS
 
 [CoreDNS](https://github.com/coredns/coredns) сервер с встроенным плагином [blocklist](https://github.com/relekang/coredns-blocklist).
+
+> [!NOTE]
+> Используется неофициальный образ [lifailon/coredns-blocklist](https://hub.docker.com/r/lifailon/coredns-blocklist), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
 
 ```yaml
 services:
@@ -5753,6 +5933,9 @@ customCommands:
 
 [Docker Web Manager](https://hub.docker.com/r/lifailon/docker-web-manager) - менеджер управления контекстами Docker (context manager) на базе [fzf](https://github.com/junegunn/fzf) и веб-интерфейс для [LazyDocker](https://github.com/jesseduffield/lazydocker) и [ctop](https://github.com/bcicen/ctop) на базе [ttyd](https://github.com/tsl0922/ttyd) с поддержкой авторизации.
 
+> [!NOTE]
+> Используется образ [lifailon/docker-web-manager](https://hub.docker.com/r/lifailon/docker-web-manager), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
+
 ```yaml
 services:
   docker-web-manager:
@@ -6390,12 +6573,16 @@ services:
 
 ### Docker Socket Proxy
 
-[Docker Socket Proxy](https://hub.docker.com/r/lifailon/docker-socket-proxy) - прокси сервер для локального сокета Docker на основе HAProxy (не требуется внесение изменений в системные файлы демона или службы), который поддерживает ограничение доступа к конечным точкам с использованием переменных окружения, отображение статистики соединений и метрики Prometheus.
+Docker Socket Proxy - прокси сервер для локального сокета Docker на основе HAProxy (не требуется внесение изменений в системные файлы демона или службы), который поддерживает ограничение доступа к конечным точкам с использованием переменных окружения, отображение статистики соединений и метрики Prometheus.
+
+> [!NOTE]
+> Используется образ [lifailon/docker-socket-proxy](https://hub.docker.com/r/lifailon/docker-socket-proxy), собранный для платформ `amd64` и `arm64` в репозитории [ruDocs](https://github.com/Lifailon/rudocs).
 
 ```yaml
 services:
   docker-socket-proxy:
     image: lifailon/docker-socket-proxy:amd64
+    # image: lifailon/docker-socket-proxy:arm64
     container_name: docker-socket-proxy
     restart: always
     volumes:
@@ -6972,103 +7159,66 @@ services:
 
 🔗 [Jenkins Jack VSCode Extension](https://github.com/tabeyti/jenkins-jack) ↗
 
-```yaml
-# Предварительно создать директории и предоставить права
-# mkdir -p jenkins_home && sudo chown -R 1000:1000 jenkins_home
-# mkdir -p jenkins_agent && sudo chown -R 1000:1000 jenkins_agent
+> [!NOTE]
+> Используется неофициальный образ [lifailon/jenkins-agent](https://hub.docker.com/r/lifailon/jenkins-agent), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs), в котором предустановленны некоторые DevOps утилиты.
 
+```yaml
 services:
+  # volume-permissions-update:
+  #   image: alpine
+  #   container_name: volume-permissions-update
+  #   restart: no
+  #   user: 1000:1000
+  #   volumes:
+  #     - ./jenkins_home:/var/jenkins_home
+  #     - ./jenkins_agent:/home/jenkins
+  #   command: sh -c "chown -R 1000:1000 /var/jenkins_home /home/jenkins && echo 'Volume permissions updated successfully.'"
+
   jenkins-server:
     image: jenkins/jenkins:latest
     container_name: jenkins-server
-    restart: unless-stopped
-    user: "1000:1000"
+    restart: always
+    user: 1000:1000
+    environment:
+      # Отключаем Content Security Policy (CSP) для отображения CSS стилей в отчетах HTML Publisher
+      - JAVA_OPTS=-Dhudson.model.DirectoryBrowserSupport.CSP=""
     volumes:
       - ./jenkins_home:/var/jenkins_home
     ports:
-      - "8080:8080"   # Веб-интерфейс и регистрации агентов
-      - "50000:50000" # Передача данных и выполнение сборок между Jenkins Controller и агентами
+      - 8010:8080
+      - 50000:50000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/login || exit 1"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # depends_on:
+    #   volume-permissions-update:
+    #     condition: service_completed_successfully
 
   jenkins-agent:
-    # image: jenkins/inbound-agent:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: lifailon/jenkins-agent:latest
     container_name: jenkins-agent
-    restart: unless-stopped
-    depends_on:
-      - jenkins-server
+    restart: always
+    user: 1000:1000
     environment:
-      # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins и выбрать количество исполнений ~= количеству ядер
       - JENKINS_URL=${JENKINS_SERVER_URL}
       - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
-      # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
       - JENKINS_SECRET=${JENKINS_SECRET}
-    user: "1000:1000"
     volumes:
       - ./jenkins_agent:/home/jenkins
-    labels:
-      # Отключаем автоматическое обновление образа через Watchtower (не поддерживается при использовании build из dockerfile)
-      - "com.centurylinklabs.watchtower.enable=false"
-```
-
-Dockerfile:
-
-```Dockerfile
-FROM jenkins/inbound-agent:latest
-
-USER root
-
-# Обновление и установка дополнительных пакетов
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    iputils-ping \
-    netcat-openbsd \
-    make \
-    tmux
-
-# Устанавливаем Ansible
-RUN apt-get -y install \
-    python3-pip && \
-    pip3 install --break-system-packages ansible && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Устанавливаем Go последней версии
-RUN ARCH=$(uname -m) && \
-    case "$ARCH" in \
-        "aarch64" | "arm64") ARCH="arm64" ;; \
-        "x86_64"  | "amd64") ARCH="amd64" ;; \
-    esac && \
-    LATEST_GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -1) && \
-    curl -L "https://go.dev/dl/${LATEST_GO_VERSION}.linux-${ARCH}.tar.gz" | tar -xz -C /usr/local
-
-# Добавляем Go в PATH
-ENV PATH="/usr/local/go/bin:${PATH}"
-
-# Предоставление права доступа группе jenkins на директорию для сборки
-# RUN chown -R jenkins:jenkins /home/jenkins/workspace
-RUN chown -R jenkins:jenkins /home/jenkins
-
-USER jenkins
-
-# Check versions
-RUN ansible --version && \
-    python3 --version && \
-    go version
-
-# Переменные для запуска передаются через environment (.env файл) при запуске в docker compose
-# /opt/java/openjdk/bin/java -jar /usr/share/jenkins/agent.jar -secret $JENKINS_SECRET -name $JENKINS_AGENT_NAME -url $JENKINS_URL
-ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
-```
-
-env:
-
-```ini
-JENKINS_SERVER_URL=http://jenkins-server:8080
-JENKINS_AGENT_NAME=local-agent
-JENKINS_SECRET=b040ab8fa1de3e64e77ed57d4ce45f42c843950f981f8db18a97091a94395f32
+      # Пробрасываем сокет для доступа к Docker на агенте
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Добавляем в группу Docker на хосте для доступа к сокету: getent group docker | cut -d: -f3
+    group_add:
+        - 110
+    depends_on:
+      jenkins-server:
+        condition: service_healthy
 ```
 
 ### GitLab
@@ -8947,6 +9097,9 @@ services:
 
 [Toolong](https://github.com/Textualize/toolong) - терминальное приложение (TUI) для просмотра, отслеживания, объединения и поиска по содержимому файловых журналов, а также собранный [образ](https://hub.docker.com/r/lifailon/toolong-web) с веб-интерфейсом на базе [ttyd](https://github.com/tsl0922/ttyd).
 
+> [!NOTE]
+> Используется неофициальный образ [lifailon/toolong-web](https://hub.docker.com/r/lifailon/toolong-web), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
+
 ```yaml
 services:
   toolong-web:
@@ -9432,6 +9585,9 @@ services:
 [Memos](https://github.com/usememos/memos) - сервис заметок (like Google Keep) с поддержкой синтаксиса Merkdown и интеграцией с Telegram (запись теста и файлов через бота).
 
 🔗 [Memos Demo](https://demo.usememos.com/explore) ↗
+
+> [!NOTE]
+> Для бота используется неофициальный образ [lifailon/memogram](https://hub.docker.com/r/lifailon/memogram), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
 
 ```yaml
 services:
@@ -10004,6 +10160,9 @@ services:
 ### ReClip
 
 [ReClip](https://github.com/averygan/reclip) - веб-интерфейс для загрузки видео и аудио с YouTube, TikTok, Instagram, Twitter/X и более чем 1000 других сайтов через [yt-dlp](https://github.com/yt-dlp/yt-dlp) в формате MP4 или MP3, с поддержкой выбора качества и разрешения. Фронтенд без фреймворков и этапа сборки на чистом HTML и бэкенд в одном файле Python на 150 строк.
+
+> [!NOTE]
+> Используется неофициальный образ [lifailon/reclip](https://hub.docker.com/r/lifailon/reclip), собранный в репозитории [ruDocs](https://github.com/Lifailon/rudocs) для публичного использования.
 
 ```yaml
 services:
@@ -11781,4 +11940,61 @@ services:
       - ./quizzle_data:/quizzle/data
     ports:
       - 6412:6412
+```
+
+### RomM
+
+[RomM](https://github.com/rommapp/romm) - менеджер и проигрыватель ROM-файлов, предназначенный для организации и запуска коллекций игр через эмуляторы.
+
+[Argosy Launcher](https://github.com/rommapp/argosy-launcher) - лаунчер Android с нативной интеграцией ROMM.
+
+```yaml
+services:
+  romm:
+    image: rommapp/romm:latest
+    container_name: romm
+    restart: always
+    ports:
+      - 8000:8080
+    environment:
+      - DB_HOST=romm-db
+      - DB_NAME=romm
+      - DB_USER=romm-user
+      - DB_PASSWD=romm-password
+      # openssl rand -hex 32
+      - ROMM_AUTH_SECRET_KEY=202dda04a25382fc49e6cd360d3b579d5ac86ea2c781ab5a61b8964266b0b67c
+      - SCREENSCRAPER_USER=
+      - SCREENSCRAPER_PASSWORD=
+      - RETROACHIEVEMENTS_API_KEY=
+      - STEAMGRIDDB_API_KEY=
+      - HASHEOUS_API_ENABLED=true
+    volumes:
+      - ./romm_redis_data:/redis-data
+      - ./romm/resources:/romm/resources
+      - ./romm/library:/romm/library
+      - ./romm/assets:/romm/assets
+      - ./romm/config:/romm/config
+    depends_on:
+      romm-db:
+        condition: service_healthy
+        restart: true
+
+  romm-db:
+    image: mariadb:latest
+    container_name: romm-db
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=admin
+      - MARIADB_DATABASE=romm
+      - MARIADB_USER=romm-user
+      - MARIADB_PASSWORD=romm-password
+    volumes:
+      - ./romm_db_data:/var/lib/mysql
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      start_period: 30s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
 ```
