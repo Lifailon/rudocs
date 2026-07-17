@@ -1,8 +1,14 @@
-# Предварительно создать директории и предоставить права
-# mkdir -p jenkins_home && sudo chown -R 1000:1000 jenkins_home
-# mkdir -p jenkins_agent && sudo chown -R 1000:1000 jenkins_agent
-
 services:
+  # volume-permissions-update:
+  #   image: alpine
+  #   container_name: volume-permissions-update
+  #   restart: no
+  #   user: 1000:1000
+  #   volumes:
+  #     - ./jenkins_home:/var/jenkins_home
+  #     - ./jenkins_agent:/home/jenkins
+  #   command: sh -c "chown -R 1000:1000 /var/jenkins_home /home/jenkins && echo 'Volume permissions updated successfully.'"
+
   jenkins-server:
     image: jenkins/jenkins:latest
     container_name: jenkins-server
@@ -14,29 +20,37 @@ services:
     volumes:
       - ./jenkins_home:/var/jenkins_home
     ports:
-      - 8010:8080   # Веб-интерфейс и регистрации агентов
-      - 50000:50000 # Передача данных и выполнение сборок между Jenkins Controller и агентами
+      - 8010:8080
+      - 50000:50000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/login || exit 1"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # depends_on:
+    #   volume-permissions-update:
+    #     condition: service_completed_successfully
 
   jenkins-agent:
-    image: lifailon/jenkins-agent:latest
     # build:
     #   context: .
     #   dockerfile: Dockerfile
+    image: lifailon/jenkins-agent:latest
     container_name: jenkins-agent
     restart: always
     user: 1000:1000
     environment:
-      # Указать в способе запуска подключение агента к контроллеру, каталог корневой директории /home/jenkins
       - JENKINS_URL=${JENKINS_SERVER_URL}
       - JENKINS_AGENT_NAME=${JENKINS_AGENT_NAME}
-      # Получить ключ доступа: http://192.168.3.101:8080/manage/computer
       - JENKINS_SECRET=${JENKINS_SECRET}
     volumes:
       - ./jenkins_agent:/home/jenkins
       # Пробрасываем сокет для доступа к Docker на агенте
       - /var/run/docker.sock:/var/run/docker.sock
-    # Добавить в группу Docker на хосте для доступа к сокету: getent group docker | cut -d: -f3
+    # Добавляем в группу Docker на хосте для доступа к сокету: getent group docker | cut -d: -f3
     group_add:
         - 110
     depends_on:
-      - jenkins-server
+      jenkins-server:
+        condition: service_healthy
