@@ -1,10 +1,10 @@
 # Jenkins Pipelines
 
-Коллекция универсальных Jenkins Pipeline, которые я использую в своей домашней лаборатории для автоматизации базовых задач.
+Коллекция универсальных Jenkins Pipeline, которые я использую в своей домашней лаборатории для автоматизации базовых задач по направлению DevOps.
 
 Каждый проект имеет краткое описание и скриншоты с примерами работы.
 
-Для запуска сервера и сборщика Jenkins используется стек [docker-compose](../Docker-Compose/ci-cd-stack/jenkins/docker-compose.yml).
+Для запуска сервера и сборщика Jenkins используется [docker-compose](../Docker-Compose/ci-cd-stack/jenkins/docker-compose.yml).
 
 ## Plugins
 
@@ -49,9 +49,9 @@
 | [Web Monitoring](https://plugins.jenkins.io/monitoring)                                           | Добавляет конечную точку `/monitoring` для отображения графиков мониторинга в веб-интерфейсе                                    |
 | [CloudBees Disk Usage](https://plugins.jenkins.io/cloudbees-disk-usage-simple)                    | Отображает использование диска всеми заданиями во вкладке `Manage-> Disk usage` для анализа                                     |
 
-## Node Tools
+## Jenkins Agent
 
-Агент Jenkins опубликован на [Docker Hub](https://hub.docker.com/r/lifailon/jenkins-agent), в [образе](../Docker-Compose/ci-cd-stack/jenkins/Dockerfile) которого предусмотрена установка DevOps инструментов:
+Для сбороки проектов используется Jenkins агент, в [образе](../Docker-Compose/ci-cd-stack/jenkins/Dockerfile) которого предусмотрена установка некоторых DevOps инструментов:
 
 - [ansible](https://github.com/ansible/ansible)
 - [golang](https://github.com/golang/go)
@@ -61,6 +61,9 @@
 - netcat
 - make
 - tmux
+
+> [!TIP]
+> Образ агента для платформ `amd64` и `arm64` опубликован на [Docker Hub](https://hub.docker.com/r/lifailon/jenkins-agent).
 
 Параметры подключения агента на сервере Jenkins:
 
@@ -82,9 +85,13 @@
 | [krew](https://github.com/kubernetes-sigs/krew)       | 0.5.0     |
 | [node-js](https://github.com/nodejs/node)             | 24.17.0   |
 
+Пример настройки:
+
+![](docker-ci/img/tools.jpg)
+
 ## Shared library
 
-Для работы некоторых Pipeline, требуется добавить [rudocs-shared-library](./shared-library/vars/) с пользовательскими функциями в настройках проектной области:
+Для работоспособности некоторых Pipeline, требуется добавить [rudocs-shared-library](./shared-library/vars/) с пользовательскими функциями в настройках проектной области:
 
 ![](jenkins-clean-builds/img/add-shared-library.jpg)
 
@@ -96,53 +103,18 @@
 ]) _
 ```
 
-Использование методов, на примере логера:
-
-```groovy
-// Логируем текущий шаг (в начале каждого steps внутри stage)
-log.stage()
-def version = ""
-try {
-    // Логируем произвольный текст синим цветом
-    log.info("Проверяем версию helm")
-    // Логируем вывод команды зеленым цветом и извлекаем вывод в переменную
-    version = log.cmd("helm version")
-} catch (Exception e) {
-    // Логируем предупреждения желтым цветом
-    log.warn("Ошибка получения версии")
-    // Логируем текст ошибки красным цветом
-    log.error(e.getMessage())
-}
-
-def text = '{"name": "dozzle", "enabled": true, "replicas": 2}'
-// Преобразовываем вывод в объект и логируем содержимое зеленым цветом в формате json
-def object = log.rawJson(text)
-if (object.enabled) {
-    log.success("${object.name}: ${object.enabled}")
-}
-// Преобразуем и выводим содержимое объекта в отформатированном json формате
-def data = log.objectJson(object)
-
-// Записываем содержимое в файл и выводим содержимое файла в json формате
-writeFile(
-    text: data,
-    file: "data.json"
-)
-log.fileJson("data.json")
-```
-
 ## Credentials
 
-Список используемых секретов, которые используются в проектах:
+Список секретов, которые используются в проектах:
 
-| ID                    | Pipeline                                                                          |
-| -                     | -                                                                                 |
-| `jenkins-api-cred`    | Jenkins Buckup Jobs                                                               |
-| `ssh-creds`           | Update authorized_keys                                                            |
-| `ssh-key`             | Docker CD, Parallel SSH Pipeline                                                  |
-| `docker-hub`          | Docker CI                                                                         |
-| `k3s-approle`         | Kubectl Commands Run                                                              |
-| `k3s-token`           | Helm Deploy                                                                       |
-| `kubeconfig-file`     | Helm Diff, Kustomize Deploy, Kubernetes Cluster Info, Kubernetes Manifests Backup |
-| `telegram-token`      | Jenkins Buckup Jobs, Jenkins Clean Builds, Telegram Notify                        |
-| `telegram-channel`    | Jenkins Buckup Jobs, Jenkins Clean Builds, Telegram Notify                        |
+| ID                    | Type                          |
+| -                     | -                             |
+| `jenkins-api-cred`    | `Username with password`      |
+| `ssh-creds`           | `Username with password`      |
+| `ssh-key`             | `Username with private key`   |
+| `docker-hub`          | `Username with password`      |
+| `k3s-approle`         | `Vault App Role Credential`   |
+| `k3s-token`           | `Secret text`                 |
+| `kubeconfig-file`     | `Secret file`                 |
+| `telegram-token`      | `Secret text`                 |
+| `telegram-channel`    | `Secret text`                 |
