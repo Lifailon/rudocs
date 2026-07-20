@@ -4,8 +4,16 @@ services:
     container_name: k3s-control-plane
     hostname: k3s-control-plane
     restart: always
-    command: server # --disable servicelb
+    command: server --node-ip=172.31.250.100 --node-external-ip=192.168.3.101 --tls-san=192.168.3.101 --disable servicelb
     privileged: true
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
     environment:
       - K3S_TOKEN=${K3S_TOKEN:?err}
       - K3S_KUBECONFIG_OUTPUT=/cfg/kubeconfig.yaml
@@ -23,6 +31,17 @@ services:
       - ./k3s_server_data:/var/lib/rancher/k3s
       # Get kubeconfig
       - .:/cfg
+    networks:
+      k3s_net:
+        ipv4_address: 172.31.250.100
+
+  k3s-worker-local:
+    image: rancher/k3s:latest
+    container_name: k3s-worker-local
+    hostname: k3s-worker-local
+    restart: always
+    command: agent --node-ip=172.31.250.101
+    privileged: true
     tmpfs:
       - /run
       - /var/run
@@ -31,47 +50,29 @@ services:
       nofile:
         soft: 65535
         hard: 65535
-
-  k3s-worker-01:
-    image: rancher/k3s:latest
-    container_name: k3s-worker-01
-    hostname: k3s-worker-01
-    restart: always
-    privileged: true
     environment:
       - K3S_URL=https://k3s-control-plane:6443
       # - K3S_URL=https://192.168.3.101:6443
       - K3S_TOKEN=${K3S_TOKEN:?err}
     volumes:
       - ./k3s_agent_data:/var/lib/rancher/k3s
-    tmpfs:
-      - /run
-      - /var/run
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
+    networks:
+      k3s_net:
+        ipv4_address: 172.31.250.101
 
-  # echo K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} > .env
-  # docker-compose up -d
-  # docker exec -it k3s-control-plane kubectl get nodes
-  # echo 'export KUBECONFIG=/home/lifailon/docker/k3s-stack/kubeconfig.yaml' >> ~/.bashrc && source ~/.bashrc
-  # sudo docker cp k3s-control-plane:/bin/k3s /bin/kubectl
-  # kubectl get nodes
-  # kubectl create serviceaccount devops -n kube-system
-  # kubectl create clusterrolebinding devops-role --clusterrole=cluster-admin --serviceaccount=kube-system:devops
-  # kubectl create token devops -n kube-system --duration=999999h
+networks:
+  k3s_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
 
-  rancher:
-    image: rancher/rancher:latest
-    container_name: rancher
-    restart: unless-stopped
-    privileged: true
-    volumes:
-    - ./rancher_data:/var/lib/rancher
-    ports:
-    - 3080:80
-    - 3443:443
-
-  # docker logs rancher 2>&1 | grep "Bootstrap Password:" | sed -E "s/.+\: //"
+# echo K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} > .env
+# docker-compose up -d
+# docker exec -it k3s-control-plane kubectl get nodes
+# echo 'export KUBECONFIG=/home/lifailon/docker/k3s-stack/kubeconfig.yaml' >> ~/.bashrc && source ~/.bashrc
+# sudo docker cp k3s-control-plane:/bin/k3s /bin/kubectl
+# kubectl get nodes
+# kubectl create serviceaccount devops -n kube-system
+# kubectl create clusterrolebinding devops-role --clusterrole=cluster-admin --serviceaccount=kube-system:devops
+# kubectl create token devops -n kube-system --duration=999999h

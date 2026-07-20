@@ -94,24 +94,18 @@ services:
   # Web interface for Docker Compose
   # https://github.com/louislam/dockge
   dockge:
-    image: louislam/dockge:1
-    # Fork: https://github.com/cmcooper1980/dockge
-    # image: containrrr/watchtower
+    image: louislam/dockge:1      # Original (final latest from 30.05.2025)
+    # image: cmcooper1980/dockge  # PR all merge (https://github.com/cmcooper1980/dockge)
+    # image: hamphh/dockge        # Fork (https://github.com/hamphh/dockge)
+    # image: lifailon/dockge:2    # Added filtering terminal log #966 (https://github.com/louislam/dockge/pull/966)
     container_name: dockge
     restart: always
     volumes:
       - ./dockge_data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
-      # Docker stacks directory on host:container
-      - $HOME/docker:/home/lifailon/docker
-    # Enable routing for traffic
-    # labels:
-    #   - traefik.enable=true
+      - /home/lifailon/docker:/home/lifailon/docker
     environment:
-      # Enable routing for docker-gen
-      # - VIRTUAL_HOST=dockge.local
-      - DOCKGE_STACKS_DIR=/docker
-      # Доступ к консоли dockge
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
       - 5001:5001

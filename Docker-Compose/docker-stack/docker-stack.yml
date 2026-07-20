@@ -1,17 +1,17 @@
 services:
   dockge:
-    # image: louislam/dockge:1    # Original (final latest from 30.05.2025)
-    # image: cmcooper1980/dockge  # PR merge (https://github.com/cmcooper1980/dockge)
+    image: louislam/dockge:1      # Original (final latest from 30.05.2025)
+    # image: cmcooper1980/dockge  # PR all merge (https://github.com/cmcooper1980/dockge)
     # image: hamphh/dockge        # Fork (https://github.com/hamphh/dockge)
-    image: lifailon/dockge:2      # Added filtering logs (https://github.com/louislam/dockge/pull/966)
+    # image: lifailon/dockge:2    # Added filtering terminal log #966 (https://github.com/louislam/dockge/pull/966)
     container_name: dockge
     restart: always
     volumes:
       - ./dockge_data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
-      - $HOME/docker:/docker
+      - /home/lifailon/docker:/home/lifailon/docker
     environment:
-      - DOCKGE_STACKS_DIR=/docker
+      - DOCKGE_STACKS_DIR=/home/lifailon/docker
       - DOCKGE_ENABLE_CONSOLE=true
     ports:
       - 5001:5001
