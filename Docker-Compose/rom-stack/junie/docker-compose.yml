@@ -1,0 +1,9 @@
+services:
+  junie:
+    image: namaneo/junie
+    container_name: junie
+    restart: unless-stopped
+    volumes:
+      - ./games:/junie/games
+    ports:
+      - 8008:8000

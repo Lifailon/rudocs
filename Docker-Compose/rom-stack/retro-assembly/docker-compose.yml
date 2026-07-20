@@ -1,0 +1,9 @@
+services:
+  retroassembly:
+    image: arianrhodsandlot/retroassembly
+    container_name: retroassembly
+    restart: unless-stopped
+    volumes:
+      - ./game_data:/app/data # ROMs and save states
+    ports:
+      - 8000:8000

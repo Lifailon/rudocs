@@ -1,0 +1,17 @@
+services:
+  emulator-js:
+    image: lscr.io/linuxserver/emulatorjs:1.9.2
+    container_name: emulator-js
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC+3
+      - SUBFOLDER=/
+    volumes:
+      - ./emulatorjs_config:/config
+      - ./roms:/data
+    ports:
+      - 80:80
+      - 3000:3000
+      # - 4001:4001

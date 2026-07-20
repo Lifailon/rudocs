@@ -1,7 +1,7 @@
 services:
-  romm:
+  romm-ui:
     image: rommapp/romm:latest
-    container_name: romm
+    container_name: romm-ui
     restart: always
     ports:
       - 8000:8080
@@ -12,36 +12,46 @@ services:
       - DB_PASSWD=romm-password
       # openssl rand -hex 32
       - ROMM_AUTH_SECRET_KEY=202dda04a25382fc49e6cd360d3b579d5ac86ea2c781ab5a61b8964266b0b67c
-      - SCREENSCRAPER_USER=
-      - SCREENSCRAPER_PASSWORD=
-      - RETROACHIEVEMENTS_API_KEY=
-      - STEAMGRIDDB_API_KEY=
-      - HASHEOUS_API_ENABLED=true
     volumes:
-      - ./romm_redis_data:/redis-data
-      - ./romm/resources:/romm/resources
-      - ./romm/library:/romm/library
-      - ./romm/assets:/romm/assets
-      - ./romm/config:/romm/config
+      # Redis data
+      - ./romm_data/redis:/redis-data
+      # ROMs data (e.g. library/roms/n64)
+      - ./romm_data/library:/romm/library
+      - ./romm_data/config:/romm/config
+      - ./romm_data/resources:/romm/resources
+      - ./romm_data/assets:/romm/assets
+    networks:
+      - romm_network
     depends_on:
       romm-db:
         condition: service_healthy
         restart: true
 
+  # docker exec -it romm-db mariadb -u romm-user -promm-password romm
+  # SHOW TABLES;
   romm-db:
     image: mariadb:latest
     container_name: romm-db
     restart: always
+    ports:
+      - 3306:3306
     environment:
       - MARIADB_ROOT_PASSWORD=admin
       - MARIADB_DATABASE=romm
       - MARIADB_USER=romm-user
       - MARIADB_PASSWORD=romm-password
     volumes:
-      - ./romm_db_data:/var/lib/mysql
+      - ./romm_data/db:/var/lib/mysql
+    networks:
+      - romm_network
     healthcheck:
       test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
       start_period: 30s
       start_interval: 10s
-      interval: 10s
+      interval: 5s
       timeout: 5s
+      retries: 5
+
+networks:
+  romm_network:
+    driver: bridge
