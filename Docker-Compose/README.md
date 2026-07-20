@@ -1535,6 +1535,39 @@ services:
       - 8580:8080
 ```
 
+### Open Trashmail
+
+[Open Trashmail](https://github.com/HaschekSolutions/opentrashmail) - почтовый сервер для временной электронной почты. Позволяет получать доступ к электронным письмам через веб-интерфейс, JSON API и RSS-ленту. Поддерживает настройку доменов, портов, TLS и других параметров через файл конфигурации, а также интеграцию с другими проектами через вебхуки.
+
+```yaml
+services:
+  trashmail:
+    image: hascheksolutions/opentrashmail:1
+    container_name: trashmail
+    restart: unless-stopped
+    ports:
+      - 2525:25
+      - 8080:80
+    environment:
+      - URL=http://localhost:8080
+      - DOMAINS=example.com
+      - DATEFORMAT=D.M.YYYY HH:mm
+      - SKIP_FILEPERMISSIONS=true
+      - DISCARD_UNKNOWN=false
+      - ADMIN_ENABLED=true
+      - ADMIN_PASSWORD=Admin123098
+      - PASSWORD=Admin123098
+      - ATTACHMENTS_MAX_SIZE=10000000
+      # - MAILPORT_TLS=465
+      # - TLS_CERTIFICATE=cert.pem
+      # - TLS_PRIVATE_KEY=key.pem
+      # - WEBHOOK_URL=https://example.com/webhook
+      # - ALLOWED_IPS=192.168.0.0/16,2a02:ab:cd:ef::/60
+    volumes:
+      - ./trashmail_data:/var/www/opentrashmail/data
+      - ./trashmail_logs:/var/www/opentrashmail/logs
+```
+
 ## Development Stack
 
 ### IT Tools
@@ -6769,8 +6802,16 @@ services:
     container_name: k3s-control-plane
     hostname: k3s-control-plane
     restart: always
-    command: server # --disable servicelb
+    command: server --node-ip=172.31.250.100 --node-external-ip=192.168.3.101 --tls-san=192.168.3.101 --disable servicelb
     privileged: true
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
     environment:
       - K3S_TOKEN=${K3S_TOKEN:?err}
       - K3S_KUBECONFIG_OUTPUT=/cfg/kubeconfig.yaml
@@ -6788,6 +6829,17 @@ services:
       - ./k3s_server_data:/var/lib/rancher/k3s
       # Get kubeconfig
       - .:/cfg
+    networks:
+      k3s_net:
+        ipv4_address: 172.31.250.100
+
+  k3s-worker-local:
+    image: rancher/k3s:latest
+    container_name: k3s-worker-local
+    hostname: k3s-worker-local
+    restart: always
+    command: agent --node-ip=172.31.250.101
+    privileged: true
     tmpfs:
       - /run
       - /var/run
@@ -6796,30 +6848,42 @@ services:
       nofile:
         soft: 65535
         hard: 65535
-
-  k3s-worker-01:
-    image: rancher/k3s:latest
-    container_name: k3s-worker-01
-    hostname: k3s-worker-01
-    restart: always
-    privileged: true
     environment:
       - K3S_URL=https://k3s-control-plane:6443
       # - K3S_URL=https://192.168.3.101:6443
       - K3S_TOKEN=${K3S_TOKEN:?err}
     volumes:
       - ./k3s_agent_data:/var/lib/rancher/k3s
-    tmpfs:
-      - /run
-      - /var/run
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
+    networks:
+      k3s_net:
+        ipv4_address: 172.31.250.101
+
+networks:
+  k3s_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
 ```
 
-`K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} docker-compose up -d`
+Подключение:
+
+```bash
+# Запуск стека
+echo K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} > .env
+docker-compose up -d
+docker exec -it k3s-control-plane kubectl get nodes
+
+# Экспортируем путь к конфигурации kubeconfig и копируем исполняемый файл kubectl в хостовую систему
+echo 'export KUBECONFIG=/home/lifailon/docker/k3s-stack/kubeconfig.yaml' >> ~/.bashrc && source ~/.bashrc
+sudo docker cp k3s-control-plane:/bin/k3s /bin/kubectl
+kubectl get nodes
+
+# Создаем SA с правами администратора кластера и выпускаем токен доступа
+kubectl create serviceaccount devops -n kube-system
+kubectl create clusterrolebinding devops-role --clusterrole=cluster-admin --serviceaccount=kube-system:devops
+kubectl create token devops -n kube-system --duration=999999h
+```
 
 ### Rancher
 
@@ -11864,6 +11928,72 @@ services:
     shm_size: 1gb
 ```
 
+### RomM
+
+[RomM](https://github.com/rommapp/romm) - менеджер и проигрыватель ROM-файлов, предназначенный для организации и запуска коллекций игр через эмуляторы.
+
+[Argosy Launcher](https://github.com/rommapp/argosy-launcher) - лаунчер Android с нативной интеграцией ROMM.
+
+```yaml
+services:
+  romm-ui:
+    image: rommapp/romm:latest
+    container_name: romm-ui
+    restart: always
+    ports:
+      - 8000:8080
+    environment:
+      - DB_HOST=romm-db
+      - DB_NAME=romm
+      - DB_USER=romm-user
+      - DB_PASSWD=romm-password
+      # openssl rand -hex 32
+      - ROMM_AUTH_SECRET_KEY=202dda04a25382fc49e6cd360d3b579d5ac86ea2c781ab5a61b8964266b0b67c
+    volumes:
+      # Redis data
+      - ./romm_data/redis:/redis-data
+      # ROMs data (e.g. library/roms/n64)
+      - ./romm_data/library:/romm/library
+      - ./romm_data/config:/romm/config
+      - ./romm_data/resources:/romm/resources
+      - ./romm_data/assets:/romm/assets
+    networks:
+      - romm_network
+    depends_on:
+      romm-db:
+        condition: service_healthy
+        restart: true
+
+  # docker exec -it romm-db mariadb -u romm-user -promm-password romm
+  # SHOW TABLES;
+  romm-db:
+    image: mariadb:latest
+    container_name: romm-db
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_ROOT_PASSWORD=admin
+      - MARIADB_DATABASE=romm
+      - MARIADB_USER=romm-user
+      - MARIADB_PASSWORD=romm-password
+    volumes:
+      - ./romm_data/db:/var/lib/mysql
+    networks:
+      - romm_network
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      start_period: 30s
+      start_interval: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  romm_network:
+    driver: bridge
+```
+
 ### RetroAssembly
 
 [RetroAssembly](https://github.com/arianrhodsandlot/retroassembly) - библиотека ретро-игры в браузере, с поддержку виртуального контроллера.
@@ -11888,9 +12018,9 @@ services:
 
 ```yaml
 services:
-  emulator.js:
-    image: lscr.io/linuxserver/emulatorjs:latest
-    container_name: emulator.js
+  emulator-js:
+    image: lscr.io/linuxserver/emulatorjs:1.9.2
+    container_name: emulator-js
     restart: unless-stopped
     environment:
       - PUID=1000
@@ -11908,7 +12038,7 @@ services:
 
 ### Junie
 
-[Junie](https://github.com/Namaneo/Junie) - интерфейс Libretro, работающий в браузере.
+[Junie](https://github.com/Namaneo/Junie) - интерфейс [Libretro](https://github.com/libretro), работающий в браузере.
 
 🔗 [Junie Playground](https://namaneo.github.io/Junie) ↗
 
@@ -11940,61 +12070,4 @@ services:
       - ./quizzle_data:/quizzle/data
     ports:
       - 6412:6412
-```
-
-### RomM
-
-[RomM](https://github.com/rommapp/romm) - менеджер и проигрыватель ROM-файлов, предназначенный для организации и запуска коллекций игр через эмуляторы.
-
-[Argosy Launcher](https://github.com/rommapp/argosy-launcher) - лаунчер Android с нативной интеграцией ROMM.
-
-```yaml
-services:
-  romm:
-    image: rommapp/romm:latest
-    container_name: romm
-    restart: always
-    ports:
-      - 8000:8080
-    environment:
-      - DB_HOST=romm-db
-      - DB_NAME=romm
-      - DB_USER=romm-user
-      - DB_PASSWD=romm-password
-      # openssl rand -hex 32
-      - ROMM_AUTH_SECRET_KEY=202dda04a25382fc49e6cd360d3b579d5ac86ea2c781ab5a61b8964266b0b67c
-      - SCREENSCRAPER_USER=
-      - SCREENSCRAPER_PASSWORD=
-      - RETROACHIEVEMENTS_API_KEY=
-      - STEAMGRIDDB_API_KEY=
-      - HASHEOUS_API_ENABLED=true
-    volumes:
-      - ./romm_redis_data:/redis-data
-      - ./romm/resources:/romm/resources
-      - ./romm/library:/romm/library
-      - ./romm/assets:/romm/assets
-      - ./romm/config:/romm/config
-    depends_on:
-      romm-db:
-        condition: service_healthy
-        restart: true
-
-  romm-db:
-    image: mariadb:latest
-    container_name: romm-db
-    restart: always
-    environment:
-      - MARIADB_ROOT_PASSWORD=admin
-      - MARIADB_DATABASE=romm
-      - MARIADB_USER=romm-user
-      - MARIADB_PASSWORD=romm-password
-    volumes:
-      - ./romm_db_data:/var/lib/mysql
-    healthcheck:
-      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
-      start_period: 30s
-      start_interval: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 5
 ```

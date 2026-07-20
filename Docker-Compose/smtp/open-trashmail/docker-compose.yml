@@ -1,0 +1,26 @@
+services:
+  trashmail:
+    image: hascheksolutions/opentrashmail:1
+    container_name: trashmail
+    restart: unless-stopped
+    ports:
+      - 2525:25
+      - 8080:80
+    environment:
+      - URL=http://localhost:8080
+      - DOMAINS=example.com
+      - DATEFORMAT=D.M.YYYY HH:mm
+      - SKIP_FILEPERMISSIONS=true
+      - DISCARD_UNKNOWN=false
+      - ADMIN_ENABLED=true
+      - ADMIN_PASSWORD=Admin123098
+      - PASSWORD=Admin123098
+      - ATTACHMENTS_MAX_SIZE=10000000
+      # - MAILPORT_TLS=465
+      # - TLS_CERTIFICATE=cert.pem
+      # - TLS_PRIVATE_KEY=key.pem
+      # - WEBHOOK_URL=https://example.com/webhook
+      # - ALLOWED_IPS=192.168.0.0/16,2a02:ab:cd:ef::/60
+    volumes:
+      - ./trashmail_data:/var/www/opentrashmail/data
+      - ./trashmail_logs:/var/www/opentrashmail/logs
