@@ -1,0 +1,11 @@
+name: app
+replicas: 1
+version: 1.5
+enabled: true
+env:
+  - log=debug
+args:
+  - port
+  - 80
+conf:
+  enabled: true

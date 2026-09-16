@@ -1,0 +1,46 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "args": {
+      "items": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "conf": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "env": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "name": {
+      "type": "string"
+    },
+    "replicas": {
+      "type": "integer"
+    },
+    "version": {
+      "type": "number"
+    }
+  },
+  "type": "object"
+}
