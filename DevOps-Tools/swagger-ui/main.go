@@ -62,5 +62,8 @@ func main() {
 
 	port := "8866"
 	log.Printf("Swagger Docs UI from %s started on http://127.0.0.1:%s%s", filePath, port, docsEndpoint)
-	http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		log.Println("Error starting the server:", err)
+	}
 }
