@@ -1,0 +1,234 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "app": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "additionalProperties": false,
+          "properties": {
+            "reloader.stakater.com/auto": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "config": {
+          "additionalProperties": false,
+          "properties": {
+            "TELEGRAM_API_KEY": {
+              "type": "string"
+            },
+            "TELEGRAM_CHAT_ID": {
+              "type": "string"
+            },
+            "WEB_UI_AUTH": {
+              "type": "boolean"
+            },
+            "WEB_UI_PASSWORD": {
+              "type": "string"
+            },
+            "WEB_UI_USERNAME": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "env": {
+          "additionalProperties": false,
+          "properties": {
+            "HTTPS_PROXY": {
+              "type": "string"
+            },
+            "HTTP_PROXY": {
+              "type": "string"
+            },
+            "NO_PROXY": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "image": {
+          "type": "string"
+        },
+        "imagePullPolicy": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "probes": {
+          "additionalProperties": false,
+          "properties": {
+            "liveness": {
+              "additionalProperties": false,
+              "properties": {
+                "failureThreshold": {
+                  "type": "integer"
+                },
+                "httpGet": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "port": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "initialDelaySeconds": {
+                  "type": "integer"
+                },
+                "periodSeconds": {
+                  "type": "integer"
+                },
+                "timeoutSeconds": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "replicas": {
+          "type": "integer"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "properties": {
+            "limits": {
+              "additionalProperties": false,
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "requests": {
+              "additionalProperties": false,
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "revisionCount": {
+          "type": "integer"
+        },
+        "version": {
+          "type": "string"
+        },
+        "volume": {
+          "additionalProperties": false,
+          "properties": {
+            "hostPath": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "nodeSelector": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "kubernetes.io/hostname": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "path": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "pvc": {
+              "additionalProperties": false,
+              "properties": {
+                "claimName": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "size": {
+                  "type": "string"
+                },
+                "storageClassName": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "ingress": {
+      "additionalProperties": false,
+      "properties": {
+        "className": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "host": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "service": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "additionalProperties": false,
+          "properties": {
+            "metallb.universe.tf/address-pool": {
+              "type": "string"
+            },
+            "metallb.universe.tf/loadBalancerIPs": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "nodePort": {
+          "type": "integer"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "targetPort": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "type": "object"
+}

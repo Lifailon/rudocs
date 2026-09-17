@@ -1,0 +1,78 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "app": {
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "additionalProperties": false,
+          "properties": {
+            "logJson": {
+              "type": "string"
+            },
+            "logLevel": {
+              "type": "string"
+            },
+            "scheduler": {
+              "type": "string"
+            },
+            "timezone": {
+              "type": "string"
+            },
+            "watch": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "proxy": {
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "env": {
+              "additionalProperties": false,
+              "properties": {
+                "HTTPS_PROXY": {
+                  "type": "string"
+                },
+                "HTTP_PROXY": {
+                  "type": "string"
+                },
+                "NO_PROXY": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "secrets": {
+          "additionalProperties": false,
+          "properties": {
+            "telegram": {
+              "additionalProperties": false,
+              "properties": {
+                "chatIds": {
+                  "type": "string"
+                },
+                "token": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "type": "object"
+}
