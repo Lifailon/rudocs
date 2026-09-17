@@ -1,0 +1,116 @@
+<!doctype html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Web File Editor</title>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.56.0/dev/vs/loader.js"></script>
+  <style>
+    html,
+    body,
+    #editor {
+      height: 100%;
+      margin: 0
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg)
+    }
+
+    .header {
+      height: 50px;
+      background: var(--hd);
+      color: var(--tx);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+      font-family: Consolas, monospace
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 6px
+    }
+
+    .header-actions button {
+      background: none;
+      border: none;
+      width: 38px;
+      height: 38px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, box-shadow .3s, transform .15s
+    }
+
+    .header-actions button:hover {
+      background: var(--hov);
+      transform: scale(1.1)
+    }
+
+    #editor {
+      flex: 1
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <span>Web File Editor</span>
+    <div class="header-actions">
+      <button id="theme" title="Тема">🌙</button>
+      <button id="saveBtn" title="Сохранить (Ctrl+S)">💾</button>
+    </div>
+  </div>
+  <div id="editor"></div>
+
+  <script>
+    require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.56.0/dev/vs" } });
+
+    let editor, dark = true;
+    const root = document.documentElement;
+    root.style.setProperty("--bg", "#1e1e1e");
+    root.style.setProperty("--hd", "#252526");
+    root.style.setProperty("--tx", "#d4d4d4");
+    root.style.setProperty("--hov", "rgba(255,255,255,.12)");
+
+    const saveBtn = document.getElementById("saveBtn");
+
+    document.getElementById("theme").onclick = () => {
+      dark = !dark;
+      const t = dark ? { bg: "#1e1e1e", hd: "#252526", tx: "#d4d4d4", hov: "rgba(255,255,255,.12)", theme: "vs-dark", icon: "🌙" }
+        : { bg: "#ffffff", hd: "#f3f3f3", tx: "#333333", hov: "rgba(0,0,0,.08)", theme: "vs", icon: "☀️" };
+      root.style.setProperty("--bg", t.bg); root.style.setProperty("--hd", t.hd);
+      root.style.setProperty("--tx", t.tx); root.style.setProperty("--hov", t.hov);
+      document.getElementById("theme").innerText = t.icon;
+      monaco.editor.setTheme(t.theme);
+    };
+
+    async function save() {
+      saveBtn.innerText = "⏳";
+      const res = await fetch("/api", { method: "POST", body: editor.getValue() });
+      saveBtn.innerText = res.ok ? "✅" : "❌";
+      saveBtn.style.boxShadow = `0 0 16px ${res.ok ? "#2ea04388" : "#da363388"}`;
+      setTimeout(() => { saveBtn.innerText = "💾"; saveBtn.style.boxShadow = "none"; }, 2000);
+    }
+    saveBtn.onclick = save;
+
+    require(["vs/editor/editor.main"], async () => {
+      const res = await fetch("/api");
+      const lang = res.headers.get("X-File-Lang");
+      editor = monaco.editor.create(document.getElementById("editor"), {
+        language: lang, theme: "vs-dark", minimap: { enabled: false }, fontSize: 16, wordWrap: "on", automaticLayout: true,
+      });
+      editor.setValue(await res.text());
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save);
+    });
+  </script>
+</body>
+
+</html>
