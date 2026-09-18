@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"strings"
 )
 
@@ -18,6 +21,7 @@ var colorMap = map[string]string{
 func YamlColor(yamlData string) string {
 	lineArr := strings.Split(yamlData, "\n")
 	var lineColorArr []string
+	// TODO: This is cycle in gorutine
 	for _, line := range lineArr {
 		trimSpaceLine := strings.TrimSpace(line)
 		checkVar := strings.Split(trimSpaceLine, ":")
@@ -25,14 +29,14 @@ func YamlColor(yamlData string) string {
 		// 1. Comments
 		case len(trimSpaceLine) >= 1 && trimSpaceLine[0] == '#':
 			line = colorMap["green"] + line + colorMap["reset"]
-		// 2. YAML array
+		// 2. Array
 		case len(trimSpaceLine) >= 1 && trimSpaceLine[0] == '-':
 			if len(trimSpaceLine) > 2 && trimSpaceLine[1] != ' ' {
 				line = colorMap["error"] + line + colorMap["reset"]
 			} else {
-				line = strings.Replace(line, "-", colorMap["purple"]+"-"+colorMap["reset"], 1)
+				line = strings.Replace(line, "-", colorMap["blue"]+"-"+colorMap["reset"], 1)
 			}
-		// 3. YAML variables
+		// 3. Variables
 		case len(checkVar) >= 2:
 			// 3.1. Key
 			if strings.Contains(checkVar[0], " ") {
@@ -57,6 +61,47 @@ func YamlColor(yamlData string) string {
 					}
 				}
 			}
+		}
+		// 4. Custom variables
+		if strings.Contains(line, "{{") {
+			var newLineArr []string
+			openVar := false
+			closeVar := false
+			wordArr := strings.Split(line, " ")
+			for _, word := range wordArr {
+				parseWord := strings.ReplaceAll(word, "-", "")
+				parseWord = strings.ReplaceAll(word, "$", "")
+				switch {
+				case parseWord == "{{":
+					openVar = true
+					closeVar = false
+				case parseWord == "}}":
+					openVar = false
+					closeVar = true
+				}
+				if word == "-" || parseWord == "{{" {
+					newLineArr = append(newLineArr, word)
+					continue
+				}
+				switch {
+				case openVar:
+					newLineArr = append(newLineArr, colorMap["green"]+word)
+					openVar = false
+				case closeVar:
+					newLineArr = append(newLineArr, colorMap["reset"]+word)
+					closeVar = false
+				default:
+					newLineArr = append(newLineArr, word)
+				}
+				if strings.Contains(word, ".") {
+					newLineArr[len(newLineArr)-1] = strings.ReplaceAll(word, ".", colorMap["blue"]+"."+colorMap["green"])
+				}
+			}
+			line = strings.Join(newLineArr, " ")
+			line = strings.ReplaceAll(line, "{{", colorMap["purple"]+"{{"+colorMap["reset"])
+			line = strings.ReplaceAll(line, "}}", colorMap["purple"]+"}}"+colorMap["reset"])
+			line = strings.ReplaceAll(line, "-", colorMap["blue"]+"-"+colorMap["reset"])
+			line = strings.ReplaceAll(line, "$", colorMap["blue"]+"-"+colorMap["reset"])
 		}
 		lineColorArr = append(lineColorArr, line)
 	}
@@ -87,4 +132,17 @@ func isInt(value string) bool {
 		}
 	}
 	return true
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Path to the JSON or YAML file was not provided")
+	}
+	filePath := os.Args[1]
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Fatalf("Failed to read %s file: %v", filePath, err)
+	}
+	yamlData := YamlColor(string(fileData))
+	fmt.Println(yamlData)
 }
