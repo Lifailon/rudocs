@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -146,6 +147,18 @@ func logReader(context, ctxPrefix string, args []string) {
 func main() {
 	// Получаем аргументы командной строки, исключая имя бинарника
 	args := os.Args[1:]
+
+	// Извлекаем аргумент программы
+	var contextFilter string
+	for i := 0; i < len(args); i++ {
+		if (args[i] == "--context-filter" || args[i] == "-cf") && i+1 < len(args) {
+			contextFilter = args[i+1]
+			args = append(args[:i], args[i+2:]...) // удаляем флаг и его значение
+			break
+		}
+	}
+
+	// Завершаем работает, если аргументы для kubectl не переданы
 	if len(args) == 0 {
 		os.Exit(1)
 	}
@@ -165,6 +178,14 @@ func main() {
 	maxLen := 0
 	for _, ctx := range contexts {
 		if ctx != "" {
+			// Если задан фильтр, проверяем соответствие контекста wildcard шаблону
+			if contextFilter != "" {
+				matched, err := filepath.Match(contextFilter, ctx)
+				if err != nil || !matched {
+					continue
+				}
+			}
+			// Добавляем контекст в массив
 			contextArr = append(contextArr, ctx)
 			if len(ctx) > maxLen {
 				maxLen = len(ctx)
@@ -178,7 +199,7 @@ func main() {
 	for i, ctx := range contextArr {
 		wg.Add(1)
 
-		// Запускаем отдельную горутину для работы с текущим контекстом
+		// Запускаем отдельную горутину для работы с текущем контекстом
 		// Передаем index и ctx как параметры, чтобы избежать data race в замыкании
 		go func(index int, context string) {
 			defer wg.Done()
