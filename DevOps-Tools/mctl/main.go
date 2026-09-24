@@ -31,16 +31,33 @@ func kubectl(args []string, ctxPrefix string) {
 	if err != nil {
 		return
 	}
+
+	var streamWg sync.WaitGroup
+	streamWg.Add(2)
+
 	// Параллельно и асинхронно читаем stdout и stderr, чтобы они не блокировали друг друга
-	go streamOutput(stdout, os.Stdout, ctxPrefix)
-	go streamOutput(stderr, os.Stderr, ctxPrefix)
-	// Ожидаем завершения работы вызванного процесса kubectl
+	go func() {
+		defer streamWg.Done()
+		streamOutput(stdout, os.Stdout, ctxPrefix)
+	}()
+	go func() {
+		defer streamWg.Done()
+		streamOutput(stderr, os.Stderr, ctxPrefix)
+	}()
+
+	streamWg.Wait()
 	cmd.Wait()
 }
 
 // Функция для построчного чтения потока данных (stdout или stderr)
 func streamOutput(rc io.ReadCloser, stream *os.File, ctxPrefix string) {
 	scanner := bufio.NewScanner(rc)
+
+	// Поддержка длинных строк в логах (увеличиваем буфер до 1 МБ)
+	const maxCapacity = 1024 * 1024
+	buf := make([]byte, 64*1024)
+	scanner.Buffer(buf, maxCapacity)
+
 	for scanner.Scan() {
 		fmt.Fprintf(stream, "%s%s\n", ctxPrefix, scanner.Text())
 	}
@@ -49,7 +66,7 @@ func streamOutput(rc io.ReadCloser, stream *os.File, ctxPrefix string) {
 	}
 }
 
-// Функция для проверки были ли передан флаг namespace
+// Функция для micro-оптимизации проверки флага namespace
 func isNamespaceFlag(args []string) bool {
 	for _, arg := range args {
 		if arg == "-n" || strings.HasPrefix(arg, "--namespace") || arg == "-A" || arg == "--all-namespaces" {
@@ -161,21 +178,23 @@ func main() {
 	for i, ctx := range contextArr {
 		wg.Add(1)
 
-		// Выбираем доступный цвет для текущего контекста
-		color := colors[i%len(colors)]
-
 		// Запускаем отдельную горутину для работы с текущим контекстом
-		go func(context, ctxColor string) {
+		// Передаем index и ctx как параметры, чтобы избежать data race в замыкании
+		go func(index int, context string) {
 			defer wg.Done()
+
+			// Выбираем доступный цвет для текущего контекста внутри горутины
+			color := colors[index%len(colors)]
+
 			// Формируем префикс вывода с учетом максимальной длины имени контекста
-			ctxPrefix := fmt.Sprintf("%s%-*s%s │ ", ctxColor, maxLen, context, colorReset)
+			ctxPrefix := fmt.Sprintf("%s%-*s%s │ ", color, maxLen, context, colorReset)
 			if args[0] == "logs" && !isNamespaceFlag(args) {
 				logReader(context, ctxPrefix, args)
 			} else {
 				cmdArgs := append([]string{"--context", context}, args...)
 				kubectl(cmdArgs, ctxPrefix)
 			}
-		}(ctx, color)
+		}(i, ctx)
 	}
 
 	wg.Wait()
