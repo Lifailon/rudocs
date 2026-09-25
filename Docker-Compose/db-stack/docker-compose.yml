@@ -52,13 +52,20 @@ services:
     #   FILE_con4: /home/jan/feeds.sqlite
     #   ENGINE_con4: sqlite@dbgate-plugin-sqlite
 
+  libredb-studio:
+    image: libredb/libredb-studio:latest
+    container_name: libredb-studio
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+
   # Official Web UI for Redis
   redisinsight:
     image: redis/redisinsight:latest
     container_name: redisinsight
     restart: unless-stopped
-    volumes:
-      - ./redisinsight_data:/data
+    ports:
+      - 5540:5540
     environment:
       - RI_APP_PORT=5540
       - RI_APP_HOST=0.0.0.0
@@ -66,13 +73,13 @@ services:
       - RI_FILES_LOGGER=false
       - RI_STDOUT_LOGGER=true
       - RI_DATABASE_MANAGEMENT=true
-      - RI_REDIS_HOST=
+      - RI_REDIS_HOST=redis
       - RI_REDIS_PORT=6379
       - RI_REDIS_USERNAME=default
       - RI_REDIS_PASSWORD=
       - RI_REDIS_TLS=FALSE
-    ports:
-      - 5540:5540
+    volumes:
+      - ./redisinsight_data:/data
 
   redis:
     image: redis:latest

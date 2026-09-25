@@ -43,6 +43,30 @@ services:
     volumes:
       - ./nmap_reports:/opt/xml
 
+  lan-orangutan:
+    image: ghcr.io/291-group/lan-orangutan:latest
+    container_name: lan-orangutan
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+      - NET_BIND_SERVICE
+    environment:
+      - ORANGUTAN_PORT=291
+      - TZ=UTC+3
+    volumes:
+      - ./lan_orangutan_data:/var/lib/lan-orangutan
+
+    healthcheck:
+      # A static asset over 127.0.0.1: public, always 200, and IPv4 (the server
+      # binds IPv4, and localhost can resolve to IPv6 ::1).
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:291/static/orangutan.svg"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
   # Port monitoring and discovery tool
   portracker:
     image: mostafawahied/portracker:latest
