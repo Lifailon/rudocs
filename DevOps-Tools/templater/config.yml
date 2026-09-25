@@ -1,0 +1,15 @@
+COMMON_NAME: "web.frontend.local"
+SERVER_CERT_PATH: "/opt/nginx/ssl/server.crt"
+SERVER_KEY_PATH: "/opt/nginx/ssl/server.key"
+APP_PATH: "/opt/nginx/html/web"
+API_URL: "api.backend.local"
+SET_HEADERS:
+  - "Host api.backend.local"
+  - "X-Real-IP $remote_addr"
+  - "X-Forwarded-For $proxy_add_x_forwarded_for"
+  - "X-Forwarded-Proto $scheme"
+SSL_VERIFY: true
+CLIENT_CA_TRUST_PATH: "/opt/nginx/ssl/ca.crt"
+MTSL_MODE: true
+CLIENT_CERT_PATH: "/opt/nginx/ssl/client.crt"
+CLIENT_KEY_PATH: "/opt/nginx/ssl/client.key"

@@ -1,0 +1,67 @@
+server {
+    # Берем порт из переменных окружения или выставляем 80 по умолчанию
+    listen {{- if and (.env.WEB_PORT) (.config.SERVER_CERT_PATH) }} {{ .env.WEB_PORT }} ssl
+           {{- else if .env.WEB_PORT }} {{ .env.WEB_PORT }}
+           {{- else }} 80
+           {{- end }};
+
+    server_name {{ .config.COMMON_NAME }};
+
+    ssl_certificate {{ .config.SERVER_CERT_PATH }};
+    ssl_certificate_key {{ .config.SERVER_KEY_PATH }};
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+    root {{ .config.APP_PATH }};
+    index index.html;
+
+    if ($request_method !~ ^(GET|POST)$) {
+        return 405;
+    }
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /api/ {
+        proxy_pass https://{{ .config.API_URL }}/;
+
+        # Цикл для переопределения заголовков из config
+        {{- range .config.SET_HEADERS }}
+        proxy_set_header {{ . }};
+        {{- end }}
+
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+
+        proxy_ssl_protocols TLSv1.2 TLSv1.3;
+        proxy_ssl_server_name on;
+        proxy_ssl_name {{ .config.API_URL }};
+
+        # Проверка серверного сертификата на backend
+        {{- if .config.SSL_VERIFY }}
+        proxy_ssl_verify on;
+        proxy_ssl_trusted_certificate {{ .config.CLIENT_CA_TRUST_PATH }};
+        proxy_ssl_verify_depth 2;
+        {{- else }}
+        proxy_ssl_verify off;
+        {{- end }}
+
+        # Отправка клиентского сертификата на backend для работы в режиме mTLS
+        {{- if .config.MTSL_MODE }}
+        proxy_ssl_certificate {{ .config.CLIENT_CERT_PATH }};
+        proxy_ssl_certificate_key {{ .config.CLIENT_KEY_PATH }};
+        {{- end }}
+    }
+}
