@@ -7831,6 +7831,59 @@ services:
       - ./n8n_files:/files
 ```
 
+### Ofelia
+
+[Ofelia](https://github.com/mcuadros/ofelia) - современная альтернатива классическому `cron`, разработанная специально для Docker-окружения. Умеет выполнять команды внутри уже запущенных контейнеров через Docker API (эмулируя команду `docker exec`) или запускать для задачи отдельный временный контейнер.
+
+```yaml
+services:
+  ofelia:
+    image: mcuadros/ofelia:latest
+    container_name: production_scheduler
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # Запускаем в режиме отслеживания Docker-меток
+    command: daemon --docker
+
+  # База данных Postgres с настройкой резервного копирования каждый день в 3:00
+  pg-01:
+    image: postgres:15-alpine
+    container_name: pg-01
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: admin
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.db-backup.schedule: "0 3 * * *"
+      ofelia.job-exec.db-backup.command: "pg_dump -U admin admin > /backups/backup-(date +%F).sql"
+
+  # Локальные задания на текущем контейнере
+  docker-prune-scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: docker-prune-scheduler
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers
+    command: daemon --docker
+    labels:
+      ofelia.job-local.docker-system-prune.schedule: "0 21 * * 0"
+      ofelia.job-local.docker-system-prune.command: "docker system prune -a --volumes -f"
+      ofelia.job-local.docker-builder-prune.schedule: "0 21 * * 0"
+      ofelia.job-local.docker-builder-prune.command: "docker builder prune -a -f"
+      ofelia.job-local.docker-log-archive-clean.schedule: "0 23 * * 0"
+      ofelia.job-local.docker-log-archive-clean.command: "find /var/lib/docker/containers/ -name '*-json.log.*' -mtime +7 -delete"
+      ofelia.job-local.docker-log-large-clean.schedule: "0 23 * * 0"
+      ofelia.job-local.docker-log-large-clean.command: "find /var/lib/docker/containers/ -name '*-json.log' -size +500M -exec truncate -s 0 {} \\;"
+```
+
 ### Cronicle
 
 [Cronicle](https://github.com/jhuckaby/Cronicle) - улучшенная замена Cron, написанная на Node.js для выполнения запланированных, повторяющиехся и задач по запросу с отображением статистики и просмотром логов в реальном времени.
